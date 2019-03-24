@@ -167,7 +167,7 @@ pub struct TokenAdvancement<'a> {
 
 lazy_static! {
     static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
-    static ref PATTERN_NUMBER: Regex = Regex::new(r"^(0x[0-9A-Fa-f]+|(\.\d+)|\d+(\.\d+)?)").unwrap();
+    static ref PATTERN_NUMBER: Regex = Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
     static ref PATTERN_SINGLE_LINE_COMMENT: Regex = Regex::new(r"--(.+)").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
