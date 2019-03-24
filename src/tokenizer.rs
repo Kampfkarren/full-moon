@@ -1,9 +1,92 @@
 use lazy_static::lazy_static;
-use regex::Regex;
+use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt;
+use std::str::FromStr;
+
+macro_rules! symbols {
+    ($($ident:ident => $string:tt,)+) => {
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        pub enum Symbol {
+            $(
+                #[cfg_attr(feature = "serde", serde(rename = $string))]
+                $ident,
+            )+
+        }
+
+        impl<'a> fmt::Display for Symbol {
+            fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                match *self {
+                    $(Symbol::$ident => $string,)+
+                }
+                .fmt(formatter)
+            }
+        }
+
+        impl FromStr for Symbol {
+            type Err = ();
+
+            fn from_str(string: &str) -> Result<Self, Self::Err> {
+                Ok(match string {
+                    $($string => Symbol::$ident,)+
+                    _ => Err(())?,
+                })
+            }
+        }
+
+        lazy_static! {
+            static ref PATTERN_SYMBOL: Regex = Regex::new(
+                &vec![$($string,)+]
+                    .iter()
+                    .map(|x| regex::escape(&x.to_string()))
+                    .collect::<Vec<_>>()
+                    .join("|")
+            ).unwrap();
+        }
+    };
+}
+
+symbols!(
+    And => "and",
+    Do => "do",
+    Else => "else",
+    ElseIf => "elseif",
+    End => "end",
+    False => "false",
+    For => "for",
+    Function => "function",
+    If => "if",
+    In => "in",
+    Local => "local",
+    Nil => "nil",
+    Not => "not",
+    Or => "or",
+    Repeat => "repeat",
+    Then => "then",
+    True => "true",
+    Until => "until",
+    While => "while",
+
+    Caret => "^",
+    Dot => ".",
+    Equal => "=",
+    Hash => "#",
+    LeftBrace => "{",
+    LeftBracket => "[",
+    LeftParen => "(",
+    Minus => "-",
+    Plus => "+",
+    RightBrace => "}",
+    RightBracket => "]",
+    RightParen => ")",
+    Slash => "/",
+    Star => "*",
+    TwoDots => "..",
+    TwoEqual => "==",
+);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -20,9 +103,18 @@ pub enum TokenType<'a> {
         identifier: Cow<'a, str>,
     },
 
+    Number {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        text: Cow<'a, str>,
+    },
+
     SingleLineComment {
         #[cfg_attr(feature = "serde", serde(borrow))]
         comment: Cow<'a, str>,
+    },
+
+    Symbol {
+        symbol: Symbol,
     },
 
     Whitespace {
@@ -45,8 +137,10 @@ impl<'a> fmt::Display for Token<'a> {
         use self::TokenType::*;
 
         match &self.token_type {
+            Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
             SingleLineComment { comment } => format!("--{}", comment),
+            Symbol { symbol } => symbol.to_string(),
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
@@ -68,24 +162,23 @@ pub struct TokenAdvancement<'a> {
 }
 
 lazy_static! {
-    static ref PATTERN_SINGLE_LINE_COMMENT: Regex = Regex::new(r"--(.+)").unwrap();
     static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
+    static ref PATTERN_NUMBER: Regex = Regex::new(r"^(0x[0-9A-Fa-f]+|(\.\d+)|\d+(\.\d+)?)").unwrap();
+    static ref PATTERN_SINGLE_LINE_COMMENT: Regex = Regex::new(r"--(.+)").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerError>;
 
 macro_rules! advance_regex {
-    ($code:ident, $regex:ident, $token_type:ident.$field:ident) => {
-        if let Some(find) = $regex.find($code) {
-            if find.start() != 0 {
+    ($code:ident, $regex:ident, $token_type:ident($find:ident) $block:tt) => {
+        if let Some($find) = $regex.find($code) {
+            if $find.start() != 0 {
                 Ok(None)
             } else {
                 Ok(Some(TokenAdvancement {
-                    advance: find.end() - find.start(),
-                    token_type: TokenType::$token_type {
-                        $field: Cow::from(find.as_str()),
-                    },
+                    advance: $find.end() - $find.start(),
+                    token_type: TokenType::$token_type $block,
                 }))
             }
         } else {
@@ -111,13 +204,29 @@ fn advance_comment(code: &str) -> Advancement {
     Ok(None)
 }
 
+fn advance_number(code: &str) -> Advancement {
+    advance_regex!(code, PATTERN_NUMBER, Number(find) {
+        text: Cow::from(find.as_str()),
+    })
+}
+
 fn advance_identifier(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_IDENTIFIER, Identifier.identifier)
+    advance_regex!(code, PATTERN_IDENTIFIER, Identifier(find) {
+        identifier: Cow::from(find.as_str()),
+    })
+}
+
+fn advance_symbol(code: &str) -> Advancement {
+    advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
+        symbol: Symbol::from_str(find.as_str()).unwrap(),
+    })
 }
 
 // Keep finding whitespace until the line ends
 fn advance_whitespace(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_WHITESPACE, Whitespace.characters)
+    advance_regex!(code, PATTERN_WHITESPACE, Whitespace(find) {
+        characters: Cow::from(find.as_str()),
+    })
 }
 
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
@@ -158,6 +267,8 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     while code.len() > position.bytes {
         advance!(advance_whitespace);
         advance!(advance_comment);
+        advance!(advance_number);
+        advance!(advance_symbol);
         advance!(advance_identifier);
 
         return Err(TokenizerError::UnexpectedToken(
@@ -210,6 +321,29 @@ mod tests {
     }
 
     #[test]
+    fn test_advance_numbers() {
+        test_advancer!(
+            advance_number("213"),
+            Ok(Some(TokenAdvancement {
+                advance: 3,
+                token_type: TokenType::Number {
+                    text: Cow::from("213"),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_number("123.45"),
+            Ok(Some(TokenAdvancement {
+                advance: 6,
+                token_type: TokenType::Number {
+                    text: Cow::from("123.45"),
+                },
+            }))
+        );
+    }
+
+    #[test]
     fn test_advance_identifier() {
         test_advancer!(
             advance_identifier("hello"),
@@ -242,6 +376,19 @@ mod tests {
         );
 
         test_advancer!(advance_identifier("123"), Ok(None));
+    }
+
+    #[test]
+    fn test_advance_symbols() {
+        test_advancer!(
+            advance_symbol("local"),
+            Ok(Some(TokenAdvancement {
+                advance: 5,
+                token_type: TokenType::Symbol {
+                    symbol: Symbol::Local
+                },
+            }))
+        );
     }
 
     #[test]
