@@ -71,7 +71,10 @@ symbols!(
     While => "while",
 
     Caret => "^",
+    Colon => ":",
+    Comma => ",",
     Dot => ".",
+    Ellipse => "...",
     Equal => "=",
     Hash => "#",
     LeftBrace => "{",
@@ -82,6 +85,7 @@ symbols!(
     RightBrace => "}",
     RightBracket => "]",
     RightParen => ")",
+    Semicolon => ";",
     Slash => "/",
     Star => "*",
     TwoDots => "..",
