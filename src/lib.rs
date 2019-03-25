@@ -5,14 +5,9 @@ pub mod tokenizer;
 compile_error!("Serde feature must be enabled for tests");
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Error {
-    AstError(ast::AstError),
+pub enum Error<'a> {
+    AstError(ast::AstError<'a>),
     TokenizerError(tokenizer::TokenizerError),
-}
-
-pub fn parse(code: &str) -> Result<ast::Ast, Error> {
-    let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
-    Ok(ast::Ast { tokens })
 }
 
 pub fn print(ast: &ast::Ast) -> String {

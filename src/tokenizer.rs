@@ -102,6 +102,8 @@ pub enum TokenizerError {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum TokenType<'a> {
+    Eof,
+
     Identifier {
         #[cfg_attr(feature = "serde", serde(borrow))]
         identifier: Cow<'a, str>,
@@ -127,6 +129,15 @@ pub enum TokenType<'a> {
     },
 }
 
+impl<'a> TokenType<'a> {
+    pub fn ignore(&self) -> bool {
+        match self {
+            TokenType::SingleLineComment { .. } | TokenType::Whitespace { .. } => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
@@ -141,6 +152,7 @@ impl<'a> fmt::Display for Token<'a> {
         use self::TokenType::*;
 
         match &self.token_type {
+            Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
             SingleLineComment { comment } => format!("--{}", comment),
@@ -167,7 +179,8 @@ pub struct TokenAdvancement<'a> {
 
 lazy_static! {
     static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
-    static ref PATTERN_NUMBER: Regex = Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
+    static ref PATTERN_NUMBER: Regex =
+        Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
     static ref PATTERN_SINGLE_LINE_COMMENT: Regex = Regex::new(r"--(.+)").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
@@ -281,6 +294,12 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                 .expect("text overflow while giving unexpected token error"),
         ));
     }
+
+    tokens.push(Token {
+        start_position: position,
+        end_position: position,
+        token_type: TokenType::Eof,
+    });
 
     Ok(tokens)
 }
