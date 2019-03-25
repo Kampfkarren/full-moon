@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 default = ["serde"]
+no-source-tests = []
 
 [dependencies]
 lazy_static = "1.3"

@@ -1,1 +1,3 @@
-local x, y = 1, 2
+local a, b = 1, 2
+local c, d = 3, 4
+local e, f = 5, 6

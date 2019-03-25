@@ -7,6 +7,7 @@ use std::fs::{self, File};
 use std::io::Write;
 
 #[test]
+#[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     for entry in fs::read_dir("./tests/cases/pass").expect("couldn't read directory") {
         let entry = entry.unwrap();
@@ -35,6 +36,21 @@ fn test_pass_cases() {
             nodes,
             tokens: &tokens,
         };
+
+        let ast_path = path.join("ast.json");
+        if let Ok(ast_file) = fs::read_to_string(&ast_path) {
+            let expected_ast =
+                serde_json::from_str(&ast_file).expect("couldn't deserialize ast file");
+            assert_eq!(ast.nodes, expected_ast);
+        } else {
+            let mut file = File::create(&ast_path).expect("couldn't write ast file");
+            file.write_all(
+                serde_json::to_string_pretty(&ast.nodes)
+                    .expect("couldn't serialize")
+                    .as_bytes(),
+            )
+            .expect("couldn't write to ast file");
+        }
 
         assert_eq!(print(&ast), source);
     }
