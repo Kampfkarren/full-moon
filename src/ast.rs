@@ -235,12 +235,14 @@ pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Assignment(Assignment<'a>),
     LocalAssignment(LocalAssignment<'a>),
+    FunctionCall(FunctionCall<'a>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseStmt;
 define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseAssignment => Stmt::Assignment,
+    ParseFunctionCall => Stmt::FunctionCall,
     ParseLocalAssignment => Stmt::LocalAssignment,
 }));
 
@@ -374,9 +376,7 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Index(_)) = suffixes.last() {
-        Some((state, VarExpression {
-            prefix, suffixes,
-        }))
+        Some((state, VarExpression { prefix, suffixes }))
     } else {
         None
     }
@@ -449,6 +449,27 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
             expr_list,
         },
     ))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct FunctionCall<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub prefix: Prefix<'a>,
+    pub suffixes: Vec<Suffix<'a>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseFunctionCall;
+define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
+    let (state, prefix) = ParsePrefix.parse(state)?;
+    let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
+
+    if let Some(Suffix::Call(_)) = suffixes.last() {
+        Some((state, FunctionCall { prefix, suffixes }))
+    } else {
+        None
+    }
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]
