@@ -98,12 +98,10 @@ where
             if let Some((new_state, node)) = self.0.parse(state) {
                 state = new_state;
                 nodes.push(node);
+            } else if self.2 {
+                break;
             } else {
-                if self.2 {
-                    break;
-                } else {
-                    return None;
-                }
+                return None;
             }
         }
 
@@ -134,12 +132,10 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
             if let Some((new_state, node)) = self.0.parse(state) {
                 state = new_state;
                 nodes.push(node);
+            } else if self.2 {
+                break;
             } else {
-                if self.2 {
-                    break;
-                } else {
-                    return None;
-                }
+                return None;
             }
         }
 
@@ -251,12 +247,12 @@ pub enum Var<'a> {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseVar;
-define_parser!(ParseVar, Var<'a>, |_, state| {
-    if let Some((state, name)) = ParseIdentifier.parse(state) {
-        Some((state, Var::Name(name)))
-    } else {
-        None
-    }
+define_parser!(ParseVar, Var<'a>, |_, state| if let Some((state, name)) =
+    ParseIdentifier.parse(state)
+{
+    Some((state, Var::Name(name)))
+} else {
+    None
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -270,10 +266,10 @@ pub struct Assignment<'a> {
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseAssignment;
 define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
-    let (state, var_list) =
-        OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, var_list) = OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, expr_list) = OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, expr_list) =
+        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
 
     Some((
         state,
@@ -337,11 +333,16 @@ pub struct Ast<'a> {
     pub tokens: &'a [Token<'a>],
 }
 
-pub fn nodes<'a>(tokens: &'a Vec<Token<'a>>) -> Result<Block<'a>, AstError<'a>> {
+pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
     if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
         Err(AstError::NoEof)
     } else {
-        if tokens.iter().filter(|token| !token.token_type.ignore()).count() == 1 {
+        if tokens
+            .iter()
+            .filter(|token| !token.token_type.ignore())
+            .count()
+            == 1
+        {
             // Entirely comments/whitespace
             return Ok(Block { stmts: Vec::new() });
         }
