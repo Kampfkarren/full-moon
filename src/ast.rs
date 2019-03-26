@@ -49,6 +49,18 @@ macro_rules! define_parser {
     };
 }
 
+macro_rules! parse_first_of {
+    ($state:ident, {$($parser:expr => $constructor:expr,)+}) => ({
+        $(
+            if let Some((state, node)) = $parser.parse($state) {
+                return Some((state, $constructor(node.into())));
+            }
+        )+
+
+        None
+    });
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct ZeroOrMore<P>(P);
 
@@ -188,7 +200,8 @@ define_parser!(ParseBlock, Block<'a>, |_, state| {
 pub enum Expression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Number(Token<'a>),
-    Token(Token<'a>),
+    Symbol(Token<'a>),
+    Var(Box<Var<'a>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -205,11 +218,13 @@ define_parser!(
             }
             TokenType::Symbol { symbol } => match symbol {
                 Symbol::Ellipse | Symbol::False | Symbol::True | Symbol::Nil => {
-                    Some((state.advance()?, Expression::Number(next_token.clone())))
+                    Some((state.advance()?, Expression::Symbol(next_token.clone())))
                 }
                 _ => None,
             },
-            _ => None,
+            _ => parse_first_of!(state, {
+                ParseVar => Expression::Var,
+            }),
         }
     }
 );
@@ -224,36 +239,163 @@ pub enum Stmt<'a> {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseStmt;
-define_parser!(ParseStmt, Stmt<'a>, |_, state| {
-    macro_rules! try_stmt {
-        ($parser:ident, $type:ident) => {
-            if let Some((state, stmt)) = $parser.parse(state) {
-                return Some((state, Stmt::$type(stmt)));
-            }
-        };
-    };
+define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
+    ParseAssignment => Stmt::Assignment,
+    ParseLocalAssignment => Stmt::LocalAssignment,
+}));
 
-    try_stmt!(ParseAssignment, Assignment);
-    try_stmt!(ParseLocalAssignment, LocalAssignment);
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Prefix<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Expression(Expression<'a>),
+    Name(Token<'a>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+struct ParsePrefix;
+define_parser!(
+    ParsePrefix,
+    Prefix<'a>,
+    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+        let (state, expression) = ParseExpression.parse(state)?;
+        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+        Some((state, Prefix::Expression(expression)))
+    } else if let Some((state, name)) = ParseIdentifier.parse(state) {
+        Some((state, Prefix::Name(name)))
+    } else {
+        None
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Index<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Brackets(Expression<'a>),
+    Dot(Token<'a>),
+}
+
+struct ParseIndex;
+define_parser!(ParseIndex, Index<'a>, |_, state| if let Some((state, _)) =
+    ParseSymbol(Symbol::LeftBracket).parse(state)
+{
+    let (state, expression) = ParseExpression.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
+    Some((state, Index::Brackets(expression)))
+} else if let Some((state, _)) = ParseSymbol(Symbol::Dot).parse(state) {
+    let (state, name) = ParseIdentifier.parse(state)?;
+    Some((state, Index::Dot(name)))
+} else {
     None
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum FunctionArgs<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Parentheses(Vec<Expression<'a>>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseFunctionArgs;
+define_parser!(
+    ParseFunctionArgs,
+    FunctionArgs<'a>,
+    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+        let (state, expr_list) =
+            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+        Some((state, FunctionArgs::Parentheses(expr_list)))
+    } else {
+        None
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct MethodCall<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub name: Token<'a>,
+    pub args: FunctionArgs<'a>,
+}
+
+struct ParseMethodCall;
+define_parser!(ParseMethodCall, MethodCall<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Colon).parse(state)?;
+    let (state, name) = ParseIdentifier.parse(state)?;
+    let (state, args) = ParseFunctionArgs.parse(state)?;
+    Some((state, MethodCall { name, args }))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Call<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    AnonymousCall(FunctionArgs<'a>),
+    MethodCall(MethodCall<'a>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseCall;
+define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
+    ParseFunctionArgs => Call::AnonymousCall,
+    ParseMethodCall => Call::MethodCall,
+}));
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Suffix<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Call(Call<'a>),
+    Index(Index<'a>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseSuffix;
+define_parser!(ParseSuffix, Suffix<'a>, |_, state| parse_first_of!(state, {
+    ParseCall => Suffix::Call,
+    ParseIndex => Suffix::Index,
+}));
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct VarExpression<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    prefix: Prefix<'a>,
+    suffixes: Vec<Suffix<'a>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseVarExpression;
+define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
+    let (state, prefix) = ParsePrefix.parse(state)?;
+    let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
+
+    if let Some(Suffix::Index(_)) = suffixes.last() {
+        Some((state, VarExpression {
+            prefix, suffixes,
+        }))
+    } else {
+        None
+    }
 });
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    Expression(VarExpression<'a>),
     Name(Token<'a>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseVar;
-define_parser!(ParseVar, Var<'a>, |_, state| if let Some((state, name)) =
-    ParseIdentifier.parse(state)
-{
-    Some((state, Var::Name(name)))
-} else {
-    None
-});
+define_parser!(ParseVar, Var<'a>, |_, state| parse_first_of!(state, {
+    ParseVarExpression => Var::Expression,
+    ParseIdentifier => Var::Name,
+}));
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
