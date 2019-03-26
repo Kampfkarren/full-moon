@@ -42,40 +42,46 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 7,
-                "character": 8,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 8,
-                "character": 9,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "1"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 7,
+                  "character": 8,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 8,
+                  "character": 9,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "1"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 10,
-                "character": 11,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 11,
-                "character": 12,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "2"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 11,
+                  "character": 12,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "2"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }

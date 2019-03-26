@@ -103,70 +103,79 @@
                 {
                   "Index": {
                     "Brackets": {
-                      "Var": {
-                        "Name": {
-                          "start_position": {
-                            "bytes": 62,
-                            "character": 13,
-                            "line": 2
-                          },
-                          "end_position": {
-                            "bytes": 63,
-                            "character": 14,
-                            "line": 2
-                          },
-                          "token_type": {
-                            "type": "Identifier",
-                            "identifier": "f"
+                      "value": {
+                        "Var": {
+                          "Name": {
+                            "start_position": {
+                              "bytes": 62,
+                              "character": 13,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 63,
+                              "character": 14,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "f"
+                            }
                           }
                         }
-                      }
+                      },
+                      "binop": null
                     }
                   }
                 },
                 {
                   "Index": {
                     "Brackets": {
-                      "Var": {
-                        "Name": {
-                          "start_position": {
-                            "bytes": 65,
-                            "character": 16,
-                            "line": 2
-                          },
-                          "end_position": {
-                            "bytes": 66,
-                            "character": 17,
-                            "line": 2
-                          },
-                          "token_type": {
-                            "type": "Identifier",
-                            "identifier": "g"
+                      "value": {
+                        "Var": {
+                          "Name": {
+                            "start_position": {
+                              "bytes": 65,
+                              "character": 16,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 66,
+                              "character": 17,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "g"
+                            }
                           }
                         }
-                      }
+                      },
+                      "binop": null
                     }
                   }
                 },
                 {
                   "Index": {
                     "Brackets": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 68,
-                          "character": 19,
-                          "line": 2
-                        },
-                        "end_position": {
-                          "bytes": 69,
-                          "character": 20,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "1"
+                      "value": {
+                        "Number": {
+                          "start_position": {
+                            "bytes": 68,
+                            "character": 19,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 69,
+                            "character": 20,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "1"
+                          }
                         }
-                      }
+                      },
+                      "binop": null
                     }
                   }
                 }
@@ -242,24 +251,27 @@
                 {
                   "Index": {
                     "Brackets": {
-                      "Var": {
-                        "Name": {
-                          "start_position": {
-                            "bytes": 80,
-                            "character": 31,
-                            "line": 2
-                          },
-                          "end_position": {
-                            "bytes": 81,
-                            "character": 32,
-                            "line": 2
-                          },
-                          "token_type": {
-                            "type": "Identifier",
-                            "identifier": "k"
+                      "value": {
+                        "Var": {
+                          "Name": {
+                            "start_position": {
+                              "bytes": 80,
+                              "character": 31,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 81,
+                              "character": 32,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "k"
+                            }
                           }
                         }
-                      }
+                      },
+                      "binop": null
                     }
                   }
                 },
@@ -291,24 +303,27 @@
                 {
                   "Index": {
                     "Brackets": {
-                      "Var": {
-                        "Name": {
-                          "start_position": {
-                            "bytes": 87,
-                            "character": 38,
-                            "line": 2
-                          },
-                          "end_position": {
-                            "bytes": 88,
-                            "character": 39,
-                            "line": 2
-                          },
-                          "token_type": {
-                            "type": "Identifier",
-                            "identifier": "m"
+                      "value": {
+                        "Var": {
+                          "Name": {
+                            "start_position": {
+                              "bytes": 87,
+                              "character": 38,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 88,
+                              "character": 39,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "m"
+                            }
                           }
                         }
-                      }
+                      },
+                      "binop": null
                     }
                   }
                 }
@@ -318,76 +333,88 @@
         ],
         "expr_list": [
           {
-            "Symbol": {
-              "start_position": {
-                "bytes": 92,
-                "character": 43,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 96,
-                "character": 47,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Symbol",
-                "symbol": "true"
+            "value": {
+              "Symbol": {
+                "start_position": {
+                  "bytes": 92,
+                  "character": 43,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 96,
+                  "character": 47,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "true"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Symbol": {
-              "start_position": {
-                "bytes": 98,
-                "character": 49,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 103,
-                "character": 54,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Symbol",
-                "symbol": "false"
+            "value": {
+              "Symbol": {
+                "start_position": {
+                  "bytes": 98,
+                  "character": 49,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 103,
+                  "character": 54,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "false"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 105,
-                "character": 56,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 106,
-                "character": 57,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "1"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 105,
+                  "character": 56,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 106,
+                  "character": 57,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "1"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 108,
-                "character": 59,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 109,
-                "character": 60,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "4"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 108,
+                  "character": 59,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 109,
+                  "character": 60,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "4"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }

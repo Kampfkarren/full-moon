@@ -57,22 +57,25 @@
               "AnonymousCall": {
                 "Parentheses": [
                   {
-                    "Number": {
-                      "start_position": {
-                        "bytes": 13,
-                        "character": 6,
-                        "line": 2
-                      },
-                      "end_position": {
-                        "bytes": 14,
-                        "character": 7,
-                        "line": 2
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "1"
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 13,
+                          "character": 6,
+                          "line": 2
+                        },
+                        "end_position": {
+                          "bytes": 14,
+                          "character": 7,
+                          "line": 2
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
                       }
-                    }
+                    },
+                    "binop": null
                   }
                 ]
               }
@@ -107,40 +110,46 @@
               "AnonymousCall": {
                 "Parentheses": [
                   {
-                    "Number": {
-                      "start_position": {
-                        "bytes": 22,
-                        "character": 6,
-                        "line": 3
-                      },
-                      "end_position": {
-                        "bytes": 23,
-                        "character": 7,
-                        "line": 3
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "1"
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 22,
+                          "character": 6,
+                          "line": 3
+                        },
+                        "end_position": {
+                          "bytes": 23,
+                          "character": 7,
+                          "line": 3
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
                       }
-                    }
+                    },
+                    "binop": null
                   },
                   {
-                    "Number": {
-                      "start_position": {
-                        "bytes": 25,
-                        "character": 9,
-                        "line": 3
-                      },
-                      "end_position": {
-                        "bytes": 26,
-                        "character": 10,
-                        "line": 3
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "2"
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 25,
+                          "character": 9,
+                          "line": 3
+                        },
+                        "end_position": {
+                          "bytes": 26,
+                          "character": 10,
+                          "line": 3
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "2"
+                        }
                       }
-                    }
+                    },
+                    "binop": null
                   }
                 ]
               }

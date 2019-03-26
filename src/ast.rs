@@ -197,7 +197,33 @@ define_parser!(ParseBlock, Block<'a>, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub enum Expression<'a> {
+pub struct Expression<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub value: Value<'a>,
+    pub binop: Option<(BinOp<'a>, Box<Expression<'a>>)>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseExpression;
+define_parser!(ParseExpression, Expression<'a>, |_, state| {
+    let (state, value) = ParseValue.parse(state)?;
+
+    let (state, binop) = if let Some((state, binop)) = ParseBinOp.parse(state) {
+        let (state, expression) = ParseExpression.parse(state)?;
+        (state, Some((binop, Box::new(expression))))
+    } else {
+        (state, None)
+    };
+
+    Some((state, Expression {
+        value,
+        binop,
+    }))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Number(Token<'a>),
     String(Token<'a>),
@@ -206,28 +232,28 @@ pub enum Expression<'a> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseExpression;
+struct ParseValue;
 define_parser!(
-    ParseExpression,
-    Expression<'a>,
+    ParseValue,
+    Value<'a>,
     |_, state: ParserState<'a>| {
         let next_token = state.peek()?;
         match &next_token.token_type {
             // TODO: remove clone
             TokenType::Number { .. } => {
-                Some((state.advance()?, Expression::Number(next_token.clone())))
+                Some((state.advance()?, Value::Number(next_token.clone())))
             }
             TokenType::Symbol { symbol } => match symbol {
                 Symbol::Ellipse | Symbol::False | Symbol::True | Symbol::Nil => {
-                    Some((state.advance()?, Expression::Symbol(next_token.clone())))
+                    Some((state.advance()?, Value::Symbol(next_token.clone())))
                 }
                 _ => None,
             },
             TokenType::StringLiteral { .. } => {
-                Some((state.advance()?, Expression::String(next_token.clone())))
+                Some((state.advance()?, Value::String(next_token.clone())))
             }
             _ => parse_first_of!(state, {
-                ParseVar => Expression::Var,
+                ParseVar => Value::Var,
             }),
         }
     }
@@ -531,6 +557,50 @@ define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
     }
 });
 
+macro_rules! make_bin_op {
+    ($($binop:ident,)+) => {
+        #[derive(Clone, Debug, PartialEq)]
+        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        pub enum BinOp<'a> {
+            #[cfg_attr(feature = "serde", serde(borrow))]
+            $(
+                $binop(Token<'a>),
+            )+
+        }
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseBinOp;
+        define_parser!(ParseBinOp, BinOp<'a>, |_, state| {
+            $(
+                if let Some((state, _)) = ParseSymbol(Symbol::$binop).parse(state) {
+                    // TODO: remove clone()
+                    return Some((state, BinOp::$binop(state.peek()?.clone())))
+                }
+            )+
+
+            None
+        });
+    };
+}
+
+make_bin_op!(
+    And,
+    Caret,
+    GreaterThan,
+    GreaterThanEqual,
+    LessThan,
+    LessThanEqual,
+    Minus,
+    Or,
+    Percent,
+    Plus,
+    Slash,
+    Star,
+    TildeEqual,
+    TwoDots,
+    TwoEqual,
+);
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum AstError<'a> {
     NoEof,
@@ -650,7 +720,7 @@ mod tests {
         let (state, commas) =
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
                 .parse(state)
-                .unwrap();
+                .expect("OneOrMore failed");
 
         assert_eq!(
             state,

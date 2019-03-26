@@ -1,0 +1,473 @@
+{
+  "stmts": [
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 4,
+              "character": 5,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 5,
+                          "character": 6,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 6,
+                          "character": 7,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
+                      }
+                    },
+                    "binop": [
+                      {
+                        "LessThan": {
+                          "start_position": {
+                            "bytes": 9,
+                            "character": 10,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 10,
+                            "character": 11,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "2"
+                          }
+                        }
+                      },
+                      {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 9,
+                              "character": 10,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 10,
+                              "character": 11,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "2"
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 13,
+              "character": 1,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 17,
+              "character": 5,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 18,
+                          "character": 6,
+                          "line": 2
+                        },
+                        "end_position": {
+                          "bytes": 19,
+                          "character": 7,
+                          "line": 2
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
+                      }
+                    },
+                    "binop": [
+                      {
+                        "LessThanEqual": {
+                          "start_position": {
+                            "bytes": 23,
+                            "character": 11,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 24,
+                            "character": 12,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "2"
+                          }
+                        }
+                      },
+                      {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 23,
+                              "character": 11,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 24,
+                              "character": 12,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "2"
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 27,
+              "character": 1,
+              "line": 3
+            },
+            "end_position": {
+              "bytes": 31,
+              "character": 5,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 32,
+                          "character": 6,
+                          "line": 3
+                        },
+                        "end_position": {
+                          "bytes": 33,
+                          "character": 7,
+                          "line": 3
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "2"
+                        }
+                      }
+                    },
+                    "binop": [
+                      {
+                        "GreaterThan": {
+                          "start_position": {
+                            "bytes": 36,
+                            "character": 10,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 37,
+                            "character": 11,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "1"
+                          }
+                        }
+                      },
+                      {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 36,
+                              "character": 10,
+                              "line": 3
+                            },
+                            "end_position": {
+                              "bytes": 37,
+                              "character": 11,
+                              "line": 3
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "1"
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 40,
+              "character": 1,
+              "line": 4
+            },
+            "end_position": {
+              "bytes": 44,
+              "character": 5,
+              "line": 4
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 45,
+                          "character": 6,
+                          "line": 4
+                        },
+                        "end_position": {
+                          "bytes": 46,
+                          "character": 7,
+                          "line": 4
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "2"
+                        }
+                      }
+                    },
+                    "binop": [
+                      {
+                        "GreaterThanEqual": {
+                          "start_position": {
+                            "bytes": 50,
+                            "character": 11,
+                            "line": 4
+                          },
+                          "end_position": {
+                            "bytes": 51,
+                            "character": 12,
+                            "line": 4
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "1"
+                          }
+                        }
+                      },
+                      {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 50,
+                              "character": 11,
+                              "line": 4
+                            },
+                            "end_position": {
+                              "bytes": 51,
+                              "character": 12,
+                              "line": 4
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "1"
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 54,
+              "character": 1,
+              "line": 5
+            },
+            "end_position": {
+              "bytes": 58,
+              "character": 5,
+              "line": 5
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "Var": {
+                        "Name": {
+                          "start_position": {
+                            "bytes": 59,
+                            "character": 6,
+                            "line": 5
+                          },
+                          "end_position": {
+                            "bytes": 60,
+                            "character": 7,
+                            "line": 5
+                          },
+                          "token_type": {
+                            "type": "Identifier",
+                            "identifier": "x"
+                          }
+                        }
+                      }
+                    },
+                    "binop": [
+                      {
+                        "GreaterThanEqual": {
+                          "start_position": {
+                            "bytes": 64,
+                            "character": 11,
+                            "line": 5
+                          },
+                          "end_position": {
+                            "bytes": 65,
+                            "character": 12,
+                            "line": 5
+                          },
+                          "token_type": {
+                            "type": "Identifier",
+                            "identifier": "y"
+                          }
+                        }
+                      },
+                      {
+                        "value": {
+                          "Var": {
+                            "Name": {
+                              "start_position": {
+                                "bytes": 64,
+                                "character": 11,
+                                "line": 5
+                              },
+                              "end_position": {
+                                "bytes": 65,
+                                "character": 12,
+                                "line": 5
+                              },
+                              "token_type": {
+                                "type": "Identifier",
+                                "identifier": "y"
+                              }
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

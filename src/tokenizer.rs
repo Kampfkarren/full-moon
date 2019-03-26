@@ -42,12 +42,7 @@ macro_rules! symbols {
                 &vec![$($string,)+]
                     .iter()
                     .map(|x| {
-                        let escape = regex::escape(&x.to_string());
-                        if escape.chars().all(char::is_alphanumeric) {
-                            escape + r"\b"
-                        } else {
-                            escape
-                        }
+                        regex::escape(&x.to_string())
                     })
                     .collect::<Vec<_>>()
                     .join("|")
@@ -83,11 +78,17 @@ symbols!(
     Dot => ".",
     Ellipse => "...",
     Equal => "=",
+    TwoEqual => "==",
+    GreaterThanEqual => ">=",
+    GreaterThan => ">",
     Hash => "#",
     LeftBrace => "{",
     LeftBracket => "[",
     LeftParen => "(",
+    LessThanEqual => "<=",
+    LessThan => "<",
     Minus => "-",
+    Percent => "%",
     Plus => "+",
     RightBrace => "}",
     RightBracket => "]",
@@ -95,8 +96,8 @@ symbols!(
     Semicolon => ";",
     Slash => "/",
     Star => "*",
+    TildeEqual => "~=",
     TwoDots => "..",
-    TwoEqual => "==",
 );
 
 #[derive(Clone, Debug, PartialEq)]
@@ -223,7 +224,7 @@ lazy_static! {
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerError>;
 
 macro_rules! advance_regex {
-    ($code:ident, $regex:ident, $token_type:ident($find:ident) $block:tt) => {
+    ($code:expr, $regex:ident, $token_type:ident($find:ident) $block:tt) => {
         if let Some($find) = $regex.find($code) {
             if $find.start() != 0 {
                 Ok(None)
@@ -315,9 +316,24 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
-        symbol: Symbol::from_str(find.as_str()).unwrap(),
-    })
+    if code.chars().next().unwrap().is_alphanumeric() {
+        let identifier = PATTERN_IDENTIFIER.find(code).unwrap();
+        let expected_len = identifier.end() - identifier.start();
+
+        advance_regex!(&code[0..expected_len], PATTERN_SYMBOL, Symbol(find) {
+            symbol: {
+                if find.end() - find.start() == expected_len {
+                    Symbol::from_str(find.as_str()).unwrap()
+                } else {
+                    return Ok(None)
+                }
+            }
+        })
+    } else {
+        advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
+            symbol: Symbol::from_str(find.as_str()).unwrap(),
+        })
+    }
 }
 
 // Keep finding whitespace until the line ends
@@ -545,6 +561,26 @@ mod tests {
         test_advancer!(
             advance_quote("\"hello"),
             Err(TokenizerError::UnclosedString)
+        );
+    }
+
+    #[test]
+    fn test_symbols_within_symbols() {
+        // "index" should not return "in"
+        test_advancer!(
+            advance_symbol("index"),
+            Ok(None)
+        );
+
+        // "<=" should not return "<"
+        test_advancer!(
+            advance_symbol("<="),
+            Ok(Some(TokenAdvancement {
+                advance: 2,
+                token_type: TokenType::Symbol {
+                    symbol: Symbol::LessThanEqual,
+                },
+            }))
         );
     }
 }

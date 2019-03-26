@@ -38,40 +38,46 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 13,
-                "character": 14,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 14,
-                "character": 15,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "1"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 13,
+                  "character": 14,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 14,
+                  "character": 15,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "1"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 16,
-                "character": 17,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 17,
-                "character": 18,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "2"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 16,
+                  "character": 17,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 17,
+                  "character": 18,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "2"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }
@@ -114,40 +120,46 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 32,
-                "character": 14,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 33,
-                "character": 15,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "3"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 32,
+                  "character": 14,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 33,
+                  "character": 15,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "3"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 35,
-                "character": 17,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 36,
-                "character": 18,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "4"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 35,
+                  "character": 17,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 36,
+                  "character": 18,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "4"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }
@@ -190,40 +202,46 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 51,
-                "character": 14,
-                "line": 3
-              },
-              "end_position": {
-                "bytes": 52,
-                "character": 15,
-                "line": 3
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "5"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 51,
+                  "character": 14,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 52,
+                  "character": 15,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "5"
+                }
               }
-            }
+            },
+            "binop": null
           },
           {
-            "Number": {
-              "start_position": {
-                "bytes": 54,
-                "character": 17,
-                "line": 3
-              },
-              "end_position": {
-                "bytes": 55,
-                "character": 18,
-                "line": 3
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "6"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 54,
+                  "character": 17,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 55,
+                  "character": 18,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "6"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }

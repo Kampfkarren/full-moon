@@ -22,22 +22,25 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 10,
-                "character": 11,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 11,
-                "character": 12,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "1"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 11,
+                  "character": 12,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "1"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }
@@ -64,22 +67,25 @@
         ],
         "expr_list": [
           {
-            "Number": {
-              "start_position": {
-                "bytes": 42,
-                "character": 11,
-                "line": 3
-              },
-              "end_position": {
-                "bytes": 43,
-                "character": 12,
-                "line": 3
-              },
-              "token_type": {
-                "type": "Number",
-                "text": "1"
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 42,
+                  "character": 11,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 43,
+                  "character": 12,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "1"
+                }
               }
-            }
+            },
+            "binop": null
           }
         ]
       }
