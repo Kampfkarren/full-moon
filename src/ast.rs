@@ -291,8 +291,8 @@ pub enum Stmt<'a> {
     Assignment(Assignment<'a>),
     Do(Block<'a>),
     LocalAssignment(LocalAssignment<'a>),
-    FunctionCall(FunctionCall<'a>),
-    NumericFor(NumericFor<'a>),
+    FunctionCall(Box<FunctionCall<'a>>),
+    NumericFor(Box<NumericFor<'a>>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

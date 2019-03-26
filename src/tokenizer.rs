@@ -304,9 +304,9 @@ fn advance_identifier(code: &str) -> Advancement {
 }
 
 fn advance_quote(code: &str) -> Advancement {
-    let quote = if code.starts_with("\"") {
+    let quote = if code.starts_with('"') {
         '"'
-    } else if code.starts_with("'") {
+    } else if code.starts_with('\'') {
         '\''
     } else {
         return Ok(None);
