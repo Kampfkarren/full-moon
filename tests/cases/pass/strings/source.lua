@@ -1,0 +1,2 @@
+call("double")
+call('single')

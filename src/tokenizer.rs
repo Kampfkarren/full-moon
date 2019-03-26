@@ -102,6 +102,7 @@ symbols!(
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TokenizerError {
+    UnclosedString,
     UnexpectedToken(char),
 }
 
@@ -124,6 +125,12 @@ pub enum TokenType<'a> {
     SingleLineComment {
         #[cfg_attr(feature = "serde", serde(borrow))]
         comment: Cow<'a, str>,
+    },
+
+    StringLiteral {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        literal: Cow<'a, str>,
+        quote_type: StringLiteralQuoteType,
     },
 
     Symbol {
@@ -163,6 +170,10 @@ impl<'a> fmt::Display for Token<'a> {
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
             SingleLineComment { comment } => format!("--{}", comment),
+            StringLiteral {
+                literal,
+                quote_type,
+            } => format!("{0}{1}{0}", quote_type.to_string(), literal.to_string()),
             Symbol { symbol } => symbol.to_string(),
             Whitespace { characters } => characters.to_string(),
         }
@@ -182,6 +193,23 @@ pub struct Position {
 pub struct TokenAdvancement<'a> {
     pub advance: usize,
     pub token_type: TokenType<'a>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum StringLiteralQuoteType {
+    Double,
+    Single,
+}
+
+impl<'a> fmt::Display for StringLiteralQuoteType {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            StringLiteralQuoteType::Double => "\"",
+            StringLiteralQuoteType::Single => "'",
+        }
+        .fmt(formatter)
+    }
 }
 
 lazy_static! {
@@ -240,6 +268,52 @@ fn advance_identifier(code: &str) -> Advancement {
     })
 }
 
+fn advance_quote(code: &str) -> Advancement {
+    let quote = if code.starts_with("\"") {
+        '"'
+    } else if code.starts_with("'") {
+        '\''
+    } else {
+        return Ok(None);
+    };
+
+    let mut end = None;
+    let mut escape = false;
+
+    for (index, character) in code.char_indices().skip(1) {
+        if character == '\\' {
+            escape = !escape;
+        } else if character == quote {
+            if escape {
+                escape = false;
+            } else {
+                end = Some(index);
+                break;
+            }
+        } else if character == '\r' || character == '\n' {
+            return Err(TokenizerError::UnclosedString);
+        } else {
+            escape = false;
+        }
+    }
+
+    if let Some(end) = end {
+        Ok(Some(TokenAdvancement {
+            advance: end + 1,
+            token_type: TokenType::StringLiteral {
+                literal: Cow::from(&code[1..end]),
+                quote_type: match quote {
+                    '"' => StringLiteralQuoteType::Double,
+                    '\'' => StringLiteralQuoteType::Single,
+                    _ => unreachable!(),
+                },
+            },
+        }))
+    } else {
+        return Err(TokenizerError::UnclosedString);
+    }
+}
+
 fn advance_symbol(code: &str) -> Advancement {
     advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
         symbol: Symbol::from_str(find.as_str()).unwrap(),
@@ -294,6 +368,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         advance!(advance_number);
         advance!(advance_symbol);
         advance!(advance_identifier);
+        advance!(advance_quote);
 
         return Err(TokenizerError::UnexpectedToken(
             code.chars()
@@ -451,6 +526,25 @@ mod tests {
                     characters: Cow::from("\t\t\n"),
                 },
             }))
+        );
+    }
+
+    #[test]
+    fn test_advance_quote() {
+        test_advancer!(
+            advance_quote("\"hello\""),
+            Ok(Some(TokenAdvancement {
+                advance: 7,
+                token_type: TokenType::StringLiteral {
+                    literal: Cow::from("hello"),
+                    quote_type: StringLiteralQuoteType::Double,
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_quote("\"hello"),
+            Err(TokenizerError::UnclosedString)
         );
     }
 }

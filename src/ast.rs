@@ -200,6 +200,7 @@ define_parser!(ParseBlock, Block<'a>, |_, state| {
 pub enum Expression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Number(Token<'a>),
+    String(Token<'a>),
     Symbol(Token<'a>),
     Var(Box<Var<'a>>),
 }
@@ -222,6 +223,9 @@ define_parser!(
                 }
                 _ => None,
             },
+            TokenType::StringLiteral { .. } => {
+                Some((state.advance()?, Expression::String(next_token.clone())))
+            }
             _ => parse_first_of!(state, {
                 ParseVar => Expression::Var,
             }),

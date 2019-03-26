@@ -1,0 +1,106 @@
+{
+  "stmts": [
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 4,
+              "character": 5,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "String": {
+                      "start_position": {
+                        "bytes": 5,
+                        "character": 6,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 13,
+                        "character": 14,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "StringLiteral",
+                        "literal": "double",
+                        "quote_type": "Double"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 16,
+              "character": 1,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 20,
+              "character": 5,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "call"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "String": {
+                      "start_position": {
+                        "bytes": 21,
+                        "character": 6,
+                        "line": 2
+                      },
+                      "end_position": {
+                        "bytes": 29,
+                        "character": 14,
+                        "line": 2
+                      },
+                      "token_type": {
+                        "type": "StringLiteral",
+                        "literal": "single",
+                        "quote_type": "Single"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
