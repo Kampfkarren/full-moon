@@ -35,13 +35,6 @@ trait Parser<'a>: Sized {
     type Item;
 
     fn parse(&self, state: ParserState<'a>) -> Option<(ParserState<'a>, Self::Item)>;
-
-    fn parse_new(state: ParserState<'a>) -> Option<(ParserState<'a>, Self::Item)>
-    where
-        Self: Default,
-    {
-        Self::default().parse(state)
-    }
 }
 
 macro_rules! define_parser {
@@ -229,6 +222,7 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    Assignment(Assignment<'a>),
     LocalAssignment(LocalAssignment<'a>),
 }
 
@@ -237,14 +231,57 @@ struct ParseStmt;
 define_parser!(ParseStmt, Stmt<'a>, |_, state| {
     macro_rules! try_stmt {
         ($parser:ident, $type:ident) => {
-            if let Some((state, stmt)) = $parser::parse_new(state) {
+            if let Some((state, stmt)) = $parser.parse(state) {
                 return Some((state, Stmt::$type(stmt)));
             }
         };
     };
 
+    try_stmt!(ParseAssignment, Assignment);
     try_stmt!(ParseLocalAssignment, LocalAssignment);
     None
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Var<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Name(Token<'a>),
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+struct ParseVar;
+define_parser!(ParseVar, Var<'a>, |_, state| {
+    if let Some((state, name)) = ParseIdentifier.parse(state) {
+        Some((state, Var::Name(name)))
+    } else {
+        None
+    }
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct Assignment<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    var_list: Vec<Var<'a>>,
+    expr_list: Vec<Expression<'a>>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+struct ParseAssignment;
+define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
+    let (state, var_list) =
+        OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
+    let (state, expr_list) = OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+
+    Some((
+        state,
+        Assignment {
+            var_list,
+            expr_list,
+        },
+    ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -276,7 +313,7 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
     let next_token = state.peek()?;
@@ -315,7 +352,7 @@ pub fn nodes<'a>(tokens: &'a Vec<Token<'a>>) -> Result<Block<'a>, AstError<'a>> 
             state = state.advance().unwrap();
         }
 
-        if let Some((state, block)) = ParseBlock::parse_new(state) {
+        if let Some((state, block)) = ParseBlock.parse(state) {
             if state.index == tokens.len() - 1 {
                 Ok(block)
             } else {

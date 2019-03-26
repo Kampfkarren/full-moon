@@ -1,0 +1,84 @@
+{
+  "stmts": [
+    {
+      "Assignment": {
+        "var_list": [
+          {
+            "Name": {
+              "start_position": {
+                "bytes": 0,
+                "character": 1,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 1,
+                "character": 2,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "a"
+              }
+            }
+          },
+          {
+            "Name": {
+              "start_position": {
+                "bytes": 3,
+                "character": 4,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 4,
+                "character": 5,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "b"
+              }
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "Number": {
+              "start_position": {
+                "bytes": 7,
+                "character": 8,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 8,
+                "character": 9,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Number",
+                "text": "1"
+              }
+            }
+          },
+          {
+            "Number": {
+              "start_position": {
+                "bytes": 10,
+                "character": 11,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 11,
+                "character": 12,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Number",
+                "text": "2"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
