@@ -185,14 +185,46 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<Stmt<'a>>,
+    pub stmts: Vec<Stmt<'a>>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub last_stmt: Option<LastStmt<'a>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, |_, state| {
     let (state, stmts) = ZeroOrMore(ParseStmt).parse(state)?;
-    Some((state, Block { stmts }))
+
+    if let Some((state, last_stmt)) = ParseLastStmt.parse(state) {
+        Some((state, Block { stmts, last_stmt: Some(last_stmt) }))
+    } else {
+        Some((state, Block { stmts, last_stmt: None }))
+    }
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum LastStmt<'a> {
+    Break,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Return(Vec<Expression<'a>>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseLastStmt;
+define_parser!(ParseLastStmt, LastStmt<'a>, |_, state| {
+    if let Some((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
+        let (state, returns) = ZeroOrMoreDelimited(
+            ParseExpression,
+            ParseSymbol(Symbol::Comma),
+            false
+        ).parse(state)?;
+        Some((state, LastStmt::Return(returns)))
+    } else if let Some((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
+        Some((state, LastStmt::Break))
+    } else {
+        None
+    }
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -222,6 +254,7 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    FunctionCall(Box<FunctionCall<'a>>),
     Number(Token<'a>),
     String(Token<'a>),
     Symbol(Token<'a>),
@@ -245,6 +278,7 @@ define_parser!(ParseValue, Value<'a>, |_, state: ParserState<'a>| {
             Some((state.advance()?, Value::String(next_token.clone())))
         }
         _ => parse_first_of!(state, {
+            ParseFunctionCall => Value::FunctionCall,
             ParseVar => Value::Var,
         }),
     }
@@ -628,7 +662,7 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
             == 1
         {
             // Entirely comments/whitespace
-            return Ok(Block { stmts: Vec::new() });
+            return Ok(Block { stmts: Vec::new(), last_stmt: None });
         }
 
         let mut state = ParserState { index: 0, tokens };

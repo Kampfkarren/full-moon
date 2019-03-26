@@ -53,6 +53,7 @@ macro_rules! symbols {
 
 symbols!(
     And => "and",
+    Break => "break",
     Do => "do",
     Else => "else",
     ElseIf => "elseif",
@@ -67,6 +68,7 @@ symbols!(
     Not => "not",
     Or => "or",
     Repeat => "repeat",
+    Return => "return",
     Then => "then",
     True => "true",
     Until => "until",
