@@ -215,10 +215,7 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
         (state, None)
     };
 
-    Some((state, Expression {
-        value,
-        binop,
-    }))
+    Some((state, Expression { value, binop }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -233,31 +230,25 @@ pub enum Value<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseValue;
-define_parser!(
-    ParseValue,
-    Value<'a>,
-    |_, state: ParserState<'a>| {
-        let next_token = state.peek()?;
-        match &next_token.token_type {
-            // TODO: remove clone
-            TokenType::Number { .. } => {
-                Some((state.advance()?, Value::Number(next_token.clone())))
+define_parser!(ParseValue, Value<'a>, |_, state: ParserState<'a>| {
+    let next_token = state.peek()?;
+    match &next_token.token_type {
+        // TODO: remove clone
+        TokenType::Number { .. } => Some((state.advance()?, Value::Number(next_token.clone()))),
+        TokenType::Symbol { symbol } => match symbol {
+            Symbol::Ellipse | Symbol::False | Symbol::True | Symbol::Nil => {
+                Some((state.advance()?, Value::Symbol(next_token.clone())))
             }
-            TokenType::Symbol { symbol } => match symbol {
-                Symbol::Ellipse | Symbol::False | Symbol::True | Symbol::Nil => {
-                    Some((state.advance()?, Value::Symbol(next_token.clone())))
-                }
-                _ => None,
-            },
-            TokenType::StringLiteral { .. } => {
-                Some((state.advance()?, Value::String(next_token.clone())))
-            }
-            _ => parse_first_of!(state, {
-                ParseVar => Value::Var,
-            }),
+            _ => None,
+        },
+        TokenType::StringLiteral { .. } => {
+            Some((state.advance()?, Value::String(next_token.clone())))
         }
+        _ => parse_first_of!(state, {
+            ParseVar => Value::Var,
+        }),
     }
-);
+});
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

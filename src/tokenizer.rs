@@ -103,6 +103,7 @@ symbols!(
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TokenizerError {
+    UnclosedComment,
     UnclosedString,
     UnexpectedToken(char),
 }
@@ -116,6 +117,12 @@ pub enum TokenType<'a> {
     Identifier {
         #[cfg_attr(feature = "serde", serde(borrow))]
         identifier: Cow<'a, str>,
+    },
+
+    MultiLineComment {
+        blocks: usize,
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        comment: Cow<'a, str>,
     },
 
     Number {
@@ -147,7 +154,9 @@ pub enum TokenType<'a> {
 impl<'a> TokenType<'a> {
     pub fn ignore(&self) -> bool {
         match self {
-            TokenType::SingleLineComment { .. } | TokenType::Whitespace { .. } => true,
+            TokenType::SingleLineComment { .. }
+            | TokenType::MultiLineComment { .. }
+            | TokenType::Whitespace { .. } => true,
             _ => false,
         }
     }
@@ -170,6 +179,7 @@ impl<'a> fmt::Display for Token<'a> {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
+            MultiLineComment { blocks, comment } => format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment),
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
@@ -217,7 +227,8 @@ lazy_static! {
     static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
     static ref PATTERN_NUMBER: Regex =
         Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
-    static ref PATTERN_SINGLE_LINE_COMMENT: Regex = Regex::new(r"--(.+)").unwrap();
+    static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
+    static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--(.+)").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
@@ -241,18 +252,39 @@ macro_rules! advance_regex {
 }
 
 fn advance_comment(code: &str) -> Advancement {
-    if let Some(find) = PATTERN_SINGLE_LINE_COMMENT.find(code) {
+    if let Some(captures) = PATTERN_COMMENT_MULTI_LINE_BEGIN.captures(code) {
+        let whole_beginning = captures.get(0).unwrap();
+        if whole_beginning.start() == 0 {
+            let block_count = match captures.get(1) {
+                Some(block_count) => block_count.end() - block_count.start(),
+                None => 0,
+            };
+
+            let end_regex = Regex::new(&format!(r"\]={{{}}}", block_count)).unwrap();
+
+            let end_find = match end_regex.find(code) {
+                Some(find) => find,
+                None => return Err(TokenizerError::UnclosedComment),
+            };
+
+            return Ok(Some(TokenAdvancement {
+                advance: end_find.end() + 1,
+                token_type: TokenType::MultiLineComment {
+                    blocks: block_count,
+                    comment: Cow::from(&code[whole_beginning.end()..end_find.start()]),
+                },
+            }));
+        }
+    } else if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
         if find.start() == 0 {
             return Ok(Some(TokenAdvancement {
-                advance: find.end() - find.start(),
+                advance: find.end(),
                 token_type: TokenType::SingleLineComment {
                     comment: Cow::from(&find.as_str()[2..]),
                 },
             }));
         }
     }
-
-    // TODO: Multi-line comment
 
     Ok(None)
 }
@@ -567,10 +599,7 @@ mod tests {
     #[test]
     fn test_symbols_within_symbols() {
         // "index" should not return "in"
-        test_advancer!(
-            advance_symbol("index"),
-            Ok(None)
-        );
+        test_advancer!(advance_symbol("index"), Ok(None));
 
         // "<=" should not return "<"
         test_advancer!(
