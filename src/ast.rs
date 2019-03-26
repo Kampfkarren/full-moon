@@ -191,7 +191,7 @@ pub struct Block<'a> {
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, |_, state| {
-    let (state, stmts) = OneOrMore(ParseStmt, NoDelimiter, true).parse(state)?;
+    let (state, stmts) = ZeroOrMore(ParseStmt).parse(state)?;
     Some((state, Block { stmts }))
 });
 
@@ -236,6 +236,7 @@ pub enum Stmt<'a> {
     Assignment(Assignment<'a>),
     LocalAssignment(LocalAssignment<'a>),
     FunctionCall(FunctionCall<'a>),
+    NumericFor(NumericFor<'a>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -244,6 +245,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseAssignment => Stmt::Assignment,
     ParseFunctionCall => Stmt::FunctionCall,
     ParseLocalAssignment => Stmt::LocalAssignment,
+    ParseNumericFor => Stmt::NumericFor,
 }));
 
 #[derive(Clone, Debug, PartialEq)]
@@ -314,6 +316,48 @@ define_parser!(
         None
     }
 );
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct NumericFor<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    index_variable: Token<'a>,
+    start: Expression<'a>,
+    end: Expression<'a>,
+    limit: Option<Expression<'a>>,
+    block: Block<'a>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseNumericFor;
+define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::For).parse(state)?;
+    let (state, index_variable) = ParseIdentifier.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
+    let (state, start) = ParseExpression.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Comma).parse(state)?;
+    let (state, end) = ParseExpression.parse(state)?;
+    let (state, limit) = if let Some((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
+        let (state, expression) = ParseExpression.parse(state)?;
+        (state, Some(expression))
+    } else {
+        (state, None)
+    };
+    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
+    let (state, block) = ParseBlock.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+
+    Some((
+        state,
+        NumericFor {
+            index_variable,
+            start,
+            end,
+            limit,
+            block,
+        },
+    ))
+});
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

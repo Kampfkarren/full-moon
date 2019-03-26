@@ -41,7 +41,14 @@ macro_rules! symbols {
             static ref PATTERN_SYMBOL: Regex = Regex::new(
                 &vec![$($string,)+]
                     .iter()
-                    .map(|x| regex::escape(&x.to_string()))
+                    .map(|x| {
+                        let escape = regex::escape(&x.to_string());
+                        if escape.chars().all(char::is_alphanumeric) {
+                            escape + r"\b"
+                        } else {
+                            escape
+                        }
+                    })
                     .collect::<Vec<_>>()
                     .join("|")
             ).unwrap();
