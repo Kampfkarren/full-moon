@@ -1,0 +1,41 @@
+{
+  "stmts": [
+    {
+      "Do": {
+        "stmts": [
+          {
+            "FunctionCall": {
+              "prefix": {
+                "Name": {
+                  "start_position": {
+                    "bytes": 5,
+                    "character": 2,
+                    "line": 2
+                  },
+                  "end_position": {
+                    "bytes": 9,
+                    "character": 6,
+                    "line": 2
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "call"
+                  }
+                }
+              },
+              "suffixes": [
+                {
+                  "Call": {
+                    "AnonymousCall": {
+                      "Parentheses": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -255,6 +255,7 @@ define_parser!(ParseValue, Value<'a>, |_, state: ParserState<'a>| {
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Assignment(Assignment<'a>),
+    Do(Block<'a>),
     LocalAssignment(LocalAssignment<'a>),
     FunctionCall(FunctionCall<'a>),
     NumericFor(NumericFor<'a>),
@@ -265,6 +266,7 @@ struct ParseStmt;
 define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseAssignment => Stmt::Assignment,
     ParseFunctionCall => Stmt::FunctionCall,
+    ParseDo => Stmt::Do,
     ParseLocalAssignment => Stmt::LocalAssignment,
     ParseNumericFor => Stmt::NumericFor,
 }));
@@ -514,6 +516,16 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
             expr_list,
         },
     ))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseDo;
+define_parser!(ParseDo, Block<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
+    let (state, block) = ParseBlock.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+
+    Some((state, block))
 });
 
 #[derive(Clone, Debug, PartialEq)]
