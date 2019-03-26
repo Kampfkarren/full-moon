@@ -181,7 +181,9 @@ impl<'a> fmt::Display for Token<'a> {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
-            MultiLineComment { blocks, comment } => format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment),
+            MultiLineComment { blocks, comment } => {
+                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
+            }
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,

@@ -64,20 +64,20 @@
           },
           {
             "value": {
-              "Number": {
+              "Symbol": {
                 "start_position": {
                   "bytes": 10,
                   "character": 11,
                   "line": 1
                 },
                 "end_position": {
-                  "bytes": 11,
-                  "character": 12,
+                  "bytes": 14,
+                  "character": 15,
                   "line": 1
                 },
                 "token_type": {
-                  "type": "Number",
-                  "text": "2"
+                  "type": "Symbol",
+                  "symbol": "true"
                 }
               }
             },

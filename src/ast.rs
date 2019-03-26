@@ -170,11 +170,46 @@ struct ParseSymbol(Symbol);
 
 define_parser!(
     ParseSymbol,
-    (),
+    Token<'a>,
     |this: &ParseSymbol, state: ParserState<'a>| {
         let expecting = TokenType::Symbol { symbol: this.0 };
-        if state.peek()?.token_type == expecting {
-            Some((state.advance()?, ()))
+        let token = state.peek()?;
+
+        if token.token_type == expecting {
+            // TODO: remove clone
+            Some((state.advance()?, token.clone()))
+        } else {
+            None
+        }
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+struct ParseNumber;
+
+define_parser!(ParseNumber, Token<'a>, |_, state: ParserState<'a>| {
+    let token = state.peek()?;
+    if let TokenType::Number { .. } = token.token_type {
+        // TODO: remove clone
+        Some((state.advance()?, token.clone()))
+    } else {
+        None
+    }
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+struct ParseStringLiteral;
+
+define_parser!(
+    ParseStringLiteral,
+    Token<'a>,
+    |_, state: ParserState<'a>| {
+        let token = state.peek()?;
+        if let TokenType::StringLiteral { .. } = token.token_type {
+            // TODO: remove clone
+            Some((state.advance()?, token.clone()))
         } else {
             None
         }
@@ -196,9 +231,21 @@ define_parser!(ParseBlock, Block<'a>, |_, state| {
     let (state, stmts) = ZeroOrMore(ParseStmt).parse(state)?;
 
     if let Some((state, last_stmt)) = ParseLastStmt.parse(state) {
-        Some((state, Block { stmts, last_stmt: Some(last_stmt) }))
+        Some((
+            state,
+            Block {
+                stmts,
+                last_stmt: Some(last_stmt),
+            },
+        ))
     } else {
-        Some((state, Block { stmts, last_stmt: None }))
+        Some((
+            state,
+            Block {
+                stmts,
+                last_stmt: None,
+            },
+        ))
     }
 });
 
@@ -212,19 +259,95 @@ pub enum LastStmt<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseLastStmt;
-define_parser!(ParseLastStmt, LastStmt<'a>, |_, state| {
-    if let Some((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
-        let (state, returns) = ZeroOrMoreDelimited(
-            ParseExpression,
-            ParseSymbol(Symbol::Comma),
-            false
-        ).parse(state)?;
+define_parser!(
+    ParseLastStmt,
+    LastStmt<'a>,
+    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
+        let (state, returns) =
+            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
         Some((state, LastStmt::Return(returns)))
     } else if let Some((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
         Some((state, LastStmt::Break))
     } else {
         None
     }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Field<'a> {
+    ExpressionKey {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        key: Box<Expression<'a>>,
+        value: Box<Expression<'a>>,
+    },
+
+    NameKey {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        key: Box<Token<'a>>,
+        value: Box<Expression<'a>>,
+    },
+
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    NoKey(Expression<'a>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseField;
+define_parser!(ParseField, Field<'a>, |_, state| if let Some((state, _)) =
+    ParseSymbol(Symbol::LeftBracket).parse(state)
+{
+    let (state, key) = ParseExpression.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
+    let (state, value) = ParseExpression.parse(state)?;
+    let (key, value) = (Box::new(key), Box::new(value));
+    Some((state, Field::ExpressionKey { key, value }))
+} else if let Some((state, key)) = ParseIdentifier.parse(state) {
+    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
+    let (state, value) = ParseExpression.parse(state)?;
+    let (key, value) = (Box::new(key), Box::new(value));
+    Some((state, Field::NameKey { key, value }))
+} else if let Some((state, expr)) = ParseExpression.parse(state) {
+    Some((state, Field::NoKey(expr)))
+} else {
+    None
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct TableConstructor<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    fields: Vec<(Field<'a>, Option<Token<'a>>)>,
+}
+
+struct ParseTableConstructor;
+define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
+    let (mut state, _) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
+    let mut fields = Vec::new();
+
+    // TODO: remove clone
+    while let Some((new_state, field)) = ParseField.parse(state) {
+        let field_sep = if let Some((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
+            state = new_state;
+            Some(state.peek()?.clone())
+        } else if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+            state = new_state;
+            Some(state.peek()?.clone())
+        } else {
+            state = new_state;
+            None
+        };
+
+        let is_none = field_sep.is_none();
+        fields.push((field, field_sep));
+        if is_none {
+            break;
+        }
+    }
+
+    let (state, _) = ParseSymbol(Symbol::RightBrace).parse(state)?;
+    Some((state, TableConstructor { fields }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -255,6 +378,7 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     FunctionCall(Box<FunctionCall<'a>>),
+    TableConstructor(Box<TableConstructor<'a>>),
     Number(Token<'a>),
     String(Token<'a>),
     Symbol(Token<'a>),
@@ -263,26 +387,21 @@ pub enum Value<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseValue;
-define_parser!(ParseValue, Value<'a>, |_, state: ParserState<'a>| {
-    let next_token = state.peek()?;
-    match &next_token.token_type {
-        // TODO: remove clone
-        TokenType::Number { .. } => Some((state.advance()?, Value::Number(next_token.clone()))),
-        TokenType::Symbol { symbol } => match symbol {
-            Symbol::Ellipse | Symbol::False | Symbol::True | Symbol::Nil => {
-                Some((state.advance()?, Value::Symbol(next_token.clone())))
-            }
-            _ => None,
-        },
-        TokenType::StringLiteral { .. } => {
-            Some((state.advance()?, Value::String(next_token.clone())))
-        }
-        _ => parse_first_of!(state, {
-            ParseFunctionCall => Value::FunctionCall,
-            ParseVar => Value::Var,
-        }),
-    }
-});
+define_parser!(
+    ParseValue,
+    Value<'a>,
+    |_, state: ParserState<'a>| parse_first_of!(state, {
+        ParseSymbol(Symbol::Nil) => Value::Symbol,
+        ParseSymbol(Symbol::False) => Value::Symbol,
+        ParseSymbol(Symbol::True) => Value::Symbol,
+        ParseNumber => Value::Number,
+        ParseStringLiteral => Value::String,
+        ParseSymbol(Symbol::Ellipse) => Value::Symbol,
+        ParseTableConstructor => Value::TableConstructor,
+        ParseFunctionCall => Value::FunctionCall,
+        ParseVar => Value::Var,
+    })
+);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -662,7 +781,10 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
             == 1
         {
             // Entirely comments/whitespace
-            return Ok(Block { stmts: Vec::new(), last_stmt: None });
+            return Ok(Block {
+                stmts: Vec::new(),
+                last_stmt: None,
+            });
         }
 
         let mut state = ParserState { index: 0, tokens };

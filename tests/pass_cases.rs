@@ -31,7 +31,8 @@ fn test_pass_cases() {
             .expect("couldn't write to tokens file");
         }
 
-        let nodes = ast::nodes(&tokens).expect("couldn't make ast");
+        let nodes = ast::nodes(&tokens)
+            .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
         let ast = ast::Ast {
             nodes,
             tokens: &tokens,
