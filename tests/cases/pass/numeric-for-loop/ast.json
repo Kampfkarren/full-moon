@@ -60,7 +60,7 @@
           },
           "binop": null
         },
-        "limit": null,
+        "step": null,
         "block": {
           "stmts": [
             {
@@ -186,7 +186,7 @@
           },
           "binop": null
         },
-        "limit": null,
+        "step": null,
         "block": {
           "stmts": []
         }
@@ -252,7 +252,7 @@
           },
           "binop": null
         },
-        "limit": {
+        "step": {
           "value": {
             "Number": {
               "start_position": {

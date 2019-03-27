@@ -412,9 +412,10 @@ pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Assignment(Assignment<'a>),
     Do(Block<'a>),
+    FunctionCall(Box<FunctionCall<'a>>),
+    GenericFor(Box<GenericFor<'a>>),
     LocalAssignment(LocalAssignment<'a>),
     LocalFunction(LocalFunction<'a>),
-    FunctionCall(Box<FunctionCall<'a>>),
     NumericFor(Box<NumericFor<'a>>),
 }
 
@@ -425,6 +426,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseFunctionCall => Stmt::FunctionCall,
     ParseDo => Stmt::Do,
     ParseNumericFor => Stmt::NumericFor,
+    ParseGenericFor => Stmt::GenericFor,
     ParseLocalFunction => Stmt::LocalFunction,
     ParseLocalAssignment => Stmt::LocalAssignment,
 }));
@@ -505,7 +507,7 @@ pub struct NumericFor<'a> {
     index_variable: Token<'a>,
     start: Expression<'a>,
     end: Expression<'a>,
-    limit: Option<Expression<'a>>,
+    step: Option<Expression<'a>>,
     block: Block<'a>,
 }
 
@@ -518,7 +520,7 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
     let (state, start) = ParseExpression.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Comma).parse(state)?;
     let (state, end) = ParseExpression.parse(state)?;
-    let (state, limit) = if let Some((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
+    let (state, step) = if let Some((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
         (state, Some(expression))
     } else {
@@ -534,10 +536,36 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
             index_variable,
             start,
             end,
-            limit,
+            step,
             block,
         },
     ))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct GenericFor<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    names: Vec<Token<'a>>,
+    expr_list: Vec<Expression<'a>>,
+    block: Block<'a>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseGenericFor;
+define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::For).parse(state)?;
+    let (state, names) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::In).parse(state)?;
+    let (state, expr_list) = OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
+    let (state, block) = ParseBlock.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    Some((state, GenericFor {
+        names,
+        expr_list,
+        block,
+    }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
