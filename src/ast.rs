@@ -290,15 +290,13 @@ pub enum Field<'a> {
     },
 
     #[cfg_attr(feature = "serde", serde(borrow))]
-    NoKey(Expression<'a>),
+    NoKey(Box<Expression<'a>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
 define_parser!(ParseField, Field<'a>, |_, state| {
-    if let Some((state, _)) =
-        ParseSymbol(Symbol::LeftBracket).parse(state)
-    {
+    if let Some((state, _)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
         let (state, key) = ParseExpression.parse(state)?;
         let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
         let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
@@ -314,7 +312,8 @@ define_parser!(ParseField, Field<'a>, |_, state| {
     }
 
     if let Some((state, expr)) = ParseExpression.parse(state) {
-        return Some((state, Field::NoKey(expr)))
+        let expr = Box::new(expr);
+        return Some((state, Field::NoKey(expr)));
     }
 
     None
@@ -925,7 +924,8 @@ pub struct FunctionName<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionName;
 define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
-    let (state, names) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
+    let (state, names) =
+        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
     let (state, colon_name) = if let Some((state, _)) = ParseSymbol(Symbol::Colon).parse(state) {
         let (state, colon_name) = ParseIdentifier.parse(state)?;
         (state, Some(colon_name))
@@ -933,10 +933,7 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
         (state, None)
     };
 
-    Some((state, FunctionName {
-        names,
-        colon_name,
-    }))
+    Some((state, FunctionName { names, colon_name }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -949,12 +946,16 @@ pub struct FunctionDeclaration<'a> {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseFunctionDeclaration;
-define_parser!(ParseFunctionDeclaration, FunctionDeclaration<'a>, |_, state| {
-    let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, name) = ParseFunctionName.parse(state)?;
-    let (state, body) = ParseFunctionBody.parse(state)?;
-    Some((state, FunctionDeclaration { name, body }))
-});
+define_parser!(
+    ParseFunctionDeclaration,
+    FunctionDeclaration<'a>,
+    |_, state| {
+        let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
+        let (state, name) = ParseFunctionName.parse(state)?;
+        let (state, body) = ParseFunctionBody.parse(state)?;
+        Some((state, FunctionDeclaration { name, body }))
+    }
+);
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
