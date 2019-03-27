@@ -413,6 +413,7 @@ pub enum Stmt<'a> {
     Assignment(Assignment<'a>),
     Do(Block<'a>),
     LocalAssignment(LocalAssignment<'a>),
+    LocalFunction(LocalFunction<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
     NumericFor(Box<NumericFor<'a>>),
 }
@@ -423,8 +424,9 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseAssignment => Stmt::Assignment,
     ParseFunctionCall => Stmt::FunctionCall,
     ParseDo => Stmt::Do,
-    ParseLocalAssignment => Stmt::LocalAssignment,
     ParseNumericFor => Stmt::NumericFor,
+    ParseLocalFunction => Stmt::LocalFunction,
+    ParseLocalAssignment => Stmt::LocalAssignment,
 }));
 
 #[derive(Clone, Debug, PartialEq)]
@@ -696,6 +698,27 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
             expr_list,
         },
     ))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct LocalFunction<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    name: Token<'a>,
+    func_body: FuncBody<'a>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+struct ParseLocalFunction;
+define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Local).parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
+    let (state, name) = ParseIdentifier.parse(state)?;
+    let (state, func_body) = ParseFuncBody.parse(state)?;
+    Some((state, LocalFunction {
+        name,
+        func_body,
+    }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
