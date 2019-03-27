@@ -6,12 +6,12 @@
           {
             "Name": {
               "start_position": {
-                "bytes": 50,
-                "character": 50,
+                "bytes": 49,
+                "character": 49,
                 "line": 1
               },
               "end_position": {
-                "bytes": 51,
+                "bytes": 50,
                 "character": 2,
                 "line": 2
               },
@@ -24,12 +24,12 @@
           {
             "Name": {
               "start_position": {
-                "bytes": 53,
+                "bytes": 52,
                 "character": 4,
                 "line": 2
               },
               "end_position": {
-                "bytes": 54,
+                "bytes": 53,
                 "character": 5,
                 "line": 2
               },
@@ -44,12 +44,12 @@
               "prefix": {
                 "Name": {
                   "start_position": {
-                    "bytes": 56,
+                    "bytes": 55,
                     "character": 7,
                     "line": 2
                   },
                   "end_position": {
-                    "bytes": 57,
+                    "bytes": 56,
                     "character": 8,
                     "line": 2
                   },
@@ -64,12 +64,12 @@
                   "Index": {
                     "Dot": {
                       "start_position": {
-                        "bytes": 58,
+                        "bytes": 57,
                         "character": 9,
                         "line": 2
                       },
                       "end_position": {
-                        "bytes": 59,
+                        "bytes": 58,
                         "character": 10,
                         "line": 2
                       },
@@ -84,12 +84,12 @@
                   "Index": {
                     "Dot": {
                       "start_position": {
-                        "bytes": 60,
+                        "bytes": 59,
                         "character": 11,
                         "line": 2
                       },
                       "end_position": {
-                        "bytes": 61,
+                        "bytes": 60,
                         "character": 12,
                         "line": 2
                       },
@@ -107,12 +107,12 @@
                         "Var": {
                           "Name": {
                             "start_position": {
-                              "bytes": 62,
+                              "bytes": 61,
                               "character": 13,
                               "line": 2
                             },
                             "end_position": {
-                              "bytes": 63,
+                              "bytes": 62,
                               "character": 14,
                               "line": 2
                             },
@@ -134,12 +134,12 @@
                         "Var": {
                           "Name": {
                             "start_position": {
-                              "bytes": 65,
+                              "bytes": 64,
                               "character": 16,
                               "line": 2
                             },
                             "end_position": {
-                              "bytes": 66,
+                              "bytes": 65,
                               "character": 17,
                               "line": 2
                             },
@@ -160,12 +160,12 @@
                       "value": {
                         "Number": {
                           "start_position": {
-                            "bytes": 68,
+                            "bytes": 67,
                             "character": 19,
                             "line": 2
                           },
                           "end_position": {
-                            "bytes": 69,
+                            "bytes": 68,
                             "character": 20,
                             "line": 2
                           },
@@ -187,12 +187,12 @@
               "prefix": {
                 "Name": {
                   "start_position": {
-                    "bytes": 72,
+                    "bytes": 71,
                     "character": 23,
                     "line": 2
                   },
                   "end_position": {
-                    "bytes": 73,
+                    "bytes": 72,
                     "character": 24,
                     "line": 2
                   },
@@ -208,12 +208,12 @@
                     "MethodCall": {
                       "name": {
                         "start_position": {
-                          "bytes": 74,
+                          "bytes": 73,
                           "character": 25,
                           "line": 2
                         },
                         "end_position": {
-                          "bytes": 75,
+                          "bytes": 74,
                           "character": 26,
                           "line": 2
                         },
@@ -232,12 +232,12 @@
                   "Index": {
                     "Dot": {
                       "start_position": {
-                        "bytes": 78,
+                        "bytes": 77,
                         "character": 29,
                         "line": 2
                       },
                       "end_position": {
-                        "bytes": 79,
+                        "bytes": 78,
                         "character": 30,
                         "line": 2
                       },
@@ -255,12 +255,12 @@
                         "Var": {
                           "Name": {
                             "start_position": {
-                              "bytes": 80,
+                              "bytes": 79,
                               "character": 31,
                               "line": 2
                             },
                             "end_position": {
-                              "bytes": 81,
+                              "bytes": 80,
                               "character": 32,
                               "line": 2
                             },
@@ -280,12 +280,12 @@
                     "MethodCall": {
                       "name": {
                         "start_position": {
-                          "bytes": 83,
+                          "bytes": 82,
                           "character": 34,
                           "line": 2
                         },
                         "end_position": {
-                          "bytes": 84,
+                          "bytes": 83,
                           "character": 35,
                           "line": 2
                         },
@@ -307,12 +307,12 @@
                         "Var": {
                           "Name": {
                             "start_position": {
-                              "bytes": 87,
+                              "bytes": 86,
                               "character": 38,
                               "line": 2
                             },
                             "end_position": {
-                              "bytes": 88,
+                              "bytes": 87,
                               "character": 39,
                               "line": 2
                             },
@@ -336,12 +336,12 @@
             "value": {
               "Symbol": {
                 "start_position": {
-                  "bytes": 92,
+                  "bytes": 91,
                   "character": 43,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 96,
+                  "bytes": 95,
                   "character": 47,
                   "line": 2
                 },
@@ -357,12 +357,12 @@
             "value": {
               "Symbol": {
                 "start_position": {
-                  "bytes": 98,
+                  "bytes": 97,
                   "character": 49,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 103,
+                  "bytes": 102,
                   "character": 54,
                   "line": 2
                 },
@@ -378,12 +378,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 105,
+                  "bytes": 104,
                   "character": 56,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 106,
+                  "bytes": 105,
                   "character": 57,
                   "line": 2
                 },
@@ -399,12 +399,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 108,
+                  "bytes": 107,
                   "character": 59,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 109,
+                  "bytes": 108,
                   "character": 60,
                   "line": 2
                 },

@@ -87,12 +87,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 25,
+              "bytes": 24,
               "character": 7,
               "line": 2
             },
             "end_position": {
-              "bytes": 26,
+              "bytes": 25,
               "character": 8,
               "line": 2
             },
@@ -103,12 +103,12 @@
           },
           {
             "start_position": {
-              "bytes": 28,
+              "bytes": 27,
               "character": 10,
               "line": 2
             },
             "end_position": {
-              "bytes": 29,
+              "bytes": 28,
               "character": 11,
               "line": 2
             },
@@ -123,12 +123,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 32,
+                  "bytes": 31,
                   "character": 14,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 33,
+                  "bytes": 32,
                   "character": 15,
                   "line": 2
                 },
@@ -144,12 +144,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 35,
+                  "bytes": 34,
                   "character": 17,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 36,
+                  "bytes": 35,
                   "character": 18,
                   "line": 2
                 },
@@ -169,12 +169,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 44,
+              "bytes": 42,
               "character": 7,
               "line": 3
             },
             "end_position": {
-              "bytes": 45,
+              "bytes": 43,
               "character": 8,
               "line": 3
             },
@@ -185,12 +185,12 @@
           },
           {
             "start_position": {
-              "bytes": 47,
+              "bytes": 45,
               "character": 10,
               "line": 3
             },
             "end_position": {
-              "bytes": 48,
+              "bytes": 46,
               "character": 11,
               "line": 3
             },
@@ -205,12 +205,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 51,
+                  "bytes": 49,
                   "character": 14,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 52,
+                  "bytes": 50,
                   "character": 15,
                   "line": 3
                 },
@@ -226,12 +226,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 54,
+                  "bytes": 52,
                   "character": 17,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 55,
+                  "bytes": 53,
                   "character": 18,
                   "line": 3
                 },

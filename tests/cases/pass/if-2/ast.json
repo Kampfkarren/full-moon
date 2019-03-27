@@ -32,12 +32,12 @@
                 "prefix": {
                   "Name": {
                     "start_position": {
-                      "bytes": 12,
+                      "bytes": 11,
                       "character": 2,
                       "line": 2
                     },
                     "end_position": {
-                      "bytes": 15,
+                      "bytes": 14,
                       "character": 5,
                       "line": 2
                     },
@@ -68,12 +68,12 @@
                 "prefix": {
                   "Name": {
                     "start_position": {
-                      "bytes": 26,
+                      "bytes": 23,
                       "character": 2,
                       "line": 4
                     },
                     "end_position": {
-                      "bytes": 29,
+                      "bytes": 26,
                       "character": 5,
                       "line": 4
                     },

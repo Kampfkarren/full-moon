@@ -370,8 +370,10 @@ pub enum Expression<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseExpression;
-define_parser!(ParseExpression, Expression<'a>, |_, state| {
-    if let Some((state, value)) = ParseValue.parse(state) {
+define_parser!(
+    ParseExpression,
+    Expression<'a>,
+    |_, state| if let Some((state, value)) = ParseValue.parse(state) {
         let (state, binop) = if let Some((state, binop)) = ParseBinOp.parse(state) {
             let (state, expression) = ParseExpression.parse(state)?;
             (state, Some((binop, Box::new(expression))))
@@ -382,14 +384,17 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
         Some((state, Expression::Value { value, binop }))
     } else if let Some((state, unop)) = ParseUnOp.parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
-        Some((state, Expression::UnaryOperator {
-            unop,
-            expression: Box::new(expression),
-        }))
+        Some((
+            state,
+            Expression::UnaryOperator {
+                unop,
+                expression: Box::new(expression),
+            },
+        ))
     } else {
         None
     }
-});
+);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

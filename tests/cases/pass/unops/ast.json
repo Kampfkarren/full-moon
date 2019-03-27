@@ -50,12 +50,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 34,
+              "bytes": 33,
               "character": 7,
               "line": 2
             },
             "end_position": {
-              "bytes": 50,
+              "bytes": 49,
               "character": 23,
               "line": 2
             },
@@ -70,12 +70,12 @@
             "unop": {
               "Minus": {
                 "start_position": {
-                  "bytes": 54,
+                  "bytes": 53,
                   "character": 27,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 55,
+                  "bytes": 54,
                   "character": 28,
                   "line": 2
                 },
@@ -90,12 +90,12 @@
                 "Var": {
                   "Name": {
                     "start_position": {
-                      "bytes": 54,
+                      "bytes": 53,
                       "character": 27,
                       "line": 2
                     },
                     "end_position": {
-                      "bytes": 55,
+                      "bytes": 54,
                       "character": 28,
                       "line": 2
                     },
@@ -117,12 +117,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 63,
+              "bytes": 61,
               "character": 7,
               "line": 3
             },
             "end_position": {
-              "bytes": 73,
+              "bytes": 71,
               "character": 17,
               "line": 3
             },
@@ -137,12 +137,12 @@
             "unop": {
               "Not": {
                 "start_position": {
-                  "bytes": 80,
+                  "bytes": 78,
                   "character": 24,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 84,
+                  "bytes": 82,
                   "character": 28,
                   "line": 3
                 },
@@ -156,12 +156,12 @@
               "value": {
                 "Symbol": {
                   "start_position": {
-                    "bytes": 80,
+                    "bytes": 78,
                     "character": 24,
                     "line": 3
                   },
                   "end_position": {
-                    "bytes": 84,
+                    "bytes": 82,
                     "character": 28,
                     "line": 3
                   },
@@ -182,12 +182,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 92,
+              "bytes": 89,
               "character": 7,
               "line": 4
             },
             "end_position": {
-              "bytes": 103,
+              "bytes": 100,
               "character": 18,
               "line": 4
             },
@@ -202,12 +202,12 @@
             "unop": {
               "Not": {
                 "start_position": {
-                  "bytes": 110,
+                  "bytes": 107,
                   "character": 25,
                   "line": 4
                 },
                 "end_position": {
-                  "bytes": 111,
+                  "bytes": 108,
                   "character": 26,
                   "line": 4
                 },
@@ -222,12 +222,12 @@
                 "Var": {
                   "Name": {
                     "start_position": {
-                      "bytes": 110,
+                      "bytes": 107,
                       "character": 25,
                       "line": 4
                     },
                     "end_position": {
-                      "bytes": 111,
+                      "bytes": 108,
                       "character": 26,
                       "line": 4
                     },
@@ -249,12 +249,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 119,
+              "bytes": 115,
               "character": 7,
               "line": 5
             },
             "end_position": {
-              "bytes": 125,
+              "bytes": 121,
               "character": 13,
               "line": 5
             },
@@ -269,12 +269,12 @@
             "unop": {
               "Hash": {
                 "start_position": {
-                  "bytes": 129,
+                  "bytes": 125,
                   "character": 17,
                   "line": 5
                 },
                 "end_position": {
-                  "bytes": 130,
+                  "bytes": 126,
                   "character": 18,
                   "line": 5
                 },
@@ -289,12 +289,12 @@
                 "Var": {
                   "Name": {
                     "start_position": {
-                      "bytes": 129,
+                      "bytes": 125,
                       "character": 17,
                       "line": 5
                     },
                     "end_position": {
-                      "bytes": 130,
+                      "bytes": 126,
                       "character": 18,
                       "line": 5
                     },

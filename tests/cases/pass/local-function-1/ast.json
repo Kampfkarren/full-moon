@@ -27,12 +27,12 @@
                   "prefix": {
                     "Name": {
                       "start_position": {
-                        "bytes": 21,
+                        "bytes": 20,
                         "character": 2,
                         "line": 2
                       },
                       "end_position": {
-                        "bytes": 25,
+                        "bytes": 24,
                         "character": 6,
                         "line": 2
                       },
@@ -51,12 +51,12 @@
                               "value": {
                                 "Number": {
                                   "start_position": {
-                                    "bytes": 26,
+                                    "bytes": 25,
                                     "character": 7,
                                     "line": 2
                                   },
                                   "end_position": {
-                                    "bytes": 27,
+                                    "bytes": 26,
                                     "character": 8,
                                     "line": 2
                                   },

@@ -103,12 +103,12 @@
                 "prefix": {
                   "Name": {
                     "start_position": {
-                      "bytes": 37,
+                      "bytes": 36,
                       "character": 2,
                       "line": 2
                     },
                     "end_position": {
-                      "bytes": 41,
+                      "bytes": 40,
                       "character": 6,
                       "line": 2
                     },
@@ -128,12 +128,12 @@
                               "Var": {
                                 "Name": {
                                   "start_position": {
-                                    "bytes": 42,
+                                    "bytes": 41,
                                     "character": 7,
                                     "line": 2
                                   },
                                   "end_position": {
-                                    "bytes": 47,
+                                    "bytes": 46,
                                     "character": 12,
                                     "line": 2
                                   },
@@ -151,12 +151,12 @@
                               "Var": {
                                 "Name": {
                                   "start_position": {
-                                    "bytes": 49,
+                                    "bytes": 48,
                                     "character": 14,
                                     "line": 2
                                   },
                                   "end_position": {
-                                    "bytes": 54,
+                                    "bytes": 53,
                                     "character": 19,
                                     "line": 2
                                   },

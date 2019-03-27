@@ -59,12 +59,12 @@
         "prefix": {
           "Name": {
             "start_position": {
-              "bytes": 16,
-              "character": 16,
+              "bytes": 15,
+              "character": 15,
               "line": 1
             },
             "end_position": {
-              "bytes": 20,
+              "bytes": 19,
               "character": 5,
               "line": 2
             },
@@ -83,12 +83,12 @@
                     "value": {
                       "String": {
                         "start_position": {
-                          "bytes": 21,
+                          "bytes": 20,
                           "character": 6,
                           "line": 2
                         },
                         "end_position": {
-                          "bytes": 29,
+                          "bytes": 28,
                           "character": 14,
                           "line": 2
                         },

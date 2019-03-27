@@ -50,12 +50,12 @@
         "name_list": [
           {
             "start_position": {
-              "bytes": 38,
+              "bytes": 36,
               "character": 7,
               "line": 3
             },
             "end_position": {
-              "bytes": 39,
+              "bytes": 37,
               "character": 8,
               "line": 3
             },
@@ -70,12 +70,12 @@
             "value": {
               "Number": {
                 "start_position": {
-                  "bytes": 42,
+                  "bytes": 40,
                   "character": 11,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 43,
+                  "bytes": 41,
                   "character": 12,
                   "line": 3
                 },

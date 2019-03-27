@@ -34,12 +34,12 @@
                               "prefix": {
                                 "Name": {
                                   "start_position": {
-                                    "bytes": 15,
+                                    "bytes": 14,
                                     "character": 3,
                                     "line": 2
                                   },
                                   "end_position": {
-                                    "bytes": 19,
+                                    "bytes": 18,
                                     "character": 7,
                                     "line": 2
                                   },
@@ -66,12 +66,12 @@
                           "value": {
                             "Number": {
                               "start_position": {
-                                "bytes": 25,
+                                "bytes": 24,
                                 "character": 13,
                                 "line": 2
                               },
                               "end_position": {
-                                "bytes": 26,
+                                "bytes": 25,
                                 "character": 14,
                                 "line": 2
                               },
@@ -87,12 +87,12 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 30,
+                        "bytes": 28,
                         "character": 2,
                         "line": 3
                       },
                       "end_position": {
-                        "bytes": 31,
+                        "bytes": 29,
                         "character": 3,
                         "line": 3
                       },
@@ -108,12 +108,12 @@
                         "value": {
                           "Number": {
                             "start_position": {
-                              "bytes": 30,
+                              "bytes": 28,
                               "character": 2,
                               "line": 3
                             },
                             "end_position": {
-                              "bytes": 31,
+                              "bytes": 29,
                               "character": 3,
                               "line": 3
                             },
@@ -128,12 +128,12 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 34,
-                        "character": 5,
+                        "bytes": 31,
+                        "character": 4,
                         "line": 3
                       },
                       "end_position": {
-                        "bytes": 35,
+                        "bytes": 32,
                         "character": 2,
                         "line": 4
                       },

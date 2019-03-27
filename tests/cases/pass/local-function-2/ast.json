@@ -67,12 +67,12 @@
       "LocalFunction": {
         "name": {
           "start_position": {
-            "bytes": 45,
+            "bytes": 44,
             "character": 16,
             "line": 2
           },
           "end_position": {
-            "bytes": 48,
+            "bytes": 47,
             "character": 19,
             "line": 2
           },
@@ -86,12 +86,12 @@
             {
               "Ellipse": {
                 "start_position": {
-                  "bytes": 49,
+                  "bytes": 48,
                   "character": 20,
                   "line": 2
                 },
                 "end_position": {
-                  "bytes": 52,
+                  "bytes": 51,
                   "character": 23,
                   "line": 2
                 },
@@ -112,12 +112,12 @@
       "LocalFunction": {
         "name": {
           "start_position": {
-            "bytes": 74,
+            "bytes": 72,
             "character": 16,
             "line": 3
           },
           "end_position": {
-            "bytes": 77,
+            "bytes": 75,
             "character": 19,
             "line": 3
           },
@@ -131,12 +131,12 @@
             {
               "Name": {
                 "start_position": {
-                  "bytes": 78,
+                  "bytes": 76,
                   "character": 20,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 79,
+                  "bytes": 77,
                   "character": 21,
                   "line": 3
                 },
@@ -149,12 +149,12 @@
             {
               "Name": {
                 "start_position": {
-                  "bytes": 81,
+                  "bytes": 79,
                   "character": 23,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 82,
+                  "bytes": 80,
                   "character": 24,
                   "line": 3
                 },
@@ -167,12 +167,12 @@
             {
               "Ellipse": {
                 "start_position": {
-                  "bytes": 84,
+                  "bytes": 82,
                   "character": 26,
                   "line": 3
                 },
                 "end_position": {
-                  "bytes": 87,
+                  "bytes": 85,
                   "character": 29,
                   "line": 3
                 },

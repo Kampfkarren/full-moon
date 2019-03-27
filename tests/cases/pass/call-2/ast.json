@@ -79,12 +79,12 @@
         "prefix": {
           "Name": {
             "start_position": {
-              "bytes": 10,
-              "character": 10,
+              "bytes": 9,
+              "character": 9,
               "line": 1
             },
             "end_position": {
-              "bytes": 11,
+              "bytes": 10,
               "character": 2,
               "line": 2
             },
@@ -100,12 +100,12 @@
               "MethodCall": {
                 "name": {
                   "start_position": {
-                    "bytes": 12,
+                    "bytes": 11,
                     "character": 3,
                     "line": 2
                   },
                   "end_position": {
-                    "bytes": 13,
+                    "bytes": 12,
                     "character": 4,
                     "line": 2
                   },
@@ -120,12 +120,12 @@
                       "value": {
                         "String": {
                           "start_position": {
-                            "bytes": 14,
+                            "bytes": 13,
                             "character": 5,
                             "line": 2
                           },
                           "end_position": {
-                            "bytes": 17,
+                            "bytes": 16,
                             "character": 8,
                             "line": 2
                           },
