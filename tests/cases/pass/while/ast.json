@@ -1,0 +1,67 @@
+{
+  "stmts": [
+    {
+      "While": {
+        "condition": {
+          "value": {
+            "Var": {
+              "Name": {
+                "start_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 15,
+                  "character": 16,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "condition"
+                }
+              }
+            }
+          },
+          "binop": null
+        },
+        "block": {
+          "stmts": [
+            {
+              "FunctionCall": {
+                "prefix": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 21,
+                      "character": 2,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 25,
+                      "character": 6,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "call"
+                    }
+                  }
+                },
+                "suffixes": [
+                  {
+                    "Call": {
+                      "AnonymousCall": {
+                        "Parentheses": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "last_stmt": "Break"
+        }
+      }
+    }
+  ]
+}
