@@ -1,0 +1,315 @@
+{
+  "stmts": [
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 6,
+              "character": 7,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 21,
+              "character": 22,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "negativeLiteral"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "value": {
+              "Number": {
+                "start_position": {
+                  "bytes": 24,
+                  "character": 25,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 26,
+                  "character": 27,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Number",
+                  "text": "-3"
+                }
+              }
+            },
+            "binop": null
+          }
+        ]
+      }
+    },
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 34,
+              "character": 7,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 50,
+              "character": 23,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "negativeVariable"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "unop": {
+              "Minus": {
+                "start_position": {
+                  "bytes": 54,
+                  "character": 27,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 55,
+                  "character": 28,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "x"
+                }
+              }
+            },
+            "expression": {
+              "value": {
+                "Var": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 54,
+                      "character": 27,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 55,
+                      "character": 28,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
+                  }
+                }
+              },
+              "binop": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 63,
+              "character": 7,
+              "line": 3
+            },
+            "end_position": {
+              "bytes": 73,
+              "character": 17,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "notLiteral"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "unop": {
+              "Not": {
+                "start_position": {
+                  "bytes": 80,
+                  "character": 24,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 84,
+                  "character": 28,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "true"
+                }
+              }
+            },
+            "expression": {
+              "value": {
+                "Symbol": {
+                  "start_position": {
+                    "bytes": 80,
+                    "character": 24,
+                    "line": 3
+                  },
+                  "end_position": {
+                    "bytes": 84,
+                    "character": 28,
+                    "line": 3
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "true"
+                  }
+                }
+              },
+              "binop": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 92,
+              "character": 7,
+              "line": 4
+            },
+            "end_position": {
+              "bytes": 103,
+              "character": 18,
+              "line": 4
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "notVariable"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "unop": {
+              "Not": {
+                "start_position": {
+                  "bytes": 110,
+                  "character": 25,
+                  "line": 4
+                },
+                "end_position": {
+                  "bytes": 111,
+                  "character": 26,
+                  "line": 4
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "x"
+                }
+              }
+            },
+            "expression": {
+              "value": {
+                "Var": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 110,
+                      "character": 25,
+                      "line": 4
+                    },
+                    "end_position": {
+                      "bytes": 111,
+                      "character": 26,
+                      "line": 4
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
+                  }
+                }
+              },
+              "binop": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 119,
+              "character": 7,
+              "line": 5
+            },
+            "end_position": {
+              "bytes": 125,
+              "character": 13,
+              "line": 5
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "length"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "unop": {
+              "Hash": {
+                "start_position": {
+                  "bytes": 129,
+                  "character": 17,
+                  "line": 5
+                },
+                "end_position": {
+                  "bytes": 130,
+                  "character": 18,
+                  "line": 5
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "x"
+                }
+              }
+            },
+            "expression": {
+              "value": {
+                "Var": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 129,
+                      "character": 17,
+                      "line": 5
+                    },
+                    "end_position": {
+                      "bytes": 130,
+                      "character": 18,
+                      "line": 5
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
+                  }
+                }
+              },
+              "binop": null
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

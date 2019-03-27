@@ -353,25 +353,42 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct Expression<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub value: Value<'a>,
-    pub binop: Option<(BinOp<'a>, Box<Expression<'a>>)>,
+#[cfg_attr(feature = "serde", serde(untagged))]
+pub enum Expression<'a> {
+    UnaryOperator {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        unop: UnOp<'a>,
+        expression: Box<Expression<'a>>,
+    },
+
+    Value {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        value: Value<'a>,
+        binop: Option<(BinOp<'a>, Box<Expression<'a>>)>,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseExpression;
 define_parser!(ParseExpression, Expression<'a>, |_, state| {
-    let (state, value) = ParseValue.parse(state)?;
+    if let Some((state, value)) = ParseValue.parse(state) {
+        let (state, binop) = if let Some((state, binop)) = ParseBinOp.parse(state) {
+            let (state, expression) = ParseExpression.parse(state)?;
+            (state, Some((binop, Box::new(expression))))
+        } else {
+            (state, None)
+        };
 
-    let (state, binop) = if let Some((state, binop)) = ParseBinOp.parse(state) {
+        Some((state, Expression::Value { value, binop }))
+    } else if let Some((state, unop)) = ParseUnOp.parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
-        (state, Some((binop, Box::new(expression))))
+        Some((state, Expression::UnaryOperator {
+            unop,
+            expression: Box::new(expression),
+        }))
     } else {
-        (state, None)
-    };
-
-    Some((state, Expression { value, binop }))
+        None
+    }
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -896,24 +913,24 @@ define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
     }
 });
 
-macro_rules! make_bin_op {
-    ($($binop:ident,)+) => {
+macro_rules! make_op {
+    ($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
         #[derive(Clone, Debug, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        pub enum BinOp<'a> {
+        pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
-                $binop(Token<'a>),
+                $operator(Token<'a>),
             )+
         }
 
         #[derive(Clone, Debug, PartialEq)]
-        struct ParseBinOp;
-        define_parser!(ParseBinOp, BinOp<'a>, |_, state| {
+        struct $parser;
+        define_parser!($parser, $enum<'a>, |_, state| {
             $(
-                if let Some((state, _)) = ParseSymbol(Symbol::$binop).parse(state) {
+                if let Some((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
                     // TODO: remove clone()
-                    return Some((state, BinOp::$binop(state.peek()?.clone())))
+                    return Some((state, $enum::$operator(state.peek()?.clone())))
                 }
             )+
 
@@ -922,7 +939,7 @@ macro_rules! make_bin_op {
     };
 }
 
-make_bin_op!(
+make_op!(BinOp, ParseBinOp, {
     And,
     Caret,
     GreaterThan,
@@ -938,7 +955,13 @@ make_bin_op!(
     TildeEqual,
     TwoDots,
     TwoEqual,
-);
+});
+
+make_op!(UnOp, ParseUnOp, {
+    Minus,
+    Not,
+    Hash,
+});
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AstError<'a> {
