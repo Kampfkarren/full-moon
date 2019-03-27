@@ -1,0 +1,150 @@
+{
+  "stmts": [
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 1,
+              "character": 2,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "x"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Index": {
+              "Dot": {
+                "start_position": {
+                  "bytes": 2,
+                  "character": 3,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 3,
+                  "character": 4,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "y"
+                }
+              }
+            }
+          },
+          {
+            "Call": {
+              "AnonymousCall": {
+                "Parentheses": [
+                  {
+                    "value": {
+                      "String": {
+                        "start_position": {
+                          "bytes": 4,
+                          "character": 5,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 7,
+                          "character": 8,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "StringLiteral",
+                          "literal": "a",
+                          "quote_type": "Double"
+                        }
+                      }
+                    },
+                    "binop": null
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "FunctionCall": {
+        "prefix": {
+          "Name": {
+            "start_position": {
+              "bytes": 10,
+              "character": 10,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 11,
+              "character": 2,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "x"
+            }
+          }
+        },
+        "suffixes": [
+          {
+            "Call": {
+              "MethodCall": {
+                "name": {
+                  "start_position": {
+                    "bytes": 12,
+                    "character": 3,
+                    "line": 2
+                  },
+                  "end_position": {
+                    "bytes": 13,
+                    "character": 4,
+                    "line": 2
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "y"
+                  }
+                },
+                "args": {
+                  "Parentheses": [
+                    {
+                      "value": {
+                        "String": {
+                          "start_position": {
+                            "bytes": 14,
+                            "character": 5,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 17,
+                            "character": 8,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "StringLiteral",
+                            "literal": "b",
+                            "quote_type": "Double"
+                          }
+                        }
+                      },
+                      "binop": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
