@@ -400,7 +400,7 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    Function(FuncBody<'a>),
+    Function(FunctionBody<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
     TableConstructor(Box<TableConstructor<'a>>),
     Number(Token<'a>),
@@ -435,6 +435,7 @@ pub enum Stmt<'a> {
     Assignment(Assignment<'a>),
     Do(Block<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
+    FunctionDeclaration(Box<FunctionDeclaration<'a>>),
     GenericFor(Box<GenericFor<'a>>),
     If(Box<If<'a>>),
     LocalAssignment(LocalAssignment<'a>),
@@ -453,6 +454,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseIf => Stmt::If,
     ParseNumericFor => Stmt::NumericFor,
     ParseGenericFor => Stmt::GenericFor,
+    ParseFunctionDeclaration => Stmt::FunctionDeclaration,
     ParseLocalFunction => Stmt::LocalFunction,
     ParseLocalAssignment => Stmt::LocalAssignment,
 }));
@@ -703,15 +705,15 @@ define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct FuncBody<'a> {
+pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub parameters: Vec<Parameter<'a>>,
     pub block: Block<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseFuncBody;
-define_parser!(ParseFuncBody, FuncBody<'a>, |_, state| {
+struct ParseFunctionBody;
+define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
     let (mut state, _) = ParseSymbol(Symbol::LeftParen).parse(state)?;
     let mut parameters = Vec::new();
 
@@ -735,14 +737,14 @@ define_parser!(ParseFuncBody, FuncBody<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, FuncBody { parameters, block }))
+    Some((state, FunctionBody { parameters, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunction;
-define_parser!(ParseFunction, FuncBody<'a>, |_, state| {
+define_parser!(ParseFunction, FunctionBody<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
-    ParseFuncBody.parse(state)
+    ParseFunctionBody.parse(state)
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -834,7 +836,7 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     name: Token<'a>,
-    func_body: FuncBody<'a>,
+    func_body: FunctionBody<'a>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -843,7 +845,7 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = ParseIdentifier.parse(state)?;
-    let (state, func_body) = ParseFuncBody.parse(state)?;
+    let (state, func_body) = ParseFunctionBody.parse(state)?;
     Some((state, LocalFunction { name, func_body }))
 });
 
@@ -905,6 +907,48 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
     } else {
         None
     }
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct FunctionName<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    names: Vec<Token<'a>>,
+    colon_name: Option<Token<'a>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseFunctionName;
+define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
+    let (state, names) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
+    let (state, colon_name) = if let Some((state, _)) = ParseSymbol(Symbol::Colon).parse(state) {
+        let (state, colon_name) = ParseIdentifier.parse(state)?;
+        (state, Some(colon_name))
+    } else {
+        (state, None)
+    };
+
+    Some((state, FunctionName {
+        names,
+        colon_name,
+    }))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct FunctionDeclaration<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub name: FunctionName<'a>,
+    pub body: FunctionBody<'a>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+struct ParseFunctionDeclaration;
+define_parser!(ParseFunctionDeclaration, FunctionDeclaration<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
+    let (state, name) = ParseFunctionName.parse(state)?;
+    let (state, body) = ParseFunctionBody.parse(state)?;
+    Some((state, FunctionDeclaration { name, body }))
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]

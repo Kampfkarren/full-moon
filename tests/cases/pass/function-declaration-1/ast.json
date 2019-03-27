@@ -1,0 +1,67 @@
+{
+  "stmts": [
+    {
+      "FunctionDeclaration": {
+        "name": {
+          "names": [
+            {
+              "start_position": {
+                "bytes": 9,
+                "character": 10,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 10,
+                "character": 11,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "x"
+              }
+            }
+          ],
+          "colon_name": null
+        },
+        "body": {
+          "parameters": [],
+          "block": {
+            "stmts": [
+              {
+                "FunctionCall": {
+                  "prefix": {
+                    "Name": {
+                      "start_position": {
+                        "bytes": 14,
+                        "character": 2,
+                        "line": 2
+                      },
+                      "end_position": {
+                        "bytes": 18,
+                        "character": 6,
+                        "line": 2
+                      },
+                      "token_type": {
+                        "type": "Identifier",
+                        "identifier": "call"
+                      }
+                    }
+                  },
+                  "suffixes": [
+                    {
+                      "Call": {
+                        "AnonymousCall": {
+                          "Parentheses": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
