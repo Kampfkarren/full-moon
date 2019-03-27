@@ -55,8 +55,8 @@ symbols!(
     And => "and",
     Break => "break",
     Do => "do",
-    Else => "else",
     ElseIf => "elseif",
+    Else => "else",
     End => "end",
     False => "false",
     For => "for",
@@ -626,18 +626,23 @@ mod tests {
 
     #[test]
     fn test_new_line_on_same_line() {
-        assert_eq!(tokens("\n").unwrap()[0], Token {
-            start_position: Position {
-                bytes: 0,
-                character: 1,
-                line: 1,
-            },
-            end_position: Position {
-                bytes: 1,
-                character: 1,
-                line: 1,
-            },
-            token_type: TokenType::Whitespace { characters: Cow::from("\n") },
-        });
+        assert_eq!(
+            tokens("\n").unwrap()[0],
+            Token {
+                start_position: Position {
+                    bytes: 0,
+                    character: 1,
+                    line: 1,
+                },
+                end_position: Position {
+                    bytes: 1,
+                    character: 1,
+                    line: 1,
+                },
+                token_type: TokenType::Whitespace {
+                    characters: Cow::from("\n")
+                },
+            }
+        );
     }
 }

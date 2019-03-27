@@ -414,6 +414,7 @@ pub enum Stmt<'a> {
     Do(Block<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
     GenericFor(Box<GenericFor<'a>>),
+    If(Box<If<'a>>),
     LocalAssignment(LocalAssignment<'a>),
     LocalFunction(LocalFunction<'a>),
     NumericFor(Box<NumericFor<'a>>),
@@ -427,6 +428,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseFunctionCall => Stmt::FunctionCall,
     ParseDo => Stmt::Do,
     ParseWhile => Stmt::While,
+    ParseIf => Stmt::If,
     ParseNumericFor => Stmt::NumericFor,
     ParseGenericFor => Stmt::GenericFor,
     ParseLocalFunction => Stmt::LocalFunction,
@@ -557,17 +559,74 @@ pub struct GenericFor<'a> {
 struct ParseGenericFor;
 define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::For).parse(state)?;
-    let (state, names) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, names) =
+        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::In).parse(state)?;
-    let (state, expr_list) = OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, expr_list) =
+        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, GenericFor {
-        names,
-        expr_list,
-        block,
-    }))
+    Some((
+        state,
+        GenericFor {
+            names,
+            expr_list,
+            block,
+        },
+    ))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct If<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub condition: Expression<'a>,
+    pub block: Block<'a>,
+    pub else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+    #[cfg_attr(feature = "serde", serde(rename = "else"))]
+    pub r#else: Option<Block<'a>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseIf;
+define_parser!(ParseIf, If<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::If).parse(state)?;
+    let (state, condition) = ParseExpression.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Then).parse(state)?;
+    let (mut state, block) = ParseBlock.parse(state)?;
+
+    let mut else_ifs = Vec::new();
+    while let Some((new_state, _)) = ParseSymbol(Symbol::ElseIf).parse(state) {
+        let (new_state, condition) = ParseExpression.parse(new_state)?;
+        let (new_state, _) = ParseSymbol(Symbol::Then).parse(new_state)?;
+        let (new_state, block) = ParseBlock.parse(new_state)?;
+        state = new_state;
+        else_ifs.push((condition, block));
+    }
+
+    let (state, r#else) = if let Some((state, _)) = ParseSymbol(Symbol::Else).parse(state) {
+        let (state, block) = ParseBlock.parse(state)?;
+        (state, Some(block))
+    } else {
+        (state, None)
+    };
+
+    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+
+    Some((
+        state,
+        If {
+            condition,
+            block,
+            r#else,
+            else_if: if else_ifs.is_empty() {
+                None
+            } else {
+                Some(else_ifs)
+            },
+        },
+    ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -586,10 +645,7 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, While {
-        condition,
-        block,
-    }))
+    Some((state, While { condition, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -637,7 +693,9 @@ define_parser!(ParseFuncBody, FuncBody<'a>, |_, state| {
     let (mut state, _) = ParseSymbol(Symbol::LeftParen).parse(state)?;
     let mut parameters = Vec::new();
 
-    if let Some((new_state, names)) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state) {
+    if let Some((new_state, names)) =
+        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
+    {
         state = new_state;
         parameters.extend(names.into_iter().map(Parameter::Name));
 
@@ -655,10 +713,7 @@ define_parser!(ParseFuncBody, FuncBody<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, FuncBody {
-        parameters,
-        block,
-    }))
+    Some((state, FuncBody { parameters, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -767,10 +822,7 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = ParseIdentifier.parse(state)?;
     let (state, func_body) = ParseFuncBody.parse(state)?;
-    Some((state, LocalFunction {
-        name,
-        func_body,
-    }))
+    Some((state, LocalFunction { name, func_body }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
