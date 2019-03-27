@@ -77,10 +77,11 @@ symbols!(
     Caret => "^",
     Colon => ":",
     Comma => ",",
-    Dot => ".",
     Ellipse => "...",
-    Equal => "=",
+    TwoDots => "..",
+    Dot => ".",
     TwoEqual => "==",
+    Equal => "=",
     GreaterThanEqual => ">=",
     GreaterThan => ">",
     Hash => "#",
@@ -99,7 +100,6 @@ symbols!(
     Slash => "/",
     Star => "*",
     TildeEqual => "~=",
-    TwoDots => "..",
 );
 
 #[derive(Clone, Debug, PartialEq)]

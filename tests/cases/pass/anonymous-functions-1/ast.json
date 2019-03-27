@@ -1,0 +1,93 @@
+{
+  "stmts": [
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 6,
+              "character": 7,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 7,
+              "character": 8,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "x"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "value": {
+              "Function": {
+                "parameters": [],
+                "block": {
+                  "stmts": [
+                    {
+                      "FunctionCall": {
+                        "prefix": {
+                          "Name": {
+                            "start_position": {
+                              "bytes": 23,
+                              "character": 2,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 27,
+                              "character": 6,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "call"
+                            }
+                          }
+                        },
+                        "suffixes": [
+                          {
+                            "Call": {
+                              "AnonymousCall": {
+                                "Parentheses": [
+                                  {
+                                    "value": {
+                                      "Number": {
+                                        "start_position": {
+                                          "bytes": 28,
+                                          "character": 7,
+                                          "line": 2
+                                        },
+                                        "end_position": {
+                                          "bytes": 29,
+                                          "character": 8,
+                                          "line": 2
+                                        },
+                                        "token_type": {
+                                          "type": "Number",
+                                          "text": "1"
+                                        }
+                                      }
+                                    },
+                                    "binop": null
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "binop": null
+          }
+        ]
+      }
+    }
+  ]
+}

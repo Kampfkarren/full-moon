@@ -139,15 +139,16 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
         nodes.push(node);
 
         while let Some((new_state, _)) = self.1.parse(state) {
-            state = new_state;
-
-            if let Some((new_state, node)) = self.0.parse(state) {
+            if let Some((new_state, node)) = self.0.parse(new_state) {
                 state = new_state;
                 nodes.push(node);
-            } else if self.2 {
-                break;
             } else {
-                return None;
+                if self.2 {
+                    state = new_state;
+                    break;
+                }
+
+                break;
             }
         }
 
@@ -377,6 +378,7 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    Function(FuncBody<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
     TableConstructor(Box<TableConstructor<'a>>),
     Number(Token<'a>),
@@ -397,6 +399,7 @@ define_parser!(
         ParseNumber => Value::Number,
         ParseStringLiteral => Value::String,
         ParseSymbol(Symbol::Ellipse) => Value::Symbol,
+        ParseFunction => Value::Function,
         ParseTableConstructor => Value::TableConstructor,
         ParseFunctionCall => Value::FunctionCall,
         ParseVar => Value::Var,
@@ -565,6 +568,59 @@ define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
     ParseFunctionArgs => Call::AnonymousCall,
     ParseMethodCall => Call::MethodCall,
 }));
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct FuncBody<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub parameters: Vec<Parameter<'a>>,
+    pub block: Block<'a>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseFuncBody;
+define_parser!(ParseFuncBody, FuncBody<'a>, |_, state| {
+    let (mut state, _) = ParseSymbol(Symbol::LeftParen).parse(state)?;
+    let mut parameters = Vec::new();
+
+    if let Some((new_state, names)) = OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state) {
+        state = new_state;
+        parameters.extend(names.into_iter().map(Parameter::Name));
+
+        if let Some((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
+            if let Some((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
+                state = new_state;
+                parameters.push(Parameter::Ellipse(ellipse));
+            }
+        }
+    } else if let Some((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+        state = new_state;
+        parameters.push(Parameter::Ellipse(ellipse));
+    }
+
+    let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+    let (state, block) = ParseBlock.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    Some((state, FuncBody {
+        parameters,
+        block,
+    }))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseFunction;
+define_parser!(ParseFunction, FuncBody<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
+    ParseFuncBody.parse(state)
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum Parameter<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    Ellipse(Token<'a>),
+    Name(Token<'a>),
+}
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
