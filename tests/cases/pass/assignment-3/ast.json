@@ -7,8 +7,8 @@
             "Name": {
               "start_position": {
                 "bytes": 50,
-                "character": 1,
-                "line": 2
+                "character": 50,
+                "line": 1
               },
               "end_position": {
                 "bytes": 51,

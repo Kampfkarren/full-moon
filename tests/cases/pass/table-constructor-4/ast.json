@@ -88,8 +88,8 @@
                     {
                       "start_position": {
                         "bytes": 29,
-                        "character": 1,
-                        "line": 3
+                        "character": 16,
+                        "line": 2
                       },
                       "end_position": {
                         "bytes": 30,

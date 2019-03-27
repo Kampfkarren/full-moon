@@ -37,8 +37,8 @@
           "Name": {
             "start_position": {
               "bytes": 8,
-              "character": 1,
-              "line": 2
+              "character": 8,
+              "line": 1
             },
             "end_position": {
               "bytes": 12,
@@ -90,8 +90,8 @@
           "Name": {
             "start_position": {
               "bytes": 17,
-              "character": 1,
-              "line": 3
+              "character": 9,
+              "line": 2
             },
             "end_position": {
               "bytes": 21,

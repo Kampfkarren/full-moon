@@ -387,15 +387,22 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         line: 1,
     };
 
+    let mut next_is_new_line = false;
+
     macro_rules! advance {
         ($function:ident) => {
             if let Some(advancement) = $function(&code[position.bytes..])? {
                 let start_position = position;
 
-                for _ in 0..advancement.advance {
-                    if code.chars().nth(position.bytes).expect("text overflow") == '\n' {
+                for character in code[position.bytes..].chars().take(advancement.advance) {
+                    if next_is_new_line {
+                        next_is_new_line = false;
                         position.line += 1;
                         position.character = 1;
+                    }
+
+                    if character == '\n' {
+                        next_is_new_line = true;
                     } else {
                         position.character += 1;
                     }
@@ -615,5 +622,22 @@ mod tests {
                 },
             }))
         );
+    }
+
+    #[test]
+    fn test_new_line_on_same_line() {
+        assert_eq!(tokens("\n").unwrap()[0], Token {
+            start_position: Position {
+                bytes: 0,
+                character: 1,
+                line: 1,
+            },
+            end_position: Position {
+                bytes: 1,
+                character: 1,
+                line: 1,
+            },
+            token_type: TokenType::Whitespace { characters: Cow::from("\n") },
+        });
     }
 }
