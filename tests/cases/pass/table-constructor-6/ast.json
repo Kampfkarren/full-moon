@@ -1,0 +1,65 @@
+{
+  "stmts": [
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 6,
+              "character": 7,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 9,
+              "character": 10,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "foo"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "value": {
+              "TableConstructor": {
+                "fields": [
+                  [
+                    {
+                      "NoKey": {
+                        "value": {
+                          "Var": {
+                            "Name": {
+                              "start_position": {
+                                "bytes": 14,
+                                "character": 15,
+                                "line": 1
+                              },
+                              "end_position": {
+                                "bytes": 17,
+                                "character": 18,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "Identifier",
+                                "identifier": "bar"
+                              }
+                            }
+                          }
+                        },
+                        "binop": null
+                      }
+                    },
+                    null
+                  ]
+                ]
+              }
+            },
+            "binop": null
+          }
+        ]
+      }
+    }
+  ]
+}

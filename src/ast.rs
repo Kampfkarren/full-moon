@@ -295,23 +295,28 @@ pub enum Field<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
-define_parser!(ParseField, Field<'a>, |_, state| if let Some((state, _)) =
-    ParseSymbol(Symbol::LeftBracket).parse(state)
-{
-    let (state, key) = ParseExpression.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, value) = ParseExpression.parse(state)?;
-    let (key, value) = (Box::new(key), Box::new(value));
-    Some((state, Field::ExpressionKey { key, value }))
-} else if let Some((state, key)) = ParseIdentifier.parse(state) {
-    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, value) = ParseExpression.parse(state)?;
-    let (key, value) = (Box::new(key), Box::new(value));
-    Some((state, Field::NameKey { key, value }))
-} else if let Some((state, expr)) = ParseExpression.parse(state) {
-    Some((state, Field::NoKey(expr)))
-} else {
+define_parser!(ParseField, Field<'a>, |_, state| {
+    if let Some((state, _)) =
+        ParseSymbol(Symbol::LeftBracket).parse(state)
+    {
+        let (state, key) = ParseExpression.parse(state)?;
+        let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
+        let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
+        let (state, value) = ParseExpression.parse(state)?;
+        let (key, value) = (Box::new(key), Box::new(value));
+        return Some((state, Field::ExpressionKey { key, value }));
+    } else if let Some((state, key)) = ParseIdentifier.parse(state) {
+        if let Some((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
+            let (state, value) = ParseExpression.parse(state)?;
+            let (key, value) = (Box::new(key), Box::new(value));
+            return Some((state, Field::NameKey { key, value }));
+        }
+    }
+
+    if let Some((state, expr)) = ParseExpression.parse(state) {
+        return Some((state, Field::NoKey(expr)))
+    }
+
     None
 });
 
