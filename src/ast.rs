@@ -228,10 +228,21 @@ pub struct Block<'a> {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseBlock;
-define_parser!(ParseBlock, Block<'a>, |_, state| {
-    let (state, stmts) = ZeroOrMore(ParseStmt).parse(state)?;
+define_parser!(ParseBlock, Block<'a>, |_, mut state| {
+    let mut stmts = Vec::new();
+    while let Some((new_state, stmt)) = ParseStmt.parse(state) {
+        state = new_state;
+        if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+            state = new_state;
+        }
+        stmts.push(stmt);
+    }
 
-    if let Some((state, last_stmt)) = ParseLastStmt.parse(state) {
+    if let Some((mut state, last_stmt)) = ParseLastStmt.parse(state) {
+        if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+            state = new_state;
+        }
+
         Some((
             state,
             Block {
