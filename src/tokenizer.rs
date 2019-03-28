@@ -140,6 +140,8 @@ pub enum TokenType<'a> {
     StringLiteral {
         #[cfg_attr(feature = "serde", serde(borrow))]
         literal: Cow<'a, str>,
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+        multi_line: Option<usize>,
         quote_type: StringLiteralQuoteType,
     },
 
@@ -183,12 +185,19 @@ impl<'a> fmt::Display for Token<'a> {
             Identifier { identifier } => identifier.to_string(),
             MultiLineComment { blocks, comment } => {
                 format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
-            }
+            },
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
+                multi_line,
                 quote_type,
-            } => format!("{0}{1}{0}", quote_type.to_string(), literal.to_string()),
+            } => {
+                if let Some(blocks) = multi_line {
+                    format!("[{0}[{1}]{0}]", "=".repeat(*blocks), literal.to_string())
+                } else {
+                    format!("{0}{1}{0}", quote_type.to_string(), literal.to_string())
+                }
+            },
             Symbol { symbol } => symbol.to_string(),
             Whitespace { characters } => characters.to_string(),
         }
@@ -213,6 +222,7 @@ pub struct TokenAdvancement<'a> {
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum StringLiteralQuoteType {
+    Brackets,
     Double,
     Single,
 }
@@ -220,6 +230,7 @@ pub enum StringLiteralQuoteType {
 impl<'a> fmt::Display for StringLiteralQuoteType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            StringLiteralQuoteType::Brackets => unreachable!(),
             StringLiteralQuoteType::Double => "\"",
             StringLiteralQuoteType::Single => "'",
         }
@@ -233,6 +244,7 @@ lazy_static! {
         Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
     static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
     static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--([^\n]*)").unwrap();
+    static ref PATTERN_STRING_MULTI_LINE_BEGIN: Regex = Regex::new(r"\[(=*)\[").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
@@ -308,6 +320,32 @@ fn advance_identifier(code: &str) -> Advancement {
 }
 
 fn advance_quote(code: &str) -> Advancement {
+    if let Some(captures) = PATTERN_STRING_MULTI_LINE_BEGIN.captures(code) {
+        let whole_beginning = captures.get(0).unwrap();
+        if whole_beginning.start() == 0 {
+            let block_count = match captures.get(1) {
+                Some(block_count) => block_count.end() - block_count.start(),
+                None => 0,
+            };
+
+            let end_regex = Regex::new(&format!(r"\]={{{}}}", block_count)).unwrap();
+
+            let end_find = match end_regex.find(code) {
+                Some(find) => find,
+                None => return Err(TokenizerError::UnclosedString),
+            };
+
+            return Ok(Some(TokenAdvancement {
+                advance: end_find.end() + 1,
+                token_type: TokenType::StringLiteral {
+                    multi_line: Some(block_count),
+                    literal: Cow::from(&code[whole_beginning.end()..end_find.start()]),
+                    quote_type: StringLiteralQuoteType::Brackets,
+                },
+            }));
+        }
+    }
+
     let quote = if code.starts_with('"') {
         '"'
     } else if code.starts_with('\'') {
@@ -341,6 +379,7 @@ fn advance_quote(code: &str) -> Advancement {
             advance: end + 1,
             token_type: TokenType::StringLiteral {
                 literal: Cow::from(&code[1..end]),
+                multi_line: None,
                 quote_type: match quote {
                     '"' => StringLiteralQuoteType::Double,
                     '\'' => StringLiteralQuoteType::Single,
@@ -427,9 +466,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         advance!(advance_whitespace);
         advance!(advance_comment);
         advance!(advance_number);
+        advance!(advance_quote);
         advance!(advance_symbol);
         advance!(advance_identifier);
-        advance!(advance_quote);
 
         return Err(TokenizerError::UnexpectedToken(
             code.chars()
@@ -598,6 +637,7 @@ mod tests {
                 advance: 7,
                 token_type: TokenType::StringLiteral {
                     literal: Cow::from("hello"),
+                    multi_line: None,
                     quote_type: StringLiteralQuoteType::Double,
                 },
             }))
