@@ -535,6 +535,8 @@ define_parser!(ParseIndex, Index<'a>, |_, state| if let Some((state, _)) =
 pub enum FunctionArgs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Parentheses(Vec<Expression<'a>>),
+    String(Token<'a>),
+    TableConstructor(Box<TableConstructor<'a>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -547,6 +549,13 @@ define_parser!(
             ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
         let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
         Some((state, FunctionArgs::Parentheses(expr_list)))
+    } else if let Some((state, table_constructor)) = ParseTableConstructor.parse(state) {
+        Some((
+            state,
+            FunctionArgs::TableConstructor(Box::new(table_constructor)),
+        ))
+    } else if let Some((state, string)) = ParseStringLiteral.parse(state) {
+        Some((state, FunctionArgs::String(string)))
     } else {
         None
     }
