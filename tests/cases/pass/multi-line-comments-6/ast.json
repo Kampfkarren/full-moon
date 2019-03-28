@@ -1,0 +1,49 @@
+{
+  "stmts": [
+    {
+      "LocalFunction": {
+        "name": {
+          "start_position": {
+            "bytes": 15,
+            "character": 16,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 16,
+            "character": 17,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Identifier",
+            "identifier": "x"
+          }
+        },
+        "func_body": {
+          "parameters": [
+            {
+              "Ellipse": {
+                "start_position": {
+                  "bytes": 17,
+                  "character": 18,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 20,
+                  "character": 21,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "..."
+                }
+              }
+            }
+          ],
+          "block": {
+            "stmts": []
+          }
+        }
+      }
+    }
+  ]
+}

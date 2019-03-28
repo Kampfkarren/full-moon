@@ -284,7 +284,7 @@ fn advance_comment(code: &str) -> Advancement {
             };
 
             return Ok(Some(TokenAdvancement {
-                advance: end_find.end() + 1,
+                advance: end_find.end(),
                 token_type: TokenType::MultiLineComment {
                     blocks: block_count,
                     comment: Cow::from(&code[whole_beginning.end()..end_find.start()]),
@@ -336,7 +336,7 @@ fn advance_quote(code: &str) -> Advancement {
             };
 
             return Ok(Some(TokenAdvancement {
-                advance: end_find.end() + 1,
+                advance: end_find.end(),
                 token_type: TokenType::StringLiteral {
                     multi_line: Some(block_count),
                     literal: Cow::from(&code[whole_beginning.end()..end_find.start()]),
