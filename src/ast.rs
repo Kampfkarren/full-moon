@@ -336,7 +336,7 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
         let field_sep = if let Some((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
             Some(state.peek()?.clone())
-        } else if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+        } else if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
             Some(state.peek()?.clone())
         } else {

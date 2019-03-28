@@ -1,0 +1,232 @@
+{
+  "stmts": [
+    {
+      "LocalAssignment": {
+        "name_list": [
+          {
+            "start_position": {
+              "bytes": 6,
+              "character": 7,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 15,
+              "character": 16,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Identifier",
+              "identifier": "blacklist"
+            }
+          }
+        ],
+        "expr_list": [
+          {
+            "value": {
+              "TableConstructor": {
+                "fields": [
+                  [
+                    {
+                      "ExpressionKey": {
+                        "key": {
+                          "value": {
+                            "String": {
+                              "start_position": {
+                                "bytes": 22,
+                                "character": 3,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 55,
+                                "character": 36,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "StringLiteral",
+                                "literal": "Audio file failed to load (18).",
+                                "quote_type": "Double"
+                              }
+                            }
+                          },
+                          "binop": null
+                        },
+                        "value": {
+                          "value": {
+                            "Symbol": {
+                              "start_position": {
+                                "bytes": 59,
+                                "character": 40,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 63,
+                                "character": 44,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": "true"
+                              }
+                            }
+                          },
+                          "binop": null
+                        }
+                      }
+                    },
+                    {
+                      "start_position": {
+                        "bytes": 66,
+                        "character": 2,
+                        "line": 3
+                      },
+                      "end_position": {
+                        "bytes": 67,
+                        "character": 3,
+                        "line": 3
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "["
+                      }
+                    }
+                  ],
+                  [
+                    {
+                      "ExpressionKey": {
+                        "key": {
+                          "value": {
+                            "String": {
+                              "start_position": {
+                                "bytes": 67,
+                                "character": 3,
+                                "line": 3
+                              },
+                              "end_position": {
+                                "bytes": 131,
+                                "character": 67,
+                                "line": 3
+                              },
+                              "token_type": {
+                                "type": "StringLiteral",
+                                "literal": "HTTP 0 (HTTP 429 (HTTP/1.1 429 ProvisionedThroughputExceeded))",
+                                "quote_type": "Double"
+                              }
+                            }
+                          },
+                          "binop": null
+                        },
+                        "value": {
+                          "value": {
+                            "Symbol": {
+                              "start_position": {
+                                "bytes": 135,
+                                "character": 71,
+                                "line": 3
+                              },
+                              "end_position": {
+                                "bytes": 139,
+                                "character": 75,
+                                "line": 3
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": "true"
+                              }
+                            }
+                          },
+                          "binop": null
+                        }
+                      }
+                    },
+                    {
+                      "start_position": {
+                        "bytes": 142,
+                        "character": 2,
+                        "line": 4
+                      },
+                      "end_position": {
+                        "bytes": 143,
+                        "character": 3,
+                        "line": 4
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "["
+                      }
+                    }
+                  ],
+                  [
+                    {
+                      "ExpressionKey": {
+                        "key": {
+                          "value": {
+                            "String": {
+                              "start_position": {
+                                "bytes": 143,
+                                "character": 3,
+                                "line": 4
+                              },
+                              "end_position": {
+                                "bytes": 205,
+                                "character": 65,
+                                "line": 4
+                              },
+                              "token_type": {
+                                "type": "StringLiteral",
+                                "literal": "LoadCharacter can only be called when Player is in the world",
+                                "quote_type": "Double"
+                              }
+                            }
+                          },
+                          "binop": null
+                        },
+                        "value": {
+                          "value": {
+                            "Symbol": {
+                              "start_position": {
+                                "bytes": 209,
+                                "character": 69,
+                                "line": 4
+                              },
+                              "end_position": {
+                                "bytes": 213,
+                                "character": 73,
+                                "line": 4
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": "true"
+                              }
+                            }
+                          },
+                          "binop": null
+                        }
+                      }
+                    },
+                    {
+                      "start_position": {
+                        "bytes": 215,
+                        "character": 74,
+                        "line": 4
+                      },
+                      "end_position": {
+                        "bytes": 216,
+                        "character": 2,
+                        "line": 5
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "}"
+                      }
+                    }
+                  ]
+                ]
+              }
+            },
+            "binop": null
+          }
+        ]
+      }
+    }
+  ]
+}
