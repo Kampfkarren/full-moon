@@ -1,6 +1,7 @@
 use crate::tokenizer::{Symbol, Token, TokenType};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct ParserState<'a> {
@@ -24,14 +25,21 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    pub fn peek<'b>(self) -> Option<&'b Token<'a>> {
-        self.tokens.get(self.index)
+    pub fn peek<'b>(self) -> &'b Token<'a> {
+        self.tokens
+            .get(self.index)
+            .expect("peek failed, when there should always be an eof")
     }
 }
 
 impl<'a> std::fmt::Debug for ParserState<'a> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "ParserState {{ index: {}, current: {:?} }}", self.index, self.peek())
+        write!(
+            formatter,
+            "ParserState {{ index: {}, current: {:?} }}",
+            self.index,
+            self.peek()
+        )
     }
 }
 
@@ -124,7 +132,10 @@ where
                     if self.2 {
                         break;
                     } else {
-                        return Err(AstError::UnexpectedToken(state, None));
+                        return Err(AstError::UnexpectedToken {
+                            token: Cow::Borrowed(state.peek()),
+                            additional: None,
+                        });
                     }
                 }
 
@@ -198,7 +209,7 @@ define_parser!(
     Token<'a>,
     |this: &ParseSymbol, state: ParserState<'a>| {
         let expecting = TokenType::Symbol { symbol: this.0 };
-        let token = state.peek().ok_or(AstError::NoMatch)?;
+        let token = state.peek();
 
         if token.token_type == expecting {
             // TODO: remove clone
@@ -214,7 +225,7 @@ define_parser!(
 struct ParseNumber;
 
 define_parser!(ParseNumber, Token<'a>, |_, state: ParserState<'a>| {
-    let token = state.peek().ok_or(AstError::NoMatch)?;
+    let token = state.peek();
     if let TokenType::Number { .. } = token.token_type {
         // TODO: remove clone
         Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
@@ -231,7 +242,7 @@ define_parser!(
     ParseStringLiteral,
     Token<'a>,
     |_, state: ParserState<'a>| {
-        let token = state.peek().ok_or(AstError::NoMatch)?;
+        let token = state.peek();
         if let TokenType::StringLiteral { .. } = token.token_type {
             // TODO: remove clone
             Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
@@ -370,10 +381,10 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     while let Ok((new_state, field)) = ParseField.parse(state) {
         let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
-            Some(state.peek().ok_or(AstError::NoMatch)?.clone())
+            Some(state.peek().clone())
         } else if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
-            Some(state.peek().ok_or(AstError::NoMatch)?.clone())
+            Some(state.peek().clone())
         } else {
             state = new_state;
             None
@@ -1031,10 +1042,13 @@ define_parser!(
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
-    let next_token = state.peek().ok_or(AstError::NoMatch)?;
+    let next_token = state.peek();
     match &next_token.token_type {
         // TODO: remove clone
-        TokenType::Identifier { .. } => Ok((state.advance().ok_or(AstError::NoMatch)?, next_token.clone())),
+        TokenType::Identifier { .. } => Ok((
+            state.advance().ok_or(AstError::NoMatch)?,
+            next_token.clone(),
+        )),
         _ => Err(AstError::NoMatch),
     }
 });
@@ -1056,7 +1070,7 @@ macro_rules! make_op {
             $(
                 if let Ok((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
                     // TODO: remove clone()
-                    return Ok((state, $enum::$operator(state.peek().ok_or(AstError::NoMatch)?.clone())))
+                    return Ok((state, $enum::$operator(state.peek().clone())))
                 }
             )+
 
@@ -1090,11 +1104,16 @@ make_op!(UnOp, ParseUnOp, {
 });
 
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum AstError<'a> {
     Empty,
     NoEof,
     NoMatch,
-    UnexpectedToken(ParserState<'a>, Option<String>),
+    UnexpectedToken {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        token: Cow<'a, Token<'a>>,
+        additional: Option<String>,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1122,7 +1141,7 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
 
         let mut state = ParserState { index: 0, tokens };
         // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-        if state.peek().unwrap().token_type.ignore() {
+        if state.peek().token_type.ignore() {
             state = state.advance().unwrap();
         }
 
@@ -1130,10 +1149,16 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
             if state.index == tokens.len() - 1 {
                 Ok(block)
             } else {
-                Err(AstError::UnexpectedToken(state, None))
+                Err(AstError::UnexpectedToken {
+                    token: Cow::Borrowed(state.peek()),
+                    additional: None,
+                })
             }
         } else {
-            Err(AstError::UnexpectedToken(state, None))
+            Err(AstError::UnexpectedToken {
+                token: Cow::Borrowed(state.peek()),
+                additional: None,
+            })
         }
     }
 }
