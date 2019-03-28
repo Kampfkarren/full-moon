@@ -328,7 +328,7 @@ fn advance_quote(code: &str) -> Advancement {
                 None => 0,
             };
 
-            let end_regex = Regex::new(&format!(r"\]={{{}}}", block_count)).unwrap();
+            let end_regex = Regex::new(&format!(r"\]={{{}}}\]", block_count)).unwrap();
 
             let end_find = match end_regex.find(code) {
                 Some(find) => find,
