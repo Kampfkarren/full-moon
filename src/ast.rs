@@ -2,10 +2,8 @@ use crate::tokenizer::{Symbol, Token, TokenType};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-// const FILTER_WHITESPACE: fn(&&Token) -> bool = |token: &&Token| !token.token_type.ignore();
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct ParserState<'a> {
+#[derive(Clone, Copy, PartialEq)]
+pub struct ParserState<'a> {
     index: usize,
     tokens: &'a [Token<'a>],
 }
@@ -26,15 +24,21 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    fn peek<'b>(self) -> Option<&'b Token<'a>> {
+    pub fn peek<'b>(self) -> Option<&'b Token<'a>> {
         self.tokens.get(self.index)
+    }
+}
+
+impl<'a> std::fmt::Debug for ParserState<'a> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "ParserState {{ index: {}, current: {:?} }}", self.index, self.peek())
     }
 }
 
 trait Parser<'a>: Sized {
     type Item;
 
-    fn parse(&self, state: ParserState<'a>) -> Option<(ParserState<'a>, Self::Item)>;
+    fn parse(&self, state: ParserState<'a>) -> Result<(ParserState<'a>, Self::Item), AstError<'a>>;
 }
 
 macro_rules! define_parser {
@@ -42,7 +46,10 @@ macro_rules! define_parser {
         impl<'a> Parser<'a> for $parser {
             type Item = $node;
 
-            fn parse(&self, state: ParserState<'a>) -> Option<(ParserState<'a>, $node)> {
+            fn parse(
+                &self,
+                state: ParserState<'a>,
+            ) -> Result<(ParserState<'a>, $node), AstError<'a>> {
                 $body(self, state)
             }
         }
@@ -52,12 +59,12 @@ macro_rules! define_parser {
 macro_rules! parse_first_of {
     ($state:ident, {$($parser:expr => $constructor:expr,)+}) => ({
         $(
-            if let Some((state, node)) = $parser.parse($state) {
-                return Some((state, $constructor(node.into())));
+            if let Ok((state, node)) = $parser.parse($state) {
+                return Ok((state, $constructor(node.into())));
             }
         )+
 
-        None
+        return Err(AstError::NoMatch);
     });
 }
 
@@ -70,13 +77,13 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse(&self, mut state: ParserState<'a>) -> Option<(ParserState<'a>, Vec<T>)> {
+    fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
         let mut nodes = Vec::new();
-        while let Some((new_state, node)) = self.0.parse(state) {
+        while let Ok((new_state, node)) = self.0.parse(state) {
             state = new_state;
             nodes.push(node);
         }
-        Some((state, nodes))
+        Ok((state, nodes))
     }
 }
 
@@ -94,30 +101,40 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse(&self, mut state: ParserState<'a>) -> Option<(ParserState<'a>, Vec<T>)> {
+    fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
         let mut nodes = Vec::new();
 
-        if let Some((new_state, node)) = self.0.parse(state) {
+        if let Ok((new_state, node)) = self.0.parse(state) {
             state = new_state;
             nodes.push(node);
         } else {
-            return Some((state, Vec::new()));
+            return Ok((state, Vec::new()));
         }
 
-        while let Some((new_state, _)) = self.1.parse(state) {
+        while let Ok((new_state, _)) = self.1.parse(state) {
             state = new_state;
 
-            if let Some((new_state, node)) = self.0.parse(state) {
-                state = new_state;
-                nodes.push(node);
-            } else if self.2 {
-                break;
-            } else {
-                return None;
+            match self.0.parse(state) {
+                Ok((new_state, node)) => {
+                    state = new_state;
+                    nodes.push(node);
+                }
+
+                Err(AstError::NoMatch) => {
+                    if self.2 {
+                        break;
+                    } else {
+                        return Err(AstError::UnexpectedToken(state, None));
+                    }
+                }
+
+                Err(other) => {
+                    return Err(other);
+                }
             }
         }
 
-        Some((state, nodes))
+        Ok((state, nodes))
     }
 }
 
@@ -133,26 +150,36 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
 {
     type Item = Vec<ItemParser::Item>;
 
-    fn parse(&self, state: ParserState<'a>) -> Option<(ParserState<'a>, Vec<ItemParser::Item>)> {
+    fn parse(
+        &self,
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Vec<ItemParser::Item>), AstError<'a>> {
         let mut nodes = Vec::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(node);
 
-        while let Some((new_state, _)) = self.1.parse(state) {
-            if let Some((new_state, node)) = self.0.parse(new_state) {
-                state = new_state;
-                nodes.push(node);
-            } else {
-                if self.2 {
+        while let Ok((new_state, _)) = self.1.parse(state) {
+            match self.0.parse(new_state) {
+                Ok((new_state, node)) => {
                     state = new_state;
+                    nodes.push(node);
+                }
+
+                Err(AstError::NoMatch) => {
+                    if self.2 {
+                        state = new_state;
+                    }
+
                     break;
                 }
 
-                break;
+                Err(other) => {
+                    return Err(other);
+                }
             }
         }
 
-        Some((state, nodes))
+        Ok((state, nodes))
     }
 }
 
@@ -160,10 +187,7 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct NoDelimiter;
 
-define_parser!(NoDelimiter, (), |_, state: ParserState<'a>| Some((
-    state,
-    ()
-)));
+define_parser!(NoDelimiter, (), |_, state: ParserState<'a>| Ok((state, ())));
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -174,13 +198,13 @@ define_parser!(
     Token<'a>,
     |this: &ParseSymbol, state: ParserState<'a>| {
         let expecting = TokenType::Symbol { symbol: this.0 };
-        let token = state.peek()?;
+        let token = state.peek().ok_or(AstError::NoMatch)?;
 
         if token.token_type == expecting {
             // TODO: remove clone
-            Some((state.advance()?, token.clone()))
+            Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
         } else {
-            None
+            Err(AstError::NoMatch)
         }
     }
 );
@@ -190,12 +214,12 @@ define_parser!(
 struct ParseNumber;
 
 define_parser!(ParseNumber, Token<'a>, |_, state: ParserState<'a>| {
-    let token = state.peek()?;
+    let token = state.peek().ok_or(AstError::NoMatch)?;
     if let TokenType::Number { .. } = token.token_type {
         // TODO: remove clone
-        Some((state.advance()?, token.clone()))
+        Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 });
 
@@ -207,12 +231,12 @@ define_parser!(
     ParseStringLiteral,
     Token<'a>,
     |_, state: ParserState<'a>| {
-        let token = state.peek()?;
+        let token = state.peek().ok_or(AstError::NoMatch)?;
         if let TokenType::StringLiteral { .. } = token.token_type {
             // TODO: remove clone
-            Some((state.advance()?, token.clone()))
+            Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
         } else {
-            None
+            Err(AstError::NoMatch)
         }
     }
 );
@@ -230,20 +254,20 @@ pub struct Block<'a> {
 struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, |_, mut state| {
     let mut stmts = Vec::new();
-    while let Some((new_state, stmt)) = ParseStmt.parse(state) {
+    while let Ok((new_state, stmt)) = ParseStmt.parse(state) {
         state = new_state;
-        if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
             state = new_state;
         }
         stmts.push(stmt);
     }
 
-    if let Some((mut state, last_stmt)) = ParseLastStmt.parse(state) {
-        if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+    if let Ok((mut state, last_stmt)) = ParseLastStmt.parse(state) {
+        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
             state = new_state;
         }
 
-        Some((
+        Ok((
             state,
             Block {
                 stmts,
@@ -251,7 +275,7 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state| {
             },
         ))
     } else {
-        Some((
+        Ok((
             state,
             Block {
                 stmts,
@@ -274,14 +298,14 @@ struct ParseLastStmt;
 define_parser!(
     ParseLastStmt,
     LastStmt<'a>,
-    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
+    |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
         let (state, returns) =
             ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
-        Some((state, LastStmt::Return(returns)))
-    } else if let Some((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
-        Some((state, LastStmt::Break))
+        Ok((state, LastStmt::Return(returns)))
+    } else if let Ok((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
+        Ok((state, LastStmt::Break))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 );
 
@@ -307,27 +331,27 @@ pub enum Field<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
 define_parser!(ParseField, Field<'a>, |_, state| {
-    if let Some((state, _)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
+    if let Ok((state, _)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
         let (state, key) = ParseExpression.parse(state)?;
         let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
         let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
         let (state, value) = ParseExpression.parse(state)?;
         let (key, value) = (Box::new(key), Box::new(value));
-        return Some((state, Field::ExpressionKey { key, value }));
-    } else if let Some((state, key)) = ParseIdentifier.parse(state) {
-        if let Some((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
+        return Ok((state, Field::ExpressionKey { key, value }));
+    } else if let Ok((state, key)) = ParseIdentifier.parse(state) {
+        if let Ok((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
             let (state, value) = ParseExpression.parse(state)?;
             let (key, value) = (Box::new(key), Box::new(value));
-            return Some((state, Field::NameKey { key, value }));
+            return Ok((state, Field::NameKey { key, value }));
         }
     }
 
-    if let Some((state, expr)) = ParseExpression.parse(state) {
+    if let Ok((state, expr)) = ParseExpression.parse(state) {
         let expr = Box::new(expr);
-        return Some((state, Field::NoKey(expr)));
+        return Ok((state, Field::NoKey(expr)));
     }
 
-    None
+    Err(AstError::NoMatch)
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -343,13 +367,13 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     let mut fields = Vec::new();
 
     // TODO: remove clone
-    while let Some((new_state, field)) = ParseField.parse(state) {
-        let field_sep = if let Some((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
+    while let Ok((new_state, field)) = ParseField.parse(state) {
+        let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
-            Some(state.peek()?.clone())
-        } else if let Some((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
+            Some(state.peek().ok_or(AstError::NoMatch)?.clone())
+        } else if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
-            Some(state.peek()?.clone())
+            Some(state.peek().ok_or(AstError::NoMatch)?.clone())
         } else {
             state = new_state;
             None
@@ -363,7 +387,7 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     }
 
     let (state, _) = ParseSymbol(Symbol::RightBrace).parse(state)?;
-    Some((state, TableConstructor { fields }))
+    Ok((state, TableConstructor { fields }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -388,18 +412,18 @@ struct ParseExpression;
 define_parser!(
     ParseExpression,
     Expression<'a>,
-    |_, state| if let Some((state, value)) = ParseValue.parse(state) {
-        let (state, binop) = if let Some((state, binop)) = ParseBinOp.parse(state) {
+    |_, state| if let Ok((state, value)) = ParseValue.parse(state) {
+        let (state, binop) = if let Ok((state, binop)) = ParseBinOp.parse(state) {
             let (state, expression) = ParseExpression.parse(state)?;
             (state, Some((binop, Box::new(expression))))
         } else {
             (state, None)
         };
 
-        Some((state, Expression::Value { value, binop }))
-    } else if let Some((state, unop)) = ParseUnOp.parse(state) {
+        Ok((state, Expression::Value { value, binop }))
+    } else if let Ok((state, unop)) = ParseUnOp.parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
-        Some((
+        Ok((
             state,
             Expression::UnaryOperator {
                 unop,
@@ -407,7 +431,7 @@ define_parser!(
             },
         ))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 );
 
@@ -416,12 +440,12 @@ struct ParseParenExpression;
 define_parser!(
     ParseParenExpression,
     Expression<'a>,
-    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+    |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
         let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
-        Some((state, expression))
+        Ok((state, expression))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 );
 
@@ -517,17 +541,17 @@ pub enum Index<'a> {
 }
 
 struct ParseIndex;
-define_parser!(ParseIndex, Index<'a>, |_, state| if let Some((state, _)) =
+define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
     ParseSymbol(Symbol::LeftBracket).parse(state)
 {
     let (state, expression) = ParseExpression.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
-    Some((state, Index::Brackets(expression)))
-} else if let Some((state, _)) = ParseSymbol(Symbol::Dot).parse(state) {
+    Ok((state, Index::Brackets(expression)))
+} else if let Ok((state, _)) = ParseSymbol(Symbol::Dot).parse(state) {
     let (state, name) = ParseIdentifier.parse(state)?;
-    Some((state, Index::Dot(name)))
+    Ok((state, Index::Dot(name)))
 } else {
-    None
+    Err(AstError::NoMatch)
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -544,20 +568,20 @@ struct ParseFunctionArgs;
 define_parser!(
     ParseFunctionArgs,
     FunctionArgs<'a>,
-    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+    |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
         let (state, expr_list) =
             ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
         let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
-        Some((state, FunctionArgs::Parentheses(expr_list)))
-    } else if let Some((state, table_constructor)) = ParseTableConstructor.parse(state) {
-        Some((
+        Ok((state, FunctionArgs::Parentheses(expr_list)))
+    } else if let Ok((state, table_constructor)) = ParseTableConstructor.parse(state) {
+        Ok((
             state,
             FunctionArgs::TableConstructor(Box::new(table_constructor)),
         ))
-    } else if let Some((state, string)) = ParseStringLiteral.parse(state) {
-        Some((state, FunctionArgs::String(string)))
+    } else if let Ok((state, string)) = ParseStringLiteral.parse(state) {
+        Ok((state, FunctionArgs::String(string)))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 );
 
@@ -581,7 +605,7 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
     let (state, start) = ParseExpression.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Comma).parse(state)?;
     let (state, end) = ParseExpression.parse(state)?;
-    let (state, step) = if let Some((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
+    let (state, step) = if let Ok((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
         let (state, expression) = ParseExpression.parse(state)?;
         (state, Some(expression))
     } else {
@@ -591,7 +615,7 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
 
-    Some((
+    Ok((
         state,
         NumericFor {
             index_variable,
@@ -624,7 +648,7 @@ define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((
+    Ok((
         state,
         GenericFor {
             names,
@@ -654,7 +678,7 @@ define_parser!(ParseIf, If<'a>, |_, state| {
     let (mut state, block) = ParseBlock.parse(state)?;
 
     let mut else_ifs = Vec::new();
-    while let Some((new_state, _)) = ParseSymbol(Symbol::ElseIf).parse(state) {
+    while let Ok((new_state, _)) = ParseSymbol(Symbol::ElseIf).parse(state) {
         let (new_state, condition) = ParseExpression.parse(new_state)?;
         let (new_state, _) = ParseSymbol(Symbol::Then).parse(new_state)?;
         let (new_state, block) = ParseBlock.parse(new_state)?;
@@ -662,7 +686,7 @@ define_parser!(ParseIf, If<'a>, |_, state| {
         else_ifs.push((condition, block));
     }
 
-    let (state, r#else) = if let Some((state, _)) = ParseSymbol(Symbol::Else).parse(state) {
+    let (state, r#else) = if let Ok((state, _)) = ParseSymbol(Symbol::Else).parse(state) {
         let (state, block) = ParseBlock.parse(state)?;
         (state, Some(block))
     } else {
@@ -671,7 +695,7 @@ define_parser!(ParseIf, If<'a>, |_, state| {
 
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
 
-    Some((
+    Ok((
         state,
         If {
             condition,
@@ -702,7 +726,7 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, While { condition, block }))
+    Ok((state, While { condition, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -720,7 +744,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Until).parse(state)?;
     let (state, until) = ParseExpression.parse(state)?;
-    Some((state, Repeat { until, block }))
+    Ok((state, Repeat { until, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -736,7 +760,7 @@ define_parser!(ParseMethodCall, MethodCall<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Colon).parse(state)?;
     let (state, name) = ParseIdentifier.parse(state)?;
     let (state, args) = ParseFunctionArgs.parse(state)?;
-    Some((state, MethodCall { name, args }))
+    Ok((state, MethodCall { name, args }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -768,19 +792,19 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
     let (mut state, _) = ParseSymbol(Symbol::LeftParen).parse(state)?;
     let mut parameters = Vec::new();
 
-    if let Some((new_state, names)) =
+    if let Ok((new_state, names)) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
     {
         state = new_state;
         parameters.extend(names.into_iter().map(Parameter::Name));
 
-        if let Some((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
-            if let Some((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
+        if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
+            if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
                 state = new_state;
                 parameters.push(Parameter::Ellipse(ellipse));
             }
         }
-    } else if let Some((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+    } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
         state = new_state;
         parameters.push(Parameter::Ellipse(ellipse));
     }
@@ -788,7 +812,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
-    Some((state, FunctionBody { parameters, block }))
+    Ok((state, FunctionBody { parameters, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -836,9 +860,9 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Index(_)) = suffixes.last() {
-        Some((state, VarExpression { prefix, suffixes }))
+        Ok((state, VarExpression { prefix, suffixes }))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 });
 
@@ -873,7 +897,7 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
     let (state, expr_list) =
         OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
 
-    Some((
+    Ok((
         state,
         Assignment {
             var_list,
@@ -897,7 +921,7 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = ParseIdentifier.parse(state)?;
     let (state, func_body) = ParseFunctionBody.parse(state)?;
-    Some((state, LocalFunction { name, func_body }))
+    Ok((state, LocalFunction { name, func_body }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -914,13 +938,13 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, name_list) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
-    let (state, expr_list) = if let Some((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
+    let (state, expr_list) = if let Ok((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
         OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?
     } else {
         (state, Vec::new())
     };
 
-    Some((
+    Ok((
         state,
         LocalAssignment {
             name_list,
@@ -936,7 +960,7 @@ define_parser!(ParseDo, Block<'a>, |_, state| {
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
 
-    Some((state, block))
+    Ok((state, block))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -954,9 +978,9 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Call(_)) = suffixes.last() {
-        Some((state, FunctionCall { prefix, suffixes }))
+        Ok((state, FunctionCall { prefix, suffixes }))
     } else {
-        None
+        Err(AstError::NoMatch)
     }
 });
 
@@ -973,14 +997,14 @@ struct ParseFunctionName;
 define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
     let (state, names) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
-    let (state, colon_name) = if let Some((state, _)) = ParseSymbol(Symbol::Colon).parse(state) {
+    let (state, colon_name) = if let Ok((state, _)) = ParseSymbol(Symbol::Colon).parse(state) {
         let (state, colon_name) = ParseIdentifier.parse(state)?;
         (state, Some(colon_name))
     } else {
         (state, None)
     };
 
-    Some((state, FunctionName { names, colon_name }))
+    Ok((state, FunctionName { names, colon_name }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1000,18 +1024,18 @@ define_parser!(
         let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
         let (state, name) = ParseFunctionName.parse(state)?;
         let (state, body) = ParseFunctionBody.parse(state)?;
-        Some((state, FunctionDeclaration { name, body }))
+        Ok((state, FunctionDeclaration { name, body }))
     }
 );
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
-    let next_token = state.peek()?;
+    let next_token = state.peek().ok_or(AstError::NoMatch)?;
     match &next_token.token_type {
         // TODO: remove clone
-        TokenType::Identifier { .. } => Some((state.advance()?, next_token.clone())),
-        _ => None,
+        TokenType::Identifier { .. } => Ok((state.advance().ok_or(AstError::NoMatch)?, next_token.clone())),
+        _ => Err(AstError::NoMatch),
     }
 });
 
@@ -1030,13 +1054,13 @@ macro_rules! make_op {
         struct $parser;
         define_parser!($parser, $enum<'a>, |_, state| {
             $(
-                if let Some((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
+                if let Ok((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
                     // TODO: remove clone()
-                    return Some((state, $enum::$operator(state.peek()?.clone())))
+                    return Ok((state, $enum::$operator(state.peek().ok_or(AstError::NoMatch)?.clone())))
                 }
             )+
 
-            None
+            Err(AstError::NoMatch)
         });
     };
 }
@@ -1067,9 +1091,10 @@ make_op!(UnOp, ParseUnOp, {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AstError<'a> {
-    NoEof,
     Empty,
-    UnknownToken(&'a Token<'a>),
+    NoEof,
+    NoMatch,
+    UnexpectedToken(ParserState<'a>, Option<String>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1101,19 +1126,19 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
             state = state.advance().unwrap();
         }
 
-        if let Some((state, block)) = ParseBlock.parse(state) {
+        if let Ok((state, block)) = ParseBlock.parse(state) {
             if state.index == tokens.len() - 1 {
                 Ok(block)
             } else {
-                Err(AstError::UnknownToken(&tokens[state.index]))
+                Err(AstError::UnexpectedToken(state, None))
             }
         } else {
-            Err(AstError::UnknownToken(&tokens[0]))
+            Err(AstError::UnexpectedToken(state, None))
         }
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "only-source-tests")))]
 mod tests {
     use super::*;
     use crate::tokenizer::tokens;
@@ -1172,7 +1197,7 @@ mod tests {
         assert!(
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
                 .parse(state)
-                .is_none()
+                .is_err()
         );
     }
 
@@ -1234,7 +1259,7 @@ mod tests {
         assert!(
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
                 .parse(state)
-                .is_none()
+                .is_err()
         );
     }
 }
