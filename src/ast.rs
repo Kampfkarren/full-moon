@@ -401,6 +401,20 @@ define_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
+struct ParseParenExpression;
+define_parser!(
+    ParseParenExpression,
+    Expression<'a>,
+    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+        let (state, expression) = ParseExpression.parse(state)?;
+        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+        Some((state, expression))
+    } else {
+        None
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -408,6 +422,7 @@ pub enum Value<'a> {
     FunctionCall(Box<FunctionCall<'a>>),
     TableConstructor(Box<TableConstructor<'a>>),
     Number(Token<'a>),
+    ParseExpression(Box<Expression<'a>>),
     String(Token<'a>),
     Symbol(Token<'a>),
     Var(Box<Var<'a>>),
@@ -429,6 +444,7 @@ define_parser!(
         ParseTableConstructor => Value::TableConstructor,
         ParseFunctionCall => Value::FunctionCall,
         ParseVar => Value::Var,
+        ParseParenExpression => Value::ParseExpression,
     })
 );
 
@@ -474,19 +490,10 @@ pub enum Prefix<'a> {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParsePrefix;
-define_parser!(
-    ParsePrefix,
-    Prefix<'a>,
-    |_, state| if let Some((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
-        let (state, expression) = ParseExpression.parse(state)?;
-        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
-        Some((state, Prefix::Expression(expression)))
-    } else if let Some((state, name)) = ParseIdentifier.parse(state) {
-        Some((state, Prefix::Name(name)))
-    } else {
-        None
-    }
-);
+define_parser!(ParsePrefix, Prefix<'a>, |_, state| parse_first_of!(state, {
+    ParseParenExpression => Prefix::Expression,
+    ParseIdentifier => Prefix::Name,
+}));
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
