@@ -13,6 +13,7 @@ Full Moon is usable in projects such as:
 - Static typing (like TypeScript)
 - Automatic mass code refactoring (like [jscodeshift](https://github.com/facebook/jscodeshift))
 - Automatic code formatting (like [rustfmt](https://github.com/rust-lang/rustfmt))
+- An [LSP Server](https://microsoft.github.io/language-server-protocol/) for Lua
 
 ## Inspiration
 
