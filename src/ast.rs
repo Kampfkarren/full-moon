@@ -461,6 +461,7 @@ pub enum Stmt<'a> {
     LocalAssignment(LocalAssignment<'a>),
     LocalFunction(LocalFunction<'a>),
     NumericFor(Box<NumericFor<'a>>),
+    Repeat(Box<Repeat<'a>>),
     While(Box<While<'a>>),
 }
 
@@ -471,6 +472,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseFunctionCall => Stmt::FunctionCall,
     ParseDo => Stmt::Do,
     ParseWhile => Stmt::While,
+    ParseRepeat => Stmt::Repeat,
     ParseIf => Stmt::If,
     ParseNumericFor => Stmt::NumericFor,
     ParseGenericFor => Stmt::GenericFor,
@@ -681,6 +683,24 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
     let (state, block) = ParseBlock.parse(state)?;
     let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
     Some((state, While { condition, block }))
+});
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct Repeat<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    block: Block<'a>,
+    until: Expression<'a>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseRepeat;
+define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
+    let (state, _) = ParseSymbol(Symbol::Repeat).parse(state)?;
+    let (state, block) = ParseBlock.parse(state)?;
+    let (state, _) = ParseSymbol(Symbol::Until).parse(state)?;
+    let (state, until) = ParseExpression.parse(state)?;
+    Some((state, Repeat { until, block }))
 });
 
 #[derive(Clone, Debug, PartialEq)]

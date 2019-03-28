@@ -1,0 +1,66 @@
+{
+  "stmts": [
+    {
+      "Repeat": {
+        "block": {
+          "stmts": [
+            {
+              "FunctionCall": {
+                "prefix": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 8,
+                      "character": 2,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 12,
+                      "character": 6,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "call"
+                    }
+                  }
+                },
+                "suffixes": [
+                  {
+                    "Call": {
+                      "AnonymousCall": {
+                        "Parentheses": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "until": {
+          "value": {
+            "Var": {
+              "Name": {
+                "start_position": {
+                  "bytes": 21,
+                  "character": 7,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 30,
+                  "character": 16,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "condition"
+                }
+              }
+            }
+          },
+          "binop": null
+        }
+      }
+    }
+  ]
+}
