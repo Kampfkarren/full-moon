@@ -185,7 +185,7 @@ impl<'a> fmt::Display for Token<'a> {
             Identifier { identifier } => identifier.to_string(),
             MultiLineComment { blocks, comment } => {
                 format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
-            },
+            }
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
@@ -197,7 +197,7 @@ impl<'a> fmt::Display for Token<'a> {
                 } else {
                     format!("{0}{1}{0}", quote_type.to_string(), literal.to_string())
                 }
-            },
+            }
             Symbol { symbol } => symbol.to_string(),
             Whitespace { characters } => characters.to_string(),
         }
