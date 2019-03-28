@@ -232,7 +232,7 @@ lazy_static! {
     static ref PATTERN_NUMBER: Regex =
         Regex::new(r"^((-?0x[A-Fa-f\d]+)|(-?((\d*\.\d+)|(\d+))([eE]-?\d+)?))").unwrap();
     static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
-    static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--(.+)").unwrap();
+    static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--([^\n]*)").unwrap();
     static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
@@ -279,7 +279,9 @@ fn advance_comment(code: &str) -> Advancement {
                 },
             }));
         }
-    } else if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
+    }
+
+    if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
         if find.start() == 0 {
             return Ok(Some(TokenAdvancement {
                 advance: find.end(),
