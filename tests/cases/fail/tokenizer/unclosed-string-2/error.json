@@ -1,0 +1,8 @@
+{
+  "error": "UnclosedString",
+  "position": {
+    "bytes": 10,
+    "character": 11,
+    "line": 1
+  }
+}

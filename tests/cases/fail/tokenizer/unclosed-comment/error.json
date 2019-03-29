@@ -1,0 +1,8 @@
+{
+  "error": "UnclosedComment",
+  "position": {
+    "bytes": 0,
+    "character": 1,
+    "line": 1
+  }
+}

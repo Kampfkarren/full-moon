@@ -1,0 +1,10 @@
+{
+  "error": {
+    "UnexpectedToken": "🤔"
+  },
+  "position": {
+    "bytes": 10,
+    "character": 11,
+    "line": 1
+  }
+}

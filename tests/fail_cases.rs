@@ -52,3 +52,33 @@ fn test_parser_fail_cases() {
         }
     }
 }
+
+#[test]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_tokenizer_fail_cases() {
+    for entry in fs::read_dir("./tests/cases/fail/tokenizer").expect("couldn't read directory") {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        match tokenizer::tokens(&source) {
+            Ok(_) => panic!("fail case passed for {:?}", path),
+            Err(error) => {
+                let error_path = path.join("error.json");
+                if let Ok(error_contents) = fs::read_to_string(&error_path) {
+                    let expected_error = serde_json::from_str(&error_contents)
+                        .expect("couldn't deserialize existing error file");
+                    assert_eq!(error, expected_error);
+                } else {
+                    let mut file = File::create(&error_path).expect("couldn't write error file");
+                    file.write_all(
+                        serde_json::to_string_pretty(&error)
+                            .expect("couldn't serialize")
+                            .as_bytes(),
+                    )
+                    .expect("couldn't write to ast file");
+                }
+            }
+        }
+    }
+}
