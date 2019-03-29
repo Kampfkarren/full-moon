@@ -106,6 +106,17 @@ macro_rules! expect {
     };
 }
 
+// This name is bad
+macro_rules! keep_going {
+    ($parsed:expr) => {
+        match $parsed {
+            Ok((state, node)) => Ok((state, node)),
+            Err(AstError::NoMatch) => Err(AstError::NoMatch),
+            Err(other) => return Err(other),
+        }
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct ZeroOrMore<P>(P);
 
@@ -866,11 +877,11 @@ pub struct FunctionBody<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionBody;
 define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
-    let (mut state, _) = ParseSymbol(Symbol::LeftParen).parse(state)?;
+    let (mut state, _) = expect!(state, ParseSymbol(Symbol::LeftParen).parse(state), "expected '('");
     let mut parameters = Vec::new();
 
     if let Ok((new_state, names)) =
-        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
+        keep_going!(OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state))
     {
         state = new_state;
         parameters.extend(names.into_iter().map(Parameter::Name));
@@ -886,9 +897,9 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         parameters.push(Parameter::Ellipse(ellipse));
     }
 
-    let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
-    let (state, block) = ParseBlock.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    let (state, _) = expect!(state, ParseSymbol(Symbol::RightParen).parse(state), "expected ')'");
+    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+    let (state, _) = expect!(state, ParseSymbol(Symbol::End).parse(state), "expected 'end'");
     Ok((state, FunctionBody { parameters, block }))
 });
 
@@ -996,7 +1007,7 @@ struct ParseLocalFunction;
 define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, name) = ParseIdentifier.parse(state)?;
+    let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
     let (state, func_body) = ParseFunctionBody.parse(state)?;
     Ok((state, LocalFunction { name, func_body }))
 });

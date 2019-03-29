@@ -1,0 +1,2 @@
+local function x()
+	call()
