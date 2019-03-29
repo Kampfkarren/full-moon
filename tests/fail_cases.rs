@@ -8,8 +8,8 @@ use std::io::Write;
 
 #[test]
 #[cfg_attr(feature = "no-source-tests", ignore)]
-fn test_fail_cases() {
-    for entry in fs::read_dir("./tests/cases/fail").expect("couldn't read directory") {
+fn test_parser_fail_cases() {
+    for entry in fs::read_dir("./tests/cases/fail/parser").expect("couldn't read directory") {
         let entry = entry.unwrap();
         let path = entry.path();
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
