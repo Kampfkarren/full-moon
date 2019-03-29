@@ -231,14 +231,13 @@ struct ParseSymbol(Symbol);
 
 define_parser!(
     ParseSymbol,
-    Token<'a>,
+    Cow<'a, Token<'a>>,
     |this: &ParseSymbol, state: ParserState<'a>| {
         let expecting = TokenType::Symbol { symbol: this.0 };
         let token = state.peek();
 
         if token.token_type == expecting {
-            // TODO: remove clone
-            Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
+            Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
         } else {
             Err(AstError::NoMatch)
         }
@@ -249,11 +248,10 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParseNumber;
 
-define_parser!(ParseNumber, Token<'a>, |_, state: ParserState<'a>| {
+define_parser!(ParseNumber, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
     let token = state.peek();
     if let TokenType::Number { .. } = token.token_type {
-        // TODO: remove clone
-        Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
+        Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
     } else {
         Err(AstError::NoMatch)
     }
@@ -265,12 +263,11 @@ struct ParseStringLiteral;
 
 define_parser!(
     ParseStringLiteral,
-    Token<'a>,
+    Cow<'a, Token<'a>>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if let TokenType::StringLiteral { .. } = token.token_type {
-            // TODO: remove clone
-            Ok((state.advance().ok_or(AstError::NoMatch)?, token.clone()))
+            Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
         } else {
             Err(AstError::NoMatch)
         }
@@ -366,7 +363,7 @@ pub enum Field<'a> {
 
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
-        key: Box<Token<'a>>,
+        key: Box<Cow<'a, Token<'a>>>,
         value: Box<Expression<'a>>,
     },
 
@@ -404,7 +401,7 @@ define_parser!(ParseField, Field<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    fields: Vec<(Field<'a>, Option<Token<'a>>)>,
+    fields: Vec<(Field<'a>, Option<Cow<'a, Token<'a>>>)>,
 }
 
 struct ParseTableConstructor;
@@ -412,14 +409,13 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     let (mut state, _) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
     let mut fields = Vec::new();
 
-    // TODO: remove clone
     while let Ok((new_state, field)) = ParseField.parse(state) {
         let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
-            Some(state.peek().clone())
+            Some(Cow::Borrowed(state.peek()))
         } else if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
-            Some(state.peek().clone())
+            Some(Cow::Borrowed(state.peek()))
         } else {
             state = new_state;
             None
@@ -502,10 +498,10 @@ pub enum Value<'a> {
     Function(FunctionBody<'a>),
     FunctionCall(Box<FunctionCall<'a>>),
     TableConstructor(Box<TableConstructor<'a>>),
-    Number(Token<'a>),
+    Number(Cow<'a, Token<'a>>),
     ParseExpression(Box<Expression<'a>>),
-    String(Token<'a>),
-    Symbol(Token<'a>),
+    String(Cow<'a, Token<'a>>),
+    Symbol(Cow<'a, Token<'a>>),
     Var(Box<Var<'a>>),
 }
 
@@ -567,7 +563,7 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Expression(Expression<'a>),
-    Name(Token<'a>),
+    Name(Cow<'a, Token<'a>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -583,7 +579,7 @@ define_parser!(ParsePrefix, Prefix<'a>, |_, state| parse_first_of!(state, {
 pub enum Index<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Brackets(Expression<'a>),
-    Dot(Token<'a>),
+    Dot(Cow<'a, Token<'a>>),
 }
 
 struct ParseIndex;
@@ -605,7 +601,7 @@ define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
 pub enum FunctionArgs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Parentheses(Vec<Expression<'a>>),
-    String(Token<'a>),
+    String(Cow<'a, Token<'a>>),
     TableConstructor(Box<TableConstructor<'a>>),
 }
 
@@ -635,7 +631,7 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    index_variable: Token<'a>,
+    index_variable: Cow<'a, Token<'a>>,
     start: Expression<'a>,
     end: Expression<'a>,
     step: Option<Expression<'a>>,
@@ -677,7 +673,7 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Vec<Token<'a>>,
+    names: Vec<Cow<'a, Token<'a>>>,
     expr_list: Vec<Expression<'a>>,
     block: Block<'a>,
 }
@@ -797,7 +793,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub name: Token<'a>,
+    pub name: Cow<'a, Token<'a>>,
     pub args: FunctionArgs<'a>,
 }
 
@@ -842,7 +838,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
     {
         state = new_state;
-        parameters.extend(names.into_iter().map(Parameter::Name));
+        parameters.extend(names.into_iter().map(|name| Parameter::Name(name)));
 
         if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
             if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
@@ -872,8 +868,8 @@ define_parser!(ParseFunction, FunctionBody<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    Ellipse(Token<'a>),
-    Name(Token<'a>),
+    Ellipse(Cow<'a, Token<'a>>),
+    Name(Cow<'a, Token<'a>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -917,7 +913,7 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     Expression(VarExpression<'a>),
-    Name(Token<'a>),
+    Name(Cow<'a, Token<'a>>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -956,7 +952,7 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    name: Token<'a>,
+    name: Cow<'a, Token<'a>>,
     func_body: FunctionBody<'a>,
 }
 
@@ -974,7 +970,7 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    name_list: Vec<Token<'a>>,
+    name_list: Vec<Cow<'a, Token<'a>>>,
     expr_list: Vec<Expression<'a>>,
 }
 
@@ -1044,8 +1040,8 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Vec<Token<'a>>,
-    colon_name: Option<Token<'a>>,
+    names: Vec<Cow<'a, Token<'a>>>,
+    colon_name: Option<Cow<'a, Token<'a>>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1086,13 +1082,12 @@ define_parser!(
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
-define_parser!(ParseIdentifier, Token<'a>, |_, state: ParserState<'a>| {
+define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
     match &next_token.token_type {
-        // TODO: remove clone
         TokenType::Identifier { .. } => Ok((
             state.advance().ok_or(AstError::NoMatch)?,
-            next_token.clone(),
+            Cow::Borrowed(next_token),
         )),
         _ => Err(AstError::NoMatch),
     }
@@ -1105,7 +1100,7 @@ macro_rules! make_op {
         pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
-                $operator(Token<'a>),
+                $operator(Cow<'a, Token<'a>>),
             )+
         }
 
@@ -1114,8 +1109,7 @@ macro_rules! make_op {
         define_parser!($parser, $enum<'a>, |_, state| {
             $(
                 if let Ok((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
-                    // TODO: remove clone()
-                    return Ok((state, $enum::$operator(state.peek().clone())))
+                    return Ok((state, $enum::$operator(Cow::Borrowed(state.peek()))));
                 }
             )+
 
