@@ -122,7 +122,7 @@ where
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(node);
-                },
+                }
                 Err(AstError::NoMatch) => break,
                 Err(other) => return Err(other),
             };
@@ -610,8 +610,12 @@ struct ParseIndex;
 define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
     ParseSymbol(Symbol::LeftBracket).parse(state)
 {
-    let (state, expression) = ParseExpression.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
+    let (state, expression) = expect!(state, ParseExpression.parse(state), "expected expression");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::RightBracket).parse(state),
+        "expected ']'"
+    );
     Ok((state, Index::Brackets(expression)))
 } else if let Ok((state, _)) = ParseSymbol(Symbol::Dot).parse(state) {
     let (state, name) = ParseIdentifier.parse(state)?;
