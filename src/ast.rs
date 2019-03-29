@@ -1095,10 +1095,8 @@ define_parser!(
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
-define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_,
-                                                     state: ParserState<
-    'a,
->| {
+#[rustfmt::skip]
+define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
     match &next_token.token_type {
         TokenType::Identifier { .. } => Ok((
