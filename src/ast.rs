@@ -322,25 +322,15 @@ pub struct Block<'a> {
 struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, |_, mut state| {
     let mut stmts = Vec::new();
-    loop {
-        match ParseStmt.parse(state) {
-            Ok((new_state, stmt)) => {
-                state = new_state;
-                if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
-                    state = new_state;
-                }
-                stmts.push(stmt);
-            }
-
-            Err(AstError::NoMatch) => {
-                break;
-            }
-
-            Err(other) => return Err(other),
+    while let Ok((new_state, stmt)) = keep_going!(ParseStmt.parse(state)) {
+        state = new_state;
+        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+            state = new_state;
         }
+        stmts.push(stmt);
     }
 
-    if let Ok((mut state, last_stmt)) = ParseLastStmt.parse(state) {
+    if let Ok((mut state, last_stmt)) = keep_going!(ParseLastStmt.parse(state)) {
         if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
             state = new_state;
         }
