@@ -877,7 +877,11 @@ pub struct FunctionBody<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionBody;
 define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
-    let (mut state, _) = expect!(state, ParseSymbol(Symbol::LeftParen).parse(state), "expected '('");
+    let (mut state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::LeftParen).parse(state),
+        "expected '('"
+    );
     let mut parameters = Vec::new();
 
     if let Ok((new_state, names)) =
@@ -897,9 +901,17 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         parameters.push(Parameter::Ellipse(ellipse));
     }
 
-    let (state, _) = expect!(state, ParseSymbol(Symbol::RightParen).parse(state), "expected ')'");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::RightParen).parse(state),
+        "expected ')'"
+    );
     let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, _) = expect!(state, ParseSymbol(Symbol::End).parse(state), "expected 'end'");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
     Ok((state, FunctionBody { parameters, block }))
 });
 
@@ -1120,8 +1132,16 @@ define_parser!(
     FunctionDeclaration<'a>,
     |_, state| {
         let (state, _) = ParseSymbol(Symbol::Function).parse(state)?;
-        let (state, name) = ParseFunctionName.parse(state)?;
-        let (state, body) = ParseFunctionBody.parse(state)?;
+        let (state, name) = expect!(
+            state,
+            ParseFunctionName.parse(state),
+            "expected function name"
+        );
+        let (state, body) = expect!(
+            state,
+            ParseFunctionBody.parse(state),
+            "expected function body"
+        );
         Ok((state, FunctionDeclaration { name, body }))
     }
 );
