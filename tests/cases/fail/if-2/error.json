@@ -1,0 +1,20 @@
+{
+  "UnexpectedToken": {
+    "token": {
+      "start_position": {
+        "bytes": 22,
+        "character": 8,
+        "line": 3
+      },
+      "end_position": {
+        "bytes": 22,
+        "character": 8,
+        "line": 3
+      },
+      "token_type": {
+        "type": "Eof"
+      }
+    },
+    "additional": "expected 'end'"
+  }
+}
