@@ -762,13 +762,25 @@ struct ParseIf;
 define_parser!(ParseIf, If<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::If).parse(state)?;
     let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
-    let (state, _) = expect!(state, ParseSymbol(Symbol::Then).parse(state), "expected 'then'");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::Then).parse(state),
+        "expected 'then'"
+    );
     let (mut state, block) = expect!(state, ParseBlock.parse(state), "expected block");
 
     let mut else_ifs = Vec::new();
     while let Ok((new_state, _)) = ParseSymbol(Symbol::ElseIf).parse(state) {
-        let (new_state, condition) = expect!(state, ParseExpression.parse(new_state), "expected condition");
-        let (new_state, _) = expect!(state, ParseSymbol(Symbol::Then).parse(new_state), "expected 'then'");
+        let (new_state, condition) = expect!(
+            state,
+            ParseExpression.parse(new_state),
+            "expected condition"
+        );
+        let (new_state, _) = expect!(
+            state,
+            ParseSymbol(Symbol::Then).parse(new_state),
+            "expected 'then'"
+        );
         let (new_state, block) = expect!(state, ParseBlock.parse(new_state), "expected block");
         state = new_state;
         else_ifs.push((condition, block));
@@ -781,7 +793,11 @@ define_parser!(ParseIf, If<'a>, |_, state| {
         (state, None)
     };
 
-    let (state, _) = expect!(state, ParseSymbol(Symbol::End).parse(state), "expected 'end'");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
 
     Ok((
         state,
