@@ -1044,8 +1044,11 @@ struct ParseAssignment;
 define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
     let (state, var_list) = OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
     let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, expr_list) =
-        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+    let (state, expr_list) = expect!(
+        state,
+        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
+        "expected values"
+    );
 
     Ok((
         state,
