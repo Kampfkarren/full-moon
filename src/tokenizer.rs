@@ -423,8 +423,8 @@ fn advance_whitespace(code: &str) -> Advancement {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenizerError {
-	error: TokenizerErrorType,
-	position: Position,
+    error: TokenizerErrorType,
+    position: Position,
 }
 
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
@@ -439,41 +439,41 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
 
     macro_rules! advance {
         ($function:ident) => {
-			match $function(&code[position.bytes..]) {
-				Ok(Some(advancement)) => {
-					let start_position = position;
+            match $function(&code[position.bytes..]) {
+                Ok(Some(advancement)) => {
+                    let start_position = position;
 
-					for character in code[position.bytes..].chars().take(advancement.advance) {
-						if next_is_new_line {
-							next_is_new_line = false;
-							position.line += 1;
-							position.character = 1;
-						}
+                    for character in code[position.bytes..].chars().take(advancement.advance) {
+                        if next_is_new_line {
+                            next_is_new_line = false;
+                            position.line += 1;
+                            position.character = 1;
+                        }
 
-						if character == '\n' {
-							next_is_new_line = true;
-						} else {
-							position.character += 1;
-						}
+                        if character == '\n' {
+                            next_is_new_line = true;
+                        } else {
+                            position.character += 1;
+                        }
 
-						position.bytes += 1;
-					}
+                        position.bytes += 1;
+                    }
 
-					tokens.push(Token {
-						start_position,
-						end_position: position,
-						token_type: advancement.token_type,
-					});
+                    tokens.push(Token {
+                        start_position,
+                        end_position: position,
+                        token_type: advancement.token_type,
+                    });
 
-					continue;
-				},
+                    continue;
+                }
 
-				Ok(None) => {},
+                Ok(None) => {}
 
-				Err(error) => {
-					return Err(TokenizerError { error, position });
-				},
-			};
+                Err(error) => {
+                    return Err(TokenizerError { error, position });
+                }
+            };
         };
     }
 
@@ -486,13 +486,13 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         advance!(advance_identifier);
 
         return Err(TokenizerError {
-			error: TokenizerErrorType::UnexpectedToken(
-				code.chars()
-					.nth(position.bytes)
-					.expect("text overflow while giving unexpected token error"),
-			),
-			position
-		});
+            error: TokenizerErrorType::UnexpectedToken(
+                code.chars()
+                    .nth(position.bytes)
+                    .expect("text overflow while giving unexpected token error"),
+            ),
+            position,
+        });
     }
 
     tokens.push(Token {
@@ -522,9 +522,9 @@ mod tests {
                 }
 
                 Err(advancement_error) => {
-					if let Err(TokenizerError { error, .. }) = tokens($code) {
-						assert_eq!(error, advancement_error);
-					}
+                    if let Err(TokenizerError { error, .. }) = tokens($code) {
+                        assert_eq!(error, advancement_error);
+                    }
                 }
 
                 _ => {}

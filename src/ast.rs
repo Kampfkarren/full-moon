@@ -876,7 +876,11 @@ struct ParseRepeat;
 define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Repeat).parse(state)?;
     let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, _) = expect!(state, ParseSymbol(Symbol::Until).parse(state), "expected 'until'");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::Until).parse(state),
+        "expected 'until'"
+    );
     let (state, until) = expect!(state, ParseExpression.parse(state), "expected condition");
     Ok((state, Repeat { until, block }))
 });
