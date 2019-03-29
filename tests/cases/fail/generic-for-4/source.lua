@@ -1,0 +1,1 @@
+for index, local in pairs(list) do end

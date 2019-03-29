@@ -688,20 +688,40 @@ pub struct NumericFor<'a> {
 struct ParseNumericFor;
 define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::For).parse(state)?;
-    let (state, index_variable) = ParseIdentifier.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, start) = ParseExpression.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::Comma).parse(state)?;
-    let (state, end) = ParseExpression.parse(state)?;
+    let (state, index_variable) = expect!(state, ParseIdentifier.parse(state), "expected names");
+    let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?; // Numeric fors run before generic fors, so we can't guarantee this
+    let (state, start) = expect!(
+        state,
+        ParseExpression.parse(state),
+        "expected start expression"
+    );
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::Comma).parse(state),
+        "expected comma"
+    );
+    let (state, end) = expect!(
+        state,
+        ParseExpression.parse(state),
+        "expected end expression"
+    );
     let (state, step) = if let Ok((state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
-        let (state, expression) = ParseExpression.parse(state)?;
+        let (state, expression) = expect!(
+            state,
+            ParseExpression.parse(state),
+            "expected limit expression"
+        );
         (state, Some(expression))
     } else {
         (state, None)
     };
-    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
-    let (state, block) = ParseBlock.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    let (state, _) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
+    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
 
     Ok((
         state,
@@ -728,14 +748,24 @@ pub struct GenericFor<'a> {
 struct ParseGenericFor;
 define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::For).parse(state)?;
-    let (state, names) =
-        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::In).parse(state)?;
-    let (state, expr_list) =
-        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
-    let (state, block) = ParseBlock.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    let (state, names) = expect!(
+        state,
+        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
+        "expected names"
+    );
+    let (state, _) = expect!(state, ParseSymbol(Symbol::In).parse(state), "expected 'in'"); // Numeric fors run before here, so there has to be an in
+    let (state, expr_list) = expect!(
+        state,
+        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
+        "expected expression"
+    );
+    let (state, _) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
+    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
     Ok((
         state,
         GenericFor {
