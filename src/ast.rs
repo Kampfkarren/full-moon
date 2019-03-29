@@ -67,13 +67,38 @@ macro_rules! define_parser {
 macro_rules! parse_first_of {
     ($state:ident, {$($parser:expr => $constructor:expr,)+}) => ({
         $(
-            if let Ok((state, node)) = $parser.parse($state) {
-                return Ok((state, $constructor(node.into())));
-            }
+            match $parser.parse($state) {
+                Ok((state, node)) => return Ok((state, $constructor(node.into()))),
+                Err(AstError::NoMatch) => {},
+                Err(other) => return Err(other),
+            };
         )+
 
         return Err(AstError::NoMatch);
     });
+}
+
+macro_rules! expect {
+    ($state:ident, $parsed:expr) => {
+        match $parsed {
+            Ok((state, node)) => (state, node),
+            Err(AstError::NoMatch) => return Err(AstError::UnexpectedToken($state.peek(), None)),
+            Err(other) => return Err(other),
+        };
+    };
+
+    ($state:ident, $parsed:expr, $error:tt) => {
+        match $parsed {
+            Ok((state, node)) => (state, node),
+            Err(AstError::NoMatch) => {
+                return Err(AstError::UnexpectedToken {
+                    token: Cow::Borrowed($state.peek()),
+                    additional: Some($error.to_string()),
+                });
+            }
+            Err(other) => return Err(other),
+        };
+    };
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -265,12 +290,22 @@ pub struct Block<'a> {
 struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, |_, mut state| {
     let mut stmts = Vec::new();
-    while let Ok((new_state, stmt)) = ParseStmt.parse(state) {
-        state = new_state;
-        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
-            state = new_state;
+    loop {
+        match ParseStmt.parse(state) {
+            Ok((new_state, stmt)) => {
+                state = new_state;
+                if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state) {
+                    state = new_state;
+                }
+                stmts.push(stmt);
+            }
+
+            Err(AstError::NoMatch) => {
+                break;
+            }
+
+            Err(other) => return Err(other),
         }
-        stmts.push(stmt);
     }
 
     if let Ok((mut state, last_stmt)) = ParseLastStmt.parse(state) {
@@ -947,12 +982,22 @@ pub struct LocalAssignment<'a> {
 struct ParseLocalAssignment;
 define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Local).parse(state)?;
-    let (state, name_list) =
-        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)?;
-    let (state, expr_list) = if let Ok((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
-        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?
-    } else {
-        (state, Vec::new())
+    let (state, name_list) = expect!(
+        state,
+        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
+        "expected name"
+    );
+    let (state, expr_list) = match ParseSymbol(Symbol::Equal).parse(state) {
+        Ok((state, _)) => OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
+            .parse(state)
+            .or_else(|_| {
+                Err(AstError::UnexpectedToken {
+                    token: Cow::Borrowed(state.peek()),
+                    additional: Some("expected expression".to_string()),
+                })
+            })?,
+        Err(AstError::NoMatch) => (state, Vec::new()),
+        Err(other) => return Err(other),
     };
 
     Ok((
@@ -1145,20 +1190,24 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
             state = state.advance().unwrap();
         }
 
-        if let Ok((state, block)) = ParseBlock.parse(state) {
-            if state.index == tokens.len() - 1 {
-                Ok(block)
-            } else {
-                Err(AstError::UnexpectedToken {
-                    token: Cow::Borrowed(state.peek()),
-                    additional: None,
-                })
+        match ParseBlock.parse(state) {
+            Ok((state, block)) => {
+                if state.index == tokens.len() - 1 {
+                    Ok(block)
+                } else {
+                    Err(AstError::UnexpectedToken {
+                        token: Cow::Borrowed(state.peek()),
+                        additional: None,
+                    })
+                }
             }
-        } else {
-            Err(AstError::UnexpectedToken {
+
+            Err(AstError::NoMatch) => Err(AstError::UnexpectedToken {
                 token: Cow::Borrowed(state.peek()),
                 additional: None,
-            })
+            }),
+
+            Err(other) => Err(other),
         }
     }
 }
