@@ -237,7 +237,10 @@ define_parser!(
         let token = state.peek();
 
         if token.token_type == expecting {
-            Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
+            Ok((
+                state.advance().ok_or(AstError::NoMatch)?,
+                Cow::Borrowed(token),
+            ))
         } else {
             Err(AstError::NoMatch)
         }
@@ -248,14 +251,21 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParseNumber;
 
-define_parser!(ParseNumber, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
-    let token = state.peek();
-    if let TokenType::Number { .. } = token.token_type {
-        Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
-    } else {
-        Err(AstError::NoMatch)
+define_parser!(
+    ParseNumber,
+    Cow<'a, Token<'a>>,
+    |_, state: ParserState<'a>| {
+        let token = state.peek();
+        if let TokenType::Number { .. } = token.token_type {
+            Ok((
+                state.advance().ok_or(AstError::NoMatch)?,
+                Cow::Borrowed(token),
+            ))
+        } else {
+            Err(AstError::NoMatch)
+        }
     }
-});
+);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -267,7 +277,10 @@ define_parser!(
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if let TokenType::StringLiteral { .. } = token.token_type {
-            Ok((state.advance().ok_or(AstError::NoMatch)?, Cow::Borrowed(token)))
+            Ok((
+                state.advance().ok_or(AstError::NoMatch)?,
+                Cow::Borrowed(token),
+            ))
         } else {
             Err(AstError::NoMatch)
         }
@@ -838,7 +851,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
     {
         state = new_state;
-        parameters.extend(names.into_iter().map(|name| Parameter::Name(name)));
+        parameters.extend(names.into_iter().map(Parameter::Name));
 
         if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state) {
             if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
@@ -1082,7 +1095,10 @@ define_parser!(
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
-define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
+define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_,
+                                                     state: ParserState<
+    'a,
+>| {
     let next_token = state.peek();
     match &next_token.token_type {
         TokenType::Identifier { .. } => Ok((
