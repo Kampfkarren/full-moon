@@ -74,7 +74,7 @@ macro_rules! parse_first_of {
             };
         )+
 
-        return Err(AstError::NoMatch);
+        Err(AstError::NoMatch)
     });
 }
 
@@ -82,7 +82,12 @@ macro_rules! expect {
     ($state:ident, $parsed:expr) => {
         match $parsed {
             Ok((state, node)) => (state, node),
-            Err(AstError::NoMatch) => return Err(AstError::UnexpectedToken($state.peek(), None)),
+            Err(AstError::NoMatch) => {
+                return Err(AstError::UnexpectedToken {
+                    token: Cow::Borrowed($state.peek()),
+                    additional: None,
+                });
+            }
             Err(other) => return Err(other),
         };
     };
@@ -93,7 +98,7 @@ macro_rules! expect {
             Err(AstError::NoMatch) => {
                 return Err(AstError::UnexpectedToken {
                     token: Cow::Borrowed($state.peek()),
-                    additional: Some($error.to_string()),
+                    additional: Some($error),
                 });
             }
             Err(other) => return Err(other),
@@ -112,9 +117,15 @@ where
 
     fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
         let mut nodes = Vec::new();
-        while let Ok((new_state, node)) = self.0.parse(state) {
-            state = new_state;
-            nodes.push(node);
+        loop {
+            match self.0.parse(state) {
+                Ok((new_state, node)) => {
+                    state = new_state;
+                    nodes.push(node);
+                },
+                Err(AstError::NoMatch) => break,
+                Err(other) => return Err(other),
+            };
         }
         Ok((state, nodes))
     }
@@ -159,7 +170,7 @@ where
                     } else {
                         return Err(AstError::UnexpectedToken {
                             token: Cow::Borrowed(state.peek()),
-                            additional: None,
+                            additional: Some("trailing character"),
                         });
                     }
                 }
@@ -624,9 +635,16 @@ define_parser!(
     ParseFunctionArgs,
     FunctionArgs<'a>,
     |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
-        let (state, expr_list) =
-            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
-        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+        let (state, expr_list) = expect!(
+            state,
+            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
+            "expected arguments"
+        );
+        let (state, _) = expect!(
+            state,
+            ParseSymbol(Symbol::RightParen).parse(state),
+            "expected ')'"
+        );
         Ok((state, FunctionArgs::Parentheses(expr_list)))
     } else if let Ok((state, table_constructor)) = ParseTableConstructor.parse(state) {
         Ok((
@@ -1002,7 +1020,7 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
             .or_else(|_| {
                 Err(AstError::UnexpectedToken {
                     token: Cow::Borrowed(state.peek()),
-                    additional: Some("expected expression".to_string()),
+                    additional: Some("expected expression"),
                 })
             })?,
         Err(AstError::NoMatch) => (state, Vec::new()),
@@ -1165,7 +1183,7 @@ pub enum AstError<'a> {
     UnexpectedToken {
         #[cfg_attr(feature = "serde", serde(borrow))]
         token: Cow<'a, Token<'a>>,
-        additional: Option<String>,
+        additional: Option<&'a str>,
     },
 }
 
@@ -1205,7 +1223,7 @@ pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
                 } else {
                     Err(AstError::UnexpectedToken {
                         token: Cow::Borrowed(state.peek()),
-                        additional: None,
+                        additional: Some("leftover token"),
                     })
                 }
             }

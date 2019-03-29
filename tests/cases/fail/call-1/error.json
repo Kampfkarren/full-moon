@@ -2,20 +2,19 @@
   "UnexpectedToken": {
     "token": {
       "start_position": {
-        "bytes": 8,
-        "character": 9,
+        "bytes": 5,
+        "character": 6,
         "line": 1
       },
       "end_position": {
-        "bytes": 9,
-        "character": 10,
+        "bytes": 5,
+        "character": 6,
         "line": 1
       },
       "token_type": {
-        "type": "Identifier",
-        "identifier": "y"
+        "type": "Eof"
       }
     },
-    "additional": "leftover token"
+    "additional": "expected ')'"
   }
 }
