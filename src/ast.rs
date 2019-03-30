@@ -506,7 +506,8 @@ define_parser!(
 
         Ok((state, Expression::Value { value, binop }))
     } else if let Ok((state, unop)) = keep_going!(ParseUnOp.parse(state)) {
-        let (state, expression) = ParseExpression.parse(state)?;
+        let (state, expression) =
+            expect!(state, ParseExpression.parse(state), "expected expression");
         Ok((
             state,
             Expression::UnaryOperator {
