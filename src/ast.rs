@@ -159,14 +159,14 @@ where
     fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
         let mut nodes = Vec::new();
 
-        if let Ok((new_state, node)) = self.0.parse(state) {
+        if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
             state = new_state;
             nodes.push(node);
         } else {
             return Ok((state, Vec::new()));
         }
 
-        while let Ok((new_state, _)) = self.1.parse(state) {
+        while let Ok((new_state, _)) = keep_going!(self.1.parse(state)) {
             state = new_state;
 
             match self.0.parse(state) {
@@ -367,8 +367,11 @@ define_parser!(
     ParseLastStmt,
     LastStmt<'a>,
     |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::Return).parse(state) {
-        let (state, returns) =
-            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state)?;
+        let (state, returns) = expect!(
+            state,
+            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
+            "return values"
+        );
         Ok((state, LastStmt::Return(returns)))
     } else if let Ok((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break))
@@ -400,21 +403,29 @@ pub enum Field<'a> {
 struct ParseField;
 define_parser!(ParseField, Field<'a>, |_, state| {
     if let Ok((state, _)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
-        let (state, key) = ParseExpression.parse(state)?;
-        let (state, _) = ParseSymbol(Symbol::RightBracket).parse(state)?;
-        let (state, _) = ParseSymbol(Symbol::Equal).parse(state)?;
-        let (state, value) = ParseExpression.parse(state)?;
+        let (state, key) = expect!(state, ParseExpression.parse(state), "expected key");
+        let (state, _) = expect!(
+            state,
+            ParseSymbol(Symbol::RightBracket).parse(state),
+            "expected ']'"
+        );
+        let (state, _) = expect!(
+            state,
+            ParseSymbol(Symbol::Equal).parse(state),
+            "expected '='"
+        );
+        let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
         let (key, value) = (Box::new(key), Box::new(value));
         return Ok((state, Field::ExpressionKey { key, value }));
-    } else if let Ok((state, key)) = ParseIdentifier.parse(state) {
+    } else if let Ok((state, key)) = keep_going!(ParseIdentifier.parse(state)) {
         if let Ok((state, _)) = ParseSymbol(Symbol::Equal).parse(state) {
-            let (state, value) = ParseExpression.parse(state)?;
+            let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
             let (key, value) = (Box::new(key), Box::new(value));
             return Ok((state, Field::NameKey { key, value }));
         }
     }
 
-    if let Ok((state, expr)) = ParseExpression.parse(state) {
+    if let Ok((state, expr)) = keep_going!(ParseExpression.parse(state)) {
         let expr = Box::new(expr);
         return Ok((state, Field::NoKey(expr)));
     }
@@ -434,7 +445,7 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     let (mut state, _) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
     let mut fields = Vec::new();
 
-    while let Ok((new_state, field)) = ParseField.parse(state) {
+    while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
         let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
             Some(Cow::Borrowed(state.peek()))
@@ -453,7 +464,12 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
         }
     }
 
-    let (state, _) = ParseSymbol(Symbol::RightBrace).parse(state)?;
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::RightBrace).parse(state),
+        "expected '}'"
+    );
+
     Ok((state, TableConstructor { fields }))
 });
 
@@ -479,7 +495,7 @@ struct ParseExpression;
 define_parser!(
     ParseExpression,
     Expression<'a>,
-    |_, state| if let Ok((state, value)) = ParseValue.parse(state) {
+    |_, state| if let Ok((state, value)) = keep_going!(ParseValue.parse(state)) {
         let (state, binop) = if let Ok((state, binop)) = ParseBinOp.parse(state) {
             let (state, expression) = ParseExpression.parse(state)?;
             (state, Some((binop, Box::new(expression))))
@@ -488,7 +504,7 @@ define_parser!(
         };
 
         Ok((state, Expression::Value { value, binop }))
-    } else if let Ok((state, unop)) = ParseUnOp.parse(state) {
+    } else if let Ok((state, unop)) = keep_going!(ParseUnOp.parse(state)) {
         let (state, expression) = ParseExpression.parse(state)?;
         Ok((
             state,
@@ -639,7 +655,7 @@ struct ParseFunctionArgs;
 define_parser!(
     ParseFunctionArgs,
     FunctionArgs<'a>,
-    |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
+    |_, state| if let Ok((state, _)) = keep_going!(ParseSymbol(Symbol::LeftParen).parse(state)) {
         let (state, expr_list) = expect!(
             state,
             ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
@@ -651,12 +667,12 @@ define_parser!(
             "expected ')'"
         );
         Ok((state, FunctionArgs::Parentheses(expr_list)))
-    } else if let Ok((state, table_constructor)) = ParseTableConstructor.parse(state) {
+    } else if let Ok((state, table_constructor)) = keep_going!(ParseTableConstructor.parse(state)) {
         Ok((
             state,
             FunctionArgs::TableConstructor(Box::new(table_constructor)),
         ))
-    } else if let Ok((state, string)) = ParseStringLiteral.parse(state) {
+    } else if let Ok((state, string)) = keep_going!(ParseStringLiteral.parse(state)) {
         Ok((state, FunctionArgs::String(string)))
     } else {
         Err(AstError::NoMatch)
