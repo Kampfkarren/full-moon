@@ -642,7 +642,7 @@ define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
     );
     Ok((state, Index::Brackets(expression)))
 } else if let Ok((state, _)) = ParseSymbol(Symbol::Dot).parse(state) {
-    let (state, name) = ParseIdentifier.parse(state)?;
+    let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
     Ok((state, Index::Dot(name)))
 } else {
     Err(AstError::NoMatch)
@@ -869,10 +869,14 @@ pub struct While<'a> {
 struct ParseWhile;
 define_parser!(ParseWhile, While<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::While).parse(state)?;
-    let (state, condition) = ParseExpression.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
-    let (state, block) = ParseBlock.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
+    let (state, _) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
+    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
     Ok((state, While { condition, block }))
 });
 
@@ -909,8 +913,8 @@ pub struct MethodCall<'a> {
 struct ParseMethodCall;
 define_parser!(ParseMethodCall, MethodCall<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Colon).parse(state)?;
-    let (state, name) = ParseIdentifier.parse(state)?;
-    let (state, args) = ParseFunctionArgs.parse(state)?;
+    let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected method");
+    let (state, args) = expect!(state, ParseFunctionArgs.parse(state), "expected args");
     Ok((state, MethodCall { name, args }))
 });
 
