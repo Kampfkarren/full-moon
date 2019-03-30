@@ -497,7 +497,8 @@ define_parser!(
     Expression<'a>,
     |_, state| if let Ok((state, value)) = keep_going!(ParseValue.parse(state)) {
         let (state, binop) = if let Ok((state, binop)) = ParseBinOp.parse(state) {
-            let (state, expression) = ParseExpression.parse(state)?;
+            let (state, expression) =
+                expect!(state, ParseExpression.parse(state), "expected expression");
             (state, Some((binop, Box::new(expression))))
         } else {
             (state, None)
