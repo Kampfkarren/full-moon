@@ -1,0 +1,21 @@
+{
+  "UnexpectedToken": {
+    "token": {
+      "start_position": {
+        "bytes": 8,
+        "character": 9,
+        "line": 1
+      },
+      "end_position": {
+        "bytes": 13,
+        "character": 14,
+        "line": 1
+      },
+      "token_type": {
+        "type": "Symbol",
+        "symbol": "until"
+      }
+    },
+    "additional": "expected expression"
+  }
+}

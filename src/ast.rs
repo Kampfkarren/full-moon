@@ -526,8 +526,13 @@ define_parser!(
     ParseParenExpression,
     Expression<'a>,
     |_, state| if let Ok((state, _)) = ParseSymbol(Symbol::LeftParen).parse(state) {
-        let (state, expression) = ParseExpression.parse(state)?;
-        let (state, _) = ParseSymbol(Symbol::RightParen).parse(state)?;
+        let (state, expression) =
+            expect!(state, ParseExpression.parse(state), "expected expression");
+        let (state, _) = expect!(
+            state,
+            ParseSymbol(Symbol::RightParen).parse(state),
+            "expected ')'"
+        );
         Ok((state, expression))
     } else {
         Err(AstError::NoMatch)
