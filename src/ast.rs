@@ -1182,7 +1182,8 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
     let (state, names) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
     let (state, colon_name) = if let Ok((state, _)) = ParseSymbol(Symbol::Colon).parse(state) {
-        let (state, colon_name) = ParseIdentifier.parse(state)?;
+        let (state, colon_name) =
+            expect!(state, ParseIdentifier.parse(state), "expected method name");
         (state, Some(colon_name))
     } else {
         (state, None)
