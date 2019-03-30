@@ -437,7 +437,7 @@ define_parser!(ParseField, Field<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    fields: Vec<(Field<'a>, Option<Cow<'a, Token<'a>>>)>,
+    pub fields: Vec<(Field<'a>, Option<Cow<'a, Token<'a>>>)>,
 }
 
 struct ParseTableConstructor;
@@ -690,11 +690,11 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    index_variable: Cow<'a, Token<'a>>,
-    start: Expression<'a>,
-    end: Expression<'a>,
-    step: Option<Expression<'a>>,
-    block: Block<'a>,
+    pub index_variable: Cow<'a, Token<'a>>,
+    pub start: Expression<'a>,
+    pub end: Expression<'a>,
+    pub step: Option<Expression<'a>>,
+    pub block: Block<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -752,9 +752,9 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Vec<Cow<'a, Token<'a>>>,
-    expr_list: Vec<Expression<'a>>,
-    block: Block<'a>,
+    pub names: Vec<Cow<'a, Token<'a>>>,
+    pub expr_list: Vec<Expression<'a>>,
+    pub block: Block<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -861,8 +861,8 @@ define_parser!(ParseIf, If<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    condition: Expression<'a>,
-    block: Block<'a>,
+    pub condition: Expression<'a>,
+    pub block: Block<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -884,8 +884,8 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    block: Block<'a>,
-    until: Expression<'a>,
+    pub block: Block<'a>,
+    pub until: Expression<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1016,8 +1016,8 @@ define_parser!(ParseSuffix, Suffix<'a>, |_, state| parse_first_of!(state, {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    prefix: Prefix<'a>,
-    suffixes: Vec<Suffix<'a>>,
+    pub prefix: Prefix<'a>,
+    pub suffixes: Vec<Suffix<'a>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1052,8 +1052,8 @@ define_parser!(ParseVar, Var<'a>, |_, state| parse_first_of!(state, {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    var_list: Vec<Var<'a>>,
-    expr_list: Vec<Expression<'a>>,
+    pub var_list: Vec<Var<'a>>,
+    pub expr_list: Vec<Expression<'a>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1080,8 +1080,8 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    name: Cow<'a, Token<'a>>,
-    func_body: FunctionBody<'a>,
+    pub name: Cow<'a, Token<'a>>,
+    pub func_body: FunctionBody<'a>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1098,8 +1098,8 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    name_list: Vec<Cow<'a, Token<'a>>>,
-    expr_list: Vec<Expression<'a>>,
+    pub name_list: Vec<Cow<'a, Token<'a>>>,
+    pub expr_list: Vec<Expression<'a>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1172,8 +1172,8 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Vec<Cow<'a, Token<'a>>>,
-    colon_name: Option<Cow<'a, Token<'a>>>,
+    pub names: Vec<Cow<'a, Token<'a>>>,
+    pub colon_name: Option<Cow<'a, Token<'a>>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
