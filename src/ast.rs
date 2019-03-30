@@ -1137,8 +1137,12 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
 struct ParseDo;
 define_parser!(ParseDo, Block<'a>, |_, state| {
     let (state, _) = ParseSymbol(Symbol::Do).parse(state)?;
-    let (state, block) = ParseBlock.parse(state)?;
-    let (state, _) = ParseSymbol(Symbol::End).parse(state)?;
+    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+    let (state, _) = expect!(
+        state,
+        ParseSymbol(Symbol::End).parse(state),
+        "expected 'end'"
+    );
 
     Ok((state, block))
 });
