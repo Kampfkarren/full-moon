@@ -6,7 +6,8 @@ use std::borrow::Cow;
 #[derive(Clone, Copy, PartialEq)]
 pub struct ParserState<'a> {
     index: usize,
-    tokens: &'a [Token<'a>],
+    len: usize,
+    tokens: *const Token<'a>,
 }
 
 impl<'a> ParserState<'a> {
@@ -16,19 +17,30 @@ impl<'a> ParserState<'a> {
         loop {
             state = ParserState {
                 index: state.index + 1,
+                len: self.len,
                 tokens: self.tokens,
             };
 
-            if !state.tokens.get(state.index)?.token_type.ignore() {
+            if !state.peek().token_type.ignore() {
                 return Some(state);
             }
         }
     }
 
-    pub fn peek<'b>(self) -> &'b Token<'a> {
-        self.tokens
-            .get(self.index)
-            .expect("peek failed, when there should always be an eof")
+    pub fn peek<'b>(self) -> Cow<'b, Token<'a>> {
+        if self.index >= self.len {
+            panic!("peek failed, when there should always be an eof");
+        }
+
+        let result = unsafe {
+            &*self
+                .tokens
+                .add(self.index)
+                .as_ref()
+                .expect("couldn't peek, no eof?")
+        };
+
+        Cow::Borrowed(result)
     }
 }
 
@@ -46,7 +58,10 @@ impl<'a> std::fmt::Debug for ParserState<'a> {
 trait Parser<'a>: Sized {
     type Item;
 
-    fn parse(&self, state: ParserState<'a>) -> Result<(ParserState<'a>, Self::Item), AstError<'a>>;
+    fn parse(
+        &self,
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Self::Item), InternalAstError<'a>>;
 }
 
 macro_rules! define_parser {
@@ -57,7 +72,7 @@ macro_rules! define_parser {
             fn parse(
                 &self,
                 state: ParserState<'a>,
-            ) -> Result<(ParserState<'a>, $node), AstError<'a>> {
+            ) -> Result<(ParserState<'a>, $node), InternalAstError<'a>> {
                 $body(self, state)
             }
         }
@@ -69,12 +84,12 @@ macro_rules! parse_first_of {
         $(
             match $parser.parse($state) {
                 Ok((state, node)) => return Ok((state, $constructor(node.into()))),
-                Err(AstError::NoMatch) => {},
+                Err(InternalAstError::NoMatch) => {},
                 Err(other) => return Err(other),
             };
         )+
 
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     });
 }
 
@@ -82,9 +97,9 @@ macro_rules! expect {
     ($state:ident, $parsed:expr) => {
         match $parsed {
             Ok((state, node)) => (state, node),
-            Err(AstError::NoMatch) => {
-                return Err(AstError::UnexpectedToken {
-                    token: Cow::Borrowed($state.peek()),
+            Err(InternalAstError::NoMatch) => {
+                return Err(InternalAstError::UnexpectedToken {
+                    token: $state.peek(),
                     additional: None,
                 });
             }
@@ -95,9 +110,9 @@ macro_rules! expect {
     ($state:ident, $parsed:expr, $error:tt) => {
         match $parsed {
             Ok((state, node)) => (state, node),
-            Err(AstError::NoMatch) => {
-                return Err(AstError::UnexpectedToken {
-                    token: Cow::Borrowed($state.peek()),
+            Err(InternalAstError::NoMatch) => {
+                return Err(InternalAstError::UnexpectedToken {
+                    token: $state.peek(),
                     additional: Some($error),
                 });
             }
@@ -111,7 +126,7 @@ macro_rules! keep_going {
     ($parsed:expr) => {
         match $parsed {
             Ok((state, node)) => Ok((state, node)),
-            Err(AstError::NoMatch) => Err(AstError::NoMatch),
+            Err(InternalAstError::NoMatch) => Err(InternalAstError::NoMatch),
             Err(other) => return Err(other),
         }
     };
@@ -126,7 +141,10 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
+    fn parse(
+        &self,
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         loop {
             match self.0.parse(state) {
@@ -134,7 +152,7 @@ where
                     state = new_state;
                     nodes.push(node);
                 }
-                Err(AstError::NoMatch) => break,
+                Err(InternalAstError::NoMatch) => break,
                 Err(other) => return Err(other),
             };
         }
@@ -156,7 +174,10 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse(&self, mut state: ParserState<'a>) -> Result<(ParserState<'a>, Vec<T>), AstError<'a>> {
+    fn parse(
+        &self,
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
@@ -175,12 +196,12 @@ where
                     nodes.push(node);
                 }
 
-                Err(AstError::NoMatch) => {
+                Err(InternalAstError::NoMatch) => {
                     if self.2 {
                         break;
                     } else {
-                        return Err(AstError::UnexpectedToken {
-                            token: Cow::Borrowed(state.peek()),
+                        return Err(InternalAstError::UnexpectedToken {
+                            token: state.peek(),
                             additional: Some("trailing character"),
                         });
                     }
@@ -211,7 +232,7 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
     fn parse(
         &self,
         state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<ItemParser::Item>), AstError<'a>> {
+    ) -> Result<(ParserState<'a>, Vec<ItemParser::Item>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(node);
@@ -223,7 +244,7 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
                     nodes.push(node);
                 }
 
-                Err(AstError::NoMatch) => {
+                Err(InternalAstError::NoMatch) => {
                     if self.2 {
                         state = new_state;
                     }
@@ -259,12 +280,9 @@ define_parser!(
         let token = state.peek();
 
         if token.token_type == expecting {
-            Ok((
-                state.advance().ok_or(AstError::NoMatch)?,
-                Cow::Borrowed(token),
-            ))
+            Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
-            Err(AstError::NoMatch)
+            Err(InternalAstError::NoMatch)
         }
     }
 );
@@ -279,12 +297,9 @@ define_parser!(
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if let TokenType::Number { .. } = token.token_type {
-            Ok((
-                state.advance().ok_or(AstError::NoMatch)?,
-                Cow::Borrowed(token),
-            ))
+            Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
-            Err(AstError::NoMatch)
+            Err(InternalAstError::NoMatch)
         }
     }
 );
@@ -299,12 +314,9 @@ define_parser!(
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if let TokenType::StringLiteral { .. } = token.token_type {
-            Ok((
-                state.advance().ok_or(AstError::NoMatch)?,
-                Cow::Borrowed(token),
-            ))
+            Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
-            Err(AstError::NoMatch)
+            Err(InternalAstError::NoMatch)
         }
     }
 );
@@ -376,7 +388,7 @@ define_parser!(
     } else if let Ok((state, _)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 );
 
@@ -430,7 +442,7 @@ define_parser!(ParseField, Field<'a>, |_, state| {
         return Ok((state, Field::NoKey(expr)));
     }
 
-    Err(AstError::NoMatch)
+    Err(InternalAstError::NoMatch)
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -448,10 +460,10 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
         let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
-            Some(Cow::Borrowed(state.peek()))
+            Some(state.peek())
         } else if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
-            Some(Cow::Borrowed(state.peek()))
+            Some(state.peek())
         } else {
             state = new_state;
             None
@@ -516,7 +528,7 @@ define_parser!(
             },
         ))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 );
 
@@ -535,7 +547,7 @@ define_parser!(
         );
         Ok((state, expression))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 );
 
@@ -645,7 +657,7 @@ define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
     Ok((state, Index::Dot(name)))
 } else {
-    Err(AstError::NoMatch)
+    Err(InternalAstError::NoMatch)
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -682,7 +694,7 @@ define_parser!(
     } else if let Ok((state, string)) = keep_going!(ParseStringLiteral.parse(state)) {
         Ok((state, FunctionArgs::String(string)))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 );
 
@@ -1029,7 +1041,7 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
     if let Some(Suffix::Index(_)) = suffixes.last() {
         Ok((state, VarExpression { prefix, suffixes }))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 });
 
@@ -1115,12 +1127,12 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
         Ok((state, _)) => OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
             .parse(state)
             .or_else(|_| {
-                Err(AstError::UnexpectedToken {
-                    token: Cow::Borrowed(state.peek()),
+                Err(InternalAstError::UnexpectedToken {
+                    token: state.peek(),
                     additional: Some("expected expression"),
                 })
             })?,
-        Err(AstError::NoMatch) => (state, Vec::new()),
+        Err(InternalAstError::NoMatch) => (state, Vec::new()),
         Err(other) => return Err(other),
     };
 
@@ -1164,7 +1176,7 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
     if let Some(Suffix::Call(_)) = suffixes.last() {
         Ok((state, FunctionCall { prefix, suffixes }))
     } else {
-        Err(AstError::NoMatch)
+        Err(InternalAstError::NoMatch)
     }
 });
 
@@ -1228,10 +1240,10 @@ define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| 
     let next_token = state.peek();
     match &next_token.token_type {
         TokenType::Identifier { .. } => Ok((
-            state.advance().ok_or(AstError::NoMatch)?,
-            Cow::Borrowed(next_token),
+            state.advance().ok_or(InternalAstError::NoMatch)?,
+            next_token,
         )),
-        _ => Err(AstError::NoMatch),
+        _ => Err(InternalAstError::NoMatch),
     }
 });
 
@@ -1251,11 +1263,11 @@ macro_rules! make_op {
         define_parser!($parser, $enum<'a>, |_, state| {
             $(
                 if let Ok((state, _)) = ParseSymbol(Symbol::$operator).parse(state) {
-                    return Ok((state, $enum::$operator(Cow::Borrowed(state.peek()))));
+                    return Ok((state, $enum::$operator(state.peek())));
                 }
             )+
 
-            Err(AstError::NoMatch)
+            Err(InternalAstError::NoMatch)
         });
     };
 }
@@ -1291,6 +1303,16 @@ pub enum AstError<'a> {
     NoEof,
     NoMatch,
     UnexpectedToken {
+        token: Token<'a>,
+        additional: Option<&'a str>,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+enum InternalAstError<'a> {
+    NoMatch,
+    UnexpectedToken {
         #[cfg_attr(feature = "serde", serde(borrow))]
         token: Cow<'a, Token<'a>>,
         additional: Option<&'a str>,
@@ -1300,50 +1322,68 @@ pub enum AstError<'a> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ast<'a> {
     pub nodes: Block<'a>,
-    pub tokens: &'a [Token<'a>],
+    pub tokens: Vec<Token<'a>>,
 }
 
-pub fn nodes<'a>(tokens: &'a [Token<'a>]) -> Result<Block<'a>, AstError<'a>> {
-    if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
-        Err(AstError::NoEof)
-    } else {
-        if tokens
-            .iter()
-            .filter(|token| !token.token_type.ignore())
-            .count()
-            == 1
-        {
-            // Entirely comments/whitespace
-            return Ok(Block {
-                stmts: Vec::new(),
-                last_stmt: None,
-            });
-        }
+impl<'a> Ast<'a> {
+    pub fn from_tokens(tokens: Vec<Token<'a>>) -> Result<Ast<'a>, AstError<'a>> {
+        if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
+            Err(AstError::NoEof)
+        } else {
+            let mut state = ParserState {
+                index: 0,
+                tokens: tokens.as_ptr(),
+                len: tokens.len(),
+            };
 
-        let mut state = ParserState { index: 0, tokens };
-        // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-        if state.peek().token_type.ignore() {
-            state = state.advance().unwrap();
-        }
+            if tokens
+                .iter()
+                .filter(|token| !token.token_type.ignore())
+                .count()
+                == 1
+            {
+                // Entirely comments/whitespace
+                return Ok(Ast {
+                    nodes: Block {
+                        stmts: Vec::new(),
+                        last_stmt: None,
+                    },
+                    tokens,
+                });
+            }
 
-        match ParseBlock.parse(state) {
-            Ok((state, block)) => {
-                if state.index == tokens.len() - 1 {
-                    Ok(block)
-                } else {
+            // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
+            if state.peek().token_type.ignore() {
+                state = state.advance().unwrap();
+            }
+
+            match ParseBlock.parse(state) {
+                Ok((state, block)) => {
+                    if state.index == tokens.len() - 1 {
+                        Ok(Ast {
+                            tokens,
+                            nodes: block,
+                        })
+                    } else {
+                        Err(AstError::UnexpectedToken {
+                            token: state.peek().into_owned(),
+                            additional: Some("leftover token"),
+                        })
+                    }
+                }
+
+                Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
+                    token: state.peek().into_owned(),
+                    additional: None,
+                }),
+
+                Err(InternalAstError::UnexpectedToken { token, additional }) => {
                     Err(AstError::UnexpectedToken {
-                        token: Cow::Borrowed(state.peek()),
-                        additional: Some("leftover token"),
+                        token: token.into_owned(),
+                        additional,
                     })
                 }
             }
-
-            Err(AstError::NoMatch) => Err(AstError::UnexpectedToken {
-                token: Cow::Borrowed(state.peek()),
-                additional: None,
-            }),
-
-            Err(other) => Err(other),
         }
     }
 }
@@ -1359,7 +1399,8 @@ mod tests {
         let tokens = tokens("local x").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma)).parse(state).unwrap();
@@ -1368,7 +1409,8 @@ mod tests {
             state,
             ParserState {
                 index: 0,
-                tokens: &tokens,
+                len: tokens.len(),
+                tokens: tokens.as_ptr(),
             },
         );
 
@@ -1380,7 +1422,8 @@ mod tests {
         let tokens = tokens(",,, , ,\t ,local x").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma)).parse(state).unwrap();
@@ -1389,7 +1432,8 @@ mod tests {
             state,
             ParserState {
                 index: 9,
-                tokens: &tokens,
+                len: tokens.len(),
+                tokens: tokens.as_ptr(),
             },
         );
 
@@ -1401,7 +1445,8 @@ mod tests {
         let tokens = tokens("local x").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         assert!(
@@ -1416,7 +1461,8 @@ mod tests {
         let tokens = tokens("end,end, end,\t\tend local").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         let (state, commas) =
@@ -1428,7 +1474,8 @@ mod tests {
             state,
             ParserState {
                 index: 10,
-                tokens: &tokens,
+                len: tokens.len(),
+                tokens: tokens.as_ptr(),
             },
         );
 
@@ -1440,7 +1487,8 @@ mod tests {
         let tokens = tokens("end,end, end,\t\tend, local").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         let (state, commas) = OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
@@ -1451,7 +1499,8 @@ mod tests {
             state,
             ParserState {
                 index: 11,
-                tokens: &tokens,
+                len: tokens.len(),
+                tokens: tokens.as_ptr(),
             },
         );
 
@@ -1463,7 +1512,8 @@ mod tests {
         let tokens = tokens("local").expect("couldn't tokenize");
         let state = ParserState {
             index: 0,
-            tokens: &tokens,
+            len: tokens.len(),
+            tokens: tokens.as_ptr(),
         };
 
         assert!(

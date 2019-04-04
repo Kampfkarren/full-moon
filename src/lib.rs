@@ -10,7 +10,12 @@ pub enum Error<'a> {
     TokenizerError(tokenizer::TokenizerError),
 }
 
-pub fn print(ast: &ast::Ast) -> String {
+pub fn parse(code: &str) -> Result<ast::Ast, Error> {
+    let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
+    ast::Ast::from_tokens(tokens).map_err(Error::AstError)
+}
+
+pub fn print<'a>(ast: &'a ast::Ast<'a>) -> String {
     ast.tokens
         .iter()
         .fold(String::new(), |acc, token| acc + &token.to_string())

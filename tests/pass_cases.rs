@@ -31,12 +31,8 @@ fn test_pass_cases() {
             .expect("couldn't write to tokens file");
         }
 
-        let nodes = ast::nodes(&tokens)
+        let ast = ast::Ast::from_tokens(tokens)
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
-        let ast = ast::Ast {
-            nodes,
-            tokens: &tokens,
-        };
 
         let ast_path = path.join("ast.json");
         if let Ok(ast_file) = fs::read_to_string(&ast_path) {

@@ -13,6 +13,7 @@ fn test_parser_fail_cases() {
         let entry = entry.unwrap();
         let path = entry.path();
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+        println!("testing {:?}", path);
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
@@ -31,9 +32,10 @@ fn test_parser_fail_cases() {
             .expect("couldn't write to tokens file");
         }
 
-        match ast::nodes(&tokens) {
+        match ast::Ast::from_tokens(tokens) {
             Ok(_) => panic!("fail case passed for {:?}", path),
             Err(error) => {
+                println!("error {:#?}", error);
                 let error_path = path.join("error.json");
                 if let Ok(error_contents) = fs::read_to_string(&error_path) {
                     let expected_error = serde_json::from_str(&error_contents)
