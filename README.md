@@ -1,10 +1,19 @@
+<center>
+	<h1>
+		Full Moon<br>
+		<a href="https://crates.io/crates/full-moon"><img src="https://img.shields.io/crates/v/full-moon.svg"></a>
+	</h1>
+</center>
+
 A lossless Lua 5.1 parser written in Rust.
+
 
 ## Lossless?
 
 Full Moon preserves comments, whitespace, style choices, etc. With Full Moon, you're able to convert your Lua code into an AST and a syntax tree and convert it back to the original code exactly.
 
 Using Full Moon, you'll be able to modify the AST directly and re-export it back to Lua, all while preserving the style in which you write.
+
 
 ## Why?
 
