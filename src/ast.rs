@@ -445,11 +445,13 @@ define_parser!(ParseField, Field<'a>, |_, state| {
     Err(InternalAstError::NoMatch)
 });
 
+pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, Token<'a>>>);
+
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub fields: Vec<(Field<'a>, Option<Cow<'a, Token<'a>>>)>,
+    pub fields: Vec<TableConstructorField<'a>>,
 }
 
 struct ParseTableConstructor;
@@ -485,6 +487,8 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     Ok((state, TableConstructor { fields }))
 });
 
+pub type BinOpRhs<'a> = (BinOp<'a>, Box<Expression<'a>>);
+
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
@@ -498,7 +502,7 @@ pub enum Expression<'a> {
     Value {
         #[cfg_attr(feature = "serde", serde(borrow))]
         value: Value<'a>,
-        binop: Option<(BinOp<'a>, Box<Expression<'a>>)>,
+        binop: Option<BinOpRhs<'a>>,
     },
 }
 

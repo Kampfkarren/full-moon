@@ -5,9 +5,10 @@ authors = ["Kampfkarren"]
 edition = "2018"
 
 [features]
-default = ["serde"]
+default = ["serde", "visitors"]
 no-source-tests = []
 only-source-tests = []
+visitors = []
 
 [dependencies]
 lazy_static = "1.3"
