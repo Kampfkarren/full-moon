@@ -82,6 +82,36 @@ macro_rules! interpret {
     }};
 }
 
+/// Recurses through given nodes and calls the attached visitor's associated methods
+///
+/// # Examples
+///
+/// ```
+/// use full_moon::{
+///     parse,
+///     tokenizer::{Token, TokenType},
+///     visitors::{Interpreter, Visitor},
+/// };
+///
+/// let ast = parse("local x = 1.3").expect("couldn't parse");
+///
+/// struct TestVisitor(Option<String>);
+/// impl<'ast> Visitor<'ast> for TestVisitor {
+///     fn visit_number(&mut self, token: &Token<'ast>) {
+///         match &token.token_type {
+///             TokenType::Number { text } => {
+///                 self.0 = Some(text.to_string());
+///             }
+///
+///             _ => unreachable!(),
+///         }
+///     }
+/// }
+///
+/// let mut test_visitor = TestVisitor(None);
+/// Interpreter(&mut test_visitor).visit_ast(&ast);
+/// assert_eq!(test_visitor.0, Some("1.3".to_string()));
+/// ```
 pub struct Interpreter<'ast>(pub &'ast mut Visitor<'ast>);
 impl<'ast> Visitor<'ast> for Interpreter<'ast> {
     fn visit_assignment(&mut self, assignment: &ast::Assignment<'ast>) {
@@ -364,33 +394,5 @@ impl<'ast> Visitor<'ast> for Interpreter<'ast> {
     fn visit_while(&mut self, while_loop: &ast::While<'ast>) {
         interpret!(self.visit_expression(&while_loop.condition));
         interpret!(self.visit_block(&while_loop.block));
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::parse;
-
-    #[test]
-    fn test_interpreter() {
-        let ast = parse("local x = 1.3").expect("couldn't parse");
-
-        struct TestVisitor(Option<String>);
-        impl<'ast> Visitor<'ast> for TestVisitor {
-            fn visit_number(&mut self, token: &Token<'ast>) {
-                match &token.token_type {
-                    TokenType::Number { text } => {
-                        self.0 = Some(text.to_string());
-                    }
-
-                    _ => unreachable!(),
-                }
-            }
-        }
-
-        let mut test_visitor = TestVisitor(None);
-        Interpreter(&mut test_visitor).visit_ast(&ast);
-        assert_eq!(test_visitor.0, Some("1.3".to_string()));
     }
 }
