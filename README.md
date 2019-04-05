@@ -1,9 +1,9 @@
-<center>
+<div align="center">
 	<h1>
 		Full Moon<br>
 		<a href="https://crates.io/crates/full-moon"><img src="https://img.shields.io/crates/v/full-moon.svg"></a>
 	</h1>
-</center>
+</div>
 
 A lossless Lua 5.1 parser written in Rust.
 
