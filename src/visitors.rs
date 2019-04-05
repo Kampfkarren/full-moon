@@ -82,7 +82,7 @@ macro_rules! interpret {
     }};
 }
 
-pub struct Interpreter<'ast>(&'ast mut Visitor<'ast>);
+pub struct Interpreter<'ast>(pub &'ast mut Visitor<'ast>);
 impl<'ast> Visitor<'ast> for Interpreter<'ast> {
     fn visit_assignment(&mut self, assignment: &ast::Assignment<'ast>) {
         for var in &assignment.var_list {
