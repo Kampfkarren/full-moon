@@ -2,6 +2,9 @@
 name = "full_moon"
 version = "0.1.0"
 authors = ["Kampfkarren"]
+description = "A lossless Lua 5.1 parser"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/Kampfkarren/full-moon"
 edition = "2018"
 
 [features]
