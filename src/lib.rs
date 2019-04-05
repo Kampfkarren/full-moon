@@ -3,8 +3,6 @@ pub mod tokenizer;
 
 #[cfg(feature = "visitors")]
 pub mod visitors;
-// #[cfg(feature = "searching")]
-// pub use searching::*;
 
 #[cfg(all(test, not(feature = "serde")))]
 compile_error!("Serde feature must be enabled for tests");
