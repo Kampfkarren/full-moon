@@ -1,8 +1,8 @@
+#[macro_use]
+pub mod visitors;
+
 pub mod ast;
 pub mod tokenizer;
-
-#[cfg(feature = "visitors")]
-pub mod visitors;
 
 #[cfg(all(test, not(feature = "serde")))]
 compile_error!("Serde feature must be enabled for tests");

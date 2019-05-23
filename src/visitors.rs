@@ -1,5 +1,6 @@
 use crate::ast;
 use crate::tokenizer::{Token, TokenType};
+use std::borrow::Cow;
 
 macro_rules! create_visitor {
     (ast: {
@@ -20,7 +21,116 @@ macro_rules! create_visitor {
                 fn $visit_token(&mut self, _token: &Token<'ast>) { }
             )+
         }
+
+        pub trait VisitorMut<'ast> {
+            fn visit_ast(&mut self, ast: &mut ast::Ast<'ast>) {
+                self.visit_block(&mut ast.nodes);
+            }
+
+            $(
+                fn $visit_name(&mut self, _node: &mut ast::$ast_type<'ast>) { }
+            )+
+
+            $(
+                fn $visit_token(&mut self, _token: &mut Token<'ast>) { }
+            )+
+        }
     };
+}
+
+#[macro_export]
+macro_rules! impl_visit {
+    {
+        impl for $type:ident {
+            fn visit($this:ident, $visitor:ident) $body:block
+        }
+    } => {
+        impl<'ast> Visit<'ast> for $type<'ast> {
+            fn visit<V: Visitor<'ast>>(&self, $visitor: &mut V) {
+                let $this = self;
+                $body
+            }
+        }
+
+        impl<'ast> VisitMut<'ast> for $type<'ast> {
+            fn visit<V: VisitorMut<'ast>>(&mut self, $visitor: &mut V) {
+                let $this = self;
+                $body
+            }
+        }
+    };
+}
+
+pub trait Visit<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V);
+}
+
+pub trait VisitMut<'ast> {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V);
+}
+
+impl<'ast, T: Visit<'ast>> Visit<'ast> for Vec<T> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        for item in self {
+            item.visit(visitor);
+        }
+    }
+}
+
+impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Vec<T> {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        for item in self {
+            item.visit(visitor);
+        }
+    }
+}
+
+impl<'ast, T: Visit<'ast>> Visit<'ast> for Option<T> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        if let Some(item) = self {
+            item.visit(visitor);
+        }
+    }
+}
+
+impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Option<T> {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        if let Some(item) = self {
+            item.visit(visitor);
+        }
+    }
+}
+
+impl<'ast, A: Visit<'ast>, B: Visit<'ast>> Visit<'ast> for (A, B) {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        self.0.visit(visitor);
+        self.1.visit(visitor);
+    }
+}
+
+impl<'ast, A: VisitMut<'ast>, B: VisitMut<'ast>> VisitMut<'ast> for (A, B) {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        self.0.visit(visitor);
+        self.1.visit(visitor);
+    }
+}
+
+impl<'ast, T: Clone + VisitMut<'ast>> VisitMut<'ast> for Cow<'ast, T> {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        self.to_mut().visit(visitor);
+    }
+}
+
+impl<'ast, T: Visit<'ast>> Visit<'ast> for Box<T> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        (**self).visit(visitor);
+    }
+}
+
+impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Box<T> {
+    fn visit<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        (**self).visit(visitor);
+    }
 }
 
 create_visitor!(ast: {
@@ -292,21 +402,6 @@ impl<'ast> Visitor<'ast> for Interpreter<'ast> {
     fn visit_table_constructor_field(&mut self, field: &ast::TableConstructorField<'ast>) {
         interpret!(self.visit_field(&field.0));
         interpret!(self.visit_token(Option[&field.1]));
-    }
-
-    fn visit_token(&mut self, token: &Token<'ast>) {
-        match token.token_type {
-            TokenType::Eof => interpret!(self.visit_eof(token)),
-            TokenType::Identifier { .. } => interpret!(self.visit_identifier(token)),
-            TokenType::MultiLineComment { .. } => interpret!(self.visit_multi_line_comment(token)),
-            TokenType::Number { .. } => interpret!(self.visit_number(token)),
-            TokenType::SingleLineComment { .. } => {
-                interpret!(self.visit_single_line_comment(token))
-            }
-            TokenType::StringLiteral { .. } => interpret!(self.visit_string_literal(token)),
-            TokenType::Symbol { .. } => interpret!(self.visit_symbol(token)),
-            TokenType::Whitespace { .. } => interpret!(self.visit_whitespace(token)),
-        }
     }
 
     fn visit_parameter(&mut self, parameter: &ast::Parameter<'ast>) {

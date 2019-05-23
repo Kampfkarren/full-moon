@@ -1,3 +1,4 @@
+use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use lazy_static::lazy_static;
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
@@ -202,6 +203,25 @@ impl<'a> fmt::Display for Token<'a> {
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
+    }
+}
+
+impl_visit! {
+    impl for Token {
+        fn visit(this, visitor) {
+            match this.token_type {
+                TokenType::Eof => visitor.visit_eof(this),
+                TokenType::Identifier { .. } => visitor.visit_identifier(this),
+                TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(this),
+                TokenType::Number { .. } => visitor.visit_number(this),
+                TokenType::SingleLineComment { .. } => {
+                    visitor.visit_single_line_comment(this)
+                }
+                TokenType::StringLiteral { .. } => visitor.visit_string_literal(this),
+                TokenType::Symbol { .. } => visitor.visit_symbol(this),
+                TokenType::Whitespace { .. } => visitor.visit_whitespace(this),
+            }
+        }
     }
 }
 
