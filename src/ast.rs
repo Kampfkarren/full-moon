@@ -264,13 +264,11 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct NoDelimiter;
 
 define_parser!(NoDelimiter, (), |_, state: ParserState<'a>| Ok((state, ())));
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParseSymbol(Symbol);
 
 define_parser!(
@@ -289,7 +287,6 @@ define_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParseNumber;
 
 define_parser!(
@@ -306,7 +303,6 @@ define_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParseStringLiteral;
 
 define_parser!(
@@ -645,7 +641,6 @@ pub enum Prefix<'a> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 struct ParsePrefix;
 define_parser!(ParsePrefix, Prefix<'a>, |_, state| parse_first_of!(state, {
     ParseParenExpression => Prefix::Expression,
