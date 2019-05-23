@@ -3,6 +3,7 @@ use full_moon_derive::Visit;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use std::fmt;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct ParserState<'a> {
@@ -45,8 +46,8 @@ impl<'a> ParserState<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for ParserState<'a> {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl<'a> fmt::Debug for ParserState<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
             "ParserState {{ index: {}, current: {:?} }}",
@@ -1505,12 +1506,35 @@ make_op!(UnOp, ParseUnOp, {
 pub enum AstError<'a> {
     Empty,
     NoEof,
-    NoMatch,
     UnexpectedToken {
         token: Token<'a>,
         additional: Option<&'a str>,
     },
 }
+
+impl<'a> fmt::Display for AstError<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AstError::Empty => write!(formatter, "tokens passed was empty, which shouldn't happen normally"),
+            AstError::NoEof => write!(formatter, "tokens passed had no eof token, which shouldn't happen normally"),
+            AstError::UnexpectedToken { token, additional } => write!(
+                formatter,
+                "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
+                token,
+                token.start_position.line,
+                token.start_position.character,
+                token.end_position.line,
+                token.end_position.character,
+                match additional {
+                    Some(additional) => format!("\nadditional information: {}", additional),
+                    None => String::new(),
+                }
+            )
+        }
+    }
+}
+
+impl<'a> std::error::Error for AstError<'a> {}
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

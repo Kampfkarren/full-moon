@@ -459,6 +459,24 @@ pub struct TokenizerError {
     position: Position,
 }
 
+impl fmt::Display for TokenizerError {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{} at line {}, column {}",
+            match self.error {
+                TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
+                TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
+                TokenizerErrorType::UnexpectedToken(character) => format!("unexpected character {}", character),
+            },
+            self.position.line,
+            self.position.character,
+        )
+    }
+}
+
+impl std::error::Error for TokenizerError {}
+
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     let mut tokens = Vec::new();
     let mut position = Position {
