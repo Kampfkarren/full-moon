@@ -1,3 +1,4 @@
+use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use lazy_static::lazy_static;
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
@@ -202,6 +203,37 @@ impl<'a> fmt::Display for Token<'a> {
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
+    }
+}
+
+// Copy and paste code :(
+impl<'ast> Visit<'ast> for Token<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        match self.token_type {
+            TokenType::Eof => visitor.visit_eof(self),
+            TokenType::Identifier { .. } => visitor.visit_identifier(self),
+            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
+            TokenType::Number { .. } => visitor.visit_number(self),
+            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
+            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
+            TokenType::Symbol { .. } => visitor.visit_symbol(self),
+            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for Token<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        match self.token_type {
+            TokenType::Eof => visitor.visit_eof(self),
+            TokenType::Identifier { .. } => visitor.visit_identifier(self),
+            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
+            TokenType::Number { .. } => visitor.visit_number(self),
+            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
+            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
+            TokenType::Symbol { .. } => visitor.visit_symbol(self),
+            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
+        }
     }
 }
 

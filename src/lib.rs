@@ -1,7 +1,5 @@
 pub mod ast;
 pub mod tokenizer;
-
-#[cfg(feature = "visitors")]
 pub mod visitors;
 
 #[cfg(all(test, not(feature = "serde")))]
