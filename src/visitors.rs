@@ -9,8 +9,8 @@ macro_rules! create_visitor {
         $($visit_token:ident,)+
     }) => {
         pub trait Visitor<'ast> {
-            fn visit_ast(&mut self, ast: &ast::Ast<'ast>) {
-                self.visit_block(&ast.nodes);
+            fn visit_ast(&mut self, ast: &ast::Ast<'ast>) where Self: Sized {
+                ast.nodes.visit(self);
             }
 
             $(
@@ -23,8 +23,8 @@ macro_rules! create_visitor {
         }
 
         pub trait VisitorMut<'ast> {
-            fn visit_ast(&mut self, ast: &mut ast::Ast<'ast>) {
-                self.visit_block(&mut ast.nodes);
+            fn visit_ast(&mut self, ast: &mut ast::Ast<'ast>) where Self: Sized {
+                ast.nodes.visit_mut(self);
             }
 
             $(
