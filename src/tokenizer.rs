@@ -214,9 +214,7 @@ impl<'ast> Visit<'ast> for Token<'ast> {
             TokenType::Identifier { .. } => visitor.visit_identifier(self),
             TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
             TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => {
-                visitor.visit_single_line_comment(self)
-            }
+            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
             TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
             TokenType::Symbol { .. } => visitor.visit_symbol(self),
             TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
@@ -231,9 +229,7 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
             TokenType::Identifier { .. } => visitor.visit_identifier(self),
             TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
             TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => {
-                visitor.visit_single_line_comment(self)
-            }
+            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
             TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
             TokenType::Symbol { .. } => visitor.visit_symbol(self),
             TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
