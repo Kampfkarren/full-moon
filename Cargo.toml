@@ -1,6 +1,6 @@
 [package]
 name = "full_moon"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Kampfkarren"]
 description = "A lossless Lua 5.1 parser"
 license = "GPL-3.0-or-later"
