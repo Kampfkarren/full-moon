@@ -322,9 +322,19 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub stmts: Vec<Stmt<'a>>,
+    stmts: Vec<Stmt<'a>>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    pub last_stmt: Option<LastStmt<'a>>,
+    last_stmt: Option<LastStmt<'a>>,
+}
+
+impl<'a> Block<'a> {
+    pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
+        self.stmts.iter()
+    }
+
+    pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
+        self.last_stmt.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -448,7 +458,13 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, Token<'a>>>);
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub fields: Vec<TableConstructorField<'a>>,
+    fields: Vec<TableConstructorField<'a>>,
+}
+
+impl<'a> TableConstructor<'a> {
+    pub fn iter_fields(&self) -> impl Iterator<Item = &TableConstructorField<'a>> {
+        self.fields.iter()
+    }
 }
 
 struct ParseTableConstructor;
@@ -491,6 +507,16 @@ pub struct BinOpRhs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     bin_op: BinOp<'a>,
     rhs: Box<Expression<'a>>,
+}
+
+impl<'a> BinOpRhs<'a> {
+    pub fn bin_op(&self) -> &BinOp<'a> {
+        &self.bin_op
+    }
+
+    pub fn rhs(&self) -> &Expression<'a> {
+        self.rhs.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Visit)]
@@ -715,11 +741,33 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub index_variable: Cow<'a, Token<'a>>,
-    pub start: Expression<'a>,
-    pub end: Expression<'a>,
-    pub step: Option<Expression<'a>>,
-    pub block: Block<'a>,
+    index_variable: Cow<'a, Token<'a>>,
+    start: Expression<'a>,
+    end: Expression<'a>,
+    step: Option<Expression<'a>>,
+    block: Block<'a>,
+}
+
+impl<'a> NumericFor<'a> {
+    pub fn index_variable(&self) -> &Token<'a> {
+        self.index_variable.as_ref()
+    }
+
+    pub fn start(&self) -> &Expression<'a> {
+        &self.start
+    }
+
+    pub fn end(&self) -> &Expression<'a> {
+        &self.end
+    }
+
+    pub fn step(&self) -> Option<&Expression<'a>> {
+        self.step.as_ref()
+    }
+
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -777,9 +825,23 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub names: Vec<Cow<'a, Token<'a>>>,
-    pub expr_list: Vec<Expression<'a>>,
-    pub block: Block<'a>,
+    names: Vec<Cow<'a, Token<'a>>>,
+    expr_list: Vec<Expression<'a>>,
+    block: Block<'a>,
+}
+
+impl<'a> GenericFor<'a> {
+    pub fn iter_names(&self) -> impl Iterator<Item = &Cow<'a, Token<'a>>> {
+        self.names.iter()
+    }
+
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+        self.expr_list.iter()
+    }
+
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -818,11 +880,29 @@ define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub condition: Expression<'a>,
-    pub block: Block<'a>,
-    pub else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+    condition: Expression<'a>,
+    block: Block<'a>,
+    else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
-    pub r#else: Option<Block<'a>>,
+    r#else: Option<Block<'a>>,
+}
+
+impl<'a> If<'a> {
+    pub fn condition(&self) -> &Expression<'a> {
+        &self.condition
+    }
+
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
+
+    pub fn else_if(&self) -> Option<&Vec<(Expression<'a>, Block<'a>)>> {
+        self.else_if.as_ref()
+    }
+
+    pub fn else_block(&self) -> Option<&Block<'a>> {
+        self.r#else.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -886,8 +966,18 @@ define_parser!(ParseIf, If<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub condition: Expression<'a>,
-    pub block: Block<'a>,
+    condition: Expression<'a>,
+    block: Block<'a>,
+}
+
+impl<'a> While<'a> {
+    pub fn condition(&self) -> &Expression<'a> {
+        &self.condition
+    }
+
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -909,8 +999,18 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub block: Block<'a>,
-    pub until: Expression<'a>,
+    block: Block<'a>,
+    until: Expression<'a>,
+}
+
+impl<'a> Repeat<'a> {
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
+
+    pub fn until(&self) -> &Expression<'a> {
+        &self.until
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -931,8 +1031,18 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub name: Cow<'a, Token<'a>>,
-    pub args: FunctionArgs<'a>,
+    name: Cow<'a, Token<'a>>,
+    args: FunctionArgs<'a>,
+}
+
+impl<'a> MethodCall<'a> {
+    pub fn args(&self) -> &FunctionArgs<'a> {
+        &self.args
+    }
+
+    pub fn name(&self) -> &Token<'a> {
+        self.name.as_ref()
+    }
 }
 
 struct ParseMethodCall;
@@ -962,8 +1072,18 @@ define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub parameters: Vec<Parameter<'a>>,
-    pub block: Block<'a>,
+    parameters: Vec<Parameter<'a>>,
+    block: Block<'a>,
+}
+
+impl<'a> FunctionBody<'a> {
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
+
+    pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
+        self.parameters.iter()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1041,8 +1161,18 @@ define_parser!(ParseSuffix, Suffix<'a>, |_, state| parse_first_of!(state, {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub prefix: Prefix<'a>,
-    pub suffixes: Vec<Suffix<'a>>,
+    prefix: Prefix<'a>,
+    suffixes: Vec<Suffix<'a>>,
+}
+
+impl<'a> VarExpression<'a> {
+    pub fn prefix(&self) -> &Prefix<'a> {
+        &self.prefix
+    }
+
+    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+        self.suffixes.iter()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1077,8 +1207,18 @@ define_parser!(ParseVar, Var<'a>, |_, state| parse_first_of!(state, {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub var_list: Vec<Var<'a>>,
-    pub expr_list: Vec<Expression<'a>>,
+    var_list: Vec<Var<'a>>,
+    expr_list: Vec<Expression<'a>>,
+}
+
+impl<'a> Assignment<'a> {
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+        self.expr_list.iter()
+    }
+
+    pub fn iter_var_list(&self) -> impl Iterator<Item = &Var<'a>> {
+        self.var_list.iter()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1105,8 +1245,18 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub name: Cow<'a, Token<'a>>,
-    pub func_body: FunctionBody<'a>,
+    name: Cow<'a, Token<'a>>,
+    func_body: FunctionBody<'a>,
+}
+
+impl<'a> LocalFunction<'a> {
+    pub fn func_body(&self) -> &FunctionBody<'a> {
+        &self.func_body
+    }
+
+    pub fn name(&self) -> &Token<'a> {
+        self.name.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1123,8 +1273,18 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub name_list: Vec<Cow<'a, Token<'a>>>,
-    pub expr_list: Vec<Expression<'a>>,
+    name_list: Vec<Cow<'a, Token<'a>>>,
+    expr_list: Vec<Expression<'a>>,
+}
+
+impl<'a> LocalAssignment<'a> {
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+        self.expr_list.iter()
+    }
+
+    pub fn iter_name_list(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.name_list.iter().map(Cow::as_ref)
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1176,8 +1336,18 @@ define_parser!(ParseDo, Block<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub prefix: Prefix<'a>,
-    pub suffixes: Vec<Suffix<'a>>,
+    prefix: Prefix<'a>,
+    suffixes: Vec<Suffix<'a>>,
+}
+
+impl<'a> FunctionCall<'a> {
+    pub fn prefix(&self) -> &Prefix<'a> {
+        &self.prefix
+    }
+
+    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+        self.suffixes.iter()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1197,8 +1367,18 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub names: Vec<Cow<'a, Token<'a>>>,
-    pub colon_name: Option<Cow<'a, Token<'a>>>,
+    names: Vec<Cow<'a, Token<'a>>>,
+    colon_name: Option<Cow<'a, Token<'a>>>,
+}
+
+impl<'a> FunctionName<'a> {
+    pub fn method_name(&self) -> Option<&Token<'a>> {
+        self.colon_name.as_ref().map(Cow::as_ref)
+    }
+
+    pub fn iter_names(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.names.iter().map(Cow::as_ref)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1221,8 +1401,18 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub name: FunctionName<'a>,
-    pub body: FunctionBody<'a>,
+    name: FunctionName<'a>,
+    body: FunctionBody<'a>,
+}
+
+impl<'a> FunctionDeclaration<'a> {
+    pub fn body(&self) -> &FunctionBody<'a> {
+        &self.body
+    }
+
+    pub fn name(&self) -> &FunctionName<'a> {
+        &self.name
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1335,8 +1525,8 @@ enum InternalAstError<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ast<'a> {
-    pub nodes: Block<'a>,
-    pub tokens: Vec<Token<'a>>,
+    nodes: Block<'a>,
+    tokens: Vec<Token<'a>>,
 }
 
 impl<'a> Ast<'a> {
@@ -1399,6 +1589,18 @@ impl<'a> Ast<'a> {
                 }
             }
         }
+    }
+
+    pub fn nodes(&self) -> &Block<'a> {
+        &self.nodes
+    }
+
+    pub fn nodes_mut(&mut self) -> &mut Block<'a> {
+        &mut self.nodes
+    }
+
+    pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.tokens.iter()
     }
 }
 
