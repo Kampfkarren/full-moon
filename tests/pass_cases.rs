@@ -38,12 +38,12 @@ fn test_pass_cases() {
         if let Ok(ast_file) = fs::read_to_string(&ast_path) {
             let expected_ast =
                 serde_json::from_str(&ast_file).expect("couldn't deserialize ast file");
-            assert_eq!(ast.nodes, expected_ast);
+            assert_eq!(ast.nodes(), &expected_ast);
             assert_eq!(print(&ast), source);
         } else {
             let mut file = File::create(&ast_path).expect("couldn't write ast file");
             file.write_all(
-                serde_json::to_string_pretty(&ast.nodes)
+                serde_json::to_string_pretty(ast.nodes())
                     .expect("couldn't serialize")
                     .as_bytes(),
             )

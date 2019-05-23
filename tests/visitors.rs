@@ -8,7 +8,7 @@ fn test_visitor() {
 
     impl<'ast> Visitor<'ast> for FunctionCallVisitor {
         fn visit_function_call(&mut self, call: &ast::FunctionCall<'ast>) {
-            match &call.prefix {
+            match call.prefix() {
                 ast::Prefix::Name(token) => {
                     self.called.push(token.to_string());
                 }
