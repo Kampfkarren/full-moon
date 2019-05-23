@@ -206,21 +206,37 @@ impl<'a> fmt::Display for Token<'a> {
     }
 }
 
-impl_visit! {
-    impl for Token {
-        fn visit(this, visitor) {
-            match this.token_type {
-                TokenType::Eof => visitor.visit_eof(this),
-                TokenType::Identifier { .. } => visitor.visit_identifier(this),
-                TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(this),
-                TokenType::Number { .. } => visitor.visit_number(this),
-                TokenType::SingleLineComment { .. } => {
-                    visitor.visit_single_line_comment(this)
-                }
-                TokenType::StringLiteral { .. } => visitor.visit_string_literal(this),
-                TokenType::Symbol { .. } => visitor.visit_symbol(this),
-                TokenType::Whitespace { .. } => visitor.visit_whitespace(this),
+// Copy and paste code :(
+impl<'ast> Visit<'ast> for Token<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        match self.token_type {
+            TokenType::Eof => visitor.visit_eof(self),
+            TokenType::Identifier { .. } => visitor.visit_identifier(self),
+            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
+            TokenType::Number { .. } => visitor.visit_number(self),
+            TokenType::SingleLineComment { .. } => {
+                visitor.visit_single_line_comment(self)
             }
+            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
+            TokenType::Symbol { .. } => visitor.visit_symbol(self),
+            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for Token<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        match self.token_type {
+            TokenType::Eof => visitor.visit_eof(self),
+            TokenType::Identifier { .. } => visitor.visit_identifier(self),
+            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
+            TokenType::Number { .. } => visitor.visit_number(self),
+            TokenType::SingleLineComment { .. } => {
+                visitor.visit_single_line_comment(self)
+            }
+            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
+            TokenType::Symbol { .. } => visitor.visit_symbol(self),
+            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
         }
     }
 }

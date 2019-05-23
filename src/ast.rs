@@ -488,7 +488,14 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     Ok((state, TableConstructor { fields }))
 });
 
-pub type BinOpRhs<'a> = (BinOp<'a>, Box<Expression<'a>>);
+#[derive(Clone, Debug, PartialEq, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[visit(visit_as = "bin_op")]
+pub struct BinOpRhs<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    bin_op: BinOp<'a>,
+    rhs: Box<Expression<'a>>,
+}
 
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -513,10 +520,13 @@ define_parser!(
     ParseExpression,
     Expression<'a>,
     |_, state| if let Ok((state, value)) = keep_going!(ParseValue.parse(state)) {
-        let (state, binop) = if let Ok((state, binop)) = ParseBinOp.parse(state) {
+        let (state, binop) = if let Ok((state, bin_op)) = ParseBinOp.parse(state) {
             let (state, expression) =
                 expect!(state, ParseExpression.parse(state), "expected expression");
-            (state, Some((binop, Box::new(expression))))
+            (state, Some(BinOpRhs {
+                bin_op,
+                rhs: Box::new(expression),
+            }))
         } else {
             (state, None)
         };
@@ -1256,6 +1266,7 @@ macro_rules! make_op {
     ($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
         #[derive(Clone, Debug, PartialEq, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        #[visit(skip_visit_self)]
         pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(

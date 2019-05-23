@@ -1,7 +1,69 @@
+#![recursion_limit = "128"]
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
+
+// Not 100% accurate, but it is to full-moon's codebase
+fn snake_case(pascal_case: &str) -> String {
+    let mut chars = pascal_case.chars();
+    let mut result = chars.next().unwrap().to_ascii_lowercase().to_string();
+
+    for character in chars {
+        if character.is_ascii_uppercase() {
+            result.push('_');
+            result.push(character.to_ascii_lowercase());
+        } else {
+            result.push(character);
+        }
+    }
+
+    result
+}
+
+enum VisitSelfHint {
+    Skip,
+    VisitAs(String),
+}
+
+fn visit_self_hint(attrs: &[syn::Attribute]) -> Option<VisitSelfHint> {
+    for attr in attrs {
+        let meta = match attr.parse_meta() {
+            Ok(meta) => meta,
+            Err(_) => continue,
+        };
+
+        if meta.name() != "visit" {
+            continue;
+        }
+
+        if let syn::Meta::List(list) = meta {
+            for nested in list.nested.iter() {
+                match nested {
+                    syn::NestedMeta::Meta(syn::Meta::Word(word)) => {
+                        if word == "skip_visit_self" {
+                            return Some(VisitSelfHint::Skip);
+                        }
+                    }
+
+                    syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
+                        if name_value.ident == "visit_as" {
+                            match &name_value.lit {
+                                syn::Lit::Str(lit_str) => return Some(VisitSelfHint::VisitAs(lit_str.value())),
+                                _ => panic!("expected literal string for visit_as")
+                            }
+                        }
+                    }
+
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    None
+}
 
 #[proc_macro_derive(Visit, attributes(visit))]
 pub fn derive_visit(input: TokenStream) -> TokenStream {
@@ -16,46 +78,19 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
                 let variant_ident = &variant.ident;
                 match &variant.fields {
                     syn::Fields::Named(named) => {
-                        let mut fields = Vec::new();
-                        let mut fields_to_visit = Vec::new();
-
-                        for field in &named.named {
-                            let mut skip = false;
-
-                            for attr in &field.attrs {
-                                if let Ok(syn::Meta::List(list)) = attr.parse_meta() {
-                                    if list.ident == "visit" {
-                                        if let syn::NestedMeta::Meta(syn::Meta::Word(word)) =
-                                            list.nested
-                                                .first()
-                                                .expect("visit attribute cannot be empty")
-                                                .value()
-                                        {
-                                            if word == "skip" {
-                                                skip = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            let ident = field.ident.as_ref().unwrap();
-
-                            if skip {
-                                fields.push(quote! { #ident: _ });
-                            } else {
-                                fields.push(quote! { #ident });
-                                fields_to_visit.push(ident);
-                            }
-                        }
+                        let fields: Vec<_> = named
+                            .named
+                            .iter()
+                            .map(|field| field.ident.as_ref().unwrap())
+                            .collect();
+                        let fields = &fields;
 
                         cases.push(quote! {
                             #input_ident::#variant_ident {
                                 #(#fields,)*
                             } => {
                                 #(
-                                    #fields_to_visit.visit(visitor);
+                                    visit!(#fields, visitor);
                                 )*
                             }
                         });
@@ -77,7 +112,7 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
                                 #(#fields,)*
                             ) => {
                                 #(
-                                    #fields.visit(visitor);
+                                    visit!(#fields, visitor);
                                 )*
                             }
                         });
@@ -96,7 +131,14 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
         }
 
         syn::Data::Struct(strukt) => {
-            quote! {}
+            let fields = strukt
+                .fields
+                .iter()
+                .map(|field| field.ident.as_ref().unwrap());
+
+            quote! {
+                #(visit!(self.#fields, visitor);)*
+            }
         }
 
         other => panic!("don't know how to derive Visit from {:?}", other),
@@ -114,19 +156,63 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
+    let visit_self = match visit_self_hint(&input.attrs) {
+        Some(VisitSelfHint::Skip) => quote! {},
+        Some(VisitSelfHint::VisitAs(visit_as)) => {
+            let visit_as = syn::Ident::new(&format!("visit_{}", visit_as), input_ident.span());
+            quote! {
+                visitor.#visit_as(self);
+            }
+        }
+        None => {
+            // name of self in snake_case
+            let ssself = syn::Ident::new(
+                &format!("visit_{}", snake_case(&input_ident.to_string())),
+                input_ident.span(),
+            );
+            quote! {
+                visitor.#ssself(self);
+            }
+        }
+    };
+
     let source = quote! {
         impl #impl_generics crate::visitors::Visit<#lifetime> for #input_ident #ty_generics #where_clause {
             fn visit<V: crate::visitors::Visitor<#lifetime>>(&self, visitor: &mut V) {
+                macro_rules! visit {
+                    ($visit_what: expr, $visitor: expr) => {
+                        $visit_what.visit($visitor);
+                    }
+                }
+
+                #visit_self
                 #expanded
             }
         }
 
         impl #impl_generics crate::visitors::VisitMut<#lifetime> for #input_ident #ty_generics #where_clause {
-            fn visit<V: crate::visitors::VisitorMut<#lifetime>>(&mut self, visitor: &mut V) {
+            fn visit_mut<V: crate::visitors::VisitorMut<#lifetime>>(&mut self, visitor: &mut V) {
+                macro_rules! visit {
+                    ($visit_what: expr, $visitor: expr) => {
+                        $visit_what.visit_mut($visitor);
+                    }
+                }
+
+                #visit_self
                 #expanded
             }
         }
     };
 
     TokenStream::from(source)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_snake_case() {
+        assert_eq!(snake_case("LocalAssignment"), "local_assignment");
+    }
 }
