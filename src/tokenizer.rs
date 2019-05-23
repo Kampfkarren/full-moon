@@ -467,7 +467,9 @@ impl fmt::Display for TokenizerError {
             match self.error {
                 TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
                 TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
-                TokenizerErrorType::UnexpectedToken(character) => format!("unexpected character {}", character),
+                TokenizerErrorType::UnexpectedToken(character) => {
+                    format!("unexpected character {}", character)
+                }
             },
             self.position.line,
             self.position.character,

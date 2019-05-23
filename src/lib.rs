@@ -16,8 +16,12 @@ pub enum Error<'a> {
 impl<'a> fmt::Display for Error<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::AstError(error) => write!(formatter, "error occurred while creating ast: {}", error),
-            Error::TokenizerError(error) => write!(formatter, "error occurred while tokenizing: {}", error),
+            Error::AstError(error) => {
+                write!(formatter, "error occurred while creating ast: {}", error)
+            }
+            Error::TokenizerError(error) => {
+                write!(formatter, "error occurred while tokenizing: {}", error)
+            }
         }
     }
 }
