@@ -1,7 +1,10 @@
 [package]
 name = "full_moon_derive"
 version = "0.1.0"
-authors = ["Kampfkarren <boynedmaster@gmail.com>"]
+authors = ["Kampfkarren <kampfkarren@gmail.com>"]
+description = "Internally used for the full_moon project. Do not use."
+license = "GPL-3.0-or-later"
+repository = "https://github.com/Kampfkarren/full-moon"
 edition = "2018"
 
 [lib]
