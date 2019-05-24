@@ -6,7 +6,7 @@ use std::borrow::Cow;
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct ParserState<'a> {
+struct ParserState<'a> {
     index: usize,
     len: usize,
     tokens: *const Token<'a>,
@@ -319,6 +319,7 @@ define_parser!(
     }
 );
 
+/// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
@@ -329,10 +330,12 @@ pub struct Block<'a> {
 }
 
 impl<'a> Block<'a> {
+    /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter()
     }
 
+    /// The last statement of the block if one exists, such as `return foo`
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
         self.last_stmt.as_ref()
     }
@@ -373,10 +376,13 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state| {
     }
 });
 
+/// The last statement of a [`Block`](struct.Block.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
+    /// A `break` statement
     Break,
+    /// A `return` statement, expression is what is being returned
     #[cfg_attr(feature = "serde", serde(borrow))]
     Return(Vec<Expression<'a>>),
 }
@@ -400,21 +406,29 @@ define_parser!(
     }
 );
 
+/// Fields of a [`TableConstructor`](struct.TableConstructor.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
+    /// A key in the format of `[expression] = value`
     ExpressionKey {
+        /// The `expression` part of `[expression] = value`
         #[cfg_attr(feature = "serde", serde(borrow))]
         key: Box<Expression<'a>>,
+        /// The `value` part of `[expression] = value`
         value: Box<Expression<'a>>,
     },
 
+    /// A key in the format of `name = value`
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The `name` part of `name = value`
         key: Box<Cow<'a, Token<'a>>>,
+        /// The `value` part of `name = value`
         value: Box<Expression<'a>>,
     },
 
+    /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
     #[cfg_attr(feature = "serde", serde(borrow))]
     NoKey(Box<Expression<'a>>),
 }
@@ -453,8 +467,11 @@ define_parser!(ParseField, Field<'a>, |_, state| {
     Err(InternalAstError::NoMatch)
 });
 
+/// A [`Field`](enum.Field.html) used when creating a table
+/// Second parameter is the separator used (`,` or `;`) if one exists
 pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, Token<'a>>>);
 
+/// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
@@ -463,6 +480,7 @@ pub struct TableConstructor<'a> {
 }
 
 impl<'a> TableConstructor<'a> {
+    /// An iterator over the [fields](type.TableConstructorField.html) used to create the table
     pub fn iter_fields(&self) -> impl Iterator<Item = &TableConstructorField<'a>> {
         self.fields.iter()
     }
@@ -501,6 +519,7 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     Ok((state, TableConstructor { fields }))
 });
 
+/// A binary operation, such as (`+ 3`)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[visit(visit_as = "bin_op")]
@@ -511,28 +530,37 @@ pub struct BinOpRhs<'a> {
 }
 
 impl<'a> BinOpRhs<'a> {
+    /// The binary operation used, the `+` part of `+ 3`
     pub fn bin_op(&self) -> &BinOp<'a> {
         &self.bin_op
     }
 
+    /// The right hand side of the binary operation, the `3` part of `+ 3`
     pub fn rhs(&self) -> &Expression<'a> {
         self.rhs.as_ref()
     }
 }
 
+/// An expression, mostly useful for getting values
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
+    /// A unary operation, such as `#list`
     UnaryOperator {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The unary operation, the `#` part of `#list`
         unop: UnOp<'a>,
+        /// The expression the operation is being done on, the `list` part of `#list`
         expression: Box<Expression<'a>>,
     },
 
+    /// A value, such as "strings"
     Value {
+        /// The value itself
         #[cfg_attr(feature = "serde", serde(borrow))]
         value: Value<'a>,
+        /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
     },
 }
@@ -592,17 +620,26 @@ define_parser!(
     }
 );
 
+/// Values that cannot be used standalone, but as part of things such as [statements](enum.Stmt.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// An anonymous function, such as `function() end)`
     Function(FunctionBody<'a>),
+    /// A call of a function, such as `call()`
     FunctionCall(Box<FunctionCall<'a>>),
+    /// A table constructor, such as `{ 1, 2, 3 }`
     TableConstructor(Box<TableConstructor<'a>>),
+    /// A number token, such as `3.3`
     Number(Cow<'a, Token<'a>>),
+    /// An expression between parentheses, such as `(3 + 2)`
     ParseExpression(Box<Expression<'a>>),
+    /// A string token, such as `"hello"`
     String(Cow<'a, Token<'a>>),
+    /// A symbol, such as `true`
     Symbol(Cow<'a, Token<'a>>),
+    /// A more complex value, such as `call().x`
     Var(Box<Var<'a>>),
 }
 
@@ -626,20 +663,32 @@ define_parser!(
     })
 );
 
+/// A statement that stands alone
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// An assignment, such as `x = 1`
     Assignment(Assignment<'a>),
+    /// A do block, `do end`
     Do(Block<'a>),
+    /// A function call on its own, such as `call()`
     FunctionCall(Box<FunctionCall<'a>>),
+    /// A function declaration, such as `function x() end`
     FunctionDeclaration(Box<FunctionDeclaration<'a>>),
+    /// A generic for loop, such as `for index, value in pairs(list) do end`
     GenericFor(Box<GenericFor<'a>>),
+    /// An if statement
     If(Box<If<'a>>),
+    /// A local assignment, such as `local x = 1`
     LocalAssignment(LocalAssignment<'a>),
+    /// A local function declaration, such as `local function x() end`
     LocalFunction(LocalFunction<'a>),
+    /// A numeric for loop, such as `for index = 1, 10 do end`
     NumericFor(Box<NumericFor<'a>>),
+    /// A repeat loop
     Repeat(Box<Repeat<'a>>),
+    /// A while loop
     While(Box<While<'a>>),
 }
 
@@ -659,11 +708,15 @@ define_parser!(ParseStmt, Stmt<'a>, |_, state| parse_first_of!(state, {
     ParseLocalAssignment => Stmt::LocalAssignment,
 }));
 
+/// A node used before another in cases such as function calling
+/// The `("foo")` part of `("foo"):upper()`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// A complicated expression, such as `("foo")`
     Expression(Expression<'a>),
+    /// Just a name, such as `foo`
     Name(Cow<'a, Token<'a>>),
 }
 
@@ -674,11 +727,15 @@ define_parser!(ParsePrefix, Prefix<'a>, |_, state| parse_first_of!(state, {
     ParseIdentifier => Prefix::Name,
 }));
 
+/// The indexing of something, such as `x.y` or `x["y"]`
+/// Values of variants are the keys, such as `"y"`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Index<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// Indexing in the form of `x["y"]`
     Brackets(Expression<'a>),
+    /// Indexing in the form of `x.y`
     Dot(Cow<'a, Token<'a>>),
 }
 
@@ -700,12 +757,16 @@ define_parser!(ParseIndex, Index<'a>, |_, state| if let Ok((state, _)) =
     Err(InternalAstError::NoMatch)
 });
 
+/// Arguments used for a function
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// Used when a function is called in the form of `call(1, 2, 3)`
     Parentheses(Vec<Expression<'a>>),
+    /// Used when a function is called in the form of `call "foobar"`
     String(Cow<'a, Token<'a>>),
+    /// Used when a function is called in the form of `call { 1, 2, 3 }`
     TableConstructor(Box<TableConstructor<'a>>),
 }
 
@@ -738,6 +799,7 @@ define_parser!(
     }
 );
 
+/// A numeric for loop, such as `for index = 1, 10 do end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
@@ -750,22 +812,27 @@ pub struct NumericFor<'a> {
 }
 
 impl<'a> NumericFor<'a> {
+    /// The index identity, `index` in the initial example
     pub fn index_variable(&self) -> &Token<'a> {
         self.index_variable.as_ref()
     }
 
+    /// The starting point, `1` in the initial example
     pub fn start(&self) -> &Expression<'a> {
         &self.start
     }
 
+    /// The ending point, `10` in the initial example
     pub fn end(&self) -> &Expression<'a> {
         &self.end
     }
 
+    /// The step if one exists, `2` in `for index = 0, 10, 2 do end`
     pub fn step(&self) -> Option<&Expression<'a>> {
         self.step.as_ref()
     }
 
+    /// The code inside the for loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
@@ -822,6 +889,7 @@ define_parser!(ParseNumericFor, NumericFor<'a>, |_, state| {
     ))
 });
 
+/// A generic for loop, such as `for index, value in pairs(list) do end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
@@ -832,14 +900,19 @@ pub struct GenericFor<'a> {
 }
 
 impl<'a> GenericFor<'a> {
+    /// An iterator over the names used in a for loop
+    /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
     pub fn iter_names(&self) -> impl Iterator<Item = &Cow<'a, Token<'a>>> {
         self.names.iter()
     }
 
+    /// An iterator over the expression used in a for loop
+    /// In `for index, value in pairs(list) do`, iterates over `pairs(list)`
     pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
         self.expr_list.iter()
     }
 
+    /// The code inside the for loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
@@ -877,6 +950,7 @@ define_parser!(ParseGenericFor, GenericFor<'a>, |_, state| {
     ))
 });
 
+/// An if statement
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
@@ -889,18 +963,24 @@ pub struct If<'a> {
 }
 
 impl<'a> If<'a> {
+    /// The condition of the if statement, `condition` in `if condition then`
     pub fn condition(&self) -> &Expression<'a> {
         &self.condition
     }
 
+    /// The block inside the initial if statement
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
 
+    /// If there are `elseif` conditions, returns a vector of them
+    /// Expression is the condition, block is the code if the condition is true
+    // TODO: Make this return an iterator, and remove Option part entirely?
     pub fn else_if(&self) -> Option<&Vec<(Expression<'a>, Block<'a>)>> {
         self.else_if.as_ref()
     }
 
+    /// The code inside an `else` block if one exists
     pub fn else_block(&self) -> Option<&Block<'a>> {
         self.r#else.as_ref()
     }
@@ -963,6 +1043,7 @@ define_parser!(ParseIf, If<'a>, |_, state| {
     ))
 });
 
+/// A while loop
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
@@ -972,10 +1053,12 @@ pub struct While<'a> {
 }
 
 impl<'a> While<'a> {
+    /// The `condition` part of `while condition do`
     pub fn condition(&self) -> &Expression<'a> {
         &self.condition
     }
 
+    /// The code inside the while loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
@@ -996,6 +1079,7 @@ define_parser!(ParseWhile, While<'a>, |_, state| {
     Ok((state, While { condition, block }))
 });
 
+/// A repeat loop
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
@@ -1005,10 +1089,12 @@ pub struct Repeat<'a> {
 }
 
 impl<'a> Repeat<'a> {
+    /// The code inside the `repeat` block
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
 
+    /// The condition for the `until` part
     pub fn until(&self) -> &Expression<'a> {
         &self.until
     }
@@ -1028,6 +1114,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
     Ok((state, Repeat { until, block }))
 });
 
+/// A method call, such as `x:y()`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
@@ -1037,10 +1124,12 @@ pub struct MethodCall<'a> {
 }
 
 impl<'a> MethodCall<'a> {
+    /// The arguments of a method call, the `x, y, z` part of `method:call(x, y, z)`
     pub fn args(&self) -> &FunctionArgs<'a> {
         &self.args
     }
 
+    /// The method being called, the `call` part of `method:call()`
     pub fn name(&self) -> &Token<'a> {
         self.name.as_ref()
     }
@@ -1054,11 +1143,14 @@ define_parser!(ParseMethodCall, MethodCall<'a>, |_, state| {
     Ok((state, MethodCall { name, args }))
 });
 
+/// Something being called
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// A function being called directly, such as `x(1)`
     AnonymousCall(FunctionArgs<'a>),
+    /// A method call, such as `x:y()`
     MethodCall(MethodCall<'a>),
 }
 
@@ -1069,6 +1161,7 @@ define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
     ParseMethodCall => Call::MethodCall,
 }));
 
+/// A function body, everything except `function x` in `function x(a, b, c) call() end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
@@ -1078,10 +1171,12 @@ pub struct FunctionBody<'a> {
 }
 
 impl<'a> FunctionBody<'a> {
+    /// The code of a function body
     pub fn block(&self) -> &Block<'a> {
         &self.block
     }
 
+    /// An iterator over the parameters for the function declaration
     pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
         self.parameters.iter()
     }
@@ -1135,19 +1230,26 @@ define_parser!(ParseFunction, FunctionBody<'a>, |_, state| {
     ParseFunctionBody.parse(state)
 });
 
+/// A parameter in a function declaration
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// The `...` vararg syntax, such as `function x(...)`
     Ellipse(Cow<'a, Token<'a>>),
+    /// A name parameter, such as `function x(a, b, c)`
     Name(Cow<'a, Token<'a>>),
 }
 
+/// A suffix in certain cases, such as `:y()` in `x:y()`
+/// Can be stacked on top of each other, such as in `x()()()`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// A call, including method calls and direct calls
     Call(Call<'a>),
+    /// An index, such as `x.y`
     Index(Index<'a>),
 }
 
@@ -1158,6 +1260,7 @@ define_parser!(ParseSuffix, Suffix<'a>, |_, state| parse_first_of!(state, {
     ParseIndex => Suffix::Index,
 }));
 
+/// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
@@ -1167,10 +1270,12 @@ pub struct VarExpression<'a> {
 }
 
 impl<'a> VarExpression<'a> {
+    /// The prefix of the expression, such as a name
     pub fn prefix(&self) -> &Prefix<'a> {
         &self.prefix
     }
 
+    /// An iter over the suffixes, such as indexing or calling
     pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
@@ -1189,11 +1294,14 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
     }
 });
 
+/// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// An expression, such as `x.y.z` or `x()`
     Expression(VarExpression<'a>),
+    /// A literal identifier, such as `x`
     Name(Cow<'a, Token<'a>>),
 }
 
@@ -1204,6 +1312,7 @@ define_parser!(ParseVar, Var<'a>, |_, state| parse_first_of!(state, {
     ParseIdentifier => Var::Name,
 }));
 
+/// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
@@ -1213,10 +1322,12 @@ pub struct Assignment<'a> {
 }
 
 impl<'a> Assignment<'a> {
+    /// An iterator over the expressions being assigned, the `1, 2` part of `x, y["a"] = 1, 2`
     pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
         self.expr_list.iter()
     }
 
+    /// An iterator over the variables being assigned to, the `x, y["a"]` part of `x, y["a"] = 1, 2`
     pub fn iter_var_list(&self) -> impl Iterator<Item = &Var<'a>> {
         self.var_list.iter()
     }
@@ -1242,6 +1353,7 @@ define_parser!(ParseAssignment, Assignment<'a>, |_, state| {
     ))
 });
 
+/// A declaration of a local function, such as `local function x() end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
@@ -1251,10 +1363,12 @@ pub struct LocalFunction<'a> {
 }
 
 impl<'a> LocalFunction<'a> {
+    /// The function body, everything except `local function x` in `local function x(a, b, c) call() end`
     pub fn func_body(&self) -> &FunctionBody<'a> {
         &self.func_body
     }
 
+    /// The name of the function, the `x` part of `local function x() end`
     pub fn name(&self) -> &Token<'a> {
         self.name.as_ref()
     }
@@ -1270,6 +1384,7 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     Ok((state, LocalFunction { name, func_body }))
 });
 
+/// An assignment to a local variable, such as `local x = 1`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
@@ -1279,10 +1394,12 @@ pub struct LocalAssignment<'a> {
 }
 
 impl<'a> LocalAssignment<'a> {
+    /// An iterator over the expressions being assigned, the `1, 2` part of `local x, y = 1, 2`
     pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
         self.expr_list.iter()
     }
 
+    /// An iterator over the names being assigned to, the `x, y` part of `local x, y = 1, 2`
     pub fn iter_name_list(&self) -> impl Iterator<Item = &Token<'a>> {
         self.name_list.iter().map(Cow::as_ref)
     }
@@ -1333,6 +1450,7 @@ define_parser!(ParseDo, Block<'a>, |_, state| {
     Ok((state, block))
 });
 
+/// A function being called, such as `call()`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionCall<'a> {
@@ -1342,10 +1460,12 @@ pub struct FunctionCall<'a> {
 }
 
 impl<'a> FunctionCall<'a> {
+    /// The prefix of a function call, the `call` part of `call()`
     pub fn prefix(&self) -> &Prefix<'a> {
         &self.prefix
     }
 
+    /// The suffix of a function call, the `()` part of `call()`
     pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
@@ -1364,6 +1484,7 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_, state| {
     }
 });
 
+/// A function name when being [declared](struct.FunctionDeclaration.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
@@ -1373,10 +1494,12 @@ pub struct FunctionName<'a> {
 }
 
 impl<'a> FunctionName<'a> {
+    /// A method name if one exists, the `y` part of `function x:y() end`
     pub fn method_name(&self) -> Option<&Token<'a>> {
         self.colon_name.as_ref().map(Cow::as_ref)
     }
 
+    /// An iterator over the names used when defining the function, the `x.y.z` part of `function x.y.z() end`
     pub fn iter_names(&self) -> impl Iterator<Item = &Token<'a>> {
         self.names.iter().map(Cow::as_ref)
     }
@@ -1398,6 +1521,8 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_, state| {
     Ok((state, FunctionName { names, colon_name }))
 });
 
+/// A normal function declaration, supports simple declarations like `function x() end`
+/// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
@@ -1407,10 +1532,12 @@ pub struct FunctionDeclaration<'a> {
 }
 
 impl<'a> FunctionDeclaration<'a> {
+    /// The body of the function
     pub fn body(&self) -> &FunctionBody<'a> {
         &self.body
     }
 
+    /// The name of the function
     pub fn name(&self) -> &FunctionName<'a> {
         &self.name
     }
@@ -1452,13 +1579,15 @@ define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| 
 });
 
 macro_rules! make_op {
-    ($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
+    ($enum:ident, $parser:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
         #[derive(Clone, Debug, PartialEq, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[visit(skip_visit_self)]
+        $(#[$outer])*
         pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
+                #[allow(missing_docs)]
                 $operator(Cow<'a, Token<'a>>),
             )+
         }
@@ -1477,37 +1606,49 @@ macro_rules! make_op {
     };
 }
 
-make_op!(BinOp, ParseBinOp, {
-    And,
-    Caret,
-    GreaterThan,
-    GreaterThanEqual,
-    LessThan,
-    LessThanEqual,
-    Minus,
-    Or,
-    Percent,
-    Plus,
-    Slash,
-    Star,
-    TildeEqual,
-    TwoDots,
-    TwoEqual,
-});
+make_op!(BinOp, ParseBinOp,
+    #[doc = "Operators that require two operands, such as X + Y or X - Y"]
+    {
+        And,
+        Caret,
+        GreaterThan,
+        GreaterThanEqual,
+        LessThan,
+        LessThanEqual,
+        Minus,
+        Or,
+        Percent,
+        Plus,
+        Slash,
+        Star,
+        TildeEqual,
+        TwoDots,
+        TwoEqual,
+    }
+);
 
-make_op!(UnOp, ParseUnOp, {
-    Minus,
-    Not,
-    Hash,
-});
+make_op!(UnOp, ParseUnOp,
+    #[doc = "Operators that require just one operand, such as #X"]
+    {
+        Minus,
+        Not,
+        Hash,
+    }
+);
 
+/// An error that occurs when creating the ast *after* tokenizing
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum AstError<'a> {
+    /// There were no tokens passed, which shouldn't happen normally
     Empty,
+    /// Tokens passed had no end of file token, which shouldn't happen normally
     NoEof,
+    /// An unexpected token, the most likely scenario when getting an AstError
     UnexpectedToken {
+        /// The token that caused the error
         token: Token<'a>,
+        /// Any additional information that could be provided for debugging
         additional: Option<&'a str>,
     },
 }
@@ -1547,6 +1688,7 @@ enum InternalAstError<'a> {
     },
 }
 
+/// An abstract syntax tree, contains all the nodes used in the code
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ast<'a> {
     nodes: Block<'a>,
@@ -1554,6 +1696,16 @@ pub struct Ast<'a> {
 }
 
 impl<'a> Ast<'a> {
+    /// Create an Ast from the passed tokens. You probably want [`parse`](../fn.parse.html)
+    ///
+    /// # Errors
+    ///
+    /// If the tokens passed are impossible to get through normal tokenization,
+    /// an error of Empty (if the vector is empty) or NoEof (if there is no eof token)
+    /// will be returned.
+    ///
+    /// More likely, if the tokens pass are invalid Lua 5.1 code, an
+    /// UnexpectedToken error will be returned.
     pub fn from_tokens(tokens: Vec<Token<'a>>) -> Result<Ast<'a>, AstError<'a>> {
         if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
             Err(AstError::NoEof)
@@ -1615,14 +1767,24 @@ impl<'a> Ast<'a> {
         }
     }
 
+    /// The entire code of the function
+    ///
+    /// ```rust
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().iter_stmts().count(), 2);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn nodes(&self) -> &Block<'a> {
         &self.nodes
     }
 
+    /// The entire code of the function, but mutable
     pub fn nodes_mut(&mut self) -> &mut Block<'a> {
         &mut self.nodes
     }
 
+    /// An iterator over the tokens used to create the Ast
     pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
         self.tokens.iter()
     }

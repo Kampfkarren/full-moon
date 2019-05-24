@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added std::fmt::Display and std::error::Error implementations for Error, AstError, and TokenizerError
+- Documented all public APIs
 
 ### Changed
 - Properties are no longer `pub` and now have public accessor methods

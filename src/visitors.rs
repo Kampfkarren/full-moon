@@ -8,41 +8,74 @@ macro_rules! create_visitor {
     }, token: {
         $($visit_token:ident,)+
     }) => {
+        /// A trait that implements functions to listen for specific nodes/tokens.
+        /// Unlike [`VisitorMut`](trait.VisitorMut.html), nodes/tokens passed are immutable.
+        ///
+        /// ```rust
+        /// # use full_moon::ast;
+        /// # use full_moon::visitors::*;
+        /// # fn main() -> Result<(), Box<std::error::Error>> {
+        /// // A visitor that logs every local assignment made
+        /// #[derive(Default)]
+        /// struct LocalVariableVisitor {
+        ///     names: Vec<String>,
+        /// }
+        ///
+        /// impl<'ast> Visitor<'ast> for LocalVariableVisitor {
+        ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment<'ast>) {
+        ///         self.names.extend(&mut local_assignment.iter_name_list().map(|name| name.to_string()));
+        ///     }
+        /// }
+        ///
+        /// let mut visitor = LocalVariableVisitor::default();
+        /// visitor.visit_ast(&full_moon::parse("local x = 1; local y, z = 2, 3")?);
+        /// assert_eq!(visitor.names, vec!["x", "y", "z"]);
+        /// # Ok(())
+        /// # }
+        /// ```
         pub trait Visitor<'ast> {
+            /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
             fn visit_ast(&mut self, ast: &ast::Ast<'ast>) where Self: Sized {
                 ast.nodes().visit(self);
             }
 
             $(
+                #[allow(missing_docs)]
                 fn $visit_name(&mut self, _node: &ast::$ast_type<'ast>) { }
             )+
 
             $(
+                #[allow(missing_docs)]
                 fn $visit_token(&mut self, _token: &Token<'ast>) { }
             )+
         }
 
+        /// A trait that implements functions to listen for specific nodes/tokens.
+        /// Unlike [`Visitor`](trait.Visitor.html), nodes/tokens passed are mutable.
         pub trait VisitorMut<'ast> {
+            /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
             fn visit_ast(&mut self, ast: &mut ast::Ast<'ast>) where Self: Sized {
                 ast.nodes_mut().visit_mut(self);
             }
 
             $(
+                #[allow(missing_docs)]
                 fn $visit_name(&mut self, _node: &mut ast::$ast_type<'ast>) { }
             )+
 
             $(
+                #[allow(missing_docs)]
                 fn $visit_token(&mut self, _token: &mut Token<'ast>) { }
             )+
         }
     };
 }
 
-pub trait Visit<'ast> {
+pub(crate) trait Visit<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V);
 }
 
-pub trait VisitMut<'ast> {
+pub(crate) trait VisitMut<'ast> {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V);
 }
 
