@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Properties are no longer `pub` and now have public accessor methods
+- License has been changed from GPL to LGPL
 
 ## [0.2.0] - 2019-05-23
 ### Added
