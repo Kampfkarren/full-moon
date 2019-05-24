@@ -105,9 +105,9 @@ symbols!(
     TildeEqual => "~=",
 );
 
+/// The possible errors that can happen while tokenizing.
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// The possible errors that can happen while tokenizing.
 pub enum TokenizerErrorType {
     /// An unclosed multi-line comment was found
     UnclosedComment,

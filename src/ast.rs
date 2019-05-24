@@ -1143,9 +1143,9 @@ define_parser!(ParseMethodCall, MethodCall<'a>, |_, state| {
     Ok((state, MethodCall { name, args }))
 });
 
+/// Something being called
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// Something being called
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A function being called directly, such as `x(1)`
@@ -1161,9 +1161,9 @@ define_parser!(ParseCall, Call<'a>, |_, state| parse_first_of!(state, {
     ParseMethodCall => Call::MethodCall,
 }));
 
+/// A function body, everything except `function x` in `function x(a, b, c) call() end`
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// A function body, everything except `function x` in `function x(a, b, c) call() end`
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     parameters: Vec<Parameter<'a>>,
@@ -1230,9 +1230,9 @@ define_parser!(ParseFunction, FunctionBody<'a>, |_, state| {
     ParseFunctionBody.parse(state)
 });
 
+/// A parameter in a function declaration
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// A parameter in a function declaration
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// The `...` vararg syntax, such as `function x(...)`
@@ -1241,10 +1241,10 @@ pub enum Parameter<'a> {
     Name(Cow<'a, Token<'a>>),
 }
 
-#[derive(Clone, Debug, PartialEq, Visit)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// A suffix in certain cases, such as `:y()` in `x:y()`
 /// Can be stacked on top of each other, such as in `x()()()`
+#[derive(Clone, Debug, PartialEq, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A call, including method calls and direct calls
