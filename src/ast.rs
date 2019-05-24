@@ -1768,6 +1768,13 @@ impl<'a> Ast<'a> {
     }
 
     /// The entire code of the function
+    ///
+    /// ```rust
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().iter_stmts().count(), 2);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn nodes(&self) -> &Block<'a> {
         &self.nodes
     }
