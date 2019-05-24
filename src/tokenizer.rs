@@ -532,6 +532,13 @@ impl std::error::Error for TokenizerError {}
 ///
 /// If the code passed is malformed from normal Lua expectations,
 /// a [`TokenizerError`](struct.TokenizerError.html) will be returned.
+///
+/// ```rust
+/// # use full_moon::tokenizer::tokens;
+/// assert!(tokens("local x = 1").is_ok());
+/// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
+/// assert!(tokens("--[[ Unclosed comment!").is_err());
+/// ```
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     let mut tokens = Vec::new();
     let mut position = Position {
