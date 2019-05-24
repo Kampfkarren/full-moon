@@ -11,9 +11,11 @@ macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
         #[derive(Clone, Copy, Debug, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
         pub enum Symbol {
             $(
                 #[cfg_attr(feature = "serde", serde(rename = $string))]
+                #[allow(missing_docs)]
                 $ident,
             )+
         }
@@ -105,58 +107,87 @@ symbols!(
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+/// The possible errors that can happen while tokenizing.
 pub enum TokenizerErrorType {
+    /// An unclosed multi-line comment was found
     UnclosedComment,
+    /// An unclosed string was found
     UnclosedString,
+    /// An unexpected token was found
     UnexpectedToken(char),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
+/// The type of tokens in parsed code
 pub enum TokenType<'a> {
+    /// End of file, should always be the very last token
     Eof,
 
+    /// An identifier, such as `foo`
     Identifier {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The identifier itself
         identifier: Cow<'a, str>,
     },
 
+    /// A multi line comment in the format of --[[ comment ]]
     MultiLineComment {
+        /// Number of equals signs, if any, for the multi line comment
+        /// For example, `--[=[` would have a `blocks` value of `1`
         blocks: usize,
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment itself, ignoring opening and closing tags
         comment: Cow<'a, str>,
     },
 
+    /// A literal number, such as `3.3`
     Number {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The text representing the number, includes details such as `0x`
         text: Cow<'a, str>,
     },
 
+    /// A single line comment, such as `-- comment`
     SingleLineComment {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment, ignoring initial `--`
         comment: Cow<'a, str>,
     },
 
+    /// A literal string, such as "Hello, world"
     StringLiteral {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The literal itself, ignoring quotation marks
         literal: Cow<'a, str>,
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+        /// Number of equals signs used for a multi line string, if it is one
+        /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
+        /// [[string]] would have a `multi_line` value of Some(0)
+        /// A string such as `"string"` would have a `multi_line` value of None
         multi_line: Option<usize>,
+        /// The type of quotation mark used to make the string
         quote_type: StringLiteralQuoteType,
     },
 
+    /// A [`Symbol`](enum.Symbol.html), such as `local` or `+`
     Symbol {
+        /// The symbol itself
         symbol: Symbol,
     },
 
+    /// Whitespace, such as tabs or new lines
     Whitespace {
         #[cfg_attr(feature = "serde", serde(borrow))]
+        /// Characters consisting of the whitespace
         characters: Cow<'a, str>,
     },
 }
 
 impl<'a> TokenType<'a> {
+    /// Returns whether a token can be practically ignored in most cases
+    /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn ignore(&self) -> bool {
         match self {
             TokenType::SingleLineComment { .. }
@@ -169,10 +200,14 @@ impl<'a> TokenType<'a> {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+/// A token such consisting of its [Position](struct.Position.html) and a [TokenType](enum.TokenType.html)
 pub struct Token<'a> {
+    /// The position a token begins at
     pub start_position: Position,
+    /// The position a token ends at
     pub end_position: Position,
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// The type of token as well as the data needed to represent it
     pub token_type: TokenType<'a>,
 }
 
@@ -239,23 +274,31 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+/// Used to represent exact positions of tokens in code
 pub struct Position {
+    /// How many bytes, ignoring lines, it would take to find this position
     pub bytes: usize,
+    /// Index of the character on the line for this position
     pub character: usize,
+    /// Line the position lies on
     pub line: usize,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TokenAdvancement<'a> {
+struct TokenAdvancement<'a> {
     pub advance: usize,
     pub token_type: TokenType<'a>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+/// The types of quotes used in a Lua string
 pub enum StringLiteralQuoteType {
+    /// Strings formatted \[\[with brackets\]\]
     Brackets,
+    /// Strings formatted "with double quotes"
     Double,
+    /// Strings formatted 'with single quotes'
     Single,
 }
 
@@ -454,8 +497,11 @@ fn advance_whitespace(code: &str) -> Advancement {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+/// Information about an error that occurs while tokenizing
 pub struct TokenizerError {
+    /// The type of error
     error: TokenizerErrorType,
+    /// The position of the token that caused the error
     position: Position,
 }
 
@@ -479,6 +525,13 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
+/// Returns a list of [`Token`](struct.Token.html) structs.
+/// You probably want [`parse`](../fn.parse.html) instead.
+///
+/// # Errors
+///
+/// If the code passed is malformed from normal Lua expectations,
+/// a [`TokenizerError`](struct.TokenizerError.html) will be returned.
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     let mut tokens = Vec::new();
     let mut position = Position {

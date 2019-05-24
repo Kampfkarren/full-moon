@@ -1452,13 +1452,15 @@ define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| 
 });
 
 macro_rules! make_op {
-    ($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
+    ($enum:ident, $parser:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
         #[derive(Clone, Debug, PartialEq, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[visit(skip_visit_self)]
+        $(#[$outer])*
         pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
+                #[allow(missing_docs)]
                 $operator(Cow<'a, Token<'a>>),
             )+
         }
@@ -1477,29 +1479,35 @@ macro_rules! make_op {
     };
 }
 
-make_op!(BinOp, ParseBinOp, {
-    And,
-    Caret,
-    GreaterThan,
-    GreaterThanEqual,
-    LessThan,
-    LessThanEqual,
-    Minus,
-    Or,
-    Percent,
-    Plus,
-    Slash,
-    Star,
-    TildeEqual,
-    TwoDots,
-    TwoEqual,
-});
+make_op!(BinOp, ParseBinOp,
+    #[doc = "Operators that require two operands, such as X + Y or X - Y"]
+    {
+        And,
+        Caret,
+        GreaterThan,
+        GreaterThanEqual,
+        LessThan,
+        LessThanEqual,
+        Minus,
+        Or,
+        Percent,
+        Plus,
+        Slash,
+        Star,
+        TildeEqual,
+        TwoDots,
+        TwoEqual,
+    }
+);
 
-make_op!(UnOp, ParseUnOp, {
-    Minus,
-    Not,
-    Hash,
-});
+make_op!(UnOp, ParseUnOp,
+    #[doc = "Operators that require just one operand, such as #X"]
+    {
+        Minus,
+        Not,
+        Hash,
+    }
+);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
