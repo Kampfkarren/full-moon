@@ -54,6 +54,7 @@ impl<'a> std::error::Error for Error<'a> {}
 ///
 /// ```rust
 /// assert!(full_moon::parse("local x = 1").is_ok());
+/// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
