@@ -492,12 +492,12 @@ define_parser!(ParseTableConstructor, TableConstructor<'a>, |_, state| {
     let mut fields = Vec::new();
 
     while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
-        let field_sep = if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(new_state) {
+        let field_sep = if let Ok((new_state, separator)) = ParseSymbol(Symbol::Comma).parse(new_state) {
             state = new_state;
-            Some(state.peek())
-        } else if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
+            Some(separator)
+        } else if let Ok((new_state, separator)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
             state = new_state;
-            Some(state.peek())
+            Some(separator)
         } else {
             state = new_state;
             None

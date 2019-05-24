@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Properties are no longer `pub` and now have public accessor methods
 - License has been changed from GPL to LGPL
 
+### Fixed
+- Fixed `TableConstructorField` parsing not correctly giving separator tokens ([#12](https://github.com/Kampfkarren/full-moon/issues/12))
+
 ## [0.2.0] - 2019-05-23
 ### Added
 - Added VisitorMut trait which is passed mutable nodes. Mutation is not completely ready yet and may cause side effects

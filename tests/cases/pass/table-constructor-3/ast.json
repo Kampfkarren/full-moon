@@ -69,18 +69,18 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 21,
-                        "character": 2,
-                        "line": 3
+                        "bytes": 18,
+                        "character": 7,
+                        "line": 2
                       },
                       "end_position": {
-                        "bytes": 22,
-                        "character": 3,
-                        "line": 3
+                        "bytes": 19,
+                        "character": 8,
+                        "line": 2
                       },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "b"
+                        "type": "Symbol",
+                        "symbol": ","
                       }
                     }
                   ],
@@ -128,18 +128,18 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 29,
-                        "character": 2,
-                        "line": 4
+                        "bytes": 26,
+                        "character": 7,
+                        "line": 3
                       },
                       "end_position": {
-                        "bytes": 30,
-                        "character": 3,
-                        "line": 4
+                        "bytes": 27,
+                        "character": 8,
+                        "line": 3
                       },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "c"
+                        "type": "Symbol",
+                        "symbol": ","
                       }
                     }
                   ],
@@ -264,18 +264,18 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 59,
-                        "character": 2,
-                        "line": 9
+                        "bytes": 56,
+                        "character": 7,
+                        "line": 8
                       },
                       "end_position": {
-                        "bytes": 60,
-                        "character": 3,
-                        "line": 9
+                        "bytes": 57,
+                        "character": 8,
+                        "line": 8
                       },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "b"
+                        "type": "Symbol",
+                        "symbol": ","
                       }
                     }
                   ],
@@ -323,18 +323,18 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 67,
-                        "character": 2,
-                        "line": 10
+                        "bytes": 64,
+                        "character": 7,
+                        "line": 9
                       },
                       "end_position": {
-                        "bytes": 68,
-                        "character": 3,
-                        "line": 10
+                        "bytes": 65,
+                        "character": 8,
+                        "line": 9
                       },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "c"
+                        "type": "Symbol",
+                        "symbol": ","
                       }
                     }
                   ],
@@ -382,18 +382,18 @@
                     },
                     {
                       "start_position": {
-                        "bytes": 74,
-                        "character": 8,
+                        "bytes": 72,
+                        "character": 7,
                         "line": 10
                       },
                       "end_position": {
-                        "bytes": 75,
-                        "character": 2,
-                        "line": 11
+                        "bytes": 73,
+                        "character": 8,
+                        "line": 10
                       },
                       "token_type": {
                         "type": "Symbol",
-                        "symbol": "}"
+                        "symbol": ","
                       }
                     }
                   ]
