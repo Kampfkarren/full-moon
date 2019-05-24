@@ -46,6 +46,15 @@ impl<'a> fmt::Display for Error<'a> {
 impl<'a> std::error::Error for Error<'a> {}
 
 /// Creates an [`Ast`](ast/struct.Ast.html) from Lua code
+///
+/// # Errors
+/// If the code passed cannot be tokenized, a TokenizerError will be returned.
+/// If the code passed is not valid Lua 5.1 code, an AstError will be returned,
+/// specifically AstError::UnexpectedToken.
+///
+/// ```rust
+/// assert!(full_moon::parse("local x = 1").is_ok());
+/// ```
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)

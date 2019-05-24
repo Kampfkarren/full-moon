@@ -1697,6 +1697,15 @@ pub struct Ast<'a> {
 
 impl<'a> Ast<'a> {
     /// Create an Ast from the passed tokens. You probably want [`parse`](../fn.parse.html)
+    ///
+    /// # Errors
+    ///
+    /// If the tokens passed are impossible to get through normal tokenization,
+    /// an error of Empty (if the vector is empty) or NoEof (if there is no eof token)
+    /// will be returned.
+    ///
+    /// More likely, if the tokens pass are invalid Lua 5.1 code, an
+    /// UnexpectedToken error will be returned.
     pub fn from_tokens(tokens: Vec<Token<'a>>) -> Result<Ast<'a>, AstError<'a>> {
         if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
             Err(AstError::NoEof)
