@@ -23,7 +23,7 @@ impl<'a> ParserState<'a> {
                 tokens: self.tokens,
             };
 
-            if !state.peek().token_type.ignore() {
+            if !state.peek().token_type().ignore() {
                 return Some(state);
             }
         }
@@ -279,7 +279,7 @@ define_parser!(
         let expecting = TokenType::Symbol { symbol: this.0 };
         let token = state.peek();
 
-        if token.token_type == expecting {
+        if token.token_type() == &expecting {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -295,7 +295,7 @@ define_parser!(
     Cow<'a, Token<'a>>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::Number { .. } = token.token_type {
+        if let TokenType::Number { .. } = token.token_type() {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -311,7 +311,7 @@ define_parser!(
     Cow<'a, Token<'a>>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::StringLiteral { .. } = token.token_type {
+        if let TokenType::StringLiteral { .. } = token.token_type() {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -1569,7 +1569,7 @@ struct ParseIdentifier;
 #[rustfmt::skip]
 define_parser!(ParseIdentifier, Cow<'a, Token<'a>>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
-    match &next_token.token_type {
+    match &next_token.token_type() {
         TokenType::Identifier { .. } => Ok((
             state.advance().ok_or(InternalAstError::NoMatch)?,
             next_token,
@@ -1662,10 +1662,10 @@ impl<'a> fmt::Display for AstError<'a> {
                 formatter,
                 "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
                 token,
-                token.start_position.line,
-                token.start_position.character,
-                token.end_position.line,
-                token.end_position.character,
+                token.start_position().line(),
+                token.start_position().character(),
+                token.end_position().line(),
+                token.end_position().character(),
                 match additional {
                     Some(additional) => format!("\nadditional information: {}", additional),
                     None => String::new(),
@@ -1707,7 +1707,7 @@ impl<'a> Ast<'a> {
     /// More likely, if the tokens pass are invalid Lua 5.1 code, an
     /// UnexpectedToken error will be returned.
     pub fn from_tokens(tokens: Vec<Token<'a>>) -> Result<Ast<'a>, AstError<'a>> {
-        if tokens.last().ok_or(AstError::Empty)?.token_type != TokenType::Eof {
+        if tokens.last().ok_or(AstError::Empty)?.token_type() != &TokenType::Eof {
             Err(AstError::NoEof)
         } else {
             let mut state = ParserState {
@@ -1718,7 +1718,7 @@ impl<'a> Ast<'a> {
 
             if tokens
                 .iter()
-                .filter(|token| !token.token_type.ignore())
+                .filter(|token| !token.token_type().ignore())
                 .count()
                 == 1
             {
@@ -1733,7 +1733,7 @@ impl<'a> Ast<'a> {
             }
 
             // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-            if state.peek().token_type.ignore() {
+            if state.peek().token_type().ignore() {
                 state = state.advance().unwrap();
             }
 

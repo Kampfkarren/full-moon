@@ -202,13 +202,27 @@ impl<'a> TokenType<'a> {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    /// The position a token begins at
-    pub start_position: Position,
-    /// The position a token ends at
-    pub end_position: Position,
-    /// The type of token as well as the data needed to represent it
+    start_position: Position,
+    end_position: Position,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub token_type: TokenType<'a>,
+    token_type: TokenType<'a>,
+}
+
+impl<'a> Token<'a> {
+    /// The position a token begins at
+    pub fn start_position(&self) -> Position {
+        self.start_position
+    }
+
+    /// The position a token ends at
+    pub fn end_position(&self) -> Position {
+        self.end_position
+    }
+
+    /// The type of token as well as the data needed to represent it
+    pub fn token_type(&self) -> &TokenType<'a> {
+        &self.token_type
+    }
 }
 
 impl<'a> fmt::Display for Token<'a> {
@@ -276,12 +290,26 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Position {
+    bytes: usize,
+    character: usize,
+    line: usize,
+}
+
+impl Position {
     /// How many bytes, ignoring lines, it would take to find this position
-    pub bytes: usize,
+    pub fn bytes(self) -> usize {
+        self.bytes
+    }
+
     /// Index of the character on the line for this position
-    pub character: usize,
+    pub fn character(self) -> usize {
+        self.character
+    }
+
     /// Line the position lies on
-    pub line: usize,
+    pub fn line(self) -> usize {
+        self.line
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
