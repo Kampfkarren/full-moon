@@ -6,7 +6,7 @@ use std::borrow::Cow;
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct ParserState<'a> {
+struct ParserState<'a> {
     index: usize,
     len: usize,
     tokens: *const Token<'a>,

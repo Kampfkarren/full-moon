@@ -9,9 +9,9 @@ use std::str::FromStr;
 
 macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
+        /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
         #[derive(Clone, Copy, Debug, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
         pub enum Symbol {
             $(
                 #[cfg_attr(feature = "serde", serde(rename = $string))]
@@ -117,10 +117,10 @@ pub enum TokenizerErrorType {
     UnexpectedToken(char),
 }
 
+/// The type of tokens in parsed code
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
-/// The type of tokens in parsed code
 pub enum TokenType<'a> {
     /// End of file, should always be the very last token
     Eof,
@@ -198,16 +198,16 @@ impl<'a> TokenType<'a> {
     }
 }
 
+/// A token such consisting of its [Position](struct.Position.html) and a [TokenType](enum.TokenType.html)
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// A token such consisting of its [Position](struct.Position.html) and a [TokenType](enum.TokenType.html)
 pub struct Token<'a> {
     /// The position a token begins at
     pub start_position: Position,
     /// The position a token ends at
     pub end_position: Position,
-    #[cfg_attr(feature = "serde", serde(borrow))]
     /// The type of token as well as the data needed to represent it
+    #[cfg_attr(feature = "serde", serde(borrow))]
     pub token_type: TokenType<'a>,
 }
 
@@ -272,9 +272,9 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
     }
 }
 
+/// Used to represent exact positions of tokens in code
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// Used to represent exact positions of tokens in code
 pub struct Position {
     /// How many bytes, ignoring lines, it would take to find this position
     pub bytes: usize,
@@ -290,9 +290,9 @@ struct TokenAdvancement<'a> {
     pub token_type: TokenType<'a>,
 }
 
+/// The types of quotes used in a Lua string
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// The types of quotes used in a Lua string
 pub enum StringLiteralQuoteType {
     /// Strings formatted \[\[with brackets\]\]
     Brackets,
@@ -495,9 +495,9 @@ fn advance_whitespace(code: &str) -> Advancement {
     })
 }
 
+/// Information about an error that occurs while tokenizing
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-/// Information about an error that occurs while tokenizing
 pub struct TokenizerError {
     /// The type of error
     error: TokenizerErrorType,
