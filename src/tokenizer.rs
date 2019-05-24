@@ -198,7 +198,7 @@ impl<'a> TokenType<'a> {
     }
 }
 
-/// A token such consisting of its [Position](struct.Position.html) and a [TokenType](enum.TokenType.html)
+/// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {

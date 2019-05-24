@@ -330,7 +330,7 @@ pub struct Block<'a> {
 }
 
 impl<'a> Block<'a> {
-    /// An iteraztor over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
+    /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter()
     }
@@ -376,7 +376,7 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state| {
     }
 });
 
-/// The last statement of a [Block](struct.Block.html)
+/// The last statement of a [`Block`](struct.Block.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
@@ -406,7 +406,7 @@ define_parser!(
     }
 );
 
-/// Fields of a [TableConstructor](struct.TableConstructor.html)
+/// Fields of a [`TableConstructor`](struct.TableConstructor.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
@@ -467,7 +467,7 @@ define_parser!(ParseField, Field<'a>, |_, state| {
     Err(InternalAstError::NoMatch)
 });
 
-/// A [Field](enum.Field.html) used when creating a table
+/// A [`Field`](enum.Field.html) used when creating a table
 /// Second parameter is the separator used (`,` or `;`) if one exists
 pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, Token<'a>>>);
 
@@ -1260,7 +1260,7 @@ define_parser!(ParseSuffix, Suffix<'a>, |_, state| parse_first_of!(state, {
     ParseIndex => Suffix::Index,
 }));
 
-/// A complex expression used by [Var](enum.Var.html), consisting of both a prefix and suffixes
+/// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
@@ -1294,7 +1294,7 @@ define_parser!(ParseVarExpression, VarExpression<'a>, |_, state| {
     }
 });
 
-/// Used in [assignments](struct.Assignment.html) and [values](enum.Value.html)
+/// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
@@ -1312,7 +1312,7 @@ define_parser!(ParseVar, Var<'a>, |_, state| parse_first_of!(state, {
     ParseIdentifier => Var::Name,
 }));
 
-/// An assignment, such as `x = y`. Not used for [local assignments](struct.LocalAssignment.html)
+/// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
 #[derive(Clone, Debug, PartialEq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
