@@ -313,7 +313,7 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
                 arena.get(*index).expect("arena doesn't have index?")
             }
 
-            TokenReference::Owned(token) => &token
+            TokenReference::Owned(token) => &token,
         }
     }
 }

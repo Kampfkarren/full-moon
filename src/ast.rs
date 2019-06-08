@@ -1874,9 +1874,7 @@ impl<'a> Ast<'a> {
         if tokens.last().ok_or(AstError::Empty)?.token_type() != &TokenType::Eof {
             Err(AstError::NoEof)
         } else {
-            let tokens = Arc::new(
-                Arena::from_iter(tokens)
-            );
+            let tokens = Arc::new(Arena::from_iter(tokens));
 
             let mut state = ParserState::new(Arc::clone(&tokens));
 
@@ -1950,10 +1948,7 @@ impl<'a> Ast<'a> {
 
     /// An iterator over the tokens used to create the Ast
     pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
-        self
-            .tokens
-            .iter()
-            .map(|(_, token)| token)
+        self.tokens.iter().map(|(_, token)| token)
     }
 }
 
