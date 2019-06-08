@@ -1,11 +1,13 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
+use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt;
 use std::str::FromStr;
+use std::sync::Arc;
 
 macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
@@ -283,6 +285,78 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
             TokenType::Symbol { .. } => visitor.visit_symbol(self),
             TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
         }
+    }
+}
+
+/// A reference to a token used by Ast's.
+/// Dereferences to a [`Token`](struct.Token.html)
+#[derive(Clone)]
+pub enum TokenReference<'a> {
+    /// Token is borrowed from an Ast's arena
+    Borrowed {
+        arena: Arc<Arena<Token<'a>>>,
+        index: Index,
+    },
+
+    /// Token reference was manually created, likely through deserialization
+    Owned(Token<'a>),
+}
+
+impl<'a> std::ops::Deref for TokenReference<'a> {
+    type Target = Token<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            TokenReference::Borrowed { arena, index } => {
+                Arc::clone(&arena).get(*index).expect("arena doesn't have index?")
+            }
+
+            TokenReference::Owned(token) => &token
+        }
+    }
+}
+
+impl<'a> fmt::Debug for TokenReference<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "TokenReference {{ {} }}", **self)
+    }
+}
+
+impl<'a> fmt::Display for TokenReference<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        (**self).fmt(formatter)
+    }
+}
+
+impl<'a> PartialEq<Self> for TokenReference<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        (**self).eq(other)
+    }
+}
+
+impl<'ast> Visit<'ast> for TokenReference<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        (**self).visit(visitor);
+    }
+}
+
+impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        (**self).visit_mut(visitor);
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'a> Serialize for TokenReference<'a> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        (**self).serialize(serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
     }
 }
 
