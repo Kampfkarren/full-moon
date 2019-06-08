@@ -1,6 +1,7 @@
 use crate::tokenizer::{Symbol, Token, TokenReference, TokenType};
 use full_moon_derive::Visit;
 use generational_arena::Arena;
+use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -50,6 +51,7 @@ impl<'a> ParserState<'a> {
             index: self
                 .tokens
                 .iter()
+                .sorted_by(|left, right| left.1.cmp(&right.1))
                 .nth(self.index)
                 .expect("couldn't peek, no eof?")
                 .0,
@@ -1948,7 +1950,7 @@ impl<'a> Ast<'a> {
 
     /// An iterator over the tokens used to create the Ast
     pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.tokens.iter().map(|(_, token)| token)
+        self.tokens.iter().map(|(_, token)| token).sorted()
     }
 }
 

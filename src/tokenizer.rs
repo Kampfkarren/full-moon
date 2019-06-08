@@ -5,6 +5,7 @@ use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -12,7 +13,7 @@ use std::sync::Arc;
 macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
         /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
-        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         pub enum Symbol {
             $(
@@ -120,7 +121,7 @@ pub enum TokenizerErrorType {
 }
 
 /// The type of tokens in parsed code
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum TokenType<'a> {
@@ -201,7 +202,7 @@ impl<'a> TokenType<'a> {
 }
 
 /// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
     start_position: Position,
@@ -254,6 +255,18 @@ impl<'a> fmt::Display for Token<'a> {
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
+    }
+}
+
+impl<'a> Ord for Token<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start_position.cmp(&other.start_position)
+    }
+}
+
+impl<'a> PartialOrd for Token<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -336,6 +349,20 @@ impl<'a> PartialEq<Self> for TokenReference<'a> {
     }
 }
 
+impl<'a> Eq for TokenReference<'a> { }
+
+impl<'a> Ord for TokenReference<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (**self).cmp(&**other)
+    }
+}
+
+impl<'a> PartialOrd for TokenReference<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl<'ast> Visit<'ast> for TokenReference<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         (**self).visit(visitor);
@@ -363,7 +390,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
 }
 
 /// Used to represent exact positions of tokens in code
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Position {
     bytes: usize,
@@ -388,6 +415,18 @@ impl Position {
     }
 }
 
+impl Ord for Position {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.bytes.cmp(&other.bytes)
+    }
+}
+
+impl PartialOrd for Position {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct TokenAdvancement<'a> {
     pub advance: usize,
@@ -395,7 +434,7 @@ struct TokenAdvancement<'a> {
 }
 
 /// The types of quotes used in a Lua string
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum StringLiteralQuoteType {
     /// Strings formatted \[\[with brackets\]\]
