@@ -294,7 +294,9 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 pub enum TokenReference<'a> {
     /// Token is borrowed from an Ast's arena
     Borrowed {
+        #[doc(hidden)]
         arena: Arc<Arena<Token<'a>>>,
+        #[doc(hidden)]
         index: Index,
     },
 
@@ -308,7 +310,7 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
     fn deref(&self) -> &Self::Target {
         match self {
             TokenReference::Borrowed { arena, index } => {
-                Arc::clone(&arena).get(*index).expect("arena doesn't have index?")
+                arena.get(*index).expect("arena doesn't have index?")
             }
 
             TokenReference::Owned(token) => &token
@@ -341,8 +343,8 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
 }
 
 impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        (**self).visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'ast>>(&mut self, _visitor: &mut V) {
+        unimplemented!()
     }
 }
 

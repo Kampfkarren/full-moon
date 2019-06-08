@@ -3,7 +3,6 @@ use full_moon_derive::Visit;
 use generational_arena::Arena;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 use std::fmt;
 use std::iter::FromIterator;
 use std::sync::Arc;
@@ -24,7 +23,7 @@ impl<'a> ParserState<'a> {
             state = ParserState {
                 index: state.index + 1,
                 len: self.len,
-                tokens: self.tokens,
+                tokens: Arc::clone(&self.tokens),
             };
 
             if !state.peek().token_type().ignore() {
@@ -1907,20 +1906,20 @@ impl<'a> Ast<'a> {
                         })
                     } else {
                         Err(AstError::UnexpectedToken {
-                            token: *state.peek(),
+                            token: (*state.peek()).to_owned(),
                             additional: Some("leftover token"),
                         })
                     }
                 }
 
                 Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                    token: *state.peek(),
+                    token: (*state.peek()).to_owned(),
                     additional: None,
                 }),
 
                 Err(InternalAstError::UnexpectedToken { token, additional }) => {
                     Err(AstError::UnexpectedToken {
-                        token: *token,
+                        token: (*token).to_owned(),
                         additional,
                     })
                 }
