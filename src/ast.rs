@@ -16,6 +16,14 @@ struct ParserState<'a> {
 }
 
 impl<'a> ParserState<'a> {
+    fn new(tokens: Arc<Arena<Token<'a>>>) -> ParserState<'a> {
+        ParserState {
+            index: 0,
+            len: tokens.len(),
+            tokens,
+        }
+    }
+
     fn advance(&self) -> Option<ParserState<'a>> {
         let mut state = self.clone();
 
@@ -1870,11 +1878,7 @@ impl<'a> Ast<'a> {
                 Arena::from_iter(tokens)
             );
 
-            let mut state = ParserState {
-                index: 0,
-                tokens: Arc::clone(&tokens),
-                len: tokens.len(),
-            };
+            let mut state = ParserState::new(Arc::clone(&tokens));
 
             if tokens
                 .iter()
@@ -1959,64 +1963,49 @@ mod tests {
     use crate::tokenizer::tokens;
     use pretty_assertions::assert_eq;
 
+    macro_rules! assert_state_eq {
+        ($state: expr, $index: expr, $tokens: ident) => {
+            assert_eq!($state.index, $index);
+            assert_eq!($state.tokens.len(), $tokens.len());
+        };
+    }
+
+    macro_rules! tokens {
+        ($body: expr) => {
+            Arena::from_iter(tokens($body).expect("couldn't tokenize'"))
+        };
+    }
+
     #[test]
     fn test_zero_or_more_empty() {
-        let tokens = tokens("local x").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!("local x");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma))
             .parse(state.clone())
             .unwrap();
 
-        assert_eq!(
-            state,
-            ParserState {
-                index: 0,
-                len: tokens.len(),
-                tokens: tokens.as_ptr(),
-            },
-        );
-
+        assert_state_eq!(state, 0, tokens);
         assert_eq!(commas.len(), 0);
     }
 
     #[test]
     fn test_zero_or_more_exists() {
-        let tokens = tokens(",,, , ,\t ,local x").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!(",,, , ,\t ,local x");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma))
             .parse(state.clone())
             .unwrap();
 
-        assert_eq!(
-            state,
-            ParserState {
-                index: 9,
-                len: tokens.len(),
-                tokens: tokens.as_ptr(),
-            },
-        );
-
+        assert_state_eq!(state, 9, tokens);
         assert_eq!(commas.len(), 6);
     }
 
     #[test]
     fn test_one_or_more_empty() {
-        let tokens = tokens("local x").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!("local x");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         assert!(
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
@@ -2027,63 +2016,35 @@ mod tests {
 
     #[test]
     fn test_one_or_more_exists_no_delimiter() {
-        let tokens = tokens("end,end, end,\t\tend local").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!("end,end, end,\t\tend local");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         let (state, commas) =
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
                 .parse(state.clone())
                 .expect("OneOrMore failed");
 
-        assert_eq!(
-            state,
-            ParserState {
-                index: 10,
-                len: tokens.len(),
-                tokens: tokens.as_ptr(),
-            },
-        );
-
+        assert_state_eq!(state, 10, tokens);
         assert_eq!(commas.len(), 4);
     }
 
     #[test]
     fn test_one_or_more_exists_with_delimiter() {
-        let tokens = tokens("end,end, end,\t\tend, local").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!("end,end, end,\t\tend, local");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         let (state, commas) = OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
             .parse(state.clone())
             .unwrap();
 
-        assert_eq!(
-            state,
-            ParserState {
-                index: 11,
-                len: tokens.len(),
-                tokens: tokens.as_ptr(),
-            },
-        );
-
+        assert_state_eq!(state, 11, tokens);
         assert_eq!(commas.len(), 4);
     }
 
     #[test]
     fn test_one_or_more_exists_with_nothing() {
-        let tokens = tokens("local").expect("couldn't tokenize");
-        let state = ParserState {
-            index: 0,
-            len: tokens.len(),
-            tokens: tokens.as_ptr(),
-        };
+        let tokens = tokens!("local");
+        let state = ParserState::new(Arc::new(tokens.clone()));
 
         assert!(
             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
