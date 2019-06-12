@@ -292,7 +292,7 @@ define_parser!(
         let expecting = TokenType::Symbol { symbol: this.0 };
         let token = state.peek();
 
-        if token.token_type() == &expecting {
+        if *token.token_type() == expecting {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -308,7 +308,7 @@ define_parser!(
     TokenReference<'a>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::Number { .. } = token.token_type() {
+        if let TokenType::Number { .. } = *token.token_type() {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -324,7 +324,7 @@ define_parser!(
     TokenReference<'a>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::StringLiteral { .. } = token.token_type() {
+        if let TokenType::StringLiteral { .. } = *token.token_type() {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -1735,7 +1735,7 @@ struct ParseIdentifier;
 #[rustfmt::skip]
 define_parser!(ParseIdentifier, TokenReference<'a>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
-    match &next_token.token_type() {
+    match &*next_token.token_type() {
         TokenType::Identifier { .. } => Ok((
             state.advance().ok_or(InternalAstError::NoMatch)?,
             next_token,
@@ -1873,7 +1873,7 @@ impl<'a> Ast<'a> {
     /// More likely, if the tokens pass are invalid Lua 5.1 code, an
     /// UnexpectedToken error will be returned.
     pub fn from_tokens(tokens: Vec<Token<'a>>) -> Result<Ast<'a>, AstError<'a>> {
-        if tokens.last().ok_or(AstError::Empty)?.token_type() != &TokenType::Eof {
+        if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {
             let tokens = Arc::new(Arena::from_iter(tokens));

@@ -5,6 +5,7 @@ use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use std::cell::{Cell, RefCell};
 use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
@@ -205,26 +206,31 @@ impl<'a> TokenType<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    start_position: Position,
-    end_position: Position,
+    start_position: Cell<Position>,
+    end_position: Cell<Position>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token_type: TokenType<'a>,
+    token_type: RefCell<TokenType<'a>>,
 }
 
 impl<'a> Token<'a> {
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
-        self.start_position
+        self.start_position.get()
     }
 
     /// The position a token ends at
     pub fn end_position(&self) -> Position {
-        self.end_position
+        self.end_position.get()
     }
 
     /// The type of token as well as the data needed to represent it
-    pub fn token_type(&self) -> &TokenType<'a> {
-        &self.token_type
+    pub fn token_type(&self) -> std::cell::Ref<TokenType<'a>> {
+        self.token_type.borrow()
+    }
+
+    /// The type of token as well as the data needed to represent it
+    pub fn token_type_mut(&mut self) -> std::cell::RefMut<TokenType<'a>> {
+        self.token_type.borrow_mut()
     }
 }
 
@@ -232,7 +238,7 @@ impl<'a> fmt::Display for Token<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
-        match &self.token_type {
+        match &*self.token_type() {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
@@ -273,7 +279,7 @@ impl<'a> PartialOrd for Token<'a> {
 // Copy and paste code :(
 impl<'ast> Visit<'ast> for Token<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
-        match self.token_type {
+        match *self.token_type() {
             TokenType::Eof => visitor.visit_eof(self),
             TokenType::Identifier { .. } => visitor.visit_identifier(self),
             TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
@@ -288,7 +294,7 @@ impl<'ast> Visit<'ast> for Token<'ast> {
 
 impl<'ast> VisitMut<'ast> for Token<'ast> {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        match self.token_type {
+        match *self.token_type_mut() {
             TokenType::Eof => visitor.visit_eof(self),
             TokenType::Identifier { .. } => visitor.visit_identifier(self),
             TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
@@ -363,6 +369,20 @@ impl<'a> PartialOrd for TokenReference<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
+impl<'a> Serialize for TokenReference<'a> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        (**self).serialize(serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
+    }
+}
+
 impl<'ast> Visit<'ast> for TokenReference<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         (**self).visit(visitor);
@@ -375,17 +395,29 @@ impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'a> Serialize for TokenReference<'a> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        (**self).serialize(serializer)
+/// A [RAII](https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization) guard for mutating
+/// [`Token`](struct.Token.html) objects from a [`TokenReference`](enum.TokenReference.html).
+pub struct TokenReferenceGuard<'a> {
+    token: &'a Token<'a>,
+}
+
+impl<'a> TokenReferenceGuard<'a> {
+    /// Set a new start position for the token.
+    pub fn set_start_position(&mut self, new_position: Position) {
+        self.token.start_position.set(new_position);
+    }
+
+    /// Set a new end position for the token.
+    pub fn set_end_position(&mut self, new_position: Position) {
+        self.token.end_position.set(new_position);
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
+impl<'a> std::ops::Deref for TokenReferenceGuard<'a> {
+    type Target = Token<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        self.token
     }
 }
 
@@ -715,9 +747,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position,
-                        end_position: position,
-                        token_type: advancement.token_type,
+                        start_position: Cell::new(start_position),
+                        end_position: Cell::new(position),
+                        token_type: RefCell::new(advancement.token_type),
                     });
 
                     continue;
@@ -751,9 +783,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     }
 
     tokens.push(Token {
-        start_position: position,
-        end_position: position,
-        token_type: TokenType::Eof,
+        start_position: Cell::new(position),
+        end_position: Cell::new(position),
+        token_type: RefCell::new(TokenType::Eof),
     });
 
     Ok(tokens)
@@ -946,19 +978,19 @@ mod tests {
         assert_eq!(
             tokens("\n").unwrap()[0],
             Token {
-                start_position: Position {
+                start_position: Cell::new(Position {
                     bytes: 0,
                     character: 1,
                     line: 1,
-                },
-                end_position: Position {
+                }),
+                end_position: Cell::new(Position {
                     bytes: 1,
                     character: 1,
                     line: 1,
-                },
-                token_type: TokenType::Whitespace {
+                }),
+                token_type: RefCell::new(TokenType::Whitespace {
                     characters: Cow::from("\n")
-                },
+                }),
             }
         );
     }
