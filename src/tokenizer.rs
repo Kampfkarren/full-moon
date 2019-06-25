@@ -821,7 +821,7 @@ mod tests {
                 Ok(Some(token)) => {
                     let tokens = tokens($code).expect("couldn't tokenize");
                     let first_token = &tokens.get(0).expect("tokenized response is empty");
-                    assert_eq!(first_token.token_type, token.token_type);
+                    assert_eq!(*first_token.token_type(), token.token_type);
                 }
 
                 Err(advancement_error) => {
