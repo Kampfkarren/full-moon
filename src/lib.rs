@@ -62,7 +62,7 @@ pub fn parse(code: &str) -> Result<ast::Ast, Error> {
 }
 
 /// Prints back Lua code from an [Ast](ast/struct.Ast.html)
-pub fn print<'a>(ast: &'a ast::Ast<'a>) -> String {
+pub fn print(ast: &ast::Ast) -> String {
     ast.iter_tokens()
         .fold(String::new(), |acc, token| acc + &token.to_string())
 }

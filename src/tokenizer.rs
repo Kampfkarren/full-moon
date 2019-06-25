@@ -231,10 +231,10 @@ pub enum TokenKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    start_position: Cell<Position>,
-    end_position: Cell<Position>,
+    pub(crate) start_position: Cell<Position>,
+    pub(crate) end_position: Cell<Position>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token_type: RefCell<TokenType<'a>>,
+    pub(crate) token_type: RefCell<TokenType<'a>>,
 }
 
 impl<'a> Token<'a> {
@@ -367,7 +367,7 @@ impl<'a> PartialEq<Self> for TokenReference<'a> {
     }
 }
 
-impl<'a> Eq for TokenReference<'a> { }
+impl<'a> Eq for TokenReference<'a> {}
 
 impl<'a> Ord for TokenReference<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -429,9 +429,9 @@ impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Position {
-    bytes: usize,
-    character: usize,
-    line: usize,
+    pub(crate) bytes: usize,
+    pub(crate) character: usize,
+    pub(crate) line: usize,
 }
 
 impl Position {

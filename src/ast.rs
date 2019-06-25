@@ -1956,6 +1956,62 @@ impl<'a> Ast<'a> {
     pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
         self.tokens.iter().map(|(_, token)| token).sorted()
     }
+
+    pub fn update_positions(&mut self) {
+        use crate::tokenizer::Position;
+        let mut start_position = Position {
+            bytes: 0,
+            character: 1,
+            line: 1,
+        };
+
+        let mut next_is_new_line = false;
+
+        for (_, token) in self.tokens.iter() {
+            let display = token.to_string();
+
+            let new_lines = match display
+                .as_bytes()
+                .iter()
+                .filter(|&&c| c == b'\n')
+                .count() {
+                    0 | 1 => 0,
+                    n => n,
+                };
+
+            let end_position = if token.token_kind() == TokenKind::Eof {
+                start_position
+            } else {
+                let mut end_position = Position {
+                    bytes: start_position.bytes() + display.len(),
+                    line: start_position.line() + new_lines,
+                    character: {
+                        let offset = display.lines().last().unwrap_or("").len();
+                        if new_lines > 0 || next_is_new_line {
+                            offset + 1
+                        } else {
+                            start_position.character() + offset
+                        }
+                    },
+                };
+
+                if next_is_new_line {
+                    end_position.line += 1;
+                    next_is_new_line = false;
+                }
+
+                end_position
+            };
+
+            if display.ends_with('\n') {
+                next_is_new_line = true;
+            }
+
+            token.start_position.set(start_position);
+            token.end_position.set(end_position);
+            start_position = end_position;
+        }
+    }
 }
 
 #[cfg(all(test, not(feature = "only-source-tests")))]

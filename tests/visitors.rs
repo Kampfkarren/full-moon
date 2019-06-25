@@ -1,4 +1,7 @@
-use full_moon::{ast, parse, print, tokenizer, visitors::{Visitor, VisitorMut}};
+use full_moon::{
+    ast, parse, print, tokenizer,
+    visitors::{Visitor, VisitorMut},
+};
 use std::borrow::Cow;
 
 #[test]
@@ -37,23 +40,18 @@ fn test_visitor_mut() {
                 let identifier;
 
                 match *name.token_type() {
-                    tokenizer::TokenType::Identifier { identifier: ref identifier_tmp } => {
+                    tokenizer::TokenType::Identifier {
+                        identifier: ref identifier_tmp,
+                    } => {
                         identifier = identifier_tmp.replace("s", "sss");
-                    },
+                    }
 
                     _ => unreachable!(),
                 }
 
-                let identifier_len = identifier.len();
-
                 name.set_token_type(tokenizer::TokenType::Identifier {
                     identifier: Cow::from(identifier),
                 });
-
-                assert_eq!(
-                    name.end_position().character() - name.start_position().character(),
-                    identifier_len,
-                );
             }
         }
     }
@@ -61,4 +59,17 @@ fn test_visitor_mut() {
     let mut code = parse("local dogs, snakes = 1").unwrap();
     SnakeNamer.visit_ast(&mut code);
     assert_eq!(print(&code), "local dogsss, sssnakesss = 1");
+
+    struct PositionValidator;
+
+    impl<'ast> Visitor<'ast> for PositionValidator {
+        fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
+            for name in assignment.iter_name_list() {
+                assert_eq!(name.end_position().bytes() - name.start_position().bytes(), name.to_string().len());
+            }
+        }
+    }
+
+    code.update_positions();
+    PositionValidator.visit_ast(&code);
 }
