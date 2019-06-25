@@ -397,8 +397,17 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
 }
 
 impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, _visitor: &mut V) {
-        unimplemented!()
+    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        match self.token_kind() {
+            TokenKind::Eof => visitor.visit_eof(self),
+            TokenKind::Identifier => visitor.visit_identifier(self),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TokenKind::Number => visitor.visit_number(self),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TokenKind::StringLiteral => visitor.visit_string_literal(self),
+            TokenKind::Symbol => visitor.visit_symbol(self),
+            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
     }
 }
 
