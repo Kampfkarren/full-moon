@@ -1555,6 +1555,10 @@ impl<'a> LocalAssignment<'a> {
     pub fn iter_name_list(&self) -> impl Iterator<Item = &TokenReference<'a>> {
         self.name_list.iter()
     }
+
+    pub fn iter_name_list_mut(&mut self) -> impl Iterator<Item = &mut TokenReference<'a>> {
+        self.name_list.iter_mut()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

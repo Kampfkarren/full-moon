@@ -321,6 +321,21 @@ pub enum TokenReference<'a> {
     Owned(Token<'a>),
 }
 
+impl<'a> TokenReference<'a> {
+    pub fn set_start_position(&mut self, new_position: Position) {
+        self.start_position.set(new_position);
+    }
+
+    /// Set a new end position for the token.
+    pub fn set_end_position(&mut self, new_position: Position) {
+        self.end_position.set(new_position);
+    }
+
+    pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
+        *self.token_type.borrow_mut() = new_token_type;
+    }
+}
+
 impl<'a> std::ops::Deref for TokenReference<'a> {
     type Target = Token<'a>;
 
@@ -408,32 +423,6 @@ impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
             TokenKind::Symbol => visitor.visit_symbol(self),
             TokenKind::Whitespace => visitor.visit_whitespace(self),
         }
-    }
-}
-
-/// A [RAII](https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization) guard for mutating
-/// [`Token`](struct.Token.html) objects from a [`TokenReference`](enum.TokenReference.html).
-pub struct TokenReferenceGuard<'a> {
-    token: &'a Token<'a>,
-}
-
-impl<'a> TokenReferenceGuard<'a> {
-    /// Set a new start position for the token.
-    pub fn set_start_position(&mut self, new_position: Position) {
-        self.token.start_position.set(new_position);
-    }
-
-    /// Set a new end position for the token.
-    pub fn set_end_position(&mut self, new_position: Position) {
-        self.token.end_position.set(new_position);
-    }
-}
-
-impl<'a> std::ops::Deref for TokenReferenceGuard<'a> {
-    type Target = Token<'a>;
-
-    fn deref(&self) -> &Self::Target {
-        self.token
     }
 }
 
