@@ -13,14 +13,16 @@ fn test_parser_fail_cases() {
         let entry = entry.unwrap();
         let path = entry.path();
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
-        println!("testing {:?}", path);
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
         let tokens_path = path.join("tokens.json");
-        if let Ok(tokens_file) = fs::read_to_string(&tokens_path) {
+        let tokens_contents;
+
+        if let Ok(tokens_contents_tmp) = fs::read_to_string(&tokens_path) {
+            tokens_contents = tokens_contents_tmp;
             let expected_tokens: Vec<Token> =
-                serde_json::from_str(&tokens_file).expect("couldn't deserialize tokens file");
+                serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
             assert_eq!(tokens, expected_tokens);
         } else {
             let mut file = File::create(&tokens_path).expect("couldn't write tokens file");

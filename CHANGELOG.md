@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
+- Added `TokenKind` to get the kind of a token without any additional data
+- Changed signatures from `Token` to `TokenReference`, which dereference to tokens
+- Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
+- Added `Ast::update_positions` to update all the position structs if you mutate it
 
 ## [0.3.0] - 2019-05-24
 ### Added

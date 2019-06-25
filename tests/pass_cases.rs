@@ -17,9 +17,12 @@ fn test_pass_cases() {
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
         let tokens_path = path.join("tokens.json");
-        if let Ok(tokens_file) = fs::read_to_string(&tokens_path) {
+        let tokens_contents;
+
+        if let Ok(tokens_contents_tmp) = fs::read_to_string(&tokens_path) {
+            tokens_contents = tokens_contents_tmp;
             let expected_tokens: Vec<Token> =
-                serde_json::from_str(&tokens_file).expect("couldn't deserialize tokens file");
+                serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
             assert_eq!(tokens, expected_tokens);
         } else {
             let mut file = File::create(&tokens_path).expect("couldn't write tokens file");
@@ -31,10 +34,23 @@ fn test_pass_cases() {
             .expect("couldn't write to tokens file");
         }
 
-        let ast = ast::Ast::from_tokens(tokens)
+        let mut ast = ast::Ast::from_tokens(tokens)
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
+        let old_positions: Vec<_> = ast
+            .iter_tokens()
+            .map(|token| (token.start_position(), token.end_position()))
+            .collect();
+        ast.update_positions();
+        assert_eq!(
+            old_positions,
+            ast.iter_tokens()
+                .map(|token| (token.start_position(), token.end_position()))
+                .collect::<Vec<_>>(),
+        );
+
         let ast_path = path.join("ast.json");
+
         if let Ok(ast_file) = fs::read_to_string(&ast_path) {
             let expected_ast =
                 serde_json::from_str(&ast_file).expect("couldn't deserialize ast file");

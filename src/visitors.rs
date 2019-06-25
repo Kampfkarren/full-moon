@@ -1,5 +1,5 @@
 use crate::ast;
-use crate::tokenizer::Token;
+use crate::tokenizer::TokenReference;
 use std::borrow::Cow;
 
 macro_rules! create_visitor {
@@ -46,7 +46,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, _token: &Token<'ast>) { }
+                fn $visit_token(&mut self, _token: &TokenReference<'ast>) { }
             )+
         }
 
@@ -65,7 +65,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, _token: &mut Token<'ast>) { }
+                fn $visit_token(&mut self, _token: &mut TokenReference<'ast>) { }
             )+
         }
     };

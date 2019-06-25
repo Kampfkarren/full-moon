@@ -1,16 +1,20 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
+use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use std::cell::{Cell, RefCell};
+use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
+use std::sync::Arc;
 
 macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
         /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
-        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         pub enum Symbol {
             $(
@@ -118,7 +122,7 @@ pub enum TokenizerErrorType {
 }
 
 /// The type of tokens in parsed code
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum TokenType<'a> {
@@ -196,32 +200,86 @@ impl<'a> TokenType<'a> {
             _ => false,
         }
     }
+
+    /// Returns the [`TokenKind`](enum.TokenKind.html) of the token type.
+    ///
+    /// ```rust
+    /// use std::borrow::Cow;
+    /// use full_moon::tokenizer::{TokenKind, TokenType};
+    ///
+    /// assert_eq!(
+    ///     TokenType::Identifier {
+    ///         identifier: Cow::from("hello")
+    ///     }.kind(),
+    ///     TokenKind::Identifier,
+    /// );
+    /// ```
+    pub fn kind(&self) -> TokenKind {
+        match self {
+            TokenType::Eof => TokenKind::Eof,
+            TokenType::Identifier { .. } => TokenKind::Identifier,
+            TokenType::MultiLineComment { .. } => TokenKind::MultiLineComment,
+            TokenType::Number { .. } => TokenKind::Number,
+            TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
+            TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
+            TokenType::Symbol { .. } => TokenKind::Symbol,
+            TokenType::Whitespace { .. } => TokenKind::Whitespace,
+        }
+    }
+}
+
+/// The kind of token. Contains no additional data.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TokenKind {
+    /// End of file, should always be the very last token
+    Eof,
+    /// An identifier, such as `foo`
+    Identifier,
+    /// A multi line comment in the format of --[[ comment ]]
+    MultiLineComment,
+    /// A literal number, such as `3.3`
+    Number,
+    /// A single line comment, such as `-- comment`
+    SingleLineComment,
+    /// A literal string, such as "Hello, world"
+    StringLiteral,
+    /// A [`Symbol`](enum.Symbol.html), such as `local` or `+`
+    Symbol,
+    /// Whitespace, such as tabs or new lines
+    Whitespace,
 }
 
 /// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    start_position: Position,
-    end_position: Position,
+    pub(crate) start_position: Cell<Position>,
+    pub(crate) end_position: Cell<Position>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token_type: TokenType<'a>,
+    pub(crate) token_type: RefCell<TokenType<'a>>,
 }
 
 impl<'a> Token<'a> {
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
-        self.start_position
+        self.start_position.get()
     }
 
     /// The position a token ends at
     pub fn end_position(&self) -> Position {
-        self.end_position
+        self.end_position.get()
     }
 
-    /// The type of token as well as the data needed to represent it
-    pub fn token_type(&self) -> &TokenType<'a> {
-        &self.token_type
+    /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
+    /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
+    pub fn token_type(&self) -> std::cell::Ref<TokenType<'a>> {
+        self.token_type.borrow()
+    }
+
+    /// The [kind](enum.TokenKind.html) of token with no additional data.
+    /// If you need any information such as idenitfier names, use [`token_type`](#method.token_type) instead.
+    pub fn token_kind(&self) -> TokenKind {
+        self.token_type().kind()
     }
 }
 
@@ -229,7 +287,7 @@ impl<'a> fmt::Display for Token<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
-        match &self.token_type {
+        match &*self.token_type() {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
@@ -255,44 +313,139 @@ impl<'a> fmt::Display for Token<'a> {
     }
 }
 
-// Copy and paste code :(
-impl<'ast> Visit<'ast> for Token<'ast> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
-        match self.token_type {
-            TokenType::Eof => visitor.visit_eof(self),
-            TokenType::Identifier { .. } => visitor.visit_identifier(self),
-            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
-            TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
-            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
-            TokenType::Symbol { .. } => visitor.visit_symbol(self),
-            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
+impl<'a> Ord for Token<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start_position.cmp(&other.start_position)
+    }
+}
+
+impl<'a> PartialOrd for Token<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// A reference to a token used by Ast's.
+/// Dereferences to a [`Token`](struct.Token.html)
+#[derive(Clone)]
+pub enum TokenReference<'a> {
+    /// Token is borrowed from an Ast's arena
+    #[doc(hidden)]
+    Borrowed {
+        arena: Arc<Arena<Token<'a>>>,
+        index: Index,
+    },
+
+    /// Token reference was manually created, likely through deserialization
+    #[doc(hidden)]
+    Owned(Token<'a>),
+}
+
+impl<'a> TokenReference<'a> {
+    /// Sets the type of token. Note that positions will not update after using this function.
+    /// If you need them to, call [`Ast::update_positions`](../ast/struct.Ast.html#method.update_positions)
+    pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
+        *self.token_type.borrow_mut() = new_token_type;
+    }
+}
+
+impl<'a> std::ops::Deref for TokenReference<'a> {
+    type Target = Token<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            TokenReference::Borrowed { arena, index } => {
+                arena.get(*index).expect("arena doesn't have index?")
+            }
+
+            TokenReference::Owned(token) => &token,
         }
     }
 }
 
-impl<'ast> VisitMut<'ast> for Token<'ast> {
+impl<'a> fmt::Debug for TokenReference<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "TokenReference {{ {} }}", **self)
+    }
+}
+
+impl<'a> fmt::Display for TokenReference<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        (**self).fmt(formatter)
+    }
+}
+
+impl<'a> PartialEq<Self> for TokenReference<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        (**self).eq(other)
+    }
+}
+
+impl<'a> Eq for TokenReference<'a> {}
+
+impl<'a> Ord for TokenReference<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (**self).cmp(&**other)
+    }
+}
+
+impl<'a> PartialOrd for TokenReference<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'a> Serialize for TokenReference<'a> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        (**self).serialize(serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
+    }
+}
+
+impl<'ast> Visit<'ast> for TokenReference<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        match self.token_kind() {
+            TokenKind::Eof => visitor.visit_eof(self),
+            TokenKind::Identifier => visitor.visit_identifier(self),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TokenKind::Number => visitor.visit_number(self),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TokenKind::StringLiteral => visitor.visit_string_literal(self),
+            TokenKind::Symbol => visitor.visit_symbol(self),
+            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        match self.token_type {
-            TokenType::Eof => visitor.visit_eof(self),
-            TokenType::Identifier { .. } => visitor.visit_identifier(self),
-            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
-            TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
-            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
-            TokenType::Symbol { .. } => visitor.visit_symbol(self),
-            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
+        match self.token_kind() {
+            TokenKind::Eof => visitor.visit_eof(self),
+            TokenKind::Identifier => visitor.visit_identifier(self),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TokenKind::Number => visitor.visit_number(self),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TokenKind::StringLiteral => visitor.visit_string_literal(self),
+            TokenKind::Symbol => visitor.visit_symbol(self),
+            TokenKind::Whitespace => visitor.visit_whitespace(self),
         }
     }
 }
 
 /// Used to represent exact positions of tokens in code
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Position {
-    bytes: usize,
-    character: usize,
-    line: usize,
+    pub(crate) bytes: usize,
+    pub(crate) character: usize,
+    pub(crate) line: usize,
 }
 
 impl Position {
@@ -312,6 +465,18 @@ impl Position {
     }
 }
 
+impl Ord for Position {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.bytes.cmp(&other.bytes)
+    }
+}
+
+impl PartialOrd for Position {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct TokenAdvancement<'a> {
     pub advance: usize,
@@ -319,7 +484,7 @@ struct TokenAdvancement<'a> {
 }
 
 /// The types of quotes used in a Lua string
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum StringLiteralQuoteType {
     /// Strings formatted \[\[with brackets\]\]
@@ -600,9 +765,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position,
-                        end_position: position,
-                        token_type: advancement.token_type,
+                        start_position: Cell::new(start_position),
+                        end_position: Cell::new(position),
+                        token_type: RefCell::new(advancement.token_type),
                     });
 
                     continue;
@@ -636,9 +801,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     }
 
     tokens.push(Token {
-        start_position: position,
-        end_position: position,
-        token_type: TokenType::Eof,
+        start_position: Cell::new(position),
+        end_position: Cell::new(position),
+        token_type: RefCell::new(TokenType::Eof),
     });
 
     Ok(tokens)
@@ -658,7 +823,7 @@ mod tests {
                 Ok(Some(token)) => {
                     let tokens = tokens($code).expect("couldn't tokenize");
                     let first_token = &tokens.get(0).expect("tokenized response is empty");
-                    assert_eq!(first_token.token_type, token.token_type);
+                    assert_eq!(*first_token.token_type(), token.token_type);
                 }
 
                 Err(advancement_error) => {
@@ -831,19 +996,19 @@ mod tests {
         assert_eq!(
             tokens("\n").unwrap()[0],
             Token {
-                start_position: Position {
+                start_position: Cell::new(Position {
                     bytes: 0,
                     character: 1,
                     line: 1,
-                },
-                end_position: Position {
+                }),
+                end_position: Cell::new(Position {
                     bytes: 1,
                     character: 1,
                     line: 1,
-                },
-                token_type: TokenType::Whitespace {
+                }),
+                token_type: RefCell::new(TokenType::Whitespace {
                     characters: Cow::from("\n")
-                },
+                }),
             }
         );
     }
