@@ -1959,6 +1959,7 @@ impl<'a> Ast<'a> {
 
     pub fn update_positions(&mut self) {
         use crate::tokenizer::Position;
+
         let mut start_position = Position {
             bytes: 0,
             character: 1,
@@ -1970,14 +1971,10 @@ impl<'a> Ast<'a> {
         for (_, token) in self.tokens.iter() {
             let display = token.to_string();
 
-            let new_lines = match display
-                .as_bytes()
-                .iter()
-                .filter(|&&c| c == b'\n')
-                .count() {
-                    0 | 1 => 0,
-                    n => n,
-                };
+            let new_lines = match bytecount::count(display.as_bytes(), b'\n') {
+                0 | 1 => 0,
+                n => n,
+            };
 
             let end_position = if token.token_kind() == TokenKind::Eof {
                 start_position

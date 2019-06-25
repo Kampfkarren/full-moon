@@ -65,7 +65,10 @@ fn test_visitor_mut() {
     impl<'ast> Visitor<'ast> for PositionValidator {
         fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
             for name in assignment.iter_name_list() {
-                assert_eq!(name.end_position().bytes() - name.start_position().bytes(), name.to_string().len());
+                assert_eq!(
+                    name.end_position().bytes() - name.start_position().bytes(),
+                    name.to_string().len()
+                );
             }
         }
     }

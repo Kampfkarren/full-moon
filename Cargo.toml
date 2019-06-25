@@ -16,6 +16,7 @@ no-source-tests = []
 only-source-tests = []
 
 [dependencies]
+bytecount = "0.5"
 full_moon_derive = { path = "./full-moon-derive", version = "0.1.1" }
 generational-arena = "0.2"
 itertools = "0.8"
