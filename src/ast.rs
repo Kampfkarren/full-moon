@@ -1556,6 +1556,7 @@ impl<'a> LocalAssignment<'a> {
         self.name_list.iter()
     }
 
+    /// A mutable iterator over the names being assigned to, the `x, y` part of `local x, y = 1, 2`
     pub fn iter_name_list_mut(&mut self) -> impl Iterator<Item = &mut TokenReference<'a>> {
         self.name_list.iter_mut()
     }
@@ -1957,6 +1958,8 @@ impl<'a> Ast<'a> {
         self.tokens.iter().map(|(_, token)| token).sorted()
     }
 
+    /// Will update the positions of all the tokens in the tree
+    /// Necessary if you are both mutating the tree and need the positions of the tokens
     pub fn update_positions(&mut self) {
         use crate::tokenizer::Position;
 

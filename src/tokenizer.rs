@@ -201,6 +201,19 @@ impl<'a> TokenType<'a> {
         }
     }
 
+    /// Returns the [`TokenKind`](enum.TokenKind.html) of the token type.
+    ///
+    /// ```rust
+    /// use std::borrow::Cow;
+    /// use full_moon::tokenizer::{TokenKind, TokenType};
+    ///
+    /// assert_eq!(
+    ///     TokenType::Identifier {
+    ///         identifier: Cow::from("hello")
+    ///     }.kind(),
+    ///     TokenKind::Identifier,
+    /// );
+    /// ```
     pub fn kind(&self) -> TokenKind {
         match self {
             TokenType::Eof => TokenKind::Eof,
@@ -215,15 +228,24 @@ impl<'a> TokenType<'a> {
     }
 }
 
+/// The kind of token. Contains no additional data.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TokenKind {
+    /// End of file, should always be the very last token
     Eof,
+    /// An identifier, such as `foo`
     Identifier,
+    /// A multi line comment in the format of --[[ comment ]]
     MultiLineComment,
+    /// A literal number, such as `3.3`
     Number,
+    /// A single line comment, such as `-- comment`
     SingleLineComment,
+    /// A literal string, such as "Hello, world"
     StringLiteral,
+    /// A [`Symbol`](enum.Symbol.html), such as `local` or `+`
     Symbol,
+    /// Whitespace, such as tabs or new lines
     Whitespace,
 }
 
@@ -248,11 +270,14 @@ impl<'a> Token<'a> {
         self.end_position.get()
     }
 
-    /// The type of token as well as the data needed to represent it
+    /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
+    /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
     pub fn token_type(&self) -> std::cell::Ref<TokenType<'a>> {
         self.token_type.borrow()
     }
 
+    /// The [kind](enum.TokenKind.html) of token with no additional data.
+    /// If you need any information such as idenitfier names, use [`token_type`](#method.token_type) instead.
     pub fn token_kind(&self) -> TokenKind {
         self.token_type().kind()
     }
@@ -321,15 +346,8 @@ pub enum TokenReference<'a> {
 }
 
 impl<'a> TokenReference<'a> {
-    pub fn set_start_position(&mut self, new_position: Position) {
-        self.start_position.set(new_position);
-    }
-
-    /// Set a new end position for the token.
-    pub fn set_end_position(&mut self, new_position: Position) {
-        self.end_position.set(new_position);
-    }
-
+    /// Sets the type of token. Note that positions will not update after using this function.
+    /// If you need them to, call [`Ast::update_positions`](../ast/struct.Ast.html#method.update_positions)
     pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
         *self.token_type.borrow_mut() = new_token_type;
     }
