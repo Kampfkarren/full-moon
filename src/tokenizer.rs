@@ -338,7 +338,7 @@ pub enum TokenReference<'a> {
     },
 
     /// Token reference was manually created, likely through deserialization
-    Owned(Token<'a>),
+    Owned(#[doc(hidden)] Token<'a>),
 }
 
 impl<'a> TokenReference<'a> {
