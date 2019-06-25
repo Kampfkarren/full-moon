@@ -253,11 +253,6 @@ impl<'a> Token<'a> {
         self.token_type.borrow()
     }
 
-    /// The type of token as well as the data needed to represent it
-    pub fn token_type_mut(&mut self) -> std::cell::RefMut<TokenType<'a>> {
-        self.token_type.borrow_mut()
-    }
-
     pub fn token_kind(&self) -> TokenKind {
         self.token_type().kind()
     }
