@@ -330,15 +330,15 @@ impl<'a> PartialOrd for Token<'a> {
 #[derive(Clone)]
 pub enum TokenReference<'a> {
     /// Token is borrowed from an Ast's arena
+    #[doc(hidden)]
     Borrowed {
-        #[doc(hidden)]
         arena: Arc<Arena<Token<'a>>>,
-        #[doc(hidden)]
         index: Index,
     },
 
     /// Token reference was manually created, likely through deserialization
-    Owned(#[doc(hidden)] Token<'a>),
+    #[doc(hidden)]
+    Owned(Token<'a>),
 }
 
 impl<'a> TokenReference<'a> {
