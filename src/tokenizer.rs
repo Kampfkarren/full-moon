@@ -258,6 +258,10 @@ impl<'a> Token<'a> {
     }
 }
 
+// Token provides no mutability on its own, and all official ways
+// of mutating Token require &mut self.
+unsafe impl<'a> Sync for Token<'a> {}
+
 impl<'a> fmt::Display for Token<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;

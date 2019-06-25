@@ -44,9 +44,16 @@ fn test_visitor_mut() {
                     _ => unreachable!(),
                 }
 
+                let identifier_len = identifier.len();
+
                 name.set_token_type(tokenizer::TokenType::Identifier {
                     identifier: Cow::from(identifier),
                 });
+
+                assert_eq!(
+                    name.end_position().character() - name.start_position().character(),
+                    identifier_len,
+                );
             }
         }
     }
