@@ -1,4 +1,4 @@
-use crate::tokenizer::{Symbol, Token, TokenReference, TokenType};
+use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::Visit;
 use generational_arena::Arena;
 use itertools::Itertools;
@@ -308,7 +308,7 @@ define_parser!(
     TokenReference<'a>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::Number { .. } = *token.token_type() {
+        if token.token_kind() == TokenKind::Number {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -324,7 +324,7 @@ define_parser!(
     TokenReference<'a>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
-        if let TokenType::StringLiteral { .. } = *token.token_type() {
+        if token.token_kind() == TokenKind::StringLiteral {
             Ok((state.advance().ok_or(InternalAstError::NoMatch)?, token))
         } else {
             Err(InternalAstError::NoMatch)
@@ -1735,8 +1735,8 @@ struct ParseIdentifier;
 #[rustfmt::skip]
 define_parser!(ParseIdentifier, TokenReference<'a>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
-    match &*next_token.token_type() {
-        TokenType::Identifier { .. } => Ok((
+    match next_token.token_kind() {
+        TokenKind::Identifier => Ok((
             state.advance().ok_or(InternalAstError::NoMatch)?,
             next_token,
         )),

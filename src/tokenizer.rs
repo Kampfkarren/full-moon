@@ -200,6 +200,31 @@ impl<'a> TokenType<'a> {
             _ => false,
         }
     }
+
+    pub fn kind(&self) -> TokenKind {
+        match self {
+            TokenType::Eof => TokenKind::Eof,
+            TokenType::Identifier { .. } => TokenKind::Identifier,
+            TokenType::MultiLineComment { .. } => TokenKind::MultiLineComment,
+            TokenType::Number { .. } => TokenKind::Number,
+            TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
+            TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
+            TokenType::Symbol { .. } => TokenKind::Symbol,
+            TokenType::Whitespace { .. } => TokenKind::Whitespace,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TokenKind {
+    Eof,
+    Identifier,
+    MultiLineComment,
+    Number,
+    SingleLineComment,
+    StringLiteral,
+    Symbol,
+    Whitespace,
 }
 
 /// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
@@ -231,6 +256,10 @@ impl<'a> Token<'a> {
     /// The type of token as well as the data needed to represent it
     pub fn token_type_mut(&mut self) -> std::cell::RefMut<TokenType<'a>> {
         self.token_type.borrow_mut()
+    }
+
+    pub fn token_kind(&self) -> TokenKind {
+        self.token_type().kind()
     }
 }
 
@@ -273,37 +302,6 @@ impl<'a> Ord for Token<'a> {
 impl<'a> PartialOrd for Token<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-// Copy and paste code :(
-impl<'ast> Visit<'ast> for Token<'ast> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
-        match *self.token_type() {
-            TokenType::Eof => visitor.visit_eof(self),
-            TokenType::Identifier { .. } => visitor.visit_identifier(self),
-            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
-            TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
-            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
-            TokenType::Symbol { .. } => visitor.visit_symbol(self),
-            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
-        }
-    }
-}
-
-impl<'ast> VisitMut<'ast> for Token<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        match *self.token_type_mut() {
-            TokenType::Eof => visitor.visit_eof(self),
-            TokenType::Identifier { .. } => visitor.visit_identifier(self),
-            TokenType::MultiLineComment { .. } => visitor.visit_multi_line_comment(self),
-            TokenType::Number { .. } => visitor.visit_number(self),
-            TokenType::SingleLineComment { .. } => visitor.visit_single_line_comment(self),
-            TokenType::StringLiteral { .. } => visitor.visit_string_literal(self),
-            TokenType::Symbol { .. } => visitor.visit_symbol(self),
-            TokenType::Whitespace { .. } => visitor.visit_whitespace(self),
-        }
     }
 }
 
@@ -385,7 +383,16 @@ impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
 
 impl<'ast> Visit<'ast> for TokenReference<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
-        (**self).visit(visitor);
+        match self.token_kind() {
+            TokenKind::Eof => visitor.visit_eof(self),
+            TokenKind::Identifier => visitor.visit_identifier(self),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TokenKind::Number => visitor.visit_number(self),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TokenKind::StringLiteral => visitor.visit_string_literal(self),
+            TokenKind::Symbol => visitor.visit_symbol(self),
+            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
     }
 }
 
