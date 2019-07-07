@@ -16,7 +16,9 @@ no-source-tests = []
 only-source-tests = []
 
 [dependencies]
+atomic_refcell = "0.1"
 bytecount = "0.5"
+crossbeam-utils = "0.6"
 full_moon_derive = { path = "./full-moon-derive", version = "0.1.1" }
 generational-arena = "0.2"
 itertools = "0.8"

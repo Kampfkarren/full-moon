@@ -2007,8 +2007,8 @@ impl<'a> Ast<'a> {
                 next_is_new_line = true;
             }
 
-            token.start_position.set(start_position);
-            token.end_position.set(end_position);
+            token.start_position.store(start_position);
+            token.end_position.store(end_position);
             start_position = end_position;
         }
     }

@@ -1,15 +1,12 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
+use atomic_refcell::AtomicRefCell;
+use crossbeam_utils::atomic::AtomicCell;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::borrow::Cow;
-use std::cell::{Cell, RefCell};
-use std::cmp::Ordering;
-use std::fmt;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr, sync::Arc};
 
 macro_rules! symbols {
     ($($ident:ident => $string:tt,)+) => {
@@ -250,29 +247,32 @@ pub enum TokenKind {
 }
 
 /// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    pub(crate) start_position: Cell<Position>,
-    pub(crate) end_position: Cell<Position>,
+    #[serde(with = "serde_arc_atomic_cell")]
+    pub(crate) start_position: Arc<AtomicCell<Position>>,
+    #[serde(with = "serde_arc_atomic_cell")]
+    pub(crate) end_position: Arc<AtomicCell<Position>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token_type: RefCell<TokenType<'a>>,
+    #[serde(with = "serde_arc_atomic_refcell")]
+    pub(crate) token_type: Arc<AtomicRefCell<TokenType<'a>>>,
 }
 
 impl<'a> Token<'a> {
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
-        self.start_position.get()
+        self.start_position.load()
     }
 
     /// The position a token ends at
     pub fn end_position(&self) -> Position {
-        self.end_position.get()
+        self.end_position.load()
     }
 
     /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
-    pub fn token_type(&self) -> std::cell::Ref<TokenType<'a>> {
+    pub fn token_type(&self) -> atomic_refcell::AtomicRef<TokenType<'a>> {
         self.token_type.borrow()
     }
 
@@ -313,9 +313,19 @@ impl<'a> fmt::Display for Token<'a> {
     }
 }
 
+impl<'a> PartialEq<Self> for Token<'a> {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.start_position() == rhs.start_position()
+            && self.end_position() == rhs.end_position()
+            && self.token_type == rhs.token_type
+    }
+}
+
+impl<'a> Eq for Token<'a> {}
+
 impl<'a> Ord for Token<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.start_position.cmp(&other.start_position)
+        self.start_position().cmp(&other.start_position())
     }
 }
 
@@ -765,9 +775,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position: Cell::new(start_position),
-                        end_position: Cell::new(position),
-                        token_type: RefCell::new(advancement.token_type),
+                        start_position: Arc::new(AtomicCell::new(start_position)),
+                        end_position: Arc::new(AtomicCell::new(position)),
+                        token_type: Arc::new(AtomicRefCell::new(advancement.token_type)),
                     });
 
                     continue;
@@ -801,12 +811,48 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     }
 
     tokens.push(Token {
-        start_position: Cell::new(position),
-        end_position: Cell::new(position),
-        token_type: RefCell::new(TokenType::Eof),
+        start_position: Arc::new(AtomicCell::new(position)),
+        end_position: Arc::new(AtomicCell::new(position)),
+        token_type: Arc::new(AtomicRefCell::new(TokenType::Eof)),
     });
 
     Ok(tokens)
+}
+
+#[cfg(feature = "serde")]
+mod serde_arc_atomic_cell {
+    use super::*;
+
+    pub fn serialize<S: Serializer, T: Copy + Serialize>(
+        this: &Arc<AtomicCell<T>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        this.load().serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T: Copy + Deserialize<'de>>(
+        deserializer: D,
+    ) -> Result<Arc<AtomicCell<T>>, D::Error> {
+        Ok(Arc::new(AtomicCell::new(T::deserialize(deserializer)?)))
+    }
+}
+
+#[cfg(feature = "serde")]
+mod serde_arc_atomic_refcell {
+    use super::*;
+
+    pub fn serialize<S: Serializer, T: Serialize>(
+        this: &Arc<AtomicRefCell<T>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        this.borrow().serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+        deserializer: D,
+    ) -> Result<Arc<AtomicRefCell<T>>, D::Error> {
+        Ok(Arc::new(AtomicRefCell::new(T::deserialize(deserializer)?)))
+    }
 }
 
 #[cfg(test)]
@@ -996,19 +1042,19 @@ mod tests {
         assert_eq!(
             tokens("\n").unwrap()[0],
             Token {
-                start_position: Cell::new(Position {
+                start_position: Arc::new(AtomicCell::new(Position {
                     bytes: 0,
                     character: 1,
                     line: 1,
-                }),
-                end_position: Cell::new(Position {
+                })),
+                end_position: Arc::new(AtomicCell::new(Position {
                     bytes: 1,
                     character: 1,
                     line: 1,
-                }),
-                token_type: RefCell::new(TokenType::Whitespace {
+                })),
+                token_type: Arc::new(AtomicRefCell::new(TokenType::Whitespace {
                     characters: Cow::from("\n")
-                }),
+                })),
             }
         );
     }
