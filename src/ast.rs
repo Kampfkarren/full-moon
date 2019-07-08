@@ -1,5 +1,5 @@
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
-use full_moon_derive::Visit;
+use full_moon_derive::{Node, Visit};
 use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
@@ -333,7 +333,7 @@ define_parser!(
 );
 
 /// A block of statements, such as in if/do/etc block
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -390,11 +390,11 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state: ParserState<'a>| {
 });
 
 /// The last statement of a [`Block`](struct.Block.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
     /// A `break` statement
-    Break,
+    Break(TokenReference<'a>),
     /// A `return` statement, expression is what is being returned
     #[cfg_attr(feature = "serde", serde(borrow))]
     Return(Vec<Expression<'a>>),
@@ -415,15 +415,15 @@ define_parser!(
             "return values"
         );
         Ok((state, LastStmt::Return(returns)))
-    } else if let Ok((state, _)) = ParseSymbol(Symbol::Break).parse(state.clone()) {
-        Ok((state, LastStmt::Break))
+    } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state.clone()) {
+        Ok((state, LastStmt::Break(token)))
     } else {
         Err(InternalAstError::NoMatch)
     }
 );
 
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
@@ -496,7 +496,7 @@ define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
 pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -552,7 +552,7 @@ define_parser!(
 );
 
 /// A binary operation, such as (`+ 3`)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[visit(visit_as = "bin_op")]
 pub struct BinOpRhs<'a> {
@@ -574,7 +574,7 @@ impl<'a> BinOpRhs<'a> {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
@@ -666,7 +666,7 @@ define_parser!(
 );
 
 /// Values that cannot be used standalone, but as part of things such as [statements](enum.Stmt.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -709,7 +709,7 @@ define_parser!(
 );
 
 /// A statement that stands alone
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -759,7 +759,7 @@ define_parser!(
 
 /// A node used before another in cases such as function calling
 /// The `("foo")` part of `("foo"):upper()`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -782,7 +782,7 @@ define_parser!(
 
 /// The indexing of something, such as `x.y` or `x["y"]`
 /// Values of variants are the keys, such as `"y"`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Index<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -819,7 +819,7 @@ define_parser!(
 );
 
 /// Arguments used for a function
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -865,7 +865,7 @@ define_parser!(ParseFunctionArgs, FunctionArgs<'a>, |_,
 });
 
 /// A numeric for loop, such as `for index = 1, 10 do end`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -968,7 +968,7 @@ define_parser!(
 );
 
 /// A generic for loop, such as `for index, value in pairs(list) do end`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1041,7 +1041,7 @@ define_parser!(
 );
 
 /// An if statement
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1138,7 +1138,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
 });
 
 /// A while loop
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1182,7 +1182,7 @@ define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
 });
 
 /// A repeat loop
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1221,7 +1221,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state: ParserState<'a>| {
 });
 
 /// A method call, such as `x:y()`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1262,7 +1262,7 @@ define_parser!(
 );
 
 /// Something being called
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1284,7 +1284,7 @@ define_parser!(
 );
 
 /// A function body, everything except `function x` in `function x(a, b, c) call() end`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1362,7 +1362,7 @@ define_parser!(
 );
 
 /// A parameter in a function declaration
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1374,7 +1374,7 @@ pub enum Parameter<'a> {
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
 /// Can be stacked on top of each other, such as in `x()()()`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1396,7 +1396,7 @@ define_parser!(
 );
 
 /// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1434,7 +1434,7 @@ define_parser!(
 );
 
 /// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1456,7 +1456,7 @@ define_parser!(
 );
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1502,7 +1502,7 @@ define_parser!(
 );
 
 /// A declaration of a local function, such as `local function x() end`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1537,7 +1537,7 @@ define_parser!(
 );
 
 /// An assignment to a local variable, such as `local x = 1`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1612,7 +1612,7 @@ define_parser!(ParseDo, Block<'a>, |_, state: ParserState<'a>| {
 });
 
 /// A function being called, such as `call()`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1649,7 +1649,7 @@ define_parser!(ParseFunctionCall, FunctionCall<'a>, |_,
 });
 
 /// A function name when being [declared](struct.FunctionDeclaration.html)
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1694,7 +1694,7 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_,
 
 /// A normal function declaration, supports simple declarations like `function x() end`
 /// as well as complicated declarations such as `function x.y.z:a() end`
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1751,7 +1751,7 @@ define_parser!(ParseIdentifier, TokenReference<'a>, |_, state: ParserState<'a>| 
 
 macro_rules! make_op {
     ($enum:ident, $parser:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, PartialEq, Visit)]
+        #[derive(Clone, Debug, PartialEq, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[visit(skip_visit_self)]
         $(#[$outer])*

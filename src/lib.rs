@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! # Full Moon
 //!
@@ -7,6 +7,8 @@
 
 /// Utilities for ASTs (Abstract Syntax Trees). Contains all nodes used by Full Moon (such as blocks).
 pub mod ast;
+
+pub mod node;
 
 /// Used for tokenizing, the process of converting the code to individual tokens.
 /// Useful for getting symbols and manually tokenizing without going using an AST.
