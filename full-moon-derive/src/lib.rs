@@ -284,6 +284,7 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
             }
 
             quote! {
+                #[allow(unused_variables)]
                 match self {
                     #(#cases)*
                 }

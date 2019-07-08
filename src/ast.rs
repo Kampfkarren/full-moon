@@ -428,8 +428,10 @@ define_parser!(
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
     ExpressionKey {
-        /// The `expression` part of `[expression] = value`
+        /// The `[` part of `[expression] = value`
         #[cfg_attr(feature = "serde", serde(borrow))]
+        start_brace: TokenReference<'a>,
+        /// The `expression` part of `[expression] = value`
         key: Box<Expression<'a>>,
         /// The `value` part of `[expression] = value`
         value: Box<Expression<'a>>,
@@ -452,7 +454,7 @@ pub enum Field<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
 define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
-    if let Ok((state, _)) = ParseSymbol(Symbol::LeftBracket).parse(state.clone()) {
+    if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBracket).parse(state.clone()) {
         let (state, key) = expect!(state, ParseExpression.parse(state.clone()), "expected key");
         let (state, _) = expect!(
             state,
@@ -470,7 +472,7 @@ define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
             "expected value"
         );
         let (key, value) = (Box::new(key), Box::new(value));
-        return Ok((state.clone(), Field::ExpressionKey { key, value }));
+        return Ok((state.clone(), Field::ExpressionKey { key, start_brace, value }));
     } else if let Ok((state, key)) = keep_going!(ParseIdentifier.parse(state.clone())) {
         if let Ok((state, _)) = ParseSymbol(Symbol::Equal).parse(state.clone()) {
             let (state, value) = expect!(
@@ -500,6 +502,7 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    starting_brace: TokenReference<'a>,
     fields: Vec<TableConstructorField<'a>>,
 }
 
@@ -515,7 +518,7 @@ define_parser!(
     ParseTableConstructor,
     TableConstructor<'a>,
     |_, state: ParserState<'a>| {
-        let (mut state, _) = ParseSymbol(Symbol::LeftBrace).parse(state.clone())?;
+        let (mut state, starting_brace) = ParseSymbol(Symbol::LeftBrace).parse(state.clone())?;
         let mut fields = Vec::new();
 
         while let Ok((new_state, field)) = keep_going!(ParseField.parse(state.clone())) {
@@ -547,7 +550,7 @@ define_parser!(
             "expected '}'"
         );
 
-        Ok((state, TableConstructor { fields }))
+        Ok((state, TableConstructor { fields, starting_brace }))
     }
 );
 
@@ -716,7 +719,7 @@ pub enum Stmt<'a> {
     /// An assignment, such as `x = 1`
     Assignment(Assignment<'a>),
     /// A do block, `do end`
-    Do(Block<'a>),
+    Do(Do<'a>),
     /// A function call on its own, such as `call()`
     FunctionCall(Box<FunctionCall<'a>>),
     /// A function declaration, such as `function x() end`
@@ -869,11 +872,13 @@ define_parser!(ParseFunctionArgs, FunctionArgs<'a>, |_,
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    for_token: TokenReference<'a>,
     index_variable: TokenReference<'a>,
     start: Expression<'a>,
     end: Expression<'a>,
     step: Option<Expression<'a>>,
     block: Block<'a>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> NumericFor<'a> {
@@ -909,7 +914,7 @@ define_parser!(
     ParseNumericFor,
     NumericFor<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::For).parse(state.clone())?;
+        let (state, for_token) = ParseSymbol(Symbol::For).parse(state.clone())?;
         let (state, index_variable) = expect!(
             state,
             ParseIdentifier.parse(state.clone()),
@@ -948,7 +953,7 @@ define_parser!(
             "expected 'do'"
         );
         let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-        let (state, _) = expect!(
+        let (state, end_token) = expect!(
             state,
             ParseSymbol(Symbol::End).parse(state.clone()),
             "expected 'end'"
@@ -957,11 +962,13 @@ define_parser!(
         Ok((
             state,
             NumericFor {
+                for_token,
                 index_variable,
                 start,
                 end,
                 step,
                 block,
+                end_token,
             },
         ))
     }
@@ -972,9 +979,11 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    for_token: TokenReference<'a>,
     names: Vec<TokenReference<'a>>,
     expr_list: Vec<Expression<'a>>,
     block: Block<'a>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> GenericFor<'a> {
@@ -1002,7 +1011,7 @@ define_parser!(
     ParseGenericFor,
     GenericFor<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::For).parse(state.clone())?;
+        let (state, for_token) = ParseSymbol(Symbol::For).parse(state.clone())?;
         let (state, names) = expect!(
             state,
             OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
@@ -1024,7 +1033,7 @@ define_parser!(
             "expected 'do'"
         );
         let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-        let (state, _) = expect!(
+        let (state, end_token) = expect!(
             state,
             ParseSymbol(Symbol::End).parse(state.clone()),
             "expected 'end'"
@@ -1032,9 +1041,11 @@ define_parser!(
         Ok((
             state,
             GenericFor {
+                for_token,
                 names,
                 expr_list,
                 block,
+                end_token,
             },
         ))
     }
@@ -1045,11 +1056,13 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    if_token: TokenReference<'a>,
     condition: Expression<'a>,
     block: Block<'a>,
     else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> If<'a> {
@@ -1079,7 +1092,7 @@ impl<'a> If<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseIf;
 define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
-    let (state, _) = ParseSymbol(Symbol::If).parse(state.clone())?;
+    let (state, if_token) = ParseSymbol(Symbol::If).parse(state.clone())?;
     let (state, condition) = expect!(
         state,
         ParseExpression.parse(state.clone()),
@@ -1116,7 +1129,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
         (state, None)
     };
 
-    let (state, _) = expect!(
+    let (state, end_token) = expect!(
         state,
         ParseSymbol(Symbol::End).parse(state.clone()),
         "expected 'end'"
@@ -1125,6 +1138,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
     Ok((
         state,
         If {
+            if_token,
             condition,
             block,
             r#else,
@@ -1133,6 +1147,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
             } else {
                 Some(else_ifs)
             },
+            end_token,
         },
     ))
 });
@@ -1142,8 +1157,10 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    while_token: TokenReference<'a>,
     condition: Expression<'a>,
     block: Block<'a>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> While<'a> {
@@ -1161,7 +1178,7 @@ impl<'a> While<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseWhile;
 define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
-    let (state, _) = ParseSymbol(Symbol::While).parse(state.clone())?;
+    let (state, while_token) = ParseSymbol(Symbol::While).parse(state.clone())?;
     let (state, condition) = expect!(
         state,
         ParseExpression.parse(state.clone()),
@@ -1173,12 +1190,12 @@ define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
         "expected 'do'"
     );
     let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-    let (state, _) = expect!(
+    let (state, end_token) = expect!(
         state,
         ParseSymbol(Symbol::End).parse(state.clone()),
         "expected 'end'"
     );
-    Ok((state, While { condition, block }))
+    Ok((state, While { while_token, condition, block, end_token }))
 });
 
 /// A repeat loop
@@ -1186,6 +1203,7 @@ define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    repeat_token: TokenReference<'a>,
     block: Block<'a>,
     until: Expression<'a>,
 }
@@ -1205,7 +1223,7 @@ impl<'a> Repeat<'a> {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseRepeat;
 define_parser!(ParseRepeat, Repeat<'a>, |_, state: ParserState<'a>| {
-    let (state, _) = ParseSymbol(Symbol::Repeat).parse(state.clone())?;
+    let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state.clone())?;
     let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
     let (state, _) = expect!(
         state,
@@ -1217,7 +1235,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state: ParserState<'a>| {
         ParseExpression.parse(state.clone()),
         "expected condition"
     );
-    Ok((state, Repeat { until, block }))
+    Ok((state, Repeat { repeat_token, until, block }))
 });
 
 /// A method call, such as `x:y()`
@@ -1288,8 +1306,10 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    start_paranthese: TokenReference<'a>,
     parameters: Vec<Parameter<'a>>,
     block: Block<'a>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> FunctionBody<'a> {
@@ -1310,7 +1330,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
                                                      state: ParserState<
     'a,
 >| {
-    let (mut state, _) = expect!(
+    let (mut state, start_paranthese) = expect!(
         state,
         ParseSymbol(Symbol::LeftParen).parse(state.clone()),
         "expected '('"
@@ -1342,12 +1362,12 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
         "expected ')'"
     );
     let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-    let (state, _) = expect!(
+    let (state, end_token) = expect!(
         state,
         ParseSymbol(Symbol::End).parse(state.clone()),
         "expected 'end'"
     );
-    Ok((state, FunctionBody { parameters, block }))
+    Ok((state, FunctionBody { start_paranthese, parameters, block, end_token }))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1439,7 +1459,7 @@ define_parser!(
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An expression, such as `x.y.z` or `x()`
-    Expression(VarExpression<'a>),
+    Expression(Box<VarExpression<'a>>),
     /// A literal identifier, such as `x`
     Name(TokenReference<'a>),
 }
@@ -1506,6 +1526,7 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    local_token: TokenReference<'a>,
     name: TokenReference<'a>,
     func_body: FunctionBody<'a>,
 }
@@ -1528,11 +1549,11 @@ define_parser!(
     ParseLocalFunction,
     LocalFunction<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::Local).parse(state.clone())?;
+        let (state, local_token) = ParseSymbol(Symbol::Local).parse(state.clone())?;
         let (state, _) = ParseSymbol(Symbol::Function).parse(state.clone())?;
         let (state, name) = expect!(state, ParseIdentifier.parse(state.clone()), "expected name");
         let (state, func_body) = ParseFunctionBody.parse(state.clone())?;
-        Ok((state, LocalFunction { name, func_body }))
+        Ok((state, LocalFunction { local_token, name, func_body }))
     }
 );
 
@@ -1541,6 +1562,7 @@ define_parser!(
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    local_token: TokenReference<'a>,
     name_list: Vec<TokenReference<'a>>,
     expr_list: Vec<Expression<'a>>,
 }
@@ -1568,7 +1590,7 @@ define_parser!(
     ParseLocalAssignment,
     LocalAssignment<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::Local).parse(state.clone())?;
+        let (state, local_token) = ParseSymbol(Symbol::Local).parse(state.clone())?;
         let (state, name_list) = expect!(
             state,
             OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
@@ -1590,6 +1612,7 @@ define_parser!(
         Ok((
             state,
             LocalAssignment {
+                local_token,
                 name_list,
                 expr_list,
             },
@@ -1597,18 +1620,31 @@ define_parser!(
     }
 );
 
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct Do<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    do_token: TokenReference<'a>,
+    block: Block<'a>,
+    end_token: TokenReference<'a>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct ParseDo;
-define_parser!(ParseDo, Block<'a>, |_, state: ParserState<'a>| {
-    let (state, _) = ParseSymbol(Symbol::Do).parse(state.clone())?;
+define_parser!(ParseDo, Do<'a>, |_, state: ParserState<'a>| {
+    let (state, do_token) = ParseSymbol(Symbol::Do).parse(state.clone())?;
     let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-    let (state, _) = expect!(
+    let (state, end_token) = expect!(
         state,
         ParseSymbol(Symbol::End).parse(state.clone()),
         "expected 'end'"
     );
 
-    Ok((state, block))
+    Ok((state, Do {
+        do_token,
+        block,
+        end_token,
+    }))
 });
 
 /// A function being called, such as `call()`
