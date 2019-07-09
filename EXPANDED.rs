@@ -672,10 +672,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for Block<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.stmts.start_position()?, self.last_stmt.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.stmts.start_position())
+                        .or_else(|| self.last_stmt.start_position())?,
+                    None.or_else(|| self.last_stmt.end_position())
+                        .or_else(|| self.stmts.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.stmts.start_position()?, self.last_stmt.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.stmts.start_position())
+                        .or_else(|| self.last_stmt.start_position())?,
+                    None.or_else(|| self.last_stmt.end_position())
+                        .or_else(|| self.stmts.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for Block<'a> {
@@ -1501,7 +1517,7 @@ pub mod ast {
         ExpressionKey {
             #[doc = " The `[` part of `[expression] = value`"]
             #[serde(borrow)]
-            start_bracket: TokenReference<'a>,
+            start_brace: TokenReference<'a>,
             #[doc = " The `expression` part of `[expression] = value`"]
             key: Box<Expression<'a>>,
             #[doc = " The `value` part of `[expression] = value`"]
@@ -1526,11 +1542,11 @@ pub mod ast {
         fn clone(&self) -> Field<'a> {
             match (&*self,) {
                 (&Field::ExpressionKey {
-                    start_bracket: ref __self_0,
+                    start_brace: ref __self_0,
                     key: ref __self_1,
                     value: ref __self_2,
                 },) => Field::ExpressionKey {
-                    start_bracket: ::std::clone::Clone::clone(&(*__self_0)),
+                    start_brace: ::std::clone::Clone::clone(&(*__self_0)),
                     key: ::std::clone::Clone::clone(&(*__self_1)),
                     value: ::std::clone::Clone::clone(&(*__self_2)),
                 },
@@ -1553,12 +1569,12 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match (&*self,) {
                 (&Field::ExpressionKey {
-                    start_bracket: ref __self_0,
+                    start_brace: ref __self_0,
                     key: ref __self_1,
                     value: ref __self_2,
                 },) => {
                     let mut debug_trait_builder = f.debug_struct("ExpressionKey");
-                    let _ = debug_trait_builder.field("start_bracket", &&(*__self_0));
+                    let _ = debug_trait_builder.field("start_brace", &&(*__self_0));
                     let _ = debug_trait_builder.field("key", &&(*__self_1));
                     let _ = debug_trait_builder.field("value", &&(*__self_2));
                     debug_trait_builder.finish()
@@ -1592,12 +1608,12 @@ pub mod ast {
                     match (&*self, &*other) {
                         (
                             &Field::ExpressionKey {
-                                start_bracket: ref __self_0,
+                                start_brace: ref __self_0,
                                 key: ref __self_1,
                                 value: ref __self_2,
                             },
                             &Field::ExpressionKey {
-                                start_bracket: ref __arg_1_0,
+                                start_brace: ref __arg_1_0,
                                 key: ref __arg_1_1,
                                 value: ref __arg_1_2,
                             },
@@ -1635,12 +1651,12 @@ pub mod ast {
                     match (&*self, &*other) {
                         (
                             &Field::ExpressionKey {
-                                start_bracket: ref __self_0,
+                                start_brace: ref __self_0,
                                 key: ref __self_1,
                                 value: ref __self_2,
                             },
                             &Field::ExpressionKey {
-                                start_bracket: ref __arg_1_0,
+                                start_brace: ref __arg_1_0,
                                 key: ref __arg_1_1,
                                 value: ref __arg_1_2,
                             },
@@ -1676,13 +1692,23 @@ pub mod ast {
                 #[allow(unused_variables)]
                 match self {
                     Field::ExpressionKey {
-                        start_bracket,
+                        start_brace,
                         key,
                         value,
-                    } => Some((start_bracket.start_position()?, value.end_position()?)),
-                    Field::NameKey { key, value } => {
-                        Some((key.start_position()?, value.end_position()?))
-                    }
+                    } => Some((
+                        None.or_else(|| start_brace.start_position())
+                            .or_else(|| key.start_position())
+                            .or_else(|| value.start_position())?,
+                        None.or_else(|| value.end_position())
+                            .or_else(|| key.end_position())
+                            .or_else(|| start_brace.end_position())?,
+                    )),
+                    Field::NameKey { key, value } => Some((
+                        None.or_else(|| key.start_position())
+                            .or_else(|| value.start_position())?,
+                        None.or_else(|| value.end_position())
+                            .or_else(|| key.end_position())?,
+                    )),
                     Field::NoKey(inner) => Some((inner.start_position()?, inner.end_position()?)),
                 }?
                 .0,
@@ -1693,13 +1719,23 @@ pub mod ast {
                 #[allow(unused_variables)]
                 match self {
                     Field::ExpressionKey {
-                        start_bracket,
+                        start_brace,
                         key,
                         value,
-                    } => Some((start_bracket.start_position()?, value.end_position()?)),
-                    Field::NameKey { key, value } => {
-                        Some((key.start_position()?, value.end_position()?))
-                    }
+                    } => Some((
+                        None.or_else(|| start_brace.start_position())
+                            .or_else(|| key.start_position())
+                            .or_else(|| value.start_position())?,
+                        None.or_else(|| value.end_position())
+                            .or_else(|| key.end_position())
+                            .or_else(|| start_brace.end_position())?,
+                    )),
+                    Field::NameKey { key, value } => Some((
+                        None.or_else(|| key.start_position())
+                            .or_else(|| value.start_position())?,
+                        None.or_else(|| value.end_position())
+                            .or_else(|| key.end_position())?,
+                    )),
                     Field::NoKey(inner) => Some((inner.start_position()?, inner.end_position()?)),
                 }?
                 .1,
@@ -1711,11 +1747,11 @@ pub mod ast {
             visitor.visit_field(self);
             match self {
                 Field::ExpressionKey {
-                    start_bracket,
+                    start_brace,
                     key,
                     value,
                 } => {
-                    start_bracket.visit(visitor);
+                    start_brace.visit(visitor);
                     key.visit(visitor);
                     value.visit(visitor);
                 }
@@ -1735,11 +1771,11 @@ pub mod ast {
             visitor.visit_field(self);
             match self {
                 Field::ExpressionKey {
-                    start_bracket,
+                    start_brace,
                     key,
                     value,
                 } => {
-                    start_bracket.visit_mut(visitor);
+                    start_brace.visit_mut(visitor);
                     key.visit_mut(visitor);
                     value.visit_mut(visitor);
                 }
@@ -1917,9 +1953,7 @@ pub mod ast {
                                         __E: _serde::de::Error,
                                     {
                                         match __value {
-                                            "start_bracket" => {
-                                                _serde::export::Ok(__Field::__field0)
-                                            }
+                                            "start_brace" => _serde::export::Ok(__Field::__field0),
                                             "key" => _serde::export::Ok(__Field::__field1),
                                             "value" => _serde::export::Ok(__Field::__field2),
                                             _ => _serde::export::Ok(__Field::__ignore),
@@ -1933,9 +1967,7 @@ pub mod ast {
                                         __E: _serde::de::Error,
                                     {
                                         match __value {
-                                            b"start_bracket" => {
-                                                _serde::export::Ok(__Field::__field0)
-                                            }
+                                            b"start_brace" => _serde::export::Ok(__Field::__field0),
                                             b"key" => _serde::export::Ok(__Field::__field1),
                                             b"value" => _serde::export::Ok(__Field::__field2),
                                             _ => _serde::export::Ok(__Field::__ignore),
@@ -2029,7 +2061,7 @@ pub mod ast {
                                                 }
                                             };
                                         _serde::export::Ok(Field::ExpressionKey {
-                                            start_bracket: __field0,
+                                            start_brace: __field0,
                                             key: __field1,
                                             value: __field2,
                                         })
@@ -2064,7 +2096,7 @@ pub mod ast {
                                             match __key {
                                                 __Field::__field0 => {
                                                     if _serde::export::Option::is_some(&__field0) {
-                                                        return _serde :: export :: Err ( < __A :: Error as _serde :: de :: Error > :: duplicate_field ( "start_bracket" ) ) ;
+                                                        return _serde :: export :: Err ( < __A :: Error as _serde :: de :: Error > :: duplicate_field ( "start_brace" ) ) ;
                                                     }
                                                     __field0 = _serde::export::Some(
                                                         match _serde::de::MapAccess::next_value::<
@@ -2131,7 +2163,7 @@ pub mod ast {
                                             _serde::export::Some(__field0) => __field0,
                                             _serde::export::None => {
                                                 match _serde::private::de::missing_field(
-                                                    "start_bracket",
+                                                    "start_brace",
                                                 ) {
                                                     _serde::export::Ok(__val) => __val,
                                                     _serde::export::Err(__err) => {
@@ -2163,14 +2195,14 @@ pub mod ast {
                                             }
                                         };
                                         _serde::export::Ok(Field::ExpressionKey {
-                                            start_bracket: __field0,
+                                            start_brace: __field0,
                                             key: __field1,
                                             value: __field2,
                                         })
                                     }
                                 }
                                 const FIELDS: &'static [&'static str] =
-                                    &["start_bracket", "key", "value"];
+                                    &["start_brace", "key", "value"];
                                 _serde::de::VariantAccess::struct_variant(
                                     __variant,
                                     FIELDS,
@@ -2469,7 +2501,7 @@ pub mod ast {
             {
                 match *self {
                     Field::ExpressionKey {
-                        ref start_bracket,
+                        ref start_brace,
                         ref key,
                         ref value,
                     } => {
@@ -2487,8 +2519,8 @@ pub mod ast {
                         };
                         match _serde::ser::SerializeStructVariant::serialize_field(
                             &mut __serde_state,
-                            "start_bracket",
-                            start_bracket,
+                            "start_brace",
+                            start_brace,
                         ) {
                             _serde::export::Ok(__val) => __val,
                             _serde::export::Err(__err) => {
@@ -2605,7 +2637,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, Field<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                if let Ok((state, start_bracket)) =
+                if let Ok((state, start_brace)) =
                     ParseSymbol(Symbol::LeftBracket).parse(state.clone())
                 {
                     let (state, key) = match ParseExpression.parse(state.clone()) {
@@ -2653,7 +2685,7 @@ pub mod ast {
                         state.clone(),
                         Field::ExpressionKey {
                             key,
-                            start_bracket,
+                            start_brace,
                             value,
                         },
                     ));
@@ -2695,6 +2727,7 @@ pub mod ast {
     #[doc = " A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`"]
     pub struct TableConstructor<'a> {
         #[serde(borrow)]
+        starting_brace: TokenReference<'a>,
         fields: Vec<TableConstructorField<'a>>,
     }
     #[automatically_derived]
@@ -2704,9 +2737,11 @@ pub mod ast {
         fn clone(&self) -> TableConstructor<'a> {
             match *self {
                 TableConstructor {
-                    fields: ref __self_0_0,
+                    starting_brace: ref __self_0_0,
+                    fields: ref __self_0_1,
                 } => TableConstructor {
-                    fields: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    starting_brace: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    fields: ::std::clone::Clone::clone(&(*__self_0_1)),
                 },
             }
         }
@@ -2717,10 +2752,12 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 TableConstructor {
-                    fields: ref __self_0_0,
+                    starting_brace: ref __self_0_0,
+                    fields: ref __self_0_1,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("TableConstructor");
-                    let _ = debug_trait_builder.field("fields", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("starting_brace", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("fields", &&(*__self_0_1));
                     debug_trait_builder.finish()
                 }
             }
@@ -2733,11 +2770,13 @@ pub mod ast {
         fn eq(&self, other: &TableConstructor<'a>) -> bool {
             match *other {
                 TableConstructor {
-                    fields: ref __self_1_0,
+                    starting_brace: ref __self_1_0,
+                    fields: ref __self_1_1,
                 } => match *self {
                     TableConstructor {
-                        fields: ref __self_0_0,
-                    } => (*__self_0_0) == (*__self_1_0),
+                        starting_brace: ref __self_0_0,
+                        fields: ref __self_0_1,
+                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
                 },
             }
         }
@@ -2745,32 +2784,52 @@ pub mod ast {
         fn ne(&self, other: &TableConstructor<'a>) -> bool {
             match *other {
                 TableConstructor {
-                    fields: ref __self_1_0,
+                    starting_brace: ref __self_1_0,
+                    fields: ref __self_1_1,
                 } => match *self {
                     TableConstructor {
-                        fields: ref __self_0_0,
-                    } => (*__self_0_0) != (*__self_1_0),
+                        starting_brace: ref __self_0_0,
+                        fields: ref __self_0_1,
+                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
                 },
             }
         }
     }
     impl<'a> crate::node::Node for TableConstructor<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.fields.start_position()?, self.fields.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.starting_brace.start_position())
+                        .or_else(|| self.fields.start_position())?,
+                    None.or_else(|| self.fields.end_position())
+                        .or_else(|| self.starting_brace.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.fields.start_position()?, self.fields.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.starting_brace.start_position())
+                        .or_else(|| self.fields.start_position())?,
+                    None.or_else(|| self.fields.end_position())
+                        .or_else(|| self.starting_brace.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for TableConstructor<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_table_constructor(self);
+            self.starting_brace.visit(visitor);
             self.fields.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for TableConstructor<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_table_constructor(self);
+            self.starting_brace.visit_mut(visitor);
             self.fields.visit_mut(visitor);
         }
     }
@@ -2788,6 +2847,7 @@ pub mod ast {
                 #[allow(non_camel_case_types)]
                 enum __Field {
                     __field0,
+                    __field1,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -2808,9 +2868,10 @@ pub mod ast {
                     {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
+                            1u64 => _serde::export::Ok(__Field::__field1),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 1",
+                                &"field index 0 <= i < 2",
                             )),
                         }
                     }
@@ -2822,7 +2883,8 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "fields" => _serde::export::Ok(__Field::__field0),
+                            "starting_brace" => _serde::export::Ok(__Field::__field0),
+                            "fields" => _serde::export::Ok(__Field::__field1),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -2834,7 +2896,8 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"fields" => _serde::export::Ok(__Field::__field0),
+                            b"starting_brace" => _serde::export::Ok(__Field::__field0),
+                            b"fields" => _serde::export::Ok(__Field::__field1),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -2871,7 +2934,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<TableConstructorField<'a>>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -2883,11 +2946,31 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct TableConstructor with 1 element",
+                                    &"struct TableConstructor with 2 elements",
                                 ));
                             }
                         };
-                        _serde::export::Ok(TableConstructor { fields: __field0 })
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<
+                            Vec<TableConstructorField<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    1usize,
+                                    &"struct TableConstructor with 2 elements",
+                                ));
+                            }
+                        };
+                        _serde::export::Ok(TableConstructor {
+                            starting_brace: __field0,
+                            fields: __field1,
+                        })
                     }
                     #[inline]
                     fn visit_map<__A>(
@@ -2897,7 +2980,9 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Vec<TableConstructorField<'a>>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
+                        let mut __field1: _serde::export::Option<Vec<TableConstructorField<'a>>> =
                             _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
@@ -2912,11 +2997,30 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "fields",
+                                                "starting_brace",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field1 => {
+                                    if _serde::export::Option::is_some(&__field1) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "fields",
+                                            ),
+                                        );
+                                    }
+                                    __field1 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<
                                             Vec<TableConstructorField<'a>>,
                                         >(&mut __map)
@@ -2944,6 +3048,17 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("starting_brace") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field1 = match __field1 {
+                            _serde::export::Some(__field1) => __field1,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("fields") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -2952,10 +3067,13 @@ pub mod ast {
                                 }
                             }
                         };
-                        _serde::export::Ok(TableConstructor { fields: __field0 })
+                        _serde::export::Ok(TableConstructor {
+                            starting_brace: __field0,
+                            fields: __field1,
+                        })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["fields"];
+                const FIELDS: &'static [&'static str] = &["starting_brace", "fields"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "TableConstructor",
@@ -2985,7 +3103,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "TableConstructor",
-                    false as usize + 1,
+                    false as usize + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "starting_brace",
+                    &self.starting_brace,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -3020,7 +3148,8 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, TableConstructor<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (mut state, _) = ParseSymbol(Symbol::LeftBrace).parse(state.clone())?;
+                let (mut state, starting_brace) =
+                    ParseSymbol(Symbol::LeftBrace).parse(state.clone())?;
                 let mut fields = Vec::new();
                 while let Ok((new_state, field)) = match ParseField.parse(state.clone()) {
                     Ok((state, node)) => Ok((state, node)),
@@ -3057,7 +3186,13 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                Ok((state, TableConstructor { fields }))
+                Ok((
+                    state,
+                    TableConstructor {
+                        fields,
+                        starting_brace,
+                    },
+                ))
             })(self, state)
         }
     }
@@ -3135,10 +3270,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for BinOpRhs<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.bin_op.start_position()?, self.rhs.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.bin_op.start_position())
+                        .or_else(|| self.rhs.start_position())?,
+                    None.or_else(|| self.rhs.end_position())
+                        .or_else(|| self.bin_op.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.bin_op.start_position()?, self.rhs.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.bin_op.start_position())
+                        .or_else(|| self.rhs.start_position())?,
+                    None.or_else(|| self.rhs.end_position())
+                        .or_else(|| self.bin_op.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for BinOpRhs<'a> {
@@ -3608,12 +3759,18 @@ pub mod ast {
             Some(
                 #[allow(unused_variables)]
                 match self {
-                    Expression::UnaryOperator { unop, expression } => {
-                        Some((unop.start_position()?, expression.end_position()?))
-                    }
-                    Expression::Value { value, binop } => {
-                        Some((value.start_position()?, binop.end_position()?))
-                    }
+                    Expression::UnaryOperator { unop, expression } => Some((
+                        None.or_else(|| unop.start_position())
+                            .or_else(|| expression.start_position())?,
+                        None.or_else(|| expression.end_position())
+                            .or_else(|| unop.end_position())?,
+                    )),
+                    Expression::Value { value, binop } => Some((
+                        None.or_else(|| value.start_position())
+                            .or_else(|| binop.start_position())?,
+                        None.or_else(|| binop.end_position())
+                            .or_else(|| value.end_position())?,
+                    )),
                 }?
                 .0,
             )
@@ -3622,12 +3779,18 @@ pub mod ast {
             Some(
                 #[allow(unused_variables)]
                 match self {
-                    Expression::UnaryOperator { unop, expression } => {
-                        Some((unop.start_position()?, expression.end_position()?))
-                    }
-                    Expression::Value { value, binop } => {
-                        Some((value.start_position()?, binop.end_position()?))
-                    }
+                    Expression::UnaryOperator { unop, expression } => Some((
+                        None.or_else(|| unop.start_position())
+                            .or_else(|| expression.start_position())?,
+                        None.or_else(|| expression.end_position())
+                            .or_else(|| unop.end_position())?,
+                    )),
+                    Expression::Value { value, binop } => Some((
+                        None.or_else(|| value.start_position())
+                            .or_else(|| binop.start_position())?,
+                        None.or_else(|| binop.end_position())
+                            .or_else(|| value.end_position())?,
+                    )),
                 }?
                 .1,
             )
@@ -5051,7 +5214,7 @@ pub mod ast {
         #[doc = " An assignment, such as `x = 1`"]
         Assignment(Assignment<'a>),
         #[doc = " A do block, `do end`"]
-        Do(Block<'a>),
+        Do(Do<'a>),
         #[doc = " A function call on its own, such as `call()`"]
         FunctionCall(Box<FunctionCall<'a>>),
         #[doc = " A function declaration, such as `function x() end`"]
@@ -5580,7 +5743,7 @@ pub mod ast {
                                 Stmt::Assignment,
                             ),
                             (__Field::__field1, __variant) => _serde::export::Result::map(
-                                _serde::de::VariantAccess::newtype_variant::<Block<'a>>(__variant),
+                                _serde::de::VariantAccess::newtype_variant::<Do<'a>>(__variant),
                                 Stmt::Do,
                             ),
                             (__Field::__field2, __variant) => _serde::export::Result::map(
@@ -7089,11 +7252,13 @@ pub mod ast {
     #[doc = " A numeric for loop, such as `for index = 1, 10 do end`"]
     pub struct NumericFor<'a> {
         #[serde(borrow)]
+        for_token: TokenReference<'a>,
         index_variable: TokenReference<'a>,
         start: Expression<'a>,
         end: Expression<'a>,
         step: Option<Expression<'a>>,
         block: Block<'a>,
+        end_token: TokenReference<'a>,
     }
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -7102,17 +7267,21 @@ pub mod ast {
         fn clone(&self) -> NumericFor<'a> {
             match *self {
                 NumericFor {
-                    index_variable: ref __self_0_0,
-                    start: ref __self_0_1,
-                    end: ref __self_0_2,
-                    step: ref __self_0_3,
-                    block: ref __self_0_4,
+                    for_token: ref __self_0_0,
+                    index_variable: ref __self_0_1,
+                    start: ref __self_0_2,
+                    end: ref __self_0_3,
+                    step: ref __self_0_4,
+                    block: ref __self_0_5,
+                    end_token: ref __self_0_6,
                 } => NumericFor {
-                    index_variable: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    start: ::std::clone::Clone::clone(&(*__self_0_1)),
-                    end: ::std::clone::Clone::clone(&(*__self_0_2)),
-                    step: ::std::clone::Clone::clone(&(*__self_0_3)),
-                    block: ::std::clone::Clone::clone(&(*__self_0_4)),
+                    for_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    index_variable: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    start: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    end: ::std::clone::Clone::clone(&(*__self_0_3)),
+                    step: ::std::clone::Clone::clone(&(*__self_0_4)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_5)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_6)),
                 },
             }
         }
@@ -7123,18 +7292,22 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 NumericFor {
-                    index_variable: ref __self_0_0,
-                    start: ref __self_0_1,
-                    end: ref __self_0_2,
-                    step: ref __self_0_3,
-                    block: ref __self_0_4,
+                    for_token: ref __self_0_0,
+                    index_variable: ref __self_0_1,
+                    start: ref __self_0_2,
+                    end: ref __self_0_3,
+                    step: ref __self_0_4,
+                    block: ref __self_0_5,
+                    end_token: ref __self_0_6,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("NumericFor");
-                    let _ = debug_trait_builder.field("index_variable", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("start", &&(*__self_0_1));
-                    let _ = debug_trait_builder.field("end", &&(*__self_0_2));
-                    let _ = debug_trait_builder.field("step", &&(*__self_0_3));
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_4));
+                    let _ = debug_trait_builder.field("for_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("index_variable", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("start", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("end", &&(*__self_0_3));
+                    let _ = debug_trait_builder.field("step", &&(*__self_0_4));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_5));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_6));
                     debug_trait_builder.finish()
                 }
             }
@@ -7147,24 +7320,30 @@ pub mod ast {
         fn eq(&self, other: &NumericFor<'a>) -> bool {
             match *other {
                 NumericFor {
-                    index_variable: ref __self_1_0,
-                    start: ref __self_1_1,
-                    end: ref __self_1_2,
-                    step: ref __self_1_3,
-                    block: ref __self_1_4,
+                    for_token: ref __self_1_0,
+                    index_variable: ref __self_1_1,
+                    start: ref __self_1_2,
+                    end: ref __self_1_3,
+                    step: ref __self_1_4,
+                    block: ref __self_1_5,
+                    end_token: ref __self_1_6,
                 } => match *self {
                     NumericFor {
-                        index_variable: ref __self_0_0,
-                        start: ref __self_0_1,
-                        end: ref __self_0_2,
-                        step: ref __self_0_3,
-                        block: ref __self_0_4,
+                        for_token: ref __self_0_0,
+                        index_variable: ref __self_0_1,
+                        start: ref __self_0_2,
+                        end: ref __self_0_3,
+                        step: ref __self_0_4,
+                        block: ref __self_0_5,
+                        end_token: ref __self_0_6,
                     } => {
                         (*__self_0_0) == (*__self_1_0)
                             && (*__self_0_1) == (*__self_1_1)
                             && (*__self_0_2) == (*__self_1_2)
                             && (*__self_0_3) == (*__self_1_3)
                             && (*__self_0_4) == (*__self_1_4)
+                            && (*__self_0_5) == (*__self_1_5)
+                            && (*__self_0_6) == (*__self_1_6)
                     }
                 },
             }
@@ -7173,24 +7352,30 @@ pub mod ast {
         fn ne(&self, other: &NumericFor<'a>) -> bool {
             match *other {
                 NumericFor {
-                    index_variable: ref __self_1_0,
-                    start: ref __self_1_1,
-                    end: ref __self_1_2,
-                    step: ref __self_1_3,
-                    block: ref __self_1_4,
+                    for_token: ref __self_1_0,
+                    index_variable: ref __self_1_1,
+                    start: ref __self_1_2,
+                    end: ref __self_1_3,
+                    step: ref __self_1_4,
+                    block: ref __self_1_5,
+                    end_token: ref __self_1_6,
                 } => match *self {
                     NumericFor {
-                        index_variable: ref __self_0_0,
-                        start: ref __self_0_1,
-                        end: ref __self_0_2,
-                        step: ref __self_0_3,
-                        block: ref __self_0_4,
+                        for_token: ref __self_0_0,
+                        index_variable: ref __self_0_1,
+                        start: ref __self_0_2,
+                        end: ref __self_0_3,
+                        step: ref __self_0_4,
+                        block: ref __self_0_5,
+                        end_token: ref __self_0_6,
                     } => {
                         (*__self_0_0) != (*__self_1_0)
                             || (*__self_0_1) != (*__self_1_1)
                             || (*__self_0_2) != (*__self_1_2)
                             || (*__self_0_3) != (*__self_1_3)
                             || (*__self_0_4) != (*__self_1_4)
+                            || (*__self_0_5) != (*__self_1_5)
+                            || (*__self_0_6) != (*__self_1_6)
                     }
                 },
             }
@@ -7200,8 +7385,20 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.index_variable.start_position()?,
-                    self.block.end_position()?,
+                    None.or_else(|| self.for_token.start_position())
+                        .or_else(|| self.index_variable.start_position())
+                        .or_else(|| self.start.start_position())
+                        .or_else(|| self.end.start_position())
+                        .or_else(|| self.step.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.step.end_position())
+                        .or_else(|| self.end.end_position())
+                        .or_else(|| self.start.end_position())
+                        .or_else(|| self.index_variable.end_position())
+                        .or_else(|| self.for_token.end_position())?,
                 ))?
                 .0,
             )
@@ -7209,8 +7406,20 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.index_variable.start_position()?,
-                    self.block.end_position()?,
+                    None.or_else(|| self.for_token.start_position())
+                        .or_else(|| self.index_variable.start_position())
+                        .or_else(|| self.start.start_position())
+                        .or_else(|| self.end.start_position())
+                        .or_else(|| self.step.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.step.end_position())
+                        .or_else(|| self.end.end_position())
+                        .or_else(|| self.start.end_position())
+                        .or_else(|| self.index_variable.end_position())
+                        .or_else(|| self.for_token.end_position())?,
                 ))?
                 .1,
             )
@@ -7219,21 +7428,25 @@ pub mod ast {
     impl<'a> crate::visitors::Visit<'a> for NumericFor<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_numeric_for(self);
+            self.for_token.visit(visitor);
             self.index_variable.visit(visitor);
             self.start.visit(visitor);
             self.end.visit(visitor);
             self.step.visit(visitor);
             self.block.visit(visitor);
+            self.end_token.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for NumericFor<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_numeric_for(self);
+            self.for_token.visit_mut(visitor);
             self.index_variable.visit_mut(visitor);
             self.start.visit_mut(visitor);
             self.end.visit_mut(visitor);
             self.step.visit_mut(visitor);
             self.block.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
         }
     }
     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -7254,6 +7467,8 @@ pub mod ast {
                     __field2,
                     __field3,
                     __field4,
+                    __field5,
+                    __field6,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -7278,9 +7493,11 @@ pub mod ast {
                             2u64 => _serde::export::Ok(__Field::__field2),
                             3u64 => _serde::export::Ok(__Field::__field3),
                             4u64 => _serde::export::Ok(__Field::__field4),
+                            5u64 => _serde::export::Ok(__Field::__field5),
+                            6u64 => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 5",
+                                &"field index 0 <= i < 7",
                             )),
                         }
                     }
@@ -7292,11 +7509,13 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "index_variable" => _serde::export::Ok(__Field::__field0),
-                            "start" => _serde::export::Ok(__Field::__field1),
-                            "end" => _serde::export::Ok(__Field::__field2),
-                            "step" => _serde::export::Ok(__Field::__field3),
-                            "block" => _serde::export::Ok(__Field::__field4),
+                            "for_token" => _serde::export::Ok(__Field::__field0),
+                            "index_variable" => _serde::export::Ok(__Field::__field1),
+                            "start" => _serde::export::Ok(__Field::__field2),
+                            "end" => _serde::export::Ok(__Field::__field3),
+                            "step" => _serde::export::Ok(__Field::__field4),
+                            "block" => _serde::export::Ok(__Field::__field5),
+                            "end_token" => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -7308,11 +7527,13 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"index_variable" => _serde::export::Ok(__Field::__field0),
-                            b"start" => _serde::export::Ok(__Field::__field1),
-                            b"end" => _serde::export::Ok(__Field::__field2),
-                            b"step" => _serde::export::Ok(__Field::__field3),
-                            b"block" => _serde::export::Ok(__Field::__field4),
+                            b"for_token" => _serde::export::Ok(__Field::__field0),
+                            b"index_variable" => _serde::export::Ok(__Field::__field1),
+                            b"start" => _serde::export::Ok(__Field::__field2),
+                            b"end" => _serde::export::Ok(__Field::__field3),
+                            b"step" => _serde::export::Ok(__Field::__field4),
+                            b"block" => _serde::export::Ok(__Field::__field5),
+                            b"end_token" => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -7361,12 +7582,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct NumericFor with 5 elements",
+                                    &"struct NumericFor with 7 elements",
                                 ));
                             }
                         };
                         let __field1 = match match _serde::de::SeqAccess::next_element::<
-                            Expression<'a>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -7378,7 +7599,7 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     1usize,
-                                    &"struct NumericFor with 5 elements",
+                                    &"struct NumericFor with 7 elements",
                                 ));
                             }
                         };
@@ -7395,12 +7616,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     2usize,
-                                    &"struct NumericFor with 5 elements",
+                                    &"struct NumericFor with 7 elements",
                                 ));
                             }
                         };
                         let __field3 = match match _serde::de::SeqAccess::next_element::<
-                            Option<Expression<'a>>,
+                            Expression<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -7412,11 +7633,28 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     3usize,
-                                    &"struct NumericFor with 5 elements",
+                                    &"struct NumericFor with 7 elements",
                                 ));
                             }
                         };
-                        let __field4 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                        let __field4 = match match _serde::de::SeqAccess::next_element::<
+                            Option<Expression<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    4usize,
+                                    &"struct NumericFor with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field5 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
                             &mut __seq,
                         ) {
                             _serde::export::Ok(__val) => __val,
@@ -7427,17 +7665,36 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    4usize,
-                                    &"struct NumericFor with 5 elements",
+                                    5usize,
+                                    &"struct NumericFor with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field6 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    6usize,
+                                    &"struct NumericFor with 7 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(NumericFor {
-                            index_variable: __field0,
-                            start: __field1,
-                            end: __field2,
-                            step: __field3,
-                            block: __field4,
+                            for_token: __field0,
+                            index_variable: __field1,
+                            start: __field2,
+                            end: __field3,
+                            step: __field4,
+                            block: __field5,
+                            end_token: __field6,
                         })
                     }
                     #[inline]
@@ -7450,13 +7707,17 @@ pub mod ast {
                     {
                         let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Expression<'a>> =
+                        let mut __field1: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
                         let mut __field2: _serde::export::Option<Expression<'a>> =
                             _serde::export::None;
-                        let mut __field3: _serde::export::Option<Option<Expression<'a>>> =
+                        let mut __field3: _serde::export::Option<Expression<'a>> =
                             _serde::export::None;
-                        let mut __field4: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field4: _serde::export::Option<Option<Expression<'a>>> =
+                            _serde::export::None;
+                        let mut __field5: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field6: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
                                 _serde::export::Ok(__val) => __val,
@@ -7470,7 +7731,7 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "index_variable",
+                                                "for_token",
                                             ),
                                         );
                                     }
@@ -7489,12 +7750,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "start",
+                                                "index_variable",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -7508,7 +7769,7 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field2) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "end",
+                                                "start",
                                             ),
                                         );
                                     }
@@ -7527,15 +7788,14 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field3) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "step",
+                                                "end",
                                             ),
                                         );
                                     }
                                     __field3 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<
-                                            Option<Expression<'a>>,
-                                        >(&mut __map)
-                                        {
+                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
+                                            &mut __map,
+                                        ) {
                                             _serde::export::Ok(__val) => __val,
                                             _serde::export::Err(__err) => {
                                                 return _serde::export::Err(__err);
@@ -7547,12 +7807,51 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field4) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "step",
                                             ),
                                         );
                                     }
                                     __field4 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<
+                                            Option<Expression<'a>>,
+                                        >(&mut __map)
+                                        {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field5 => {
+                                    if _serde::export::Option::is_some(&__field5) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "block",
+                                            ),
+                                        );
+                                    }
+                                    __field5 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field6 => {
+                                    if _serde::export::Option::is_some(&__field6) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field6 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -7578,7 +7877,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("index_variable") {
+                                match _serde::private::de::missing_field("for_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -7589,7 +7888,7 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("start") {
+                                match _serde::private::de::missing_field("index_variable") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -7599,6 +7898,17 @@ pub mod ast {
                         };
                         let __field2 = match __field2 {
                             _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("start") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field3 = match __field3 {
+                            _serde::export::Some(__field3) => __field3,
                             _serde::export::None => match _serde::private::de::missing_field("end")
                             {
                                 _serde::export::Ok(__val) => __val,
@@ -7607,8 +7917,8 @@ pub mod ast {
                                 }
                             },
                         };
-                        let __field3 = match __field3 {
-                            _serde::export::Some(__field3) => __field3,
+                        let __field4 = match __field4 {
+                            _serde::export::Some(__field4) => __field4,
                             _serde::export::None => {
                                 match _serde::private::de::missing_field("step") {
                                     _serde::export::Ok(__val) => __val,
@@ -7618,8 +7928,8 @@ pub mod ast {
                                 }
                             }
                         };
-                        let __field4 = match __field4 {
-                            _serde::export::Some(__field4) => __field4,
+                        let __field5 = match __field5 {
+                            _serde::export::Some(__field5) => __field5,
                             _serde::export::None => {
                                 match _serde::private::de::missing_field("block") {
                                     _serde::export::Ok(__val) => __val,
@@ -7629,17 +7939,37 @@ pub mod ast {
                                 }
                             }
                         };
+                        let __field6 = match __field6 {
+                            _serde::export::Some(__field6) => __field6,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
                         _serde::export::Ok(NumericFor {
-                            index_variable: __field0,
-                            start: __field1,
-                            end: __field2,
-                            step: __field3,
-                            block: __field4,
+                            for_token: __field0,
+                            index_variable: __field1,
+                            start: __field2,
+                            end: __field3,
+                            step: __field4,
+                            block: __field5,
+                            end_token: __field6,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] =
-                    &["index_variable", "start", "end", "step", "block"];
+                const FIELDS: &'static [&'static str] = &[
+                    "for_token",
+                    "index_variable",
+                    "start",
+                    "end",
+                    "step",
+                    "block",
+                    "end_token",
+                ];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "NumericFor",
@@ -7669,7 +7999,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "NumericFor",
-                    false as usize + 1 + 1 + 1 + 1 + 1,
+                    false as usize + 1 + 1 + 1 + 1 + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "for_token",
+                    &self.for_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -7720,6 +8060,16 @@ pub mod ast {
                     &mut __serde_state,
                     "block",
                     &self.block,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -7794,7 +8144,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, NumericFor<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::For).parse(state.clone())?;
+                let (state, for_token) = ParseSymbol(Symbol::For).parse(state.clone())?;
                 let (state, index_variable) = match ParseIdentifier.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
@@ -7872,7 +8222,7 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -7885,11 +8235,13 @@ pub mod ast {
                 Ok((
                     state,
                     NumericFor {
+                        for_token,
                         index_variable,
                         start,
                         end,
                         step,
                         block,
+                        end_token,
                     },
                 ))
             })(self, state)
@@ -7898,9 +8250,11 @@ pub mod ast {
     #[doc = " A generic for loop, such as `for index, value in pairs(list) do end`"]
     pub struct GenericFor<'a> {
         #[serde(borrow)]
+        for_token: TokenReference<'a>,
         names: Vec<TokenReference<'a>>,
         expr_list: Vec<Expression<'a>>,
         block: Block<'a>,
+        end_token: TokenReference<'a>,
     }
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -7909,13 +8263,17 @@ pub mod ast {
         fn clone(&self) -> GenericFor<'a> {
             match *self {
                 GenericFor {
-                    names: ref __self_0_0,
-                    expr_list: ref __self_0_1,
-                    block: ref __self_0_2,
+                    for_token: ref __self_0_0,
+                    names: ref __self_0_1,
+                    expr_list: ref __self_0_2,
+                    block: ref __self_0_3,
+                    end_token: ref __self_0_4,
                 } => GenericFor {
-                    names: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    expr_list: ::std::clone::Clone::clone(&(*__self_0_1)),
-                    block: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    for_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    names: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    expr_list: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_3)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_4)),
                 },
             }
         }
@@ -7926,14 +8284,18 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 GenericFor {
-                    names: ref __self_0_0,
-                    expr_list: ref __self_0_1,
-                    block: ref __self_0_2,
+                    for_token: ref __self_0_0,
+                    names: ref __self_0_1,
+                    expr_list: ref __self_0_2,
+                    block: ref __self_0_3,
+                    end_token: ref __self_0_4,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("GenericFor");
-                    let _ = debug_trait_builder.field("names", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("expr_list", &&(*__self_0_1));
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("for_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("names", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("expr_list", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_3));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_4));
                     debug_trait_builder.finish()
                 }
             }
@@ -7946,18 +8308,24 @@ pub mod ast {
         fn eq(&self, other: &GenericFor<'a>) -> bool {
             match *other {
                 GenericFor {
-                    names: ref __self_1_0,
-                    expr_list: ref __self_1_1,
-                    block: ref __self_1_2,
+                    for_token: ref __self_1_0,
+                    names: ref __self_1_1,
+                    expr_list: ref __self_1_2,
+                    block: ref __self_1_3,
+                    end_token: ref __self_1_4,
                 } => match *self {
                     GenericFor {
-                        names: ref __self_0_0,
-                        expr_list: ref __self_0_1,
-                        block: ref __self_0_2,
+                        for_token: ref __self_0_0,
+                        names: ref __self_0_1,
+                        expr_list: ref __self_0_2,
+                        block: ref __self_0_3,
+                        end_token: ref __self_0_4,
                     } => {
                         (*__self_0_0) == (*__self_1_0)
                             && (*__self_0_1) == (*__self_1_1)
                             && (*__self_0_2) == (*__self_1_2)
+                            && (*__self_0_3) == (*__self_1_3)
+                            && (*__self_0_4) == (*__self_1_4)
                     }
                 },
             }
@@ -7966,18 +8334,24 @@ pub mod ast {
         fn ne(&self, other: &GenericFor<'a>) -> bool {
             match *other {
                 GenericFor {
-                    names: ref __self_1_0,
-                    expr_list: ref __self_1_1,
-                    block: ref __self_1_2,
+                    for_token: ref __self_1_0,
+                    names: ref __self_1_1,
+                    expr_list: ref __self_1_2,
+                    block: ref __self_1_3,
+                    end_token: ref __self_1_4,
                 } => match *self {
                     GenericFor {
-                        names: ref __self_0_0,
-                        expr_list: ref __self_0_1,
-                        block: ref __self_0_2,
+                        for_token: ref __self_0_0,
+                        names: ref __self_0_1,
+                        expr_list: ref __self_0_2,
+                        block: ref __self_0_3,
+                        end_token: ref __self_0_4,
                     } => {
                         (*__self_0_0) != (*__self_1_0)
                             || (*__self_0_1) != (*__self_1_1)
                             || (*__self_0_2) != (*__self_1_2)
+                            || (*__self_0_3) != (*__self_1_3)
+                            || (*__self_0_4) != (*__self_1_4)
                     }
                 },
             }
@@ -7985,26 +8359,58 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for GenericFor<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.names.start_position()?, self.block.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.for_token.start_position())
+                        .or_else(|| self.names.start_position())
+                        .or_else(|| self.expr_list.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.names.end_position())
+                        .or_else(|| self.for_token.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.names.start_position()?, self.block.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.for_token.start_position())
+                        .or_else(|| self.names.start_position())
+                        .or_else(|| self.expr_list.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.names.end_position())
+                        .or_else(|| self.for_token.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for GenericFor<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_generic_for(self);
+            self.for_token.visit(visitor);
             self.names.visit(visitor);
             self.expr_list.visit(visitor);
             self.block.visit(visitor);
+            self.end_token.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for GenericFor<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_generic_for(self);
+            self.for_token.visit_mut(visitor);
             self.names.visit_mut(visitor);
             self.expr_list.visit_mut(visitor);
             self.block.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
         }
     }
     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -8023,6 +8429,8 @@ pub mod ast {
                     __field0,
                     __field1,
                     __field2,
+                    __field3,
+                    __field4,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -8045,9 +8453,11 @@ pub mod ast {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
                             2u64 => _serde::export::Ok(__Field::__field2),
+                            3u64 => _serde::export::Ok(__Field::__field3),
+                            4u64 => _serde::export::Ok(__Field::__field4),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 3",
+                                &"field index 0 <= i < 5",
                             )),
                         }
                     }
@@ -8059,9 +8469,11 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "names" => _serde::export::Ok(__Field::__field0),
-                            "expr_list" => _serde::export::Ok(__Field::__field1),
-                            "block" => _serde::export::Ok(__Field::__field2),
+                            "for_token" => _serde::export::Ok(__Field::__field0),
+                            "names" => _serde::export::Ok(__Field::__field1),
+                            "expr_list" => _serde::export::Ok(__Field::__field2),
+                            "block" => _serde::export::Ok(__Field::__field3),
+                            "end_token" => _serde::export::Ok(__Field::__field4),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -8073,9 +8485,11 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"names" => _serde::export::Ok(__Field::__field0),
-                            b"expr_list" => _serde::export::Ok(__Field::__field1),
-                            b"block" => _serde::export::Ok(__Field::__field2),
+                            b"for_token" => _serde::export::Ok(__Field::__field0),
+                            b"names" => _serde::export::Ok(__Field::__field1),
+                            b"expr_list" => _serde::export::Ok(__Field::__field2),
+                            b"block" => _serde::export::Ok(__Field::__field3),
+                            b"end_token" => _serde::export::Ok(__Field::__field4),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -8112,7 +8526,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<TokenReference<'a>>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -8124,12 +8538,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct GenericFor with 3 elements",
+                                    &"struct GenericFor with 5 elements",
                                 ));
                             }
                         };
                         let __field1 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<Expression<'a>>,
+                            Vec<TokenReference<'a>>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -8141,11 +8555,28 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     1usize,
-                                    &"struct GenericFor with 3 elements",
+                                    &"struct GenericFor with 5 elements",
                                 ));
                             }
                         };
-                        let __field2 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<
+                            Vec<Expression<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    2usize,
+                                    &"struct GenericFor with 5 elements",
+                                ));
+                            }
+                        };
+                        let __field3 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
                             &mut __seq,
                         ) {
                             _serde::export::Ok(__val) => __val,
@@ -8156,15 +8587,34 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    2usize,
-                                    &"struct GenericFor with 3 elements",
+                                    3usize,
+                                    &"struct GenericFor with 5 elements",
+                                ));
+                            }
+                        };
+                        let __field4 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    4usize,
+                                    &"struct GenericFor with 5 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(GenericFor {
-                            names: __field0,
-                            expr_list: __field1,
-                            block: __field2,
+                            for_token: __field0,
+                            names: __field1,
+                            expr_list: __field2,
+                            block: __field3,
+                            end_token: __field4,
                         })
                     }
                     #[inline]
@@ -8175,11 +8625,15 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Vec<TokenReference<'a>>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Vec<Expression<'a>>> =
+                        let mut __field1: _serde::export::Option<Vec<TokenReference<'a>>> =
                             _serde::export::None;
-                        let mut __field2: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field2: _serde::export::Option<Vec<Expression<'a>>> =
+                            _serde::export::None;
+                        let mut __field3: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field4: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
                                 _serde::export::Ok(__val) => __val,
@@ -8193,15 +8647,14 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "names",
+                                                "for_token",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<
-                                            Vec<TokenReference<'a>>,
-                                        >(&mut __map)
-                                        {
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
                                             _serde::export::Ok(__val) => __val,
                                             _serde::export::Err(__err) => {
                                                 return _serde::export::Err(__err);
@@ -8213,14 +8666,15 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "expr_list",
+                                                "names",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Vec<Expression<'a>>>(
-                                            &mut __map,
-                                        ) {
+                                        match _serde::de::MapAccess::next_value::<
+                                            Vec<TokenReference<'a>>,
+                                        >(&mut __map)
+                                        {
                                             _serde::export::Ok(__val) => __val,
                                             _serde::export::Err(__err) => {
                                                 return _serde::export::Err(__err);
@@ -8232,12 +8686,50 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field2) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "expr_list",
                                             ),
                                         );
                                     }
                                     __field2 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<Vec<Expression<'a>>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field3 => {
+                                    if _serde::export::Option::is_some(&__field3) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "block",
+                                            ),
+                                        );
+                                    }
+                                    __field3 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field4 => {
+                                    if _serde::export::Option::is_some(&__field4) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field4 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -8263,7 +8755,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("names") {
+                                match _serde::private::de::missing_field("for_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -8274,7 +8766,7 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("expr_list") {
+                                match _serde::private::de::missing_field("names") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -8285,6 +8777,17 @@ pub mod ast {
                         let __field2 = match __field2 {
                             _serde::export::Some(__field2) => __field2,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("expr_list") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field3 = match __field3 {
+                            _serde::export::Some(__field3) => __field3,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("block") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -8293,14 +8796,28 @@ pub mod ast {
                                 }
                             }
                         };
+                        let __field4 = match __field4 {
+                            _serde::export::Some(__field4) => __field4,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
                         _serde::export::Ok(GenericFor {
-                            names: __field0,
-                            expr_list: __field1,
-                            block: __field2,
+                            for_token: __field0,
+                            names: __field1,
+                            expr_list: __field2,
+                            block: __field3,
+                            end_token: __field4,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["names", "expr_list", "block"];
+                const FIELDS: &'static [&'static str] =
+                    &["for_token", "names", "expr_list", "block", "end_token"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "GenericFor",
@@ -8330,7 +8847,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "GenericFor",
-                    false as usize + 1 + 1 + 1,
+                    false as usize + 1 + 1 + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "for_token",
+                    &self.for_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -8361,6 +8888,16 @@ pub mod ast {
                     &mut __serde_state,
                     "block",
                     &self.block,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -8429,7 +8966,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, GenericFor<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::For).parse(state.clone())?;
+                let (state, for_token) = ParseSymbol(Symbol::For).parse(state.clone())?;
                 let (state, names) =
                     match OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false)
                         .parse(state.clone())
@@ -8486,7 +9023,7 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -8499,9 +9036,11 @@ pub mod ast {
                 Ok((
                     state,
                     GenericFor {
+                        for_token,
                         names,
                         expr_list,
                         block,
+                        end_token,
                     },
                 ))
             })(self, state)
@@ -8510,11 +9049,14 @@ pub mod ast {
     #[doc = " An if statement"]
     pub struct If<'a> {
         #[serde(borrow)]
+        if_token: TokenReference<'a>,
         condition: Expression<'a>,
         block: Block<'a>,
         else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+        else_token: Option<TokenReference<'a>>,
         #[serde(rename = "else")]
         r#else: Option<Block<'a>>,
+        end_token: TokenReference<'a>,
     }
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -8523,15 +9065,21 @@ pub mod ast {
         fn clone(&self) -> If<'a> {
             match *self {
                 If {
-                    condition: ref __self_0_0,
-                    block: ref __self_0_1,
-                    else_if: ref __self_0_2,
-                    r#else: ref __self_0_3,
+                    if_token: ref __self_0_0,
+                    condition: ref __self_0_1,
+                    block: ref __self_0_2,
+                    else_if: ref __self_0_3,
+                    else_token: ref __self_0_4,
+                    r#else: ref __self_0_5,
+                    end_token: ref __self_0_6,
                 } => If {
-                    condition: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    block: ::std::clone::Clone::clone(&(*__self_0_1)),
-                    else_if: ::std::clone::Clone::clone(&(*__self_0_2)),
-                    r#else: ::std::clone::Clone::clone(&(*__self_0_3)),
+                    if_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    condition: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    else_if: ::std::clone::Clone::clone(&(*__self_0_3)),
+                    else_token: ::std::clone::Clone::clone(&(*__self_0_4)),
+                    r#else: ::std::clone::Clone::clone(&(*__self_0_5)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_6)),
                 },
             }
         }
@@ -8542,16 +9090,22 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 If {
-                    condition: ref __self_0_0,
-                    block: ref __self_0_1,
-                    else_if: ref __self_0_2,
-                    r#else: ref __self_0_3,
+                    if_token: ref __self_0_0,
+                    condition: ref __self_0_1,
+                    block: ref __self_0_2,
+                    else_if: ref __self_0_3,
+                    else_token: ref __self_0_4,
+                    r#else: ref __self_0_5,
+                    end_token: ref __self_0_6,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("If");
-                    let _ = debug_trait_builder.field("condition", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_1));
-                    let _ = debug_trait_builder.field("else_if", &&(*__self_0_2));
-                    let _ = debug_trait_builder.field("else", &&(*__self_0_3));
+                    let _ = debug_trait_builder.field("if_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("condition", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("else_if", &&(*__self_0_3));
+                    let _ = debug_trait_builder.field("else_token", &&(*__self_0_4));
+                    let _ = debug_trait_builder.field("else", &&(*__self_0_5));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_6));
                     debug_trait_builder.finish()
                 }
             }
@@ -8564,21 +9118,30 @@ pub mod ast {
         fn eq(&self, other: &If<'a>) -> bool {
             match *other {
                 If {
-                    condition: ref __self_1_0,
-                    block: ref __self_1_1,
-                    else_if: ref __self_1_2,
-                    r#else: ref __self_1_3,
+                    if_token: ref __self_1_0,
+                    condition: ref __self_1_1,
+                    block: ref __self_1_2,
+                    else_if: ref __self_1_3,
+                    else_token: ref __self_1_4,
+                    r#else: ref __self_1_5,
+                    end_token: ref __self_1_6,
                 } => match *self {
                     If {
-                        condition: ref __self_0_0,
-                        block: ref __self_0_1,
-                        else_if: ref __self_0_2,
-                        r#else: ref __self_0_3,
+                        if_token: ref __self_0_0,
+                        condition: ref __self_0_1,
+                        block: ref __self_0_2,
+                        else_if: ref __self_0_3,
+                        else_token: ref __self_0_4,
+                        r#else: ref __self_0_5,
+                        end_token: ref __self_0_6,
                     } => {
                         (*__self_0_0) == (*__self_1_0)
                             && (*__self_0_1) == (*__self_1_1)
                             && (*__self_0_2) == (*__self_1_2)
                             && (*__self_0_3) == (*__self_1_3)
+                            && (*__self_0_4) == (*__self_1_4)
+                            && (*__self_0_5) == (*__self_1_5)
+                            && (*__self_0_6) == (*__self_1_6)
                     }
                 },
             }
@@ -8587,21 +9150,30 @@ pub mod ast {
         fn ne(&self, other: &If<'a>) -> bool {
             match *other {
                 If {
-                    condition: ref __self_1_0,
-                    block: ref __self_1_1,
-                    else_if: ref __self_1_2,
-                    r#else: ref __self_1_3,
+                    if_token: ref __self_1_0,
+                    condition: ref __self_1_1,
+                    block: ref __self_1_2,
+                    else_if: ref __self_1_3,
+                    else_token: ref __self_1_4,
+                    r#else: ref __self_1_5,
+                    end_token: ref __self_1_6,
                 } => match *self {
                     If {
-                        condition: ref __self_0_0,
-                        block: ref __self_0_1,
-                        else_if: ref __self_0_2,
-                        r#else: ref __self_0_3,
+                        if_token: ref __self_0_0,
+                        condition: ref __self_0_1,
+                        block: ref __self_0_2,
+                        else_if: ref __self_0_3,
+                        else_token: ref __self_0_4,
+                        r#else: ref __self_0_5,
+                        end_token: ref __self_0_6,
                     } => {
                         (*__self_0_0) != (*__self_1_0)
                             || (*__self_0_1) != (*__self_1_1)
                             || (*__self_0_2) != (*__self_1_2)
                             || (*__self_0_3) != (*__self_1_3)
+                            || (*__self_0_4) != (*__self_1_4)
+                            || (*__self_0_5) != (*__self_1_5)
+                            || (*__self_0_6) != (*__self_1_6)
                     }
                 },
             }
@@ -8611,8 +9183,20 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.condition.start_position()?,
-                    self.r#else.end_position()?,
+                    None.or_else(|| self.if_token.start_position())
+                        .or_else(|| self.condition.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.else_if.start_position())
+                        .or_else(|| self.else_token.start_position())
+                        .or_else(|| self.r#else.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.r#else.end_position())
+                        .or_else(|| self.else_token.end_position())
+                        .or_else(|| self.else_if.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.condition.end_position())
+                        .or_else(|| self.if_token.end_position())?,
                 ))?
                 .0,
             )
@@ -8620,8 +9204,20 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.condition.start_position()?,
-                    self.r#else.end_position()?,
+                    None.or_else(|| self.if_token.start_position())
+                        .or_else(|| self.condition.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.else_if.start_position())
+                        .or_else(|| self.else_token.start_position())
+                        .or_else(|| self.r#else.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.r#else.end_position())
+                        .or_else(|| self.else_token.end_position())
+                        .or_else(|| self.else_if.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.condition.end_position())
+                        .or_else(|| self.if_token.end_position())?,
                 ))?
                 .1,
             )
@@ -8630,19 +9226,25 @@ pub mod ast {
     impl<'a> crate::visitors::Visit<'a> for If<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_if(self);
+            self.if_token.visit(visitor);
             self.condition.visit(visitor);
             self.block.visit(visitor);
             self.else_if.visit(visitor);
+            self.else_token.visit(visitor);
             self.r#else.visit(visitor);
+            self.end_token.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for If<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_if(self);
+            self.if_token.visit_mut(visitor);
             self.condition.visit_mut(visitor);
             self.block.visit_mut(visitor);
             self.else_if.visit_mut(visitor);
+            self.else_token.visit_mut(visitor);
             self.r#else.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
         }
     }
     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -8662,6 +9264,9 @@ pub mod ast {
                     __field1,
                     __field2,
                     __field3,
+                    __field4,
+                    __field5,
+                    __field6,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -8685,9 +9290,12 @@ pub mod ast {
                             1u64 => _serde::export::Ok(__Field::__field1),
                             2u64 => _serde::export::Ok(__Field::__field2),
                             3u64 => _serde::export::Ok(__Field::__field3),
+                            4u64 => _serde::export::Ok(__Field::__field4),
+                            5u64 => _serde::export::Ok(__Field::__field5),
+                            6u64 => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 4",
+                                &"field index 0 <= i < 7",
                             )),
                         }
                     }
@@ -8699,10 +9307,13 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "condition" => _serde::export::Ok(__Field::__field0),
-                            "block" => _serde::export::Ok(__Field::__field1),
-                            "else_if" => _serde::export::Ok(__Field::__field2),
-                            "else" => _serde::export::Ok(__Field::__field3),
+                            "if_token" => _serde::export::Ok(__Field::__field0),
+                            "condition" => _serde::export::Ok(__Field::__field1),
+                            "block" => _serde::export::Ok(__Field::__field2),
+                            "else_if" => _serde::export::Ok(__Field::__field3),
+                            "else_token" => _serde::export::Ok(__Field::__field4),
+                            "else" => _serde::export::Ok(__Field::__field5),
+                            "end_token" => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -8714,10 +9325,13 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"condition" => _serde::export::Ok(__Field::__field0),
-                            b"block" => _serde::export::Ok(__Field::__field1),
-                            b"else_if" => _serde::export::Ok(__Field::__field2),
-                            b"else" => _serde::export::Ok(__Field::__field3),
+                            b"if_token" => _serde::export::Ok(__Field::__field0),
+                            b"condition" => _serde::export::Ok(__Field::__field1),
+                            b"block" => _serde::export::Ok(__Field::__field2),
+                            b"else_if" => _serde::export::Ok(__Field::__field3),
+                            b"else_token" => _serde::export::Ok(__Field::__field4),
+                            b"else" => _serde::export::Ok(__Field::__field5),
+                            b"end_token" => _serde::export::Ok(__Field::__field6),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -8754,7 +9368,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Expression<'a>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -8766,28 +9380,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct If with 4 elements",
+                                    &"struct If with 7 elements",
                                 ));
                             }
                         };
-                        let __field1 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
-                            &mut __seq,
-                        ) {
-                            _serde::export::Ok(__val) => __val,
-                            _serde::export::Err(__err) => {
-                                return _serde::export::Err(__err);
-                            }
-                        } {
-                            _serde::export::Some(__value) => __value,
-                            _serde::export::None => {
-                                return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct If with 4 elements",
-                                ));
-                            }
-                        };
-                        let __field2 = match match _serde::de::SeqAccess::next_element::<
-                            Option<Vec<(Expression<'a>, Block<'a>)>>,
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<
+                            Expression<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -8798,13 +9396,29 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    1usize,
+                                    &"struct If with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                            &mut __seq,
+                        ) {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
                                     2usize,
-                                    &"struct If with 4 elements",
+                                    &"struct If with 7 elements",
                                 ));
                             }
                         };
                         let __field3 = match match _serde::de::SeqAccess::next_element::<
-                            Option<Block<'a>>,
+                            Option<Vec<(Expression<'a>, Block<'a>)>>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -8816,15 +9430,69 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     3usize,
-                                    &"struct If with 4 elements",
+                                    &"struct If with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field4 = match match _serde::de::SeqAccess::next_element::<
+                            Option<TokenReference<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    4usize,
+                                    &"struct If with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field5 = match match _serde::de::SeqAccess::next_element::<
+                            Option<Block<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    5usize,
+                                    &"struct If with 7 elements",
+                                ));
+                            }
+                        };
+                        let __field6 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    6usize,
+                                    &"struct If with 7 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(If {
-                            condition: __field0,
-                            block: __field1,
-                            else_if: __field2,
-                            r#else: __field3,
+                            if_token: __field0,
+                            condition: __field1,
+                            block: __field2,
+                            else_if: __field3,
+                            else_token: __field4,
+                            r#else: __field5,
+                            end_token: __field6,
                         })
                     }
                     #[inline]
@@ -8835,13 +9503,19 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Expression<'a>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Block<'a>> = _serde::export::None;
-                        let mut __field2: _serde::export::Option<
+                        let mut __field1: _serde::export::Option<Expression<'a>> =
+                            _serde::export::None;
+                        let mut __field2: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field3: _serde::export::Option<
                             Option<Vec<(Expression<'a>, Block<'a>)>>,
                         > = _serde::export::None;
-                        let mut __field3: _serde::export::Option<Option<Block<'a>>> =
+                        let mut __field4: _serde::export::Option<Option<TokenReference<'a>>> =
+                            _serde::export::None;
+                        let mut __field5: _serde::export::Option<Option<Block<'a>>> =
+                            _serde::export::None;
+                        let mut __field6: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
@@ -8856,12 +9530,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "condition",
+                                                "if_token",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -8875,12 +9549,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "condition",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -8894,15 +9568,14 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field2) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "else_if",
+                                                "block",
                                             ),
                                         );
                                     }
                                     __field2 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<
-                                            Option<Vec<(Expression<'a>, Block<'a>)>>,
-                                        >(&mut __map)
-                                        {
+                                        match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
                                             _serde::export::Ok(__val) => __val,
                                             _serde::export::Err(__err) => {
                                                 return _serde::export::Err(__err);
@@ -8914,12 +9587,71 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field3) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "else",
+                                                "else_if",
                                             ),
                                         );
                                     }
                                     __field3 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<
+                                            Option<Vec<(Expression<'a>, Block<'a>)>>,
+                                        >(&mut __map)
+                                        {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field4 => {
+                                    if _serde::export::Option::is_some(&__field4) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "else_token",
+                                            ),
+                                        );
+                                    }
+                                    __field4 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<
+                                            Option<TokenReference<'a>>,
+                                        >(&mut __map)
+                                        {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field5 => {
+                                    if _serde::export::Option::is_some(&__field5) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "else",
+                                            ),
+                                        );
+                                    }
+                                    __field5 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Option<Block<'a>>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field6 => {
+                                    if _serde::export::Option::is_some(&__field6) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field6 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -8945,7 +9677,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("condition") {
+                                match _serde::private::de::missing_field("if_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -8956,7 +9688,7 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("block") {
+                                match _serde::private::de::missing_field("condition") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -8967,7 +9699,7 @@ pub mod ast {
                         let __field2 = match __field2 {
                             _serde::export::Some(__field2) => __field2,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("else_if") {
+                                match _serde::private::de::missing_field("block") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -8978,6 +9710,28 @@ pub mod ast {
                         let __field3 = match __field3 {
                             _serde::export::Some(__field3) => __field3,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("else_if") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field4 = match __field4 {
+                            _serde::export::Some(__field4) => __field4,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("else_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field5 = match __field5 {
+                            _serde::export::Some(__field5) => __field5,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("else") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -8986,15 +9740,37 @@ pub mod ast {
                                 }
                             }
                         };
+                        let __field6 = match __field6 {
+                            _serde::export::Some(__field6) => __field6,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
                         _serde::export::Ok(If {
-                            condition: __field0,
-                            block: __field1,
-                            else_if: __field2,
-                            r#else: __field3,
+                            if_token: __field0,
+                            condition: __field1,
+                            block: __field2,
+                            else_if: __field3,
+                            else_token: __field4,
+                            r#else: __field5,
+                            end_token: __field6,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["condition", "block", "else_if", "else"];
+                const FIELDS: &'static [&'static str] = &[
+                    "if_token",
+                    "condition",
+                    "block",
+                    "else_if",
+                    "else_token",
+                    "else",
+                    "end_token",
+                ];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "If",
@@ -9024,7 +9800,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "If",
-                    false as usize + 1 + 1 + 1 + 1,
+                    false as usize + 1 + 1 + 1 + 1 + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "if_token",
+                    &self.if_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -9063,8 +9849,28 @@ pub mod ast {
                 };
                 match _serde::ser::SerializeStruct::serialize_field(
                     &mut __serde_state,
+                    "else_token",
+                    &self.else_token,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
                     "else",
                     &self.r#else,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -9083,6 +9889,10 @@ pub mod ast {
         #[doc = " The block inside the initial if statement"]
         pub fn block(&self) -> &Block<'a> {
             &self.block
+        }
+        #[doc = " The `else` token if one exists"]
+        pub fn else_token(&self) -> Option<&TokenReference<'a>> {
+            self.else_token.as_ref()
         }
         #[doc = " If there are `elseif` conditions, returns a vector of them"]
         #[doc = " Expression is the condition, block is the code if the condition is true"]
@@ -9136,7 +9946,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, If<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::If).parse(state.clone())?;
+                let (state, if_token) = ParseSymbol(Symbol::If).parse(state.clone())?;
                 let (state, condition) = match ParseExpression.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
@@ -9202,23 +10012,24 @@ pub mod ast {
                     state = new_state;
                     else_ifs.push((condition, block));
                 }
-                let (state, r#else) =
-                    if let Ok((state, _)) = ParseSymbol(Symbol::Else).parse(state.clone()) {
-                        let (state, block) = match ParseBlock.parse(state.clone()) {
-                            Ok((state, node)) => (state, node),
-                            Err(InternalAstError::NoMatch) => {
-                                return Err(InternalAstError::UnexpectedToken {
-                                    token: state.peek(),
-                                    additional: Some("expected block"),
-                                });
-                            }
-                            Err(other) => return Err(other),
-                        };
-                        (state, Some(block))
-                    } else {
-                        (state, None)
+                let (state, else_token, r#else) = if let Ok((state, else_token)) =
+                    ParseSymbol(Symbol::Else).parse(state.clone())
+                {
+                    let (state, block) = match ParseBlock.parse(state.clone()) {
+                        Ok((state, node)) => (state, node),
+                        Err(InternalAstError::NoMatch) => {
+                            return Err(InternalAstError::UnexpectedToken {
+                                token: state.peek(),
+                                additional: Some("expected block"),
+                            });
+                        }
+                        Err(other) => return Err(other),
                     };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                    (state, Some(else_token), Some(block))
+                } else {
+                    (state, None, None)
+                };
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -9231,14 +10042,17 @@ pub mod ast {
                 Ok((
                     state,
                     If {
+                        if_token,
                         condition,
                         block,
+                        else_token,
                         r#else,
                         else_if: if else_ifs.is_empty() {
                             None
                         } else {
                             Some(else_ifs)
                         },
+                        end_token,
                     },
                 ))
             })(self, state)
@@ -9247,8 +10061,10 @@ pub mod ast {
     #[doc = " A while loop"]
     pub struct While<'a> {
         #[serde(borrow)]
+        while_token: TokenReference<'a>,
         condition: Expression<'a>,
         block: Block<'a>,
+        end_token: TokenReference<'a>,
     }
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -9257,11 +10073,15 @@ pub mod ast {
         fn clone(&self) -> While<'a> {
             match *self {
                 While {
-                    condition: ref __self_0_0,
-                    block: ref __self_0_1,
+                    while_token: ref __self_0_0,
+                    condition: ref __self_0_1,
+                    block: ref __self_0_2,
+                    end_token: ref __self_0_3,
                 } => While {
-                    condition: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    block: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    while_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    condition: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_3)),
                 },
             }
         }
@@ -9272,12 +10092,16 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 While {
-                    condition: ref __self_0_0,
-                    block: ref __self_0_1,
+                    while_token: ref __self_0_0,
+                    condition: ref __self_0_1,
+                    block: ref __self_0_2,
+                    end_token: ref __self_0_3,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("While");
-                    let _ = debug_trait_builder.field("condition", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("while_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("condition", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_3));
                     debug_trait_builder.finish()
                 }
             }
@@ -9290,13 +10114,22 @@ pub mod ast {
         fn eq(&self, other: &While<'a>) -> bool {
             match *other {
                 While {
-                    condition: ref __self_1_0,
-                    block: ref __self_1_1,
+                    while_token: ref __self_1_0,
+                    condition: ref __self_1_1,
+                    block: ref __self_1_2,
+                    end_token: ref __self_1_3,
                 } => match *self {
                     While {
-                        condition: ref __self_0_0,
-                        block: ref __self_0_1,
-                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
+                        while_token: ref __self_0_0,
+                        condition: ref __self_0_1,
+                        block: ref __self_0_2,
+                        end_token: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                            && (*__self_0_3) == (*__self_1_3)
+                    }
                 },
             }
         }
@@ -9304,37 +10137,74 @@ pub mod ast {
         fn ne(&self, other: &While<'a>) -> bool {
             match *other {
                 While {
-                    condition: ref __self_1_0,
-                    block: ref __self_1_1,
+                    while_token: ref __self_1_0,
+                    condition: ref __self_1_1,
+                    block: ref __self_1_2,
+                    end_token: ref __self_1_3,
                 } => match *self {
                     While {
-                        condition: ref __self_0_0,
-                        block: ref __self_0_1,
-                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
+                        while_token: ref __self_0_0,
+                        condition: ref __self_0_1,
+                        block: ref __self_0_2,
+                        end_token: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                            || (*__self_0_3) != (*__self_1_3)
+                    }
                 },
             }
         }
     }
     impl<'a> crate::node::Node for While<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.condition.start_position()?, self.block.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.while_token.start_position())
+                        .or_else(|| self.condition.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.condition.end_position())
+                        .or_else(|| self.while_token.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.condition.start_position()?, self.block.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.while_token.start_position())
+                        .or_else(|| self.condition.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.condition.end_position())
+                        .or_else(|| self.while_token.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for While<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_while(self);
+            self.while_token.visit(visitor);
             self.condition.visit(visitor);
             self.block.visit(visitor);
+            self.end_token.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for While<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_while(self);
+            self.while_token.visit_mut(visitor);
             self.condition.visit_mut(visitor);
             self.block.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
         }
     }
     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -9352,6 +10222,8 @@ pub mod ast {
                 enum __Field {
                     __field0,
                     __field1,
+                    __field2,
+                    __field3,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -9373,9 +10245,11 @@ pub mod ast {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
+                            3u64 => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 2",
+                                &"field index 0 <= i < 4",
                             )),
                         }
                     }
@@ -9387,8 +10261,10 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "condition" => _serde::export::Ok(__Field::__field0),
-                            "block" => _serde::export::Ok(__Field::__field1),
+                            "while_token" => _serde::export::Ok(__Field::__field0),
+                            "condition" => _serde::export::Ok(__Field::__field1),
+                            "block" => _serde::export::Ok(__Field::__field2),
+                            "end_token" => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -9400,8 +10276,10 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"condition" => _serde::export::Ok(__Field::__field0),
-                            b"block" => _serde::export::Ok(__Field::__field1),
+                            b"while_token" => _serde::export::Ok(__Field::__field0),
+                            b"condition" => _serde::export::Ok(__Field::__field1),
+                            b"block" => _serde::export::Ok(__Field::__field2),
+                            b"end_token" => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -9438,7 +10316,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Expression<'a>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -9450,11 +10328,28 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct While with 2 elements",
+                                    &"struct While with 4 elements",
                                 ));
                             }
                         };
-                        let __field1 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<
+                            Expression<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    1usize,
+                                    &"struct While with 4 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
                             &mut __seq,
                         ) {
                             _serde::export::Ok(__val) => __val,
@@ -9465,14 +10360,33 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct While with 2 elements",
+                                    2usize,
+                                    &"struct While with 4 elements",
+                                ));
+                            }
+                        };
+                        let __field3 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    3usize,
+                                    &"struct While with 4 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(While {
-                            condition: __field0,
-                            block: __field1,
+                            while_token: __field0,
+                            condition: __field1,
+                            block: __field2,
+                            end_token: __field3,
                         })
                     }
                     #[inline]
@@ -9483,9 +10397,13 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Expression<'a>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field1: _serde::export::Option<Expression<'a>> =
+                            _serde::export::None;
+                        let mut __field2: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field3: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
                                 _serde::export::Ok(__val) => __val,
@@ -9499,12 +10417,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "condition",
+                                                "while_token",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -9518,12 +10436,50 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "condition",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<Expression<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "block",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field3 => {
+                                    if _serde::export::Option::is_some(&__field3) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field3 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -9549,7 +10505,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("condition") {
+                                match _serde::private::de::missing_field("while_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -9560,6 +10516,17 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("condition") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("block") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -9568,13 +10535,27 @@ pub mod ast {
                                 }
                             }
                         };
+                        let __field3 = match __field3 {
+                            _serde::export::Some(__field3) => __field3,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
                         _serde::export::Ok(While {
-                            condition: __field0,
-                            block: __field1,
+                            while_token: __field0,
+                            condition: __field1,
+                            block: __field2,
+                            end_token: __field3,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["condition", "block"];
+                const FIELDS: &'static [&'static str] =
+                    &["while_token", "condition", "block", "end_token"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "While",
@@ -9604,7 +10585,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "While",
-                    false as usize + 1 + 1,
+                    false as usize + 1 + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "while_token",
+                    &self.while_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -9625,6 +10616,16 @@ pub mod ast {
                     &mut __serde_state,
                     "block",
                     &self.block,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -9687,7 +10688,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, While<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::While).parse(state.clone())?;
+                let (state, while_token) = ParseSymbol(Symbol::While).parse(state.clone())?;
                 let (state, condition) = match ParseExpression.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
@@ -9718,7 +10719,7 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -9728,13 +10729,22 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                Ok((state, While { condition, block }))
+                Ok((
+                    state,
+                    While {
+                        while_token,
+                        condition,
+                        block,
+                        end_token,
+                    },
+                ))
             })(self, state)
         }
     }
     #[doc = " A repeat loop"]
     pub struct Repeat<'a> {
         #[serde(borrow)]
+        repeat_token: TokenReference<'a>,
         block: Block<'a>,
         until: Expression<'a>,
     }
@@ -9745,11 +10755,13 @@ pub mod ast {
         fn clone(&self) -> Repeat<'a> {
             match *self {
                 Repeat {
-                    block: ref __self_0_0,
-                    until: ref __self_0_1,
+                    repeat_token: ref __self_0_0,
+                    block: ref __self_0_1,
+                    until: ref __self_0_2,
                 } => Repeat {
-                    block: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    until: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    repeat_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    until: ::std::clone::Clone::clone(&(*__self_0_2)),
                 },
             }
         }
@@ -9760,12 +10772,14 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 Repeat {
-                    block: ref __self_0_0,
-                    until: ref __self_0_1,
+                    repeat_token: ref __self_0_0,
+                    block: ref __self_0_1,
+                    until: ref __self_0_2,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("Repeat");
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("until", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("repeat_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("until", &&(*__self_0_2));
                     debug_trait_builder.finish()
                 }
             }
@@ -9778,13 +10792,19 @@ pub mod ast {
         fn eq(&self, other: &Repeat<'a>) -> bool {
             match *other {
                 Repeat {
-                    block: ref __self_1_0,
-                    until: ref __self_1_1,
+                    repeat_token: ref __self_1_0,
+                    block: ref __self_1_1,
+                    until: ref __self_1_2,
                 } => match *self {
                     Repeat {
-                        block: ref __self_0_0,
-                        until: ref __self_0_1,
-                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
+                        repeat_token: ref __self_0_0,
+                        block: ref __self_0_1,
+                        until: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                    }
                 },
             }
         }
@@ -9792,28 +10812,55 @@ pub mod ast {
         fn ne(&self, other: &Repeat<'a>) -> bool {
             match *other {
                 Repeat {
-                    block: ref __self_1_0,
-                    until: ref __self_1_1,
+                    repeat_token: ref __self_1_0,
+                    block: ref __self_1_1,
+                    until: ref __self_1_2,
                 } => match *self {
                     Repeat {
-                        block: ref __self_0_0,
-                        until: ref __self_0_1,
-                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
+                        repeat_token: ref __self_0_0,
+                        block: ref __self_0_1,
+                        until: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                    }
                 },
             }
         }
     }
     impl<'a> crate::node::Node for Repeat<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.block.start_position()?, self.until.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.repeat_token.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.until.start_position())?,
+                    None.or_else(|| self.until.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.repeat_token.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.block.start_position()?, self.until.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.repeat_token.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.until.start_position())?,
+                    None.or_else(|| self.until.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.repeat_token.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for Repeat<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_repeat(self);
+            self.repeat_token.visit(visitor);
             self.block.visit(visitor);
             self.until.visit(visitor);
         }
@@ -9821,6 +10868,7 @@ pub mod ast {
     impl<'a> crate::visitors::VisitMut<'a> for Repeat<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_repeat(self);
+            self.repeat_token.visit_mut(visitor);
             self.block.visit_mut(visitor);
             self.until.visit_mut(visitor);
         }
@@ -9840,6 +10888,7 @@ pub mod ast {
                 enum __Field {
                     __field0,
                     __field1,
+                    __field2,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -9861,9 +10910,10 @@ pub mod ast {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 2",
+                                &"field index 0 <= i < 3",
                             )),
                         }
                     }
@@ -9875,8 +10925,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "block" => _serde::export::Ok(__Field::__field0),
-                            "until" => _serde::export::Ok(__Field::__field1),
+                            "repeat_token" => _serde::export::Ok(__Field::__field0),
+                            "block" => _serde::export::Ok(__Field::__field1),
+                            "until" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -9888,8 +10939,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"block" => _serde::export::Ok(__Field::__field0),
-                            b"until" => _serde::export::Ok(__Field::__field1),
+                            b"repeat_token" => _serde::export::Ok(__Field::__field0),
+                            b"block" => _serde::export::Ok(__Field::__field1),
+                            b"until" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -9925,7 +10977,24 @@ pub mod ast {
                     where
                         __A: _serde::de::SeqAccess<'de>,
                     {
-                        let __field0 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                        let __field0 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    0usize,
+                                    &"struct Repeat with 3 elements",
+                                ));
+                            }
+                        };
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
                             &mut __seq,
                         ) {
                             _serde::export::Ok(__val) => __val,
@@ -9936,12 +11005,12 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    0usize,
-                                    &"struct Repeat with 2 elements",
+                                    1usize,
+                                    &"struct Repeat with 3 elements",
                                 ));
                             }
                         };
-                        let __field1 = match match _serde::de::SeqAccess::next_element::<
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<
                             Expression<'a>,
                         >(&mut __seq)
                         {
@@ -9953,14 +11022,15 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct Repeat with 2 elements",
+                                    2usize,
+                                    &"struct Repeat with 3 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(Repeat {
-                            block: __field0,
-                            until: __field1,
+                            repeat_token: __field0,
+                            block: __field1,
+                            until: __field2,
                         })
                     }
                     #[inline]
@@ -9971,8 +11041,10 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Block<'a>> = _serde::export::None;
-                        let mut __field1: _serde::export::Option<Expression<'a>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
+                        let mut __field1: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field2: _serde::export::Option<Expression<'a>> =
                             _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
@@ -9987,12 +11059,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "repeat_token",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -10006,11 +11078,30 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "until",
+                                                "block",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "until",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Expression<'a>>(
                                             &mut __map,
                                         ) {
@@ -10037,7 +11128,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("block") {
+                                match _serde::private::de::missing_field("repeat_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -10048,6 +11139,17 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("block") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("until") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -10057,12 +11159,13 @@ pub mod ast {
                             }
                         };
                         _serde::export::Ok(Repeat {
-                            block: __field0,
-                            until: __field1,
+                            repeat_token: __field0,
+                            block: __field1,
+                            until: __field2,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["block", "until"];
+                const FIELDS: &'static [&'static str] = &["repeat_token", "block", "until"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "Repeat",
@@ -10092,7 +11195,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "Repeat",
-                    false as usize + 1 + 1,
+                    false as usize + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "repeat_token",
+                    &self.repeat_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -10175,7 +11288,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, Repeat<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::Repeat).parse(state.clone())?;
+                let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state.clone())?;
                 let (state, block) = match ParseBlock.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
@@ -10206,7 +11319,14 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                Ok((state, Repeat { until, block }))
+                Ok((
+                    state,
+                    Repeat {
+                        repeat_token,
+                        until,
+                        block,
+                    },
+                ))
             })(self, state)
         }
     }
@@ -10283,10 +11403,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for MethodCall<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.args.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.name.start_position())
+                        .or_else(|| self.args.start_position())?,
+                    None.or_else(|| self.args.end_position())
+                        .or_else(|| self.name.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.args.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.name.start_position())
+                        .or_else(|| self.args.start_position())?,
+                    None.or_else(|| self.args.end_position())
+                        .or_else(|| self.name.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for MethodCall<'a> {
@@ -11026,8 +12162,10 @@ pub mod ast {
     #[doc = " A function body, everything except `function x` in `function x(a, b, c) call() end`"]
     pub struct FunctionBody<'a> {
         #[serde(borrow)]
+        start_paranthese: TokenReference<'a>,
         parameters: Vec<Parameter<'a>>,
         block: Block<'a>,
+        end_token: TokenReference<'a>,
     }
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -11036,11 +12174,15 @@ pub mod ast {
         fn clone(&self) -> FunctionBody<'a> {
             match *self {
                 FunctionBody {
-                    parameters: ref __self_0_0,
-                    block: ref __self_0_1,
+                    start_paranthese: ref __self_0_0,
+                    parameters: ref __self_0_1,
+                    block: ref __self_0_2,
+                    end_token: ref __self_0_3,
                 } => FunctionBody {
-                    parameters: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    block: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    start_paranthese: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    parameters: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_2)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_3)),
                 },
             }
         }
@@ -11051,12 +12193,16 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 FunctionBody {
-                    parameters: ref __self_0_0,
-                    block: ref __self_0_1,
+                    start_paranthese: ref __self_0_0,
+                    parameters: ref __self_0_1,
+                    block: ref __self_0_2,
+                    end_token: ref __self_0_3,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("FunctionBody");
-                    let _ = debug_trait_builder.field("parameters", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("block", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("start_paranthese", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("parameters", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_2));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_3));
                     debug_trait_builder.finish()
                 }
             }
@@ -11069,13 +12215,22 @@ pub mod ast {
         fn eq(&self, other: &FunctionBody<'a>) -> bool {
             match *other {
                 FunctionBody {
-                    parameters: ref __self_1_0,
-                    block: ref __self_1_1,
+                    start_paranthese: ref __self_1_0,
+                    parameters: ref __self_1_1,
+                    block: ref __self_1_2,
+                    end_token: ref __self_1_3,
                 } => match *self {
                     FunctionBody {
-                        parameters: ref __self_0_0,
-                        block: ref __self_0_1,
-                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
+                        start_paranthese: ref __self_0_0,
+                        parameters: ref __self_0_1,
+                        block: ref __self_0_2,
+                        end_token: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                            && (*__self_0_3) == (*__self_1_3)
+                    }
                 },
             }
         }
@@ -11083,13 +12238,22 @@ pub mod ast {
         fn ne(&self, other: &FunctionBody<'a>) -> bool {
             match *other {
                 FunctionBody {
-                    parameters: ref __self_1_0,
-                    block: ref __self_1_1,
+                    start_paranthese: ref __self_1_0,
+                    parameters: ref __self_1_1,
+                    block: ref __self_1_2,
+                    end_token: ref __self_1_3,
                 } => match *self {
                     FunctionBody {
-                        parameters: ref __self_0_0,
-                        block: ref __self_0_1,
-                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
+                        start_paranthese: ref __self_0_0,
+                        parameters: ref __self_0_1,
+                        block: ref __self_0_2,
+                        end_token: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                            || (*__self_0_3) != (*__self_1_3)
+                    }
                 },
             }
         }
@@ -11098,8 +12262,14 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.parameters.start_position()?,
-                    self.block.end_position()?,
+                    None.or_else(|| self.start_paranthese.start_position())
+                        .or_else(|| self.parameters.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.parameters.end_position())
+                        .or_else(|| self.start_paranthese.end_position())?,
                 ))?
                 .0,
             )
@@ -11107,8 +12277,14 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.parameters.start_position()?,
-                    self.block.end_position()?,
+                    None.or_else(|| self.start_paranthese.start_position())
+                        .or_else(|| self.parameters.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.parameters.end_position())
+                        .or_else(|| self.start_paranthese.end_position())?,
                 ))?
                 .1,
             )
@@ -11117,15 +12293,19 @@ pub mod ast {
     impl<'a> crate::visitors::Visit<'a> for FunctionBody<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_function_body(self);
+            self.start_paranthese.visit(visitor);
             self.parameters.visit(visitor);
             self.block.visit(visitor);
+            self.end_token.visit(visitor);
         }
     }
     impl<'a> crate::visitors::VisitMut<'a> for FunctionBody<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_function_body(self);
+            self.start_paranthese.visit_mut(visitor);
             self.parameters.visit_mut(visitor);
             self.block.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
         }
     }
     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -11143,6 +12323,8 @@ pub mod ast {
                 enum __Field {
                     __field0,
                     __field1,
+                    __field2,
+                    __field3,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -11164,9 +12346,11 @@ pub mod ast {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
+                            3u64 => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 2",
+                                &"field index 0 <= i < 4",
                             )),
                         }
                     }
@@ -11178,8 +12362,10 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "parameters" => _serde::export::Ok(__Field::__field0),
-                            "block" => _serde::export::Ok(__Field::__field1),
+                            "start_paranthese" => _serde::export::Ok(__Field::__field0),
+                            "parameters" => _serde::export::Ok(__Field::__field1),
+                            "block" => _serde::export::Ok(__Field::__field2),
+                            "end_token" => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -11191,8 +12377,10 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"parameters" => _serde::export::Ok(__Field::__field0),
-                            b"block" => _serde::export::Ok(__Field::__field1),
+                            b"start_paranthese" => _serde::export::Ok(__Field::__field0),
+                            b"parameters" => _serde::export::Ok(__Field::__field1),
+                            b"block" => _serde::export::Ok(__Field::__field2),
+                            b"end_token" => _serde::export::Ok(__Field::__field3),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -11229,7 +12417,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<Parameter<'a>>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -11241,11 +12429,28 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct FunctionBody with 2 elements",
+                                    &"struct FunctionBody with 4 elements",
                                 ));
                             }
                         };
-                        let __field1 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<
+                            Vec<Parameter<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    1usize,
+                                    &"struct FunctionBody with 4 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
                             &mut __seq,
                         ) {
                             _serde::export::Ok(__val) => __val,
@@ -11256,14 +12461,33 @@ pub mod ast {
                             _serde::export::Some(__value) => __value,
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
-                                    1usize,
-                                    &"struct FunctionBody with 2 elements",
+                                    2usize,
+                                    &"struct FunctionBody with 4 elements",
+                                ));
+                            }
+                        };
+                        let __field3 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    3usize,
+                                    &"struct FunctionBody with 4 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(FunctionBody {
-                            parameters: __field0,
-                            block: __field1,
+                            start_paranthese: __field0,
+                            parameters: __field1,
+                            block: __field2,
+                            end_token: __field3,
                         })
                     }
                     #[inline]
@@ -11274,9 +12498,13 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Vec<Parameter<'a>>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field1: _serde::export::Option<Vec<Parameter<'a>>> =
+                            _serde::export::None;
+                        let mut __field2: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field3: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
                                 _serde::export::Ok(__val) => __val,
@@ -11290,12 +12518,12 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "parameters",
+                                                "start_paranthese",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<Vec<Parameter<'a>>>(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -11309,12 +12537,50 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "block",
+                                                "parameters",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<Vec<Parameter<'a>>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "block",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field3 => {
+                                    if _serde::export::Option::is_some(&__field3) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field3 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
                                             &mut __map,
                                         ) {
                                             _serde::export::Ok(__val) => __val,
@@ -11340,7 +12606,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("parameters") {
+                                match _serde::private::de::missing_field("start_paranthese") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -11351,6 +12617,17 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("parameters") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("block") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -11359,13 +12636,27 @@ pub mod ast {
                                 }
                             }
                         };
+                        let __field3 = match __field3 {
+                            _serde::export::Some(__field3) => __field3,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
                         _serde::export::Ok(FunctionBody {
-                            parameters: __field0,
-                            block: __field1,
+                            start_paranthese: __field0,
+                            parameters: __field1,
+                            block: __field2,
+                            end_token: __field3,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["parameters", "block"];
+                const FIELDS: &'static [&'static str] =
+                    &["start_paranthese", "parameters", "block", "end_token"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "FunctionBody",
@@ -11395,7 +12686,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "FunctionBody",
-                    false as usize + 1 + 1,
+                    false as usize + 1 + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "start_paranthese",
+                    &self.start_paranthese,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -11416,6 +12717,16 @@ pub mod ast {
                     &mut __serde_state,
                     "block",
                     &self.block,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -11478,16 +12789,17 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, FunctionBody<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (mut state, _) = match ParseSymbol(Symbol::LeftParen).parse(state.clone()) {
-                    Ok((state, node)) => (state, node),
-                    Err(InternalAstError::NoMatch) => {
-                        return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek(),
-                            additional: Some("expected \'(\'"),
-                        });
-                    }
-                    Err(other) => return Err(other),
-                };
+                let (mut state, start_paranthese) =
+                    match ParseSymbol(Symbol::LeftParen).parse(state.clone()) {
+                        Ok((state, node)) => (state, node),
+                        Err(InternalAstError::NoMatch) => {
+                            return Err(InternalAstError::UnexpectedToken {
+                                token: state.peek(),
+                                additional: Some("expected \'(\'"),
+                            });
+                        }
+                        Err(other) => return Err(other),
+                    };
                 let mut parameters = Vec::new();
                 if let Ok((new_state, names)) =
                     match OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false)
@@ -11534,7 +12846,7 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -11544,7 +12856,15 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                Ok((state, FunctionBody { parameters, block }))
+                Ok((
+                    state,
+                    FunctionBody {
+                        start_paranthese,
+                        parameters,
+                        block,
+                        end_token,
+                    },
+                ))
             })(self, state)
         }
     }
@@ -12345,10 +13665,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for VarExpression<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.prefix.start_position()?, self.suffixes.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.prefix.start_position())
+                        .or_else(|| self.suffixes.start_position())?,
+                    None.or_else(|| self.suffixes.end_position())
+                        .or_else(|| self.prefix.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.prefix.start_position()?, self.suffixes.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.prefix.start_position())
+                        .or_else(|| self.suffixes.start_position())?,
+                    None.or_else(|| self.suffixes.end_position())
+                        .or_else(|| self.prefix.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for VarExpression<'a> {
@@ -12729,7 +14065,7 @@ pub mod ast {
     pub enum Var<'a> {
         #[serde(borrow)]
         #[doc = " An expression, such as `x.y.z` or `x()`"]
-        Expression(VarExpression<'a>),
+        Expression(Box<VarExpression<'a>>),
         #[doc = " A literal identifier, such as `x`"]
         Name(TokenReference<'a>),
     }
@@ -12974,7 +14310,7 @@ pub mod ast {
                             }
                         } {
                             (__Field::__field0, __variant) => _serde::export::Result::map(
-                                _serde::de::VariantAccess::newtype_variant::<VarExpression<'a>>(
+                                _serde::de::VariantAccess::newtype_variant::<Box<VarExpression<'a>>>(
                                     __variant,
                                 ),
                                 Var::Expression,
@@ -13173,8 +14509,10 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.var_list.start_position()?,
-                    self.expr_list.end_position()?,
+                    None.or_else(|| self.var_list.start_position())
+                        .or_else(|| self.expr_list.start_position())?,
+                    None.or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.var_list.end_position())?,
                 ))?
                 .0,
             )
@@ -13182,8 +14520,10 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.var_list.start_position()?,
-                    self.expr_list.end_position()?,
+                    None.or_else(|| self.var_list.start_position())
+                        .or_else(|| self.expr_list.start_position())?,
+                    None.or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.var_list.end_position())?,
                 ))?
                 .1,
             )
@@ -13591,6 +14931,7 @@ pub mod ast {
     #[doc = " A declaration of a local function, such as `local function x() end`"]
     pub struct LocalFunction<'a> {
         #[serde(borrow)]
+        local_token: TokenReference<'a>,
         name: TokenReference<'a>,
         func_body: FunctionBody<'a>,
     }
@@ -13601,11 +14942,13 @@ pub mod ast {
         fn clone(&self) -> LocalFunction<'a> {
             match *self {
                 LocalFunction {
-                    name: ref __self_0_0,
-                    func_body: ref __self_0_1,
+                    local_token: ref __self_0_0,
+                    name: ref __self_0_1,
+                    func_body: ref __self_0_2,
                 } => LocalFunction {
-                    name: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    func_body: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    local_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    name: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    func_body: ::std::clone::Clone::clone(&(*__self_0_2)),
                 },
             }
         }
@@ -13616,12 +14959,14 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 LocalFunction {
-                    name: ref __self_0_0,
-                    func_body: ref __self_0_1,
+                    local_token: ref __self_0_0,
+                    name: ref __self_0_1,
+                    func_body: ref __self_0_2,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("LocalFunction");
-                    let _ = debug_trait_builder.field("name", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("func_body", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("local_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("name", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("func_body", &&(*__self_0_2));
                     debug_trait_builder.finish()
                 }
             }
@@ -13634,13 +14979,19 @@ pub mod ast {
         fn eq(&self, other: &LocalFunction<'a>) -> bool {
             match *other {
                 LocalFunction {
-                    name: ref __self_1_0,
-                    func_body: ref __self_1_1,
+                    local_token: ref __self_1_0,
+                    name: ref __self_1_1,
+                    func_body: ref __self_1_2,
                 } => match *self {
                     LocalFunction {
-                        name: ref __self_0_0,
-                        func_body: ref __self_0_1,
-                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
+                        local_token: ref __self_0_0,
+                        name: ref __self_0_1,
+                        func_body: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                    }
                 },
             }
         }
@@ -13648,28 +14999,55 @@ pub mod ast {
         fn ne(&self, other: &LocalFunction<'a>) -> bool {
             match *other {
                 LocalFunction {
-                    name: ref __self_1_0,
-                    func_body: ref __self_1_1,
+                    local_token: ref __self_1_0,
+                    name: ref __self_1_1,
+                    func_body: ref __self_1_2,
                 } => match *self {
                     LocalFunction {
-                        name: ref __self_0_0,
-                        func_body: ref __self_0_1,
-                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
+                        local_token: ref __self_0_0,
+                        name: ref __self_0_1,
+                        func_body: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                    }
                 },
             }
         }
     }
     impl<'a> crate::node::Node for LocalFunction<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.func_body.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.local_token.start_position())
+                        .or_else(|| self.name.start_position())
+                        .or_else(|| self.func_body.start_position())?,
+                    None.or_else(|| self.func_body.end_position())
+                        .or_else(|| self.name.end_position())
+                        .or_else(|| self.local_token.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.func_body.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.local_token.start_position())
+                        .or_else(|| self.name.start_position())
+                        .or_else(|| self.func_body.start_position())?,
+                    None.or_else(|| self.func_body.end_position())
+                        .or_else(|| self.name.end_position())
+                        .or_else(|| self.local_token.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for LocalFunction<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_local_function(self);
+            self.local_token.visit(visitor);
             self.name.visit(visitor);
             self.func_body.visit(visitor);
         }
@@ -13677,6 +15055,7 @@ pub mod ast {
     impl<'a> crate::visitors::VisitMut<'a> for LocalFunction<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_local_function(self);
+            self.local_token.visit_mut(visitor);
             self.name.visit_mut(visitor);
             self.func_body.visit_mut(visitor);
         }
@@ -13696,6 +15075,7 @@ pub mod ast {
                 enum __Field {
                     __field0,
                     __field1,
+                    __field2,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -13717,9 +15097,10 @@ pub mod ast {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 2",
+                                &"field index 0 <= i < 3",
                             )),
                         }
                     }
@@ -13731,8 +15112,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "name" => _serde::export::Ok(__Field::__field0),
-                            "func_body" => _serde::export::Ok(__Field::__field1),
+                            "local_token" => _serde::export::Ok(__Field::__field0),
+                            "name" => _serde::export::Ok(__Field::__field1),
+                            "func_body" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -13744,8 +15126,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"name" => _serde::export::Ok(__Field::__field0),
-                            b"func_body" => _serde::export::Ok(__Field::__field1),
+                            b"local_token" => _serde::export::Ok(__Field::__field0),
+                            b"name" => _serde::export::Ok(__Field::__field1),
+                            b"func_body" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -13794,12 +15177,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct LocalFunction with 2 elements",
+                                    &"struct LocalFunction with 3 elements",
                                 ));
                             }
                         };
                         let __field1 = match match _serde::de::SeqAccess::next_element::<
-                            FunctionBody<'a>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -13811,13 +15194,31 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     1usize,
-                                    &"struct LocalFunction with 2 elements",
+                                    &"struct LocalFunction with 3 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<
+                            FunctionBody<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    2usize,
+                                    &"struct LocalFunction with 3 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(LocalFunction {
-                            name: __field0,
-                            func_body: __field1,
+                            local_token: __field0,
+                            name: __field1,
+                            func_body: __field2,
                         })
                     }
                     #[inline]
@@ -13830,7 +15231,9 @@ pub mod ast {
                     {
                         let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<FunctionBody<'a>> =
+                        let mut __field1: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
+                        let mut __field2: _serde::export::Option<FunctionBody<'a>> =
                             _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
@@ -13845,7 +15248,7 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "name",
+                                                "local_token",
                                             ),
                                         );
                                     }
@@ -13864,11 +15267,30 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "func_body",
+                                                "name",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "func_body",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<FunctionBody<'a>>(
                                             &mut __map,
                                         ) {
@@ -13895,7 +15317,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("name") {
+                                match _serde::private::de::missing_field("local_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -13906,6 +15328,17 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("name") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("func_body") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -13915,12 +15348,13 @@ pub mod ast {
                             }
                         };
                         _serde::export::Ok(LocalFunction {
-                            name: __field0,
-                            func_body: __field1,
+                            local_token: __field0,
+                            name: __field1,
+                            func_body: __field2,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["name", "func_body"];
+                const FIELDS: &'static [&'static str] = &["local_token", "name", "func_body"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "LocalFunction",
@@ -13950,7 +15384,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "LocalFunction",
-                    false as usize + 1 + 1,
+                    false as usize + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "local_token",
+                    &self.local_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -14041,7 +15485,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, LocalFunction<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::Local).parse(state.clone())?;
+                let (state, local_token) = ParseSymbol(Symbol::Local).parse(state.clone())?;
                 let (state, _) = ParseSymbol(Symbol::Function).parse(state.clone())?;
                 let (state, name) = match ParseIdentifier.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
@@ -14054,13 +15498,21 @@ pub mod ast {
                     Err(other) => return Err(other),
                 };
                 let (state, func_body) = ParseFunctionBody.parse(state.clone())?;
-                Ok((state, LocalFunction { name, func_body }))
+                Ok((
+                    state,
+                    LocalFunction {
+                        local_token,
+                        name,
+                        func_body,
+                    },
+                ))
             })(self, state)
         }
     }
     #[doc = " An assignment to a local variable, such as `local x = 1`"]
     pub struct LocalAssignment<'a> {
         #[serde(borrow)]
+        local_token: TokenReference<'a>,
         name_list: Vec<TokenReference<'a>>,
         expr_list: Vec<Expression<'a>>,
     }
@@ -14071,11 +15523,13 @@ pub mod ast {
         fn clone(&self) -> LocalAssignment<'a> {
             match *self {
                 LocalAssignment {
-                    name_list: ref __self_0_0,
-                    expr_list: ref __self_0_1,
+                    local_token: ref __self_0_0,
+                    name_list: ref __self_0_1,
+                    expr_list: ref __self_0_2,
                 } => LocalAssignment {
-                    name_list: ::std::clone::Clone::clone(&(*__self_0_0)),
-                    expr_list: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    local_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    name_list: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    expr_list: ::std::clone::Clone::clone(&(*__self_0_2)),
                 },
             }
         }
@@ -14086,12 +15540,14 @@ pub mod ast {
         fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
             match *self {
                 LocalAssignment {
-                    name_list: ref __self_0_0,
-                    expr_list: ref __self_0_1,
+                    local_token: ref __self_0_0,
+                    name_list: ref __self_0_1,
+                    expr_list: ref __self_0_2,
                 } => {
                     let mut debug_trait_builder = f.debug_struct("LocalAssignment");
-                    let _ = debug_trait_builder.field("name_list", &&(*__self_0_0));
-                    let _ = debug_trait_builder.field("expr_list", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("local_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("name_list", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("expr_list", &&(*__self_0_2));
                     debug_trait_builder.finish()
                 }
             }
@@ -14104,13 +15560,19 @@ pub mod ast {
         fn eq(&self, other: &LocalAssignment<'a>) -> bool {
             match *other {
                 LocalAssignment {
-                    name_list: ref __self_1_0,
-                    expr_list: ref __self_1_1,
+                    local_token: ref __self_1_0,
+                    name_list: ref __self_1_1,
+                    expr_list: ref __self_1_2,
                 } => match *self {
                     LocalAssignment {
-                        name_list: ref __self_0_0,
-                        expr_list: ref __self_0_1,
-                    } => (*__self_0_0) == (*__self_1_0) && (*__self_0_1) == (*__self_1_1),
+                        local_token: ref __self_0_0,
+                        name_list: ref __self_0_1,
+                        expr_list: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                    }
                 },
             }
         }
@@ -14118,13 +15580,19 @@ pub mod ast {
         fn ne(&self, other: &LocalAssignment<'a>) -> bool {
             match *other {
                 LocalAssignment {
-                    name_list: ref __self_1_0,
-                    expr_list: ref __self_1_1,
+                    local_token: ref __self_1_0,
+                    name_list: ref __self_1_1,
+                    expr_list: ref __self_1_2,
                 } => match *self {
                     LocalAssignment {
-                        name_list: ref __self_0_0,
-                        expr_list: ref __self_0_1,
-                    } => (*__self_0_0) != (*__self_1_0) || (*__self_0_1) != (*__self_1_1),
+                        local_token: ref __self_0_0,
+                        name_list: ref __self_0_1,
+                        expr_list: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                    }
                 },
             }
         }
@@ -14133,8 +15601,12 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.name_list.start_position()?,
-                    self.expr_list.end_position()?,
+                    None.or_else(|| self.local_token.start_position())
+                        .or_else(|| self.name_list.start_position())
+                        .or_else(|| self.expr_list.start_position())?,
+                    None.or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.name_list.end_position())
+                        .or_else(|| self.local_token.end_position())?,
                 ))?
                 .0,
             )
@@ -14142,8 +15614,12 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.name_list.start_position()?,
-                    self.expr_list.end_position()?,
+                    None.or_else(|| self.local_token.start_position())
+                        .or_else(|| self.name_list.start_position())
+                        .or_else(|| self.expr_list.start_position())?,
+                    None.or_else(|| self.expr_list.end_position())
+                        .or_else(|| self.name_list.end_position())
+                        .or_else(|| self.local_token.end_position())?,
                 ))?
                 .1,
             )
@@ -14152,6 +15628,7 @@ pub mod ast {
     impl<'a> crate::visitors::Visit<'a> for LocalAssignment<'a> {
         fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
             visitor.visit_local_assignment(self);
+            self.local_token.visit(visitor);
             self.name_list.visit(visitor);
             self.expr_list.visit(visitor);
         }
@@ -14159,6 +15636,7 @@ pub mod ast {
     impl<'a> crate::visitors::VisitMut<'a> for LocalAssignment<'a> {
         fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
             visitor.visit_local_assignment(self);
+            self.local_token.visit_mut(visitor);
             self.name_list.visit_mut(visitor);
             self.expr_list.visit_mut(visitor);
         }
@@ -14178,6 +15656,7 @@ pub mod ast {
                 enum __Field {
                     __field0,
                     __field1,
+                    __field2,
                     __ignore,
                 }
                 struct __FieldVisitor;
@@ -14199,9 +15678,10 @@ pub mod ast {
                         match __value {
                             0u64 => _serde::export::Ok(__Field::__field0),
                             1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Err(_serde::de::Error::invalid_value(
                                 _serde::de::Unexpected::Unsigned(__value),
-                                &"field index 0 <= i < 2",
+                                &"field index 0 <= i < 3",
                             )),
                         }
                     }
@@ -14213,8 +15693,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            "name_list" => _serde::export::Ok(__Field::__field0),
-                            "expr_list" => _serde::export::Ok(__Field::__field1),
+                            "local_token" => _serde::export::Ok(__Field::__field0),
+                            "name_list" => _serde::export::Ok(__Field::__field1),
+                            "expr_list" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -14226,8 +15707,9 @@ pub mod ast {
                         __E: _serde::de::Error,
                     {
                         match __value {
-                            b"name_list" => _serde::export::Ok(__Field::__field0),
-                            b"expr_list" => _serde::export::Ok(__Field::__field1),
+                            b"local_token" => _serde::export::Ok(__Field::__field0),
+                            b"name_list" => _serde::export::Ok(__Field::__field1),
+                            b"expr_list" => _serde::export::Ok(__Field::__field2),
                             _ => _serde::export::Ok(__Field::__ignore),
                         }
                     }
@@ -14264,7 +15746,7 @@ pub mod ast {
                         __A: _serde::de::SeqAccess<'de>,
                     {
                         let __field0 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<TokenReference<'a>>,
+                            TokenReference<'a>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -14276,12 +15758,12 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     0usize,
-                                    &"struct LocalAssignment with 2 elements",
+                                    &"struct LocalAssignment with 3 elements",
                                 ));
                             }
                         };
                         let __field1 = match match _serde::de::SeqAccess::next_element::<
-                            Vec<Expression<'a>>,
+                            Vec<TokenReference<'a>>,
                         >(&mut __seq)
                         {
                             _serde::export::Ok(__val) => __val,
@@ -14293,13 +15775,31 @@ pub mod ast {
                             _serde::export::None => {
                                 return _serde::export::Err(_serde::de::Error::invalid_length(
                                     1usize,
-                                    &"struct LocalAssignment with 2 elements",
+                                    &"struct LocalAssignment with 3 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<
+                            Vec<Expression<'a>>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    2usize,
+                                    &"struct LocalAssignment with 3 elements",
                                 ));
                             }
                         };
                         _serde::export::Ok(LocalAssignment {
-                            name_list: __field0,
-                            expr_list: __field1,
+                            local_token: __field0,
+                            name_list: __field1,
+                            expr_list: __field2,
                         })
                     }
                     #[inline]
@@ -14310,9 +15810,11 @@ pub mod ast {
                     where
                         __A: _serde::de::MapAccess<'de>,
                     {
-                        let mut __field0: _serde::export::Option<Vec<TokenReference<'a>>> =
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
                             _serde::export::None;
-                        let mut __field1: _serde::export::Option<Vec<Expression<'a>>> =
+                        let mut __field1: _serde::export::Option<Vec<TokenReference<'a>>> =
+                            _serde::export::None;
+                        let mut __field2: _serde::export::Option<Vec<Expression<'a>>> =
                             _serde::export::None;
                         while let _serde::export::Some(__key) =
                             match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
@@ -14327,15 +15829,14 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field0) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "name_list",
+                                                "local_token",
                                             ),
                                         );
                                     }
                                     __field0 = _serde::export::Some(
-                                        match _serde::de::MapAccess::next_value::<
-                                            Vec<TokenReference<'a>>,
-                                        >(&mut __map)
-                                        {
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
                                             _serde::export::Ok(__val) => __val,
                                             _serde::export::Err(__err) => {
                                                 return _serde::export::Err(__err);
@@ -14347,11 +15848,31 @@ pub mod ast {
                                     if _serde::export::Option::is_some(&__field1) {
                                         return _serde::export::Err(
                                             <__A::Error as _serde::de::Error>::duplicate_field(
-                                                "expr_list",
+                                                "name_list",
                                             ),
                                         );
                                     }
                                     __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<
+                                            Vec<TokenReference<'a>>,
+                                        >(&mut __map)
+                                        {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "expr_list",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
                                         match _serde::de::MapAccess::next_value::<Vec<Expression<'a>>>(
                                             &mut __map,
                                         ) {
@@ -14378,7 +15899,7 @@ pub mod ast {
                         let __field0 = match __field0 {
                             _serde::export::Some(__field0) => __field0,
                             _serde::export::None => {
-                                match _serde::private::de::missing_field("name_list") {
+                                match _serde::private::de::missing_field("local_token") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
                                         return _serde::export::Err(__err);
@@ -14389,6 +15910,17 @@ pub mod ast {
                         let __field1 = match __field1 {
                             _serde::export::Some(__field1) => __field1,
                             _serde::export::None => {
+                                match _serde::private::de::missing_field("name_list") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
                                 match _serde::private::de::missing_field("expr_list") {
                                     _serde::export::Ok(__val) => __val,
                                     _serde::export::Err(__err) => {
@@ -14398,12 +15930,13 @@ pub mod ast {
                             }
                         };
                         _serde::export::Ok(LocalAssignment {
-                            name_list: __field0,
-                            expr_list: __field1,
+                            local_token: __field0,
+                            name_list: __field1,
+                            expr_list: __field2,
                         })
                     }
                 }
-                const FIELDS: &'static [&'static str] = &["name_list", "expr_list"];
+                const FIELDS: &'static [&'static str] = &["local_token", "name_list", "expr_list"];
                 _serde::Deserializer::deserialize_struct(
                     __deserializer,
                     "LocalAssignment",
@@ -14433,7 +15966,17 @@ pub mod ast {
                 let mut __serde_state = match _serde::Serializer::serialize_struct(
                     __serializer,
                     "LocalAssignment",
-                    false as usize + 1 + 1,
+                    false as usize + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "local_token",
+                    &self.local_token,
                 ) {
                     _serde::export::Ok(__val) => __val,
                     _serde::export::Err(__err) => {
@@ -14528,7 +16071,7 @@ pub mod ast {
             state: ParserState<'a>,
         ) -> Result<(ParserState<'a>, LocalAssignment<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::Local).parse(state.clone())?;
+                let (state, local_token) = ParseSymbol(Symbol::Local).parse(state.clone())?;
                 let (state, name_list) =
                     match OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false)
                         .parse(state.clone())
@@ -14557,6 +16100,7 @@ pub mod ast {
                 Ok((
                     state,
                     LocalAssignment {
+                        local_token,
                         name_list,
                         expr_list,
                     },
@@ -14564,6 +16108,500 @@ pub mod ast {
             })(self, state)
         }
     }
+    pub struct Do<'a> {
+        #[serde(borrow)]
+        do_token: TokenReference<'a>,
+        block: Block<'a>,
+        end_token: TokenReference<'a>,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<'a> ::std::clone::Clone for Do<'a> {
+        #[inline]
+        fn clone(&self) -> Do<'a> {
+            match *self {
+                Do {
+                    do_token: ref __self_0_0,
+                    block: ref __self_0_1,
+                    end_token: ref __self_0_2,
+                } => Do {
+                    do_token: ::std::clone::Clone::clone(&(*__self_0_0)),
+                    block: ::std::clone::Clone::clone(&(*__self_0_1)),
+                    end_token: ::std::clone::Clone::clone(&(*__self_0_2)),
+                },
+            }
+        }
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<'a> ::std::fmt::Debug for Do<'a> {
+        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            match *self {
+                Do {
+                    do_token: ref __self_0_0,
+                    block: ref __self_0_1,
+                    end_token: ref __self_0_2,
+                } => {
+                    let mut debug_trait_builder = f.debug_struct("Do");
+                    let _ = debug_trait_builder.field("do_token", &&(*__self_0_0));
+                    let _ = debug_trait_builder.field("block", &&(*__self_0_1));
+                    let _ = debug_trait_builder.field("end_token", &&(*__self_0_2));
+                    debug_trait_builder.finish()
+                }
+            }
+        }
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<'a> ::std::cmp::PartialEq for Do<'a> {
+        #[inline]
+        fn eq(&self, other: &Do<'a>) -> bool {
+            match *other {
+                Do {
+                    do_token: ref __self_1_0,
+                    block: ref __self_1_1,
+                    end_token: ref __self_1_2,
+                } => match *self {
+                    Do {
+                        do_token: ref __self_0_0,
+                        block: ref __self_0_1,
+                        end_token: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                    }
+                },
+            }
+        }
+        #[inline]
+        fn ne(&self, other: &Do<'a>) -> bool {
+            match *other {
+                Do {
+                    do_token: ref __self_1_0,
+                    block: ref __self_1_1,
+                    end_token: ref __self_1_2,
+                } => match *self {
+                    Do {
+                        do_token: ref __self_0_0,
+                        block: ref __self_0_1,
+                        end_token: ref __self_0_2,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                    }
+                },
+            }
+        }
+    }
+    impl<'a> crate::node::Node for Do<'a> {
+        fn start_position(&self) -> Option<crate::tokenizer::Position> {
+            Some(
+                Some((
+                    None.or_else(|| self.do_token.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.do_token.end_position())?,
+                ))?
+                .0,
+            )
+        }
+        fn end_position(&self) -> Option<crate::tokenizer::Position> {
+            Some(
+                Some((
+                    None.or_else(|| self.do_token.start_position())
+                        .or_else(|| self.block.start_position())
+                        .or_else(|| self.end_token.start_position())?,
+                    None.or_else(|| self.end_token.end_position())
+                        .or_else(|| self.block.end_position())
+                        .or_else(|| self.do_token.end_position())?,
+                ))?
+                .1,
+            )
+        }
+    }
+    impl<'a> crate::visitors::Visit<'a> for Do<'a> {
+        fn visit<V: crate::visitors::Visitor<'a>>(&self, visitor: &mut V) {
+            visitor.visit_do(self);
+            self.do_token.visit(visitor);
+            self.block.visit(visitor);
+            self.end_token.visit(visitor);
+        }
+    }
+    impl<'a> crate::visitors::VisitMut<'a> for Do<'a> {
+        fn visit_mut<V: crate::visitors::VisitorMut<'a>>(&mut self, visitor: &mut V) {
+            visitor.visit_do(self);
+            self.do_token.visit_mut(visitor);
+            self.block.visit_mut(visitor);
+            self.end_token.visit_mut(visitor);
+        }
+    }
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _IMPL_DESERIALIZE_FOR_Do: () = {
+        #[allow(unknown_lints)]
+        #[allow(rust_2018_idioms)]
+        extern crate serde as _serde;
+        #[automatically_derived]
+        impl<'de: 'a, 'a> _serde::Deserialize<'de> for Do<'a> {
+            fn deserialize<__D>(__deserializer: __D) -> _serde::export::Result<Self, __D::Error>
+            where
+                __D: _serde::Deserializer<'de>,
+            {
+                #[allow(non_camel_case_types)]
+                enum __Field {
+                    __field0,
+                    __field1,
+                    __field2,
+                    __ignore,
+                }
+                struct __FieldVisitor;
+                impl<'de> _serde::de::Visitor<'de> for __FieldVisitor {
+                    type Value = __Field;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::export::Formatter,
+                    ) -> _serde::export::fmt::Result {
+                        _serde::export::Formatter::write_str(__formatter, "field identifier")
+                    }
+                    fn visit_u64<__E>(
+                        self,
+                        __value: u64,
+                    ) -> _serde::export::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            0u64 => _serde::export::Ok(__Field::__field0),
+                            1u64 => _serde::export::Ok(__Field::__field1),
+                            2u64 => _serde::export::Ok(__Field::__field2),
+                            _ => _serde::export::Err(_serde::de::Error::invalid_value(
+                                _serde::de::Unexpected::Unsigned(__value),
+                                &"field index 0 <= i < 3",
+                            )),
+                        }
+                    }
+                    fn visit_str<__E>(
+                        self,
+                        __value: &str,
+                    ) -> _serde::export::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            "do_token" => _serde::export::Ok(__Field::__field0),
+                            "block" => _serde::export::Ok(__Field::__field1),
+                            "end_token" => _serde::export::Ok(__Field::__field2),
+                            _ => _serde::export::Ok(__Field::__ignore),
+                        }
+                    }
+                    fn visit_bytes<__E>(
+                        self,
+                        __value: &[u8],
+                    ) -> _serde::export::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            b"do_token" => _serde::export::Ok(__Field::__field0),
+                            b"block" => _serde::export::Ok(__Field::__field1),
+                            b"end_token" => _serde::export::Ok(__Field::__field2),
+                            _ => _serde::export::Ok(__Field::__ignore),
+                        }
+                    }
+                }
+                impl<'de> _serde::Deserialize<'de> for __Field {
+                    #[inline]
+                    fn deserialize<__D>(
+                        __deserializer: __D,
+                    ) -> _serde::export::Result<Self, __D::Error>
+                    where
+                        __D: _serde::Deserializer<'de>,
+                    {
+                        _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                    }
+                }
+                struct __Visitor<'de: 'a, 'a> {
+                    marker: _serde::export::PhantomData<Do<'a>>,
+                    lifetime: _serde::export::PhantomData<&'de ()>,
+                }
+                impl<'de: 'a, 'a> _serde::de::Visitor<'de> for __Visitor<'de, 'a> {
+                    type Value = Do<'a>;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::export::Formatter,
+                    ) -> _serde::export::fmt::Result {
+                        _serde::export::Formatter::write_str(__formatter, "struct Do")
+                    }
+                    #[inline]
+                    fn visit_seq<__A>(
+                        self,
+                        mut __seq: __A,
+                    ) -> _serde::export::Result<Self::Value, __A::Error>
+                    where
+                        __A: _serde::de::SeqAccess<'de>,
+                    {
+                        let __field0 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    0usize,
+                                    &"struct Do with 3 elements",
+                                ));
+                            }
+                        };
+                        let __field1 = match match _serde::de::SeqAccess::next_element::<Block<'a>>(
+                            &mut __seq,
+                        ) {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    1usize,
+                                    &"struct Do with 3 elements",
+                                ));
+                            }
+                        };
+                        let __field2 = match match _serde::de::SeqAccess::next_element::<
+                            TokenReference<'a>,
+                        >(&mut __seq)
+                        {
+                            _serde::export::Ok(__val) => __val,
+                            _serde::export::Err(__err) => {
+                                return _serde::export::Err(__err);
+                            }
+                        } {
+                            _serde::export::Some(__value) => __value,
+                            _serde::export::None => {
+                                return _serde::export::Err(_serde::de::Error::invalid_length(
+                                    2usize,
+                                    &"struct Do with 3 elements",
+                                ));
+                            }
+                        };
+                        _serde::export::Ok(Do {
+                            do_token: __field0,
+                            block: __field1,
+                            end_token: __field2,
+                        })
+                    }
+                    #[inline]
+                    fn visit_map<__A>(
+                        self,
+                        mut __map: __A,
+                    ) -> _serde::export::Result<Self::Value, __A::Error>
+                    where
+                        __A: _serde::de::MapAccess<'de>,
+                    {
+                        let mut __field0: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
+                        let mut __field1: _serde::export::Option<Block<'a>> = _serde::export::None;
+                        let mut __field2: _serde::export::Option<TokenReference<'a>> =
+                            _serde::export::None;
+                        while let _serde::export::Some(__key) =
+                            match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
+                                _serde::export::Ok(__val) => __val,
+                                _serde::export::Err(__err) => {
+                                    return _serde::export::Err(__err);
+                                }
+                            }
+                        {
+                            match __key {
+                                __Field::__field0 => {
+                                    if _serde::export::Option::is_some(&__field0) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "do_token",
+                                            ),
+                                        );
+                                    }
+                                    __field0 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field1 => {
+                                    if _serde::export::Option::is_some(&__field1) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "block",
+                                            ),
+                                        );
+                                    }
+                                    __field1 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<Block<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                __Field::__field2 => {
+                                    if _serde::export::Option::is_some(&__field2) {
+                                        return _serde::export::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "end_token",
+                                            ),
+                                        );
+                                    }
+                                    __field2 = _serde::export::Some(
+                                        match _serde::de::MapAccess::next_value::<TokenReference<'a>>(
+                                            &mut __map,
+                                        ) {
+                                            _serde::export::Ok(__val) => __val,
+                                            _serde::export::Err(__err) => {
+                                                return _serde::export::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                                _ => {
+                                    let _ = match _serde::de::MapAccess::next_value::<
+                                        _serde::de::IgnoredAny,
+                                    >(&mut __map)
+                                    {
+                                        _serde::export::Ok(__val) => __val,
+                                        _serde::export::Err(__err) => {
+                                            return _serde::export::Err(__err);
+                                        }
+                                    };
+                                }
+                            }
+                        }
+                        let __field0 = match __field0 {
+                            _serde::export::Some(__field0) => __field0,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("do_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field1 = match __field1 {
+                            _serde::export::Some(__field1) => __field1,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("block") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        let __field2 = match __field2 {
+                            _serde::export::Some(__field2) => __field2,
+                            _serde::export::None => {
+                                match _serde::private::de::missing_field("end_token") {
+                                    _serde::export::Ok(__val) => __val,
+                                    _serde::export::Err(__err) => {
+                                        return _serde::export::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        _serde::export::Ok(Do {
+                            do_token: __field0,
+                            block: __field1,
+                            end_token: __field2,
+                        })
+                    }
+                }
+                const FIELDS: &'static [&'static str] = &["do_token", "block", "end_token"];
+                _serde::Deserializer::deserialize_struct(
+                    __deserializer,
+                    "Do",
+                    FIELDS,
+                    __Visitor {
+                        marker: _serde::export::PhantomData::<Do<'a>>,
+                        lifetime: _serde::export::PhantomData,
+                    },
+                )
+            }
+        }
+    };
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _IMPL_SERIALIZE_FOR_Do: () = {
+        #[allow(unknown_lints)]
+        #[allow(rust_2018_idioms)]
+        extern crate serde as _serde;
+        #[automatically_derived]
+        impl<'a> _serde::Serialize for Do<'a> {
+            fn serialize<__S>(
+                &self,
+                __serializer: __S,
+            ) -> _serde::export::Result<__S::Ok, __S::Error>
+            where
+                __S: _serde::Serializer,
+            {
+                let mut __serde_state = match _serde::Serializer::serialize_struct(
+                    __serializer,
+                    "Do",
+                    false as usize + 1 + 1 + 1,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "do_token",
+                    &self.do_token,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "block",
+                    &self.block,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "end_token",
+                    &self.end_token,
+                ) {
+                    _serde::export::Ok(__val) => __val,
+                    _serde::export::Err(__err) => {
+                        return _serde::export::Err(__err);
+                    }
+                };
+                _serde::ser::SerializeStruct::end(__serde_state)
+            }
+        }
+    };
     struct ParseDo;
     #[automatically_derived]
     #[allow(unused_qualifications)]
@@ -14600,13 +16638,13 @@ pub mod ast {
         }
     }
     impl<'a> Parser<'a> for ParseDo {
-        type Item = Block<'a>;
+        type Item = Do<'a>;
         fn parse(
             &self,
             state: ParserState<'a>,
-        ) -> Result<(ParserState<'a>, Block<'a>), InternalAstError<'a>> {
+        ) -> Result<(ParserState<'a>, Do<'a>), InternalAstError<'a>> {
             (|_, state: ParserState<'a>| {
-                let (state, _) = ParseSymbol(Symbol::Do).parse(state.clone())?;
+                let (state, do_token) = ParseSymbol(Symbol::Do).parse(state.clone())?;
                 let (state, block) = match ParseBlock.parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
@@ -14617,7 +16655,7 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                let (state, _) = match ParseSymbol(Symbol::End).parse(state.clone()) {
+                let (state, end_token) = match ParseSymbol(Symbol::End).parse(state.clone()) {
                     Ok((state, node)) => (state, node),
                     Err(InternalAstError::NoMatch) => {
                         return Err(InternalAstError::UnexpectedToken {
@@ -14627,7 +16665,14 @@ pub mod ast {
                     }
                     Err(other) => return Err(other),
                 };
-                Ok((state, block))
+                Ok((
+                    state,
+                    Do {
+                        do_token,
+                        block,
+                        end_token,
+                    },
+                ))
             })(self, state)
         }
     }
@@ -14704,10 +16749,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for FunctionCall<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.prefix.start_position()?, self.suffixes.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.prefix.start_position())
+                        .or_else(|| self.suffixes.start_position())?,
+                    None.or_else(|| self.suffixes.end_position())
+                        .or_else(|| self.prefix.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.prefix.start_position()?, self.suffixes.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.prefix.start_position())
+                        .or_else(|| self.suffixes.start_position())?,
+                    None.or_else(|| self.suffixes.end_position())
+                        .or_else(|| self.prefix.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for FunctionCall<'a> {
@@ -15159,8 +17220,10 @@ pub mod ast {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.names.start_position()?,
-                    self.colon_name.end_position()?,
+                    None.or_else(|| self.names.start_position())
+                        .or_else(|| self.colon_name.start_position())?,
+                    None.or_else(|| self.colon_name.end_position())
+                        .or_else(|| self.names.end_position())?,
                 ))?
                 .0,
             )
@@ -15168,8 +17231,10 @@ pub mod ast {
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
             Some(
                 Some((
-                    self.names.start_position()?,
-                    self.colon_name.end_position()?,
+                    None.or_else(|| self.names.start_position())
+                        .or_else(|| self.colon_name.start_position())?,
+                    None.or_else(|| self.colon_name.end_position())
+                        .or_else(|| self.names.end_position())?,
                 ))?
                 .1,
             )
@@ -15639,10 +17704,26 @@ pub mod ast {
     }
     impl<'a> crate::node::Node for FunctionDeclaration<'a> {
         fn start_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.body.end_position()?))?.0)
+            Some(
+                Some((
+                    None.or_else(|| self.name.start_position())
+                        .or_else(|| self.body.start_position())?,
+                    None.or_else(|| self.body.end_position())
+                        .or_else(|| self.name.end_position())?,
+                ))?
+                .0,
+            )
         }
         fn end_position(&self) -> Option<crate::tokenizer::Position> {
-            Some(Some((self.name.start_position()?, self.body.end_position()?))?.1)
+            Some(
+                Some((
+                    None.or_else(|| self.name.start_position())
+                        .or_else(|| self.body.start_position())?,
+                    None.or_else(|| self.body.end_position())
+                        .or_else(|| self.name.end_position())?,
+                ))?
+                .1,
+            )
         }
     }
     impl<'a> crate::visitors::Visit<'a> for FunctionDeclaration<'a> {
@@ -26422,7 +28503,7 @@ pub mod visitors {
         #[allow(missing_docs)]
         fn visit_call(&mut self, _node: &ast::Call<'ast>) {}
         #[allow(missing_docs)]
-        fn visit_do(&mut self, _node: &ast::Block<'ast>) {}
+        fn visit_do(&mut self, _node: &ast::Do<'ast>) {}
         #[allow(missing_docs)]
         fn visit_expression(&mut self, _node: &ast::Expression<'ast>) {}
         #[allow(missing_docs)]
@@ -26515,7 +28596,7 @@ pub mod visitors {
         #[allow(missing_docs)]
         fn visit_call(&mut self, _node: &mut ast::Call<'ast>) {}
         #[allow(missing_docs)]
-        fn visit_do(&mut self, _node: &mut ast::Block<'ast>) {}
+        fn visit_do(&mut self, _node: &mut ast::Do<'ast>) {}
         #[allow(missing_docs)]
         fn visit_expression(&mut self, _node: &mut ast::Expression<'ast>) {}
         #[allow(missing_docs)]

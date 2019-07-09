@@ -223,25 +223,40 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
 
                 match &variant.fields {
                     syn::Fields::Named(named) => {
-                        let fields = &named.named
+                        let fields = named.named
                             .iter()
                             .map(|field| {
                                 field.ident.as_ref().unwrap()
                             })
                             .collect::<Vec<_>>();
 
-                        let (first_field, last_field) = (
-                            fields.first().unwrap(),
-                            fields.last().unwrap(),
-                        );
+                        let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+
+                        for field in &fields {
+                            start_position.push(quote! {
+                                .or_else(|| {
+                                    #field.start_position()
+                                })
+                            });
+                        }
+
+                        for field in fields.iter().rev() {
+                            end_position.push(quote! {
+                                .or_else(|| {
+                                    #field.end_position()
+                                })
+                            });
+                        }
 
                         cases.push(quote! {
                             #input_ident::#variant_ident {
                                 #(#fields,)*
                             } => {
-                                Some((#first_field.start_position()?, #last_field.end_position()?))
+                                Some((None#(#start_position)*?, None#(#end_position)*?))
                             }
                         });
+                        cases.push(quote! {
+                        })
                     }
 
                     syn::Fields::Unnamed(unnamed) => {
@@ -292,15 +307,32 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
         }
 
         syn::Data::Struct(strukt) => {
-            let fields = &strukt
+            let fields = strukt
                 .fields
                 .iter()
                 .map(|field| field.ident.as_ref().unwrap())
                 .collect::<Vec<_>>();
-            let (first, last) = (fields.first().unwrap(), fields.last().unwrap());
+
+            let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+
+            for field in &fields {
+                start_position.push(quote! {
+                    .or_else(|| {
+                        self.#field.start_position()
+                    })
+                });
+            }
+
+            for field in fields.iter().rev() {
+                end_position.push(quote! {
+                    .or_else(|| {
+                        self.#field.end_position()
+                    })
+                });
+            }
 
             quote! {
-                Some((self.#first.start_position()?, self.#last.end_position()?))
+                Some((None#(#start_position)*?, None#(#end_position)*?))
             }
         }
 

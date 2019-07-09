@@ -1060,6 +1060,7 @@ pub struct If<'a> {
     condition: Expression<'a>,
     block: Block<'a>,
     else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+    else_token: Option<TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
     end_token: TokenReference<'a>,
@@ -1074,6 +1075,11 @@ impl<'a> If<'a> {
     /// The block inside the initial if statement
     pub fn block(&self) -> &Block<'a> {
         &self.block
+    }
+
+    /// The `else` token if one exists
+    pub fn else_token(&self) -> Option<&TokenReference<'a>> {
+        self.else_token.as_ref()
     }
 
     /// If there are `elseif` conditions, returns a vector of them
@@ -1122,11 +1128,11 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
         else_ifs.push((condition, block));
     }
 
-    let (state, r#else) = if let Ok((state, _)) = ParseSymbol(Symbol::Else).parse(state.clone()) {
+    let (state, else_token, r#else) = if let Ok((state, else_token)) = ParseSymbol(Symbol::Else).parse(state.clone()) {
         let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-        (state, Some(block))
+        (state, Some(else_token), Some(block))
     } else {
-        (state, None)
+        (state, None, None)
     };
 
     let (state, end_token) = expect!(
@@ -1141,6 +1147,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
             if_token,
             condition,
             block,
+            else_token,
             r#else,
             else_if: if else_ifs.is_empty() {
                 None
