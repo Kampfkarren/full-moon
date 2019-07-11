@@ -359,6 +359,12 @@ impl<'a> TokenReference<'a> {
     }
 }
 
+impl<'a> std::borrow::Borrow<Token<'a>> for &TokenReference<'a> {
+    fn borrow(&self) -> &Token<'a> {
+        &**self
+    }
+}
+
 impl<'a> std::ops::Deref for TokenReference<'a> {
     type Target = Token<'a>;
 
