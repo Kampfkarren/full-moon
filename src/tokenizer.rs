@@ -671,7 +671,7 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    if code.chars().next().unwrap().is_alphanumeric() {
+    if code.chars().next().unwrap().is_ascii_alphanumeric() {
         let identifier = PATTERN_IDENTIFIER.find(code).unwrap();
         let expected_len = identifier.end() - identifier.start();
 
@@ -771,7 +771,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                             position.character += 1;
                         }
 
-                        position.bytes += 1;
+                        position.bytes += character.len_utf8();
                     }
 
                     tokens.push(Token {
@@ -792,7 +792,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         };
     }
 
-    while code.len() > position.bytes {
+    while code.chars().count() > position.bytes {
         advance!(advance_whitespace);
         advance!(advance_comment);
         advance!(advance_number);
@@ -1057,5 +1057,12 @@ mod tests {
                 })),
             }
         );
+    }
+
+    #[test]
+    fn test_fuzzer() {
+        let _ = tokens("*ա");
+        let _ = tokens("̹(");
+        let _ = tokens("¹;");
     }
 }
