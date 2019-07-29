@@ -10,7 +10,7 @@ use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{debug_assert, fmt, sync::Arc};
+use std::{fmt, sync::Arc};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone)]
@@ -198,6 +198,28 @@ where
     }
 }
 
+macro_rules! test_pairs_logic {
+    ($nodes:expr, $cause:expr) => {
+        if cfg!(debug_assertions) {
+            let len = $nodes.len();
+            for (index, node) in $nodes.iter().enumerate() {
+                if index + 1 == len && node.punctuation().is_some() {
+                    panic!(
+                        "{} pairs illogical: last node has punctuation: {:?}",
+                        $cause,
+                        node.punctuation().unwrap()
+                    );
+                } else if index + 1 != len && node.punctuation().is_none() {
+                    panic!(
+                        "{} pairs illogical: non-last node ({}) has punctuation",
+                        $cause, index
+                    );
+                }
+            }
+        }
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
     pub ItemParser, // What items to parse, what is actually returned in a vec
@@ -258,17 +280,9 @@ where
             }
         }
 
-        debug_assert!(
-            {
-                let len = nodes.len();
-
-                nodes.iter().enumerate().any(|(index, value)| {
-                    (index + 1 == len && value.punctuation().is_none())
-                        || (index + 1 != len && value.punctuation().is_some())
-                })
-            },
-            "pairs produced by ZeroOrMoreDelimited are illogical"
-        );
+        if !self.2 {
+            test_pairs_logic!(nodes, "ZeroOrMoreDelimited");
+        }
 
         Ok((state, nodes))
     }
@@ -324,17 +338,12 @@ where
             }
         }
 
-        debug_assert!(
-            {
-                let len = nodes.len();
+        if !self.2 {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::End(last_value));
 
-                nodes.iter().enumerate().any(|(index, value)| {
-                    (index + 1 == len && value.punctuation().is_none())
-                        || (index + 1 != len && value.punctuation().is_some())
-                })
-            },
-            "pairs produced by ZeroOrMoreDelimited are illogical"
-        );
+            test_pairs_logic!(nodes, "OneOrMore");
+        }
 
         Ok((state, nodes))
     }

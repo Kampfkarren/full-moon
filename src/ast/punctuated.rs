@@ -28,6 +28,20 @@ impl<'a, T: NodeTrait + VisitTrait<'a> + VisitMutTrait<'a>> Pair<'a, T> {
         }
     }
 
+    pub fn value(&self) -> &T {
+        match self {
+            Pair::End(value) => value,
+            Pair::Punctuated(value, _) => value,
+        }
+    }
+
+    pub fn value_mut(&mut self) -> &mut T {
+        match self {
+            Pair::End(value) => value,
+            Pair::Punctuated(value, _) => value,
+        }
+    }
+
     pub fn punctuation(&self) -> Option<&TokenReference<'a>> {
         match self {
             Pair::End(_) => None,

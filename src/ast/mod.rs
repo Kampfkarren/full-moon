@@ -598,7 +598,9 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// A mutable iterator over the names being assigned to, the `x, y` part of `local x, y = 1, 2`
-    pub fn iter_name_list_mut(&mut self) -> impl Iterator<Item = &mut Pair<'a, TokenReference<'a>>> {
+    pub fn iter_name_list_mut(
+        &mut self,
+    ) -> impl Iterator<Item = &mut Pair<'a, TokenReference<'a>>> {
         self.name_list.iter_mut()
     }
 }
