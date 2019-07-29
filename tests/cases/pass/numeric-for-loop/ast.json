@@ -2,6 +2,22 @@
   "stmts": [
     {
       "NumericFor": {
+        "for_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 3,
+            "character": 4,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "for"
+          }
+        },
         "index_variable": {
           "start_position": {
             "bytes": 4,
@@ -119,11 +135,43 @@
               }
             }
           ]
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 33,
+            "character": 34,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 36,
+            "character": 37,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     },
     {
       "NumericFor": {
+        "for_token": {
+          "start_position": {
+            "bytes": 37,
+            "character": 37,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 40,
+            "character": 4,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "for"
+          }
+        },
         "index_variable": {
           "start_position": {
             "bytes": 41,
@@ -189,11 +237,43 @@
         "step": null,
         "block": {
           "stmts": []
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 61,
+            "character": 25,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 64,
+            "character": 28,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     },
     {
       "NumericFor": {
+        "for_token": {
+          "start_position": {
+            "bytes": 65,
+            "character": 28,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 68,
+            "character": 4,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "for"
+          }
+        },
         "index_variable": {
           "start_position": {
             "bytes": 69,
@@ -275,6 +355,22 @@
         },
         "block": {
           "stmts": []
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 85,
+            "character": 21,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 88,
+            "character": 24,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     }

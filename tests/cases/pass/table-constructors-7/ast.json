@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -24,10 +40,42 @@
           {
             "value": {
               "TableConstructor": {
+                "start_brace": {
+                  "start_position": {
+                    "bytes": 18,
+                    "character": 19,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 19,
+                    "character": 20,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "{"
+                  }
+                },
                 "fields": [
                   [
                     {
                       "ExpressionKey": {
+                        "start_bracket": {
+                          "start_position": {
+                            "bytes": 21,
+                            "character": 2,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 22,
+                            "character": 3,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "["
+                          }
+                        },
                         "key": {
                           "value": {
                             "String": {
@@ -49,6 +97,38 @@
                             }
                           },
                           "binop": null
+                        },
+                        "end_bracket": {
+                          "start_position": {
+                            "bytes": 55,
+                            "character": 36,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 56,
+                            "character": 37,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "]"
+                          }
+                        },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 57,
+                            "character": 38,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 58,
+                            "character": 39,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
                         },
                         "value": {
                           "value": {
@@ -93,6 +173,22 @@
                   [
                     {
                       "ExpressionKey": {
+                        "start_bracket": {
+                          "start_position": {
+                            "bytes": 66,
+                            "character": 2,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 67,
+                            "character": 3,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "["
+                          }
+                        },
                         "key": {
                           "value": {
                             "String": {
@@ -114,6 +210,38 @@
                             }
                           },
                           "binop": null
+                        },
+                        "end_bracket": {
+                          "start_position": {
+                            "bytes": 131,
+                            "character": 67,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 132,
+                            "character": 68,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "]"
+                          }
+                        },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 133,
+                            "character": 69,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 134,
+                            "character": 70,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
                         },
                         "value": {
                           "value": {
@@ -158,6 +286,22 @@
                   [
                     {
                       "ExpressionKey": {
+                        "start_bracket": {
+                          "start_position": {
+                            "bytes": 142,
+                            "character": 2,
+                            "line": 4
+                          },
+                          "end_position": {
+                            "bytes": 143,
+                            "character": 3,
+                            "line": 4
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "["
+                          }
+                        },
                         "key": {
                           "value": {
                             "String": {
@@ -179,6 +323,38 @@
                             }
                           },
                           "binop": null
+                        },
+                        "end_bracket": {
+                          "start_position": {
+                            "bytes": 205,
+                            "character": 65,
+                            "line": 4
+                          },
+                          "end_position": {
+                            "bytes": 206,
+                            "character": 66,
+                            "line": 4
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "]"
+                          }
+                        },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 207,
+                            "character": 67,
+                            "line": 4
+                          },
+                          "end_position": {
+                            "bytes": 208,
+                            "character": 68,
+                            "line": 4
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
                         },
                         "value": {
                           "value": {
@@ -220,7 +396,23 @@
                       }
                     }
                   ]
-                ]
+                ],
+                "end_brace": {
+                  "start_position": {
+                    "bytes": 215,
+                    "character": 74,
+                    "line": 4
+                  },
+                  "end_position": {
+                    "bytes": 216,
+                    "character": 2,
+                    "line": 5
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "}"
+                  }
+                }
               }
             },
             "binop": null

@@ -24,6 +24,22 @@
           "colon_name": null
         },
         "body": {
+          "start_paranthese": {
+            "start_position": {
+              "bytes": 10,
+              "character": 11,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 11,
+              "character": 12,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "("
+            }
+          },
           "parameters": [],
           "block": {
             "stmts": [
@@ -59,6 +75,22 @@
                 }
               }
             ]
+          },
+          "end_token": {
+            "start_position": {
+              "bytes": 21,
+              "character": 8,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 24,
+              "character": 4,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "end"
+            }
           }
         }
       }

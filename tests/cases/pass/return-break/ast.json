@@ -2,77 +2,198 @@
   "stmts": [
     {
       "Do": {
-        "stmts": [],
-        "last_stmt": {
-          "Return": [
-            {
-              "value": {
-                "Number": {
-                  "start_position": {
-                    "bytes": 11,
-                    "character": 9,
-                    "line": 2
-                  },
-                  "end_position": {
-                    "bytes": 12,
-                    "character": 10,
-                    "line": 2
-                  },
-                  "token_type": {
-                    "type": "Number",
-                    "text": "1"
-                  }
+        "do_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 2,
+            "character": 3,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
+        "block": {
+          "stmts": [],
+          "last_stmt": {
+            "Return": {
+              "token": {
+                "start_position": {
+                  "bytes": 4,
+                  "character": 2,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 10,
+                  "character": 8,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "return"
                 }
               },
-              "binop": null
+              "returns": [
+                {
+                  "value": {
+                    "Number": {
+                      "start_position": {
+                        "bytes": 11,
+                        "character": 9,
+                        "line": 2
+                      },
+                      "end_position": {
+                        "bytes": 12,
+                        "character": 10,
+                        "line": 2
+                      },
+                      "token_type": {
+                        "type": "Number",
+                        "text": "1"
+                      }
+                    }
+                  },
+                  "binop": null
+                }
+              ]
             }
-          ]
+          }
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 13,
+            "character": 10,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 16,
+            "character": 4,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     },
     {
       "Do": {
-        "stmts": [],
-        "last_stmt": "Break"
+        "do_token": {
+          "start_position": {
+            "bytes": 18,
+            "character": 1,
+            "line": 4
+          },
+          "end_position": {
+            "bytes": 20,
+            "character": 3,
+            "line": 5
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
+        "block": {
+          "stmts": [],
+          "last_stmt": {
+            "Break": {
+              "start_position": {
+                "bytes": 22,
+                "character": 2,
+                "line": 6
+              },
+              "end_position": {
+                "bytes": 27,
+                "character": 7,
+                "line": 6
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "break"
+              }
+            }
+          }
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 28,
+            "character": 7,
+            "line": 6
+          },
+          "end_position": {
+            "bytes": 31,
+            "character": 4,
+            "line": 7
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
+        }
       }
     }
   ],
   "last_stmt": {
-    "Return": [
-      {
-        "value": {
-          "FunctionCall": {
-            "prefix": {
-              "Name": {
-                "start_position": {
-                  "bytes": 40,
-                  "character": 8,
-                  "line": 9
-                },
-                "end_position": {
-                  "bytes": 44,
-                  "character": 12,
-                  "line": 9
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "call"
-                }
-              }
-            },
-            "suffixes": [
-              {
-                "Call": {
-                  "AnonymousCall": {
-                    "Parentheses": []
+    "Return": {
+      "token": {
+        "start_position": {
+          "bytes": 33,
+          "character": 1,
+          "line": 8
+        },
+        "end_position": {
+          "bytes": 39,
+          "character": 7,
+          "line": 9
+        },
+        "token_type": {
+          "type": "Symbol",
+          "symbol": "return"
+        }
+      },
+      "returns": [
+        {
+          "value": {
+            "FunctionCall": {
+              "prefix": {
+                "Name": {
+                  "start_position": {
+                    "bytes": 40,
+                    "character": 8,
+                    "line": 9
+                  },
+                  "end_position": {
+                    "bytes": 44,
+                    "character": 12,
+                    "line": 9
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "call"
                   }
                 }
-              }
-            ]
-          }
-        },
-        "binop": null
-      }
-    ]
+              },
+              "suffixes": [
+                {
+                  "Call": {
+                    "AnonymousCall": {
+                      "Parentheses": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "binop": null
+        }
+      ]
+    }
   }
 }
