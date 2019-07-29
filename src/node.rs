@@ -1,9 +1,14 @@
 use crate::tokenizer::{Position, TokenReference};
 
+/// Used to represent nodes such as tokens or function definitions
 pub trait Node {
+    /// The start position of a node. None if can't be determined
     fn start_position(&self) -> Option<Position>;
+
+    /// The end position of a node. None if it can't be determined
     fn end_position(&self) -> Option<Position>;
 
+    /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
         Some((self.start_position()?, self.end_position()?))
     }

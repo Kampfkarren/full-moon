@@ -438,29 +438,29 @@ pub enum Field<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         start_bracket: TokenReference<'a>,
         /// The `expression` part of `[expression] = value`
-        key: Box<Expression<'a>>,
+        key: Expression<'a>,
         /// The `]` part of `[expression] = value`
         end_bracket: TokenReference<'a>,
         /// The `=` part of `[expression] = value`
         equal: TokenReference<'a>,
         /// The `value` part of `[expression] = value`
-        value: Box<Expression<'a>>,
+        value: Expression<'a>,
     },
 
     /// A key in the format of `name = value`
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `name` part of `name = value`
-        key: Box<TokenReference<'a>>,
+        key: TokenReference<'a>,
         /// The `=` part of `name = value`
         equal: TokenReference<'a>,
         /// The `value` part of `name = value`
-        value: Box<Expression<'a>>,
+        value: Expression<'a>,
     },
 
     /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
     #[cfg_attr(feature = "serde", serde(borrow))]
-    NoKey(Box<Expression<'a>>),
+    NoKey(Expression<'a>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -483,7 +483,7 @@ define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
             ParseExpression.parse(state.clone()),
             "expected value"
         );
-        let (key, value) = (Box::new(key), Box::new(value));
+
         return Ok((
             state.clone(),
             Field::ExpressionKey {
@@ -501,13 +501,12 @@ define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
                 ParseExpression.parse(state.clone()),
                 "expected value"
             );
-            let (key, value) = (Box::new(key), Box::new(value));
+
             return Ok((state.clone(), Field::NameKey { key, equal, value }));
         }
     }
 
     if let Ok((state, expr)) = keep_going!(ParseExpression.parse(state.clone())) {
-        let expr = Box::new(expr);
         return Ok((state.clone(), Field::NoKey(expr)));
     }
 
@@ -623,7 +622,7 @@ pub enum Expression<'a> {
     Value {
         /// The value itself
         #[cfg_attr(feature = "serde", serde(borrow))]
-        value: Value<'a>,
+        value: Box<Value<'a>>,
         /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
     },
@@ -638,7 +637,7 @@ define_parser!(
         keep_going!(ParseValue.parse(state.clone()))
     {
         let (state, binop) = if let Ok((state, bin_op)) = ParseBinOp.parse(state.clone()) {
-            let (state, expression) = expect!(
+            let (state, rhs) = expect!(
                 state,
                 ParseExpression.parse(state.clone()),
                 "expected expression"
@@ -647,12 +646,14 @@ define_parser!(
                 state,
                 Some(BinOpRhs {
                     bin_op,
-                    rhs: Box::new(expression),
+                    rhs: Box::new(rhs),
                 }),
             )
         } else {
             (state, None)
         };
+
+        let value = Box::new(value);
 
         Ok((state, Expression::Value { value, binop }))
     } else if let Ok((state, unop)) = keep_going!(ParseUnOp.parse(state.clone())) {
@@ -661,13 +662,10 @@ define_parser!(
             ParseExpression.parse(state.clone()),
             "expected expression"
         );
-        Ok((
-            state,
-            Expression::UnaryOperator {
-                unop,
-                expression: Box::new(expression),
-            },
-        ))
+
+        let expression = Box::new(expression);
+
+        Ok((state, Expression::UnaryOperator { unop, expression }))
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -705,19 +703,19 @@ pub enum Value<'a> {
     /// An anonymous function, such as `function() end)`
     Function(FunctionBody<'a>),
     /// A call of a function, such as `call()`
-    FunctionCall(Box<FunctionCall<'a>>),
+    FunctionCall(FunctionCall<'a>),
     /// A table constructor, such as `{ 1, 2, 3 }`
-    TableConstructor(Box<TableConstructor<'a>>),
+    TableConstructor(TableConstructor<'a>),
     /// A number token, such as `3.3`
     Number(TokenReference<'a>),
     /// An expression between parentheses, such as `(3 + 2)`
-    ParseExpression(Box<Expression<'a>>),
+    ParseExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     String(TokenReference<'a>),
     /// A symbol, such as `true`
     Symbol(TokenReference<'a>),
     /// A more complex value, such as `call().x`
-    Var(Box<Var<'a>>),
+    Var(Var<'a>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -746,27 +744,27 @@ define_parser!(
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An assignment, such as `x = 1`
-    Assignment(Box<Assignment<'a>>),
+    Assignment(Assignment<'a>),
     /// A do block, `do end`
-    Do(Box<Do<'a>>),
+    Do(Do<'a>),
     /// A function call on its own, such as `call()`
-    FunctionCall(Box<FunctionCall<'a>>),
+    FunctionCall(FunctionCall<'a>),
     /// A function declaration, such as `function x() end`
-    FunctionDeclaration(Box<FunctionDeclaration<'a>>),
+    FunctionDeclaration(FunctionDeclaration<'a>),
     /// A generic for loop, such as `for index, value in pairs(list) do end`
-    GenericFor(Box<GenericFor<'a>>),
+    GenericFor(GenericFor<'a>),
     /// An if statement
-    If(Box<If<'a>>),
+    If(If<'a>),
     /// A local assignment, such as `local x = 1`
-    LocalAssignment(Box<LocalAssignment<'a>>),
+    LocalAssignment(LocalAssignment<'a>),
     /// A local function declaration, such as `local function x() end`
-    LocalFunction(Box<LocalFunction<'a>>),
+    LocalFunction(LocalFunction<'a>),
     /// A numeric for loop, such as `for index = 1, 10 do end`
-    NumericFor(Box<NumericFor<'a>>),
+    NumericFor(NumericFor<'a>),
     /// A repeat loop
-    Repeat(Box<Repeat<'a>>),
+    Repeat(Repeat<'a>),
     /// A while loop
-    While(Box<While<'a>>),
+    While(While<'a>),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -881,7 +879,7 @@ pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call "foobar"`
     String(TokenReference<'a>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
-    TableConstructor(Box<TableConstructor<'a>>),
+    TableConstructor(TableConstructor<'a>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -907,10 +905,7 @@ define_parser!(ParseFunctionArgs, FunctionArgs<'a>, |_,
 } else if let Ok((state, table_constructor)) =
     keep_going!(ParseTableConstructor.parse(state.clone()))
 {
-    Ok((
-        state,
-        FunctionArgs::TableConstructor(Box::new(table_constructor)),
-    ))
+    Ok((state, FunctionArgs::TableConstructor(table_constructor)))
 } else if let Ok((state, string)) = keep_going!(ParseStringLiteral.parse(state.clone())) {
     Ok((state, FunctionArgs::String(string)))
 } else {
@@ -1540,7 +1535,7 @@ define_parser!(
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An expression, such as `x.y.z` or `x()`
-    Expression(Box<VarExpression<'a>>),
+    Expression(VarExpression<'a>),
     /// A literal identifier, such as `x`
     Name(TokenReference<'a>),
 }
@@ -1708,6 +1703,8 @@ define_parser!(
     }
 );
 
+/// A `do` block, such as `do ... end`
+/// This is not used for things like `while true do end`, only those on their own
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Do<'a> {
