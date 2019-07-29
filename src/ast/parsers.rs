@@ -1,12 +1,8 @@
-use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 use super::{
-	*,
-	parser_util::{
-		InternalAstError,
-		Parser,
-		ParserState,
-	},
+    parser_util::{InternalAstError, Parser, ParserState},
+    *,
 };
+use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseSymbol(Symbol);

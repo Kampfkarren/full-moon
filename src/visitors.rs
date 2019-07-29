@@ -1,5 +1,4 @@
-use crate::ast;
-use crate::tokenizer::TokenReference;
+use crate::{ast, private::Sealed, tokenizer::TokenReference};
 use std::borrow::Cow;
 
 macro_rules! create_visitor {
@@ -71,11 +70,13 @@ macro_rules! create_visitor {
     };
 }
 
-pub(crate) trait Visit<'ast> {
+#[doc(hidden)]
+pub trait Visit<'ast>: Sealed {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V);
 }
 
-pub(crate) trait VisitMut<'ast> {
+#[doc(hidden)]
+pub trait VisitMut<'ast>: Sealed {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V);
 }
 

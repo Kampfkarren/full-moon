@@ -85,25 +85,27 @@
                               "AnonymousCall": {
                                 "Parentheses": [
                                   {
-                                    "value": {
-                                      "Number": {
-                                        "start_position": {
-                                          "bytes": 27,
-                                          "character": 7,
-                                          "line": 2
-                                        },
-                                        "end_position": {
-                                          "bytes": 28,
-                                          "character": 8,
-                                          "line": 2
-                                        },
-                                        "token_type": {
-                                          "type": "Number",
-                                          "text": "1"
+                                    "End": {
+                                      "value": {
+                                        "Number": {
+                                          "start_position": {
+                                            "bytes": 27,
+                                            "character": 7,
+                                            "line": 2
+                                          },
+                                          "end_position": {
+                                            "bytes": 28,
+                                            "character": 8,
+                                            "line": 2
+                                          },
+                                          "token_type": {
+                                            "type": "Number",
+                                            "text": "1"
+                                          }
                                         }
-                                      }
-                                    },
-                                    "binop": null
+                                      },
+                                      "binop": null
+                                    }
                                   }
                                 ]
                               }

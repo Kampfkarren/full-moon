@@ -1,24 +1,23 @@
 #[macro_use]
 mod parser_util;
 mod parsers;
+mod punctuated;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::{Node, Visit};
 use generational_arena::Arena;
 use itertools::Itertools;
-use parser_util::{
-    InternalAstError,
-    OneOrMore,
-    Parser,
-    ParserState,
-    ZeroOrMore,
-    ZeroOrMoreDelimited,
-};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::iter::FromIterator;
 use std::sync::Arc;
+
+use parser_util::{
+    InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
+};
+
+use punctuated::{Pair, Pairs};
 
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
@@ -54,7 +53,7 @@ pub enum LastStmt<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         token: TokenReference<'a>,
         /// The values being returned
-        returns: Vec<Expression<'a>>,
+        returns: Pairs<'a, Expression<'a>>,
     },
 }
 
@@ -256,7 +255,7 @@ pub enum Index<'a> {
 pub enum FunctionArgs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// Used when a function is called in the form of `call(1, 2, 3)`
-    Parentheses(Vec<Expression<'a>>),
+    Parentheses(Pairs<'a, Expression<'a>>),
     /// Used when a function is called in the form of `call "foobar"`
     String(TokenReference<'a>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
@@ -310,8 +309,8 @@ impl<'a> NumericFor<'a> {
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
-    names: Vec<TokenReference<'a>>,
-    expr_list: Vec<Expression<'a>>,
+    names: Pairs<'a, TokenReference<'a>>,
+    expr_list: Pairs<'a, Expression<'a>>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -319,13 +318,13 @@ pub struct GenericFor<'a> {
 impl<'a> GenericFor<'a> {
     /// An iterator over the names used in a for loop
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
-    pub fn iter_names(&self) -> impl Iterator<Item = &TokenReference<'a>> {
+    pub fn iter_names(&self) -> impl Iterator<Item = &Pair<'a, TokenReference<'a>>> {
         self.names.iter()
     }
 
     /// An iterator over the expression used in a for loop
     /// In `for index, value in pairs(list) do`, iterates over `pairs(list)`
-    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Pair<'a, Expression<'a>>> {
         self.expr_list.iter()
     }
 
@@ -487,7 +486,7 @@ pub enum Parameter<'a> {
     /// The `...` vararg syntax, such as `function x(...)`
     Ellipse(TokenReference<'a>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(TokenReference<'a>),
+    Name(Pair<'a, TokenReference<'a>>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
@@ -539,18 +538,18 @@ pub enum Var<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    var_list: Vec<Var<'a>>,
-    expr_list: Vec<Expression<'a>>,
+    var_list: Pairs<'a, Var<'a>>,
+    expr_list: Pairs<'a, Expression<'a>>,
 }
 
 impl<'a> Assignment<'a> {
     /// An iterator over the expressions being assigned, the `1, 2` part of `x, y["a"] = 1, 2`
-    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Pair<'a, Expression<'a>>> {
         self.expr_list.iter()
     }
 
     /// An iterator over the variables being assigned to, the `x, y["a"]` part of `x, y["a"] = 1, 2`
-    pub fn iter_var_list(&self) -> impl Iterator<Item = &Var<'a>> {
+    pub fn iter_var_list(&self) -> impl Iterator<Item = &Pair<'a, Var<'a>>> {
         self.var_list.iter()
     }
 }
@@ -583,23 +582,23 @@ impl<'a> LocalFunction<'a> {
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
-    name_list: Vec<TokenReference<'a>>,
-    expr_list: Vec<Expression<'a>>,
+    name_list: Pairs<'a, TokenReference<'a>>,
+    expr_list: Pairs<'a, Expression<'a>>,
 }
 
 impl<'a> LocalAssignment<'a> {
     /// An iterator over the expressions being assigned, the `1, 2` part of `local x, y = 1, 2`
-    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Expression<'a>> {
+    pub fn iter_expr_list(&self) -> impl Iterator<Item = &Pair<'a, Expression<'a>>> {
         self.expr_list.iter()
     }
 
     /// An iterator over the names being assigned to, the `x, y` part of `local x, y = 1, 2`
-    pub fn iter_name_list(&self) -> impl Iterator<Item = &TokenReference<'a>> {
+    pub fn iter_name_list(&self) -> impl Iterator<Item = &Pair<'a, TokenReference<'a>>> {
         self.name_list.iter()
     }
 
     /// A mutable iterator over the names being assigned to, the `x, y` part of `local x, y = 1, 2`
-    pub fn iter_name_list_mut(&mut self) -> impl Iterator<Item = &mut TokenReference<'a>> {
+    pub fn iter_name_list_mut(&mut self) -> impl Iterator<Item = &mut Pair<'a, TokenReference<'a>>> {
         self.name_list.iter_mut()
     }
 }
@@ -641,7 +640,7 @@ impl<'a> FunctionCall<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Vec<TokenReference<'a>>,
+    names: Pairs<'a, TokenReference<'a>>,
     colon_name: Option<TokenReference<'a>>,
 }
 
@@ -652,7 +651,7 @@ impl<'a> FunctionName<'a> {
     }
 
     /// An iterator over the names used when defining the function, the `x.y.z` part of `function x.y.z() end`
-    pub fn iter_names(&self) -> impl Iterator<Item = &TokenReference<'a>> {
+    pub fn iter_names(&self) -> impl Iterator<Item = &Pair<'a, TokenReference<'a>>> {
         self.names.iter()
     }
 }

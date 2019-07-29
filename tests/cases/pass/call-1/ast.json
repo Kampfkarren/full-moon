@@ -57,25 +57,27 @@
               "AnonymousCall": {
                 "Parentheses": [
                   {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 12,
-                          "character": 6,
-                          "line": 2
-                        },
-                        "end_position": {
-                          "bytes": 13,
-                          "character": 7,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "1"
+                    "End": {
+                      "value": {
+                        "Number": {
+                          "start_position": {
+                            "bytes": 12,
+                            "character": 6,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 13,
+                            "character": 7,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "1"
+                          }
                         }
-                      }
-                    },
-                    "binop": null
+                      },
+                      "binop": null
+                    }
                   }
                 ]
               }
@@ -110,46 +112,68 @@
               "AnonymousCall": {
                 "Parentheses": [
                   {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 20,
-                          "character": 6,
-                          "line": 3
+                    "Punctuated": [
+                      {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 20,
+                              "character": 6,
+                              "line": 3
+                            },
+                            "end_position": {
+                              "bytes": 21,
+                              "character": 7,
+                              "line": 3
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "1"
+                            }
+                          }
                         },
-                        "end_position": {
+                        "binop": null
+                      },
+                      {
+                        "start_position": {
                           "bytes": 21,
                           "character": 7,
                           "line": 3
                         },
+                        "end_position": {
+                          "bytes": 22,
+                          "character": 8,
+                          "line": 3
+                        },
                         "token_type": {
-                          "type": "Number",
-                          "text": "1"
+                          "type": "Symbol",
+                          "symbol": ","
                         }
                       }
-                    },
-                    "binop": null
+                    ]
                   },
                   {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 23,
-                          "character": 9,
-                          "line": 3
-                        },
-                        "end_position": {
-                          "bytes": 24,
-                          "character": 10,
-                          "line": 3
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "2"
+                    "End": {
+                      "value": {
+                        "Number": {
+                          "start_position": {
+                            "bytes": 23,
+                            "character": 9,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 24,
+                            "character": 10,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "2"
+                          }
                         }
-                      }
-                    },
-                    "binop": null
+                      },
+                      "binop": null
+                    }
                   }
                 ]
               }

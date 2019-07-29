@@ -1,14 +1,16 @@
 // Exported macros are documented since no amount of allow(missing_docs) silenced the lint
 
-use crate::tokenizer::{Token, TokenReference};
+use super::punctuated::{Pair, Pairs};
+use crate::{
+    node::Node,
+    tokenizer::{Token, TokenReference},
+    visitors::{Visit, VisitMut},
+};
 use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{
-	fmt,
-	sync::Arc,
-};
+use std::{debug_assert, fmt, sync::Arc};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone)]
@@ -168,7 +170,6 @@ pub enum InternalAstError<'a> {
     },
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMore<P>(pub P);
 
@@ -204,33 +205,40 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
     pub bool,       // Allow trailing delimiter?
 );
 
+// False positive clippy lints
+#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::nonminimal_bool)]
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Vec<T>;
+    type Item = Pairs<'a, T>;
 
     fn parse(
         &self,
         mut state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
+    ) -> Result<(ParserState<'a>, Pairs<'a, T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state.clone())) {
             state = new_state;
-            nodes.push(node);
+            nodes.push(Pair::End(node));
         } else {
             return Ok((state.clone(), Vec::new()));
         }
 
-        while let Ok((new_state, _)) = keep_going!(self.1.parse(state.clone())) {
+        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state.clone())) {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::Punctuated(last_value, delimiter));
+
             state = new_state;
 
             match self.0.parse(state.clone()) {
                 Ok((new_state, node)) => {
                     state = new_state;
-                    nodes.push(node);
+                    nodes.push(Pair::End(node));
                 }
 
                 Err(InternalAstError::NoMatch) => {
@@ -250,6 +258,18 @@ where
             }
         }
 
+        debug_assert!(
+            {
+                let len = nodes.len();
+
+                nodes.iter().enumerate().any(|(index, value)| {
+                    (index + 1 == len && value.punctuation().is_none())
+                        || (index + 1 != len && value.punctuation().is_some())
+                })
+            },
+            "pairs produced by ZeroOrMoreDelimited are illogical"
+        );
+
         Ok((state, nodes))
     }
 }
@@ -261,24 +281,33 @@ pub struct OneOrMore<ItemParser, Delimiter>(
     pub bool,       // Allow trailing delimiter?
 );
 
-impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
-    for OneOrMore<ItemParser, Delimiter>
+// False positive clippy lints
+#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::nonminimal_bool)]
+impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
+where
+    ItemParser: Parser<'a, Item = T>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Vec<ItemParser::Item>;
+    type Item = Pairs<'a, ItemParser::Item>;
 
     fn parse(
         &self,
         state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<ItemParser::Item>), InternalAstError<'a>> {
+    ) -> Result<(ParserState<'a>, Pairs<'a, ItemParser::Item>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         let (mut state, node) = self.0.parse(state.clone())?;
-        nodes.push(node);
+        nodes.push(Pair::End(node));
 
-        while let Ok((new_state, _)) = self.1.parse(state.clone()) {
+        while let Ok((new_state, delimiter)) = self.1.parse(state.clone()) {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::Punctuated(last_value, delimiter));
+
             match self.0.parse(new_state.clone()) {
                 Ok((new_state, node)) => {
                     state = new_state;
-                    nodes.push(node);
+                    nodes.push(Pair::End(node));
                 }
 
                 Err(InternalAstError::NoMatch) => {
@@ -294,6 +323,18 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
                 }
             }
         }
+
+        debug_assert!(
+            {
+                let len = nodes.len();
+
+                nodes.iter().enumerate().any(|(index, value)| {
+                    (index + 1 == len && value.punctuation().is_none())
+                        || (index + 1 != len && value.punctuation().is_some())
+                })
+            },
+            "pairs produced by ZeroOrMoreDelimited are illogical"
+        );
 
         Ok((state, nodes))
     }
