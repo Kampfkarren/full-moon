@@ -3,6 +3,10 @@ use crate::tokenizer::{Position, TokenReference};
 pub trait Node {
     fn start_position(&self) -> Option<Position>;
     fn end_position(&self) -> Option<Position>;
+
+    fn range(&self) -> Option<(Position, Position)> {
+        Some((self.start_position()?, self.end_position()?))
+    }
 }
 
 impl<'a> Node for TokenReference<'a> {
