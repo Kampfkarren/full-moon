@@ -1,4 +1,5 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
+#![allow(clippy::large_enum_variant)]
 
 //! # Full Moon
 //!
@@ -8,12 +9,17 @@
 /// Utilities for ASTs (Abstract Syntax Trees). Contains all nodes used by Full Moon (such as blocks).
 pub mod ast;
 
+/// Contains the `Node` trait, implemented on all nodes
+pub mod node;
+
 /// Used for tokenizing, the process of converting the code to individual tokens.
 /// Useful for getting symbols and manually tokenizing without going using an AST.
 pub mod tokenizer;
 
 /// Used to create visitors that recurse through [`Ast`](ast/struct.Ast.html) nodes.
 pub mod visitors;
+
+mod private;
 
 use std::fmt;
 

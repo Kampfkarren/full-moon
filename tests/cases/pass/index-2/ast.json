@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -77,19 +93,37 @@
                     {
                       "Index": {
                         "Dot": {
-                          "start_position": {
-                            "bytes": 20,
-                            "character": 21,
-                            "line": 1
+                          "dot": {
+                            "start_position": {
+                              "bytes": 19,
+                              "character": 20,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 20,
+                              "character": 21,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": "."
+                            }
                           },
-                          "end_position": {
-                            "bytes": 21,
-                            "character": 22,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "Identifier",
-                            "identifier": "b"
+                          "name": {
+                            "start_position": {
+                              "bytes": 20,
+                              "character": 21,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 21,
+                              "character": 22,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Identifier",
+                              "identifier": "b"
+                            }
                           }
                         }
                       }

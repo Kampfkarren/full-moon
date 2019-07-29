@@ -2,6 +2,22 @@
   "stmts": [
     {
       "If": {
+        "if_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 2,
+            "character": 3,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "if"
+          }
+        },
         "condition": {
           "value": {
             "Var": {
@@ -61,7 +77,24 @@
           ]
         },
         "else_if": null,
-        "else": null
+        "else_token": null,
+        "else": null,
+        "end_token": {
+          "start_position": {
+            "bytes": 18,
+            "character": 8,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 21,
+            "character": 4,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
+        }
       }
     }
   ]

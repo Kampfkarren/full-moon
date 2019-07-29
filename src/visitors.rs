@@ -155,7 +155,7 @@ create_visitor!(ast: {
     visit_bin_op => BinOpRhs,
     visit_block => Block,
     visit_call => Call,
-    visit_do => Block,
+    visit_do => Do,
     visit_expression => Expression,
     visit_field => Field,
     visit_function_args => FunctionArgs,

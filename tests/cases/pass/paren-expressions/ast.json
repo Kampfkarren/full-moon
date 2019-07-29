@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -40,8 +56,8 @@
                 }
               }
             },
-            "binop": [
-              {
+            "binop": {
+              "bin_op": {
                 "Plus": {
                   "start_position": {
                     "bytes": 14,
@@ -59,7 +75,7 @@
                   }
                 }
               },
-              {
+              "rhs": {
                 "value": {
                   "ParseExpression": {
                     "value": {
@@ -80,8 +96,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "Minus": {
                           "start_position": {
                             "bytes": 19,
@@ -99,7 +115,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Number": {
                             "start_position": {
@@ -120,12 +136,12 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 },
                 "binop": null
               }
-            ]
+            }
           }
         ]
       }

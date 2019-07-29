@@ -55,9 +55,41 @@
           }
         },
         "body": {
+          "start_paranthese": {
+            "start_position": {
+              "bytes": 14,
+              "character": 15,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 15,
+              "character": 16,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "("
+            }
+          },
           "parameters": [],
           "block": {
             "stmts": []
+          },
+          "end_token": {
+            "start_position": {
+              "bytes": 17,
+              "character": 18,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 20,
+              "character": 21,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "end"
+            }
           }
         }
       }

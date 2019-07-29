@@ -2,6 +2,22 @@
   "stmts": [
     {
       "While": {
+        "while_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "while"
+          }
+        },
         "condition": {
           "value": {
             "Var": {
@@ -59,7 +75,40 @@
               }
             }
           ],
-          "last_stmt": "Break"
+          "last_stmt": {
+            "Break": {
+              "start_position": {
+                "bytes": 28,
+                "character": 2,
+                "line": 3
+              },
+              "end_position": {
+                "bytes": 33,
+                "character": 7,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "break"
+              }
+            }
+          }
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 34,
+            "character": 7,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 37,
+            "character": 4,
+            "line": 4
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     }

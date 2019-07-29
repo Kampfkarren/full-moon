@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -47,6 +63,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 27,
+            "character": 27,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 32,
+            "character": 6,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -114,6 +146,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 55,
+            "character": 28,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 60,
+            "character": 6,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -179,6 +227,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 83,
+            "character": 28,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 88,
+            "character": 6,
+            "line": 4
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -246,6 +310,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 109,
+            "character": 26,
+            "line": 4
+          },
+          "end_position": {
+            "bytes": 114,
+            "character": 6,
+            "line": 5
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {

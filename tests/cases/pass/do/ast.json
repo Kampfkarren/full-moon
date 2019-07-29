@@ -2,39 +2,73 @@
   "stmts": [
     {
       "Do": {
-        "stmts": [
-          {
-            "FunctionCall": {
-              "prefix": {
-                "Name": {
-                  "start_position": {
-                    "bytes": 4,
-                    "character": 2,
-                    "line": 2
-                  },
-                  "end_position": {
-                    "bytes": 8,
-                    "character": 6,
-                    "line": 2
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "call"
-                  }
-                }
-              },
-              "suffixes": [
-                {
-                  "Call": {
-                    "AnonymousCall": {
-                      "Parentheses": []
+        "do_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 2,
+            "character": 3,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
+        "block": {
+          "stmts": [
+            {
+              "FunctionCall": {
+                "prefix": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 4,
+                      "character": 2,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 8,
+                      "character": 6,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "call"
                     }
                   }
-                }
-              ]
+                },
+                "suffixes": [
+                  {
+                    "Call": {
+                      "AnonymousCall": {
+                        "Parentheses": []
+                      }
+                    }
+                  }
+                ]
+              }
             }
+          ]
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 11,
+            "character": 8,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 14,
+            "character": 4,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
           }
-        ]
+        }
       }
     }
   ]

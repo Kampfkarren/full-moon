@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -47,6 +63,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 30,
+            "character": 18,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 35,
+            "character": 6,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {

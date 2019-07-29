@@ -50,8 +50,10 @@ fn visit_self_hint(attrs: &[syn::Attribute]) -> Option<VisitSelfHint> {
                     syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
                         if name_value.ident == "visit_as" {
                             match &name_value.lit {
-                                syn::Lit::Str(lit_str) => return Some(VisitSelfHint::VisitAs(lit_str.value())),
-                                _ => panic!("expected literal string for visit_as")
+                                syn::Lit::Str(lit_str) => {
+                                    return Some(VisitSelfHint::VisitAs(lit_str.value()))
+                                }
+                                _ => panic!("expected literal string for visit_as"),
                             }
                         }
                     }
@@ -72,7 +74,7 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 
     let expanded = match &input.data {
         syn::Data::Enum(enumm) => {
-            let mut cases = Vec::new();
+            let mut cases = Vec::with_capacity(enumm.variants.len());
 
             for variant in &enumm.variants {
                 let variant_ident = &variant.ident;
@@ -202,6 +204,155 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
                 #expanded
             }
         }
+    };
+
+    TokenStream::from(source)
+}
+
+#[proc_macro_derive(Node)]
+pub fn derive_node(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let input_ident = &input.ident;
+
+    let expanded = match &input.data {
+        syn::Data::Enum(enumm) => {
+            let mut cases = Vec::with_capacity(enumm.variants.len());
+
+            for variant in &enumm.variants {
+                let variant_ident = &variant.ident;
+
+                match &variant.fields {
+                    syn::Fields::Named(named) => {
+                        let fields = named.named
+                            .iter()
+                            .map(|field| {
+                                field.ident.as_ref().unwrap()
+                            })
+                            .collect::<Vec<_>>();
+
+                        let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+
+                        for field in &fields {
+                            start_position.push(quote! {
+                                .or_else(|| {
+                                    #field.start_position()
+                                })
+                            });
+                        }
+
+                        for field in fields.iter().rev() {
+                            end_position.push(quote! {
+                                .or_else(|| {
+                                    #field.end_position()
+                                })
+                            });
+                        }
+
+                        cases.push(quote! {
+                            #input_ident::#variant_ident {
+                                #(#fields,)*
+                            } => {
+                                Some((None#(#start_position)*?, None#(#end_position)*?))
+                            }
+                        });
+                        cases.push(quote! {
+                        })
+                    }
+
+                    syn::Fields::Unnamed(unnamed) => {
+                        let fields = &unnamed.unnamed;
+                        if fields.len() == 1 {
+                            cases.push(quote! {
+                                #input_ident::#variant_ident(inner) => {
+                                    Some((inner.start_position()?, inner.end_position()?))
+                                }
+                            })
+                        } else {
+                            let fields_count = fields.len() - 1;
+                            let field_match: Vec<_> = fields
+                                .iter()
+                                .enumerate()
+                                .map(|(index, _)| {
+                                    syn::Ident::new(
+                                        match index {
+                                            0 => "first",
+                                            _x if _x == fields_count => "last",
+                                            _ => "_",
+                                        },
+                                        variant_ident.span(),
+                                    )
+                                })
+                                .collect();
+
+                            cases.push(quote! {
+                                #input_ident::#variant_ident(
+                                    #(#field_match,)*
+                                ) => {
+                                    Some((first.start_position()?, last.end_position()?))
+                                }
+                            })
+                        }
+                    }
+
+                    syn::Fields::Unit => {}
+                }
+            }
+
+            quote! {
+                #[allow(unused_variables)]
+                match self {
+                    #(#cases)*
+                }
+            }
+        }
+
+        syn::Data::Struct(strukt) => {
+            let fields = strukt
+                .fields
+                .iter()
+                .map(|field| field.ident.as_ref().unwrap())
+                .collect::<Vec<_>>();
+
+            let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+
+            for field in &fields {
+                start_position.push(quote! {
+                    .or_else(|| {
+                        self.#field.start_position()
+                    })
+                });
+            }
+
+            for field in fields.iter().rev() {
+                end_position.push(quote! {
+                    .or_else(|| {
+                        self.#field.end_position()
+                    })
+                });
+            }
+
+            quote! {
+                Some((None#(#start_position)*?, None#(#end_position)*?))
+            }
+        }
+
+        other => panic!("don't know how to derive Node from {:?}", other),
+    };
+
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+
+    let source = quote! {
+        impl #impl_generics crate::node::Node for #input_ident #ty_generics #where_clause {
+            fn start_position(&self) -> Option<crate::tokenizer::Position> {
+                Some(#expanded?.0)
+            }
+
+            fn end_position(&self) -> Option<crate::tokenizer::Position> {
+                Some(#expanded?.1)
+            }
+        }
+
+        impl #impl_generics crate::private::Sealed for #input_ident #ty_generics #where_clause {}
     };
 
     TokenStream::from(source)

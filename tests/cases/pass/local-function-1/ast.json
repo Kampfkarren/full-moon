@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalFunction": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name": {
           "start_position": {
             "bytes": 15,
@@ -19,6 +35,22 @@
           }
         },
         "func_body": {
+          "start_paranthese": {
+            "start_position": {
+              "bytes": 16,
+              "character": 17,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 17,
+              "character": 18,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "("
+            }
+          },
           "parameters": [],
           "block": {
             "stmts": [
@@ -76,6 +108,22 @@
                 }
               }
             ]
+          },
+          "end_token": {
+            "start_position": {
+              "bytes": 28,
+              "character": 9,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 31,
+              "character": 4,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "end"
+            }
           }
         }
       }

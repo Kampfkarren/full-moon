@@ -2,6 +2,22 @@
   "stmts": [
     {
       "GenericFor": {
+        "for_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 3,
+            "character": 4,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "for"
+          }
+        },
         "names": [
           {
             "start_position": {
@@ -165,6 +181,22 @@
               }
             }
           ]
+        },
+        "end_token": {
+          "start_position": {
+            "bytes": 54,
+            "character": 20,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 57,
+            "character": 4,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "end"
+          }
         }
       }
     }

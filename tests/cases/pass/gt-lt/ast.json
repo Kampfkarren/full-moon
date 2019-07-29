@@ -44,8 +44,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "LessThan": {
                           "start_position": {
                             "bytes": 9,
@@ -63,7 +63,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Number": {
                             "start_position": {
@@ -84,7 +84,7 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 ]
               }
@@ -137,8 +137,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "LessThanEqual": {
                           "start_position": {
                             "bytes": 22,
@@ -156,7 +156,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Number": {
                             "start_position": {
@@ -177,7 +177,7 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 ]
               }
@@ -230,8 +230,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "GreaterThan": {
                           "start_position": {
                             "bytes": 34,
@@ -249,7 +249,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Number": {
                             "start_position": {
@@ -270,7 +270,7 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 ]
               }
@@ -323,8 +323,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "GreaterThanEqual": {
                           "start_position": {
                             "bytes": 47,
@@ -342,7 +342,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Number": {
                             "start_position": {
@@ -363,7 +363,7 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 ]
               }
@@ -418,8 +418,8 @@
                         }
                       }
                     },
-                    "binop": [
-                      {
+                    "binop": {
+                      "bin_op": {
                         "GreaterThanEqual": {
                           "start_position": {
                             "bytes": 60,
@@ -437,7 +437,7 @@
                           }
                         }
                       },
-                      {
+                      "rhs": {
                         "value": {
                           "Var": {
                             "Name": {
@@ -460,7 +460,7 @@
                         },
                         "binop": null
                       }
-                    ]
+                    }
                   }
                 ]
               }

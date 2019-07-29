@@ -24,19 +24,37 @@
           {
             "Index": {
               "Dot": {
-                "start_position": {
-                  "bytes": 2,
-                  "character": 3,
-                  "line": 1
+                "dot": {
+                  "start_position": {
+                    "bytes": 1,
+                    "character": 2,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 2,
+                    "character": 3,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "."
+                  }
                 },
-                "end_position": {
-                  "bytes": 3,
-                  "character": 4,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "y"
+                "name": {
+                  "start_position": {
+                    "bytes": 2,
+                    "character": 3,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 3,
+                    "character": 4,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "y"
+                  }
                 }
               }
             }

@@ -2,6 +2,22 @@
   "stmts": [
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 0,
+            "character": 1,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -24,6 +40,22 @@
           {
             "value": {
               "TableConstructor": {
+                "start_brace": {
+                  "start_position": {
+                    "bytes": 10,
+                    "character": 11,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 11,
+                    "character": 12,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "{"
+                  }
+                },
                 "fields": [
                   [
                     {
@@ -42,6 +74,22 @@
                           "token_type": {
                             "type": "Identifier",
                             "identifier": "a"
+                          }
+                        },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 15,
+                            "character": 4,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 16,
+                            "character": 5,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
                           }
                         },
                         "value": {
@@ -103,6 +151,22 @@
                             "identifier": "b"
                           }
                         },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 23,
+                            "character": 4,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 24,
+                            "character": 5,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
+                        },
                         "value": {
                           "value": {
                             "Number": {
@@ -162,6 +226,22 @@
                             "identifier": "c"
                           }
                         },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 31,
+                            "character": 4,
+                            "line": 4
+                          },
+                          "end_position": {
+                            "bytes": 32,
+                            "character": 5,
+                            "line": 4
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
+                        },
                         "value": {
                           "value": {
                             "Number": {
@@ -187,7 +267,23 @@
                     },
                     null
                   ]
-                ]
+                ],
+                "end_brace": {
+                  "start_position": {
+                    "bytes": 35,
+                    "character": 7,
+                    "line": 4
+                  },
+                  "end_position": {
+                    "bytes": 36,
+                    "character": 2,
+                    "line": 5
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "}"
+                  }
+                }
               }
             },
             "binop": null
@@ -197,6 +293,22 @@
     },
     {
       "LocalAssignment": {
+        "local_token": {
+          "start_position": {
+            "bytes": 38,
+            "character": 1,
+            "line": 6
+          },
+          "end_position": {
+            "bytes": 43,
+            "character": 6,
+            "line": 7
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "local"
+          }
+        },
         "name_list": [
           {
             "start_position": {
@@ -219,6 +331,22 @@
           {
             "value": {
               "TableConstructor": {
+                "start_brace": {
+                  "start_position": {
+                    "bytes": 48,
+                    "character": 11,
+                    "line": 7
+                  },
+                  "end_position": {
+                    "bytes": 49,
+                    "character": 12,
+                    "line": 7
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "{"
+                  }
+                },
                 "fields": [
                   [
                     {
@@ -237,6 +365,22 @@
                           "token_type": {
                             "type": "Identifier",
                             "identifier": "a"
+                          }
+                        },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 53,
+                            "character": 4,
+                            "line": 8
+                          },
+                          "end_position": {
+                            "bytes": 54,
+                            "character": 5,
+                            "line": 8
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
                           }
                         },
                         "value": {
@@ -298,6 +442,22 @@
                             "identifier": "b"
                           }
                         },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 61,
+                            "character": 4,
+                            "line": 9
+                          },
+                          "end_position": {
+                            "bytes": 62,
+                            "character": 5,
+                            "line": 9
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
+                        },
                         "value": {
                           "value": {
                             "Number": {
@@ -357,6 +517,22 @@
                             "identifier": "c"
                           }
                         },
+                        "equal": {
+                          "start_position": {
+                            "bytes": 69,
+                            "character": 4,
+                            "line": 10
+                          },
+                          "end_position": {
+                            "bytes": 70,
+                            "character": 5,
+                            "line": 10
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "="
+                          }
+                        },
                         "value": {
                           "value": {
                             "Number": {
@@ -397,7 +573,23 @@
                       }
                     }
                   ]
-                ]
+                ],
+                "end_brace": {
+                  "start_position": {
+                    "bytes": 74,
+                    "character": 8,
+                    "line": 10
+                  },
+                  "end_position": {
+                    "bytes": 75,
+                    "character": 2,
+                    "line": 11
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": "}"
+                  }
+                }
               }
             },
             "binop": null

@@ -19,7 +19,7 @@ only-source-tests = []
 atomic_refcell = "0.1"
 bytecount = "0.5"
 crossbeam-utils = "0.6"
-full_moon_derive = { path = "./full-moon-derive", version = "0.1.1" }
+full_moon_derive = { path = "./full-moon-derive", version = "0.2.0" }
 generational-arena = "0.2"
 itertools = "0.8"
 lazy_static = "1.3"
