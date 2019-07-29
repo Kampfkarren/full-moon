@@ -351,6 +351,8 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                 Some(#expanded?.1)
             }
         }
+
+        impl #impl_generics crate::private::Sealed for #input_ident #ty_generics #where_clause {}
     };
 
     TokenStream::from(source)

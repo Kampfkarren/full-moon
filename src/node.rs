@@ -1,7 +1,12 @@
-use crate::tokenizer::{Position, TokenReference};
+use crate::{
+    private,
+    tokenizer::{Position, TokenReference},
+};
 
 /// Used to represent nodes such as tokens or function definitions
-pub trait Node {
+///
+/// This trait is sealed and cannot be implemented for types outside of `full-moon`
+pub trait Node: private::Sealed {
     /// The start position of a node. None if can't be determined
     fn start_position(&self) -> Option<Position>;
 

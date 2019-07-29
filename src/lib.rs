@@ -19,6 +19,8 @@ pub mod tokenizer;
 /// Used to create visitors that recurse through [`Ast`](ast/struct.Ast.html) nodes.
 pub mod visitors;
 
+mod private;
+
 use std::fmt;
 
 #[cfg(all(test, not(feature = "serde")))]
