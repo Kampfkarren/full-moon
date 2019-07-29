@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Ast::update_positions` to update all the position structs if you mutate it
 - Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node
 - Changed `visit_do` to use a new `Do` struct instead of `Block`
+- Added `Pairs` and `Pair`, replaced lots of uses of `Vec<_>` with `Pairs<_>`
 
 ## [0.3.0] - 2019-05-24
 ### Added
