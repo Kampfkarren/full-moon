@@ -674,7 +674,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
         )
     {
         state = new_state;
-        parameters.extend(names.into_iter().map(Parameter::Name));
+        parameters.extend(names.into_pairs().map(Parameter::Name));
 
         if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state.clone()) {
             if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
@@ -826,7 +826,7 @@ define_parser!(
                         additional: Some("expected expression"),
                     })
                 })?,
-            Err(InternalAstError::NoMatch) => (state, Vec::new()),
+            Err(InternalAstError::NoMatch) => (state, Punctuated::new()),
             Err(other) => return Err(other),
         };
 

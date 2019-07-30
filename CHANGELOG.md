@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
 - Added `Ast::update_positions` to update all the position structs if you mutate it
 - Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node
-- Added `Pairs` and `Pair`, replaced lots of uses of `Vec<_>` with `Pairs<_>`
+- Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors

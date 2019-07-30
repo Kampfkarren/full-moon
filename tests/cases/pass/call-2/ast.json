@@ -62,32 +62,34 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "End": {
-                      "value": {
-                        "String": {
-                          "start_position": {
-                            "bytes": 4,
-                            "character": 5,
-                            "line": 1
-                          },
-                          "end_position": {
-                            "bytes": 7,
-                            "character": 8,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "StringLiteral",
-                            "literal": "a",
-                            "quote_type": "Double"
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 4,
+                              "character": 5,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 7,
+                              "character": 8,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "a",
+                              "quote_type": "Double"
+                            }
                           }
-                        }
-                      },
-                      "binop": null
+                        },
+                        "binop": null
+                      }
                     }
-                  }
-                ]
+                  ]
+                }
               }
             }
           }
@@ -135,32 +137,34 @@
                   }
                 },
                 "args": {
-                  "Parentheses": [
-                    {
-                      "End": {
-                        "value": {
-                          "String": {
-                            "start_position": {
-                              "bytes": 13,
-                              "character": 5,
-                              "line": 2
-                            },
-                            "end_position": {
-                              "bytes": 16,
-                              "character": 8,
-                              "line": 2
-                            },
-                            "token_type": {
-                              "type": "StringLiteral",
-                              "literal": "b",
-                              "quote_type": "Double"
+                  "Parentheses": {
+                    "pairs": [
+                      {
+                        "End": {
+                          "value": {
+                            "String": {
+                              "start_position": {
+                                "bytes": 13,
+                                "character": 5,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 16,
+                                "character": 8,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "StringLiteral",
+                                "literal": "b",
+                                "quote_type": "Double"
+                              }
                             }
-                          }
-                        },
-                        "binop": null
+                          },
+                          "binop": null
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  }
                 }
               }
             }

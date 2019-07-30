@@ -22,7 +22,7 @@ macro_rules! create_visitor {
         ///
         /// impl<'ast> Visitor<'ast> for LocalVariableVisitor {
         ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment<'ast>) {
-        ///         self.names.extend(&mut local_assignment.iter_name_list().map(|name| name.value().to_string()));
+        ///         self.names.extend(&mut local_assignment.name_list().iter().map(|name| name.to_string()));
         ///     }
         /// }
         ///

@@ -24,32 +24,34 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "End": {
-                      "value": {
-                        "String": {
-                          "start_position": {
-                            "bytes": 5,
-                            "character": 6,
-                            "line": 1
-                          },
-                          "end_position": {
-                            "bytes": 13,
-                            "character": 14,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "StringLiteral",
-                            "literal": "double",
-                            "quote_type": "Double"
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 5,
+                              "character": 6,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 13,
+                              "character": 14,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "double",
+                              "quote_type": "Double"
+                            }
                           }
-                        }
-                      },
-                      "binop": null
+                        },
+                        "binop": null
+                      }
                     }
-                  }
-                ]
+                  ]
+                }
               }
             }
           }
@@ -80,32 +82,34 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "End": {
-                      "value": {
-                        "String": {
-                          "start_position": {
-                            "bytes": 20,
-                            "character": 6,
-                            "line": 2
-                          },
-                          "end_position": {
-                            "bytes": 28,
-                            "character": 14,
-                            "line": 2
-                          },
-                          "token_type": {
-                            "type": "StringLiteral",
-                            "literal": "single",
-                            "quote_type": "Single"
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 20,
+                              "character": 6,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 28,
+                              "character": 14,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "single",
+                              "quote_type": "Single"
+                            }
                           }
-                        }
-                      },
-                      "binop": null
+                        },
+                        "binop": null
+                      }
                     }
-                  }
-                ]
+                  ]
+                }
               }
             }
           }

@@ -36,7 +36,7 @@ fn test_visitor_mut() {
 
     impl<'ast> VisitorMut<'ast> for SnakeNamer {
         fn visit_local_assignment(&mut self, assignment: &mut ast::LocalAssignment<'ast>) {
-            for name in assignment.iter_name_list_mut() {
+            for name in assignment.name_list_mut().pairs_mut() {
                 let identifier;
 
                 match *name.value_mut().token_type() {
@@ -65,8 +65,7 @@ fn test_visitor_mut() {
 
     impl<'ast> Visitor<'ast> for PositionValidator {
         fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
-            for name in assignment.iter_name_list() {
-                let name = name.value();
+            for name in assignment.name_list() {
                 assert_eq!(
                     name.end_position().bytes() - name.start_position().bytes(),
                     name.to_string().len()

@@ -3,62 +3,64 @@
     {
       "FunctionDeclaration": {
         "name": {
-          "names": [
-            {
-              "Punctuated": [
-                {
-                  "start_position": {
-                    "bytes": 9,
-                    "character": 10,
-                    "line": 1
+          "names": {
+            "pairs": [
+              {
+                "Punctuated": [
+                  {
+                    "start_position": {
+                      "bytes": 9,
+                      "character": 10,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 10,
+                      "character": 11,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
                   },
-                  "end_position": {
-                    "bytes": 10,
-                    "character": 11,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
+                  {
+                    "start_position": {
+                      "bytes": 10,
+                      "character": 11,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 11,
+                      "character": 12,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Symbol",
+                      "symbol": "."
+                    }
                   }
-                },
-                {
+                ]
+              },
+              {
+                "End": {
                   "start_position": {
-                    "bytes": 10,
-                    "character": 11,
-                    "line": 1
-                  },
-                  "end_position": {
                     "bytes": 11,
                     "character": 12,
                     "line": 1
                   },
+                  "end_position": {
+                    "bytes": 12,
+                    "character": 13,
+                    "line": 1
+                  },
                   "token_type": {
-                    "type": "Symbol",
-                    "symbol": "."
+                    "type": "Identifier",
+                    "identifier": "y"
                   }
                 }
-              ]
-            },
-            {
-              "End": {
-                "start_position": {
-                  "bytes": 11,
-                  "character": 12,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 12,
-                  "character": 13,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "y"
-                }
               }
-            }
-          ],
+            ]
+          },
           "colon_name": {
             "start_position": {
               "bytes": 13,

@@ -24,7 +24,9 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": []
+                "Parentheses": {
+                  "pairs": []
+                }
               }
             }
           }

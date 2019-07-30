@@ -18,99 +18,103 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 6,
-                "character": 7,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 9,
-                "character": 10,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "foo"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 9,
+                  "character": 10,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "foo"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "value": {
-                "TableConstructor": {
-                  "start_brace": {
-                    "start_position": {
-                      "bytes": 12,
-                      "character": 13,
-                      "line": 1
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "value": {
+                  "TableConstructor": {
+                    "start_brace": {
+                      "start_position": {
+                        "bytes": 12,
+                        "character": 13,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 13,
+                        "character": 14,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "{"
+                      }
                     },
-                    "end_position": {
-                      "bytes": 13,
-                      "character": 14,
-                      "line": 1
-                    },
-                    "token_type": {
-                      "type": "Symbol",
-                      "symbol": "{"
-                    }
-                  },
-                  "fields": [
-                    [
-                      {
-                        "NoKey": {
-                          "value": {
-                            "Var": {
-                              "Name": {
-                                "start_position": {
-                                  "bytes": 14,
-                                  "character": 15,
-                                  "line": 1
-                                },
-                                "end_position": {
-                                  "bytes": 17,
-                                  "character": 18,
-                                  "line": 1
-                                },
-                                "token_type": {
-                                  "type": "Identifier",
-                                  "identifier": "bar"
+                    "fields": [
+                      [
+                        {
+                          "NoKey": {
+                            "value": {
+                              "Var": {
+                                "Name": {
+                                  "start_position": {
+                                    "bytes": 14,
+                                    "character": 15,
+                                    "line": 1
+                                  },
+                                  "end_position": {
+                                    "bytes": 17,
+                                    "character": 18,
+                                    "line": 1
+                                  },
+                                  "token_type": {
+                                    "type": "Identifier",
+                                    "identifier": "bar"
+                                  }
                                 }
                               }
-                            }
-                          },
-                          "binop": null
-                        }
+                            },
+                            "binop": null
+                          }
+                        },
+                        null
+                      ]
+                    ],
+                    "end_brace": {
+                      "start_position": {
+                        "bytes": 18,
+                        "character": 19,
+                        "line": 1
                       },
-                      null
-                    ]
-                  ],
-                  "end_brace": {
-                    "start_position": {
-                      "bytes": 18,
-                      "character": 19,
-                      "line": 1
-                    },
-                    "end_position": {
-                      "bytes": 19,
-                      "character": 20,
-                      "line": 1
-                    },
-                    "token_type": {
-                      "type": "Symbol",
-                      "symbol": "}"
+                      "end_position": {
+                        "bytes": 19,
+                        "character": 20,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "}"
+                      }
                     }
                   }
-                }
-              },
-              "binop": null
+                },
+                "binop": null
+              }
             }
-          }
-        ]
+          ]
+        }
       }
     }
   ]

@@ -18,51 +18,55 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 6,
-                "character": 7,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 21,
-                "character": 22,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "negativeLiteral"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 21,
+                  "character": 22,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "negativeLiteral"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "value": {
-                "Number": {
-                  "start_position": {
-                    "bytes": 24,
-                    "character": 25,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 26,
-                    "character": 27,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Number",
-                    "text": "-3"
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "value": {
+                  "Number": {
+                    "start_position": {
+                      "bytes": 24,
+                      "character": 25,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 26,
+                      "character": 27,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Number",
+                      "text": "-3"
+                    }
                   }
-                }
-              },
-              "binop": null
+                },
+                "binop": null
+              }
             }
-          }
-        ]
+          ]
+        }
       }
     },
     {
@@ -83,73 +87,77 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 33,
-                "character": 7,
-                "line": 2
-              },
-              "end_position": {
-                "bytes": 49,
-                "character": 23,
-                "line": 2
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "negativeVariable"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 33,
+                  "character": 7,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 49,
+                  "character": 23,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "negativeVariable"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "unop": {
-                "Minus": {
-                  "start_position": {
-                    "bytes": 53,
-                    "character": 27,
-                    "line": 2
-                  },
-                  "end_position": {
-                    "bytes": 54,
-                    "character": 28,
-                    "line": 2
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
-                  }
-                }
-              },
-              "expression": {
-                "value": {
-                  "Var": {
-                    "Name": {
-                      "start_position": {
-                        "bytes": 53,
-                        "character": 27,
-                        "line": 2
-                      },
-                      "end_position": {
-                        "bytes": 54,
-                        "character": 28,
-                        "line": 2
-                      },
-                      "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
-                      }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "unop": {
+                  "Minus": {
+                    "start_position": {
+                      "bytes": 53,
+                      "character": 27,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 54,
+                      "character": 28,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
                     }
                   }
                 },
-                "binop": null
+                "expression": {
+                  "value": {
+                    "Var": {
+                      "Name": {
+                        "start_position": {
+                          "bytes": 53,
+                          "character": 27,
+                          "line": 2
+                        },
+                        "end_position": {
+                          "bytes": 54,
+                          "character": 28,
+                          "line": 2
+                        },
+                        "token_type": {
+                          "type": "Identifier",
+                          "identifier": "x"
+                        }
+                      }
+                    }
+                  },
+                  "binop": null
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       }
     },
     {
@@ -170,50 +178,34 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 61,
-                "character": 7,
-                "line": 3
-              },
-              "end_position": {
-                "bytes": 71,
-                "character": 17,
-                "line": 3
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "notLiteral"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 61,
+                  "character": 7,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 71,
+                  "character": 17,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "notLiteral"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "unop": {
-                "Not": {
-                  "start_position": {
-                    "bytes": 78,
-                    "character": 24,
-                    "line": 3
-                  },
-                  "end_position": {
-                    "bytes": 82,
-                    "character": 28,
-                    "line": 3
-                  },
-                  "token_type": {
-                    "type": "Symbol",
-                    "symbol": "true"
-                  }
-                }
-              },
-              "expression": {
-                "value": {
-                  "Symbol": {
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "unop": {
+                  "Not": {
                     "start_position": {
                       "bytes": 78,
                       "character": 24,
@@ -230,11 +222,31 @@
                     }
                   }
                 },
-                "binop": null
+                "expression": {
+                  "value": {
+                    "Symbol": {
+                      "start_position": {
+                        "bytes": 78,
+                        "character": 24,
+                        "line": 3
+                      },
+                      "end_position": {
+                        "bytes": 82,
+                        "character": 28,
+                        "line": 3
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "true"
+                      }
+                    }
+                  },
+                  "binop": null
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       }
     },
     {
@@ -255,73 +267,77 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 89,
-                "character": 7,
-                "line": 4
-              },
-              "end_position": {
-                "bytes": 100,
-                "character": 18,
-                "line": 4
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "notVariable"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 89,
+                  "character": 7,
+                  "line": 4
+                },
+                "end_position": {
+                  "bytes": 100,
+                  "character": 18,
+                  "line": 4
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "notVariable"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "unop": {
-                "Not": {
-                  "start_position": {
-                    "bytes": 107,
-                    "character": 25,
-                    "line": 4
-                  },
-                  "end_position": {
-                    "bytes": 108,
-                    "character": 26,
-                    "line": 4
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
-                  }
-                }
-              },
-              "expression": {
-                "value": {
-                  "Var": {
-                    "Name": {
-                      "start_position": {
-                        "bytes": 107,
-                        "character": 25,
-                        "line": 4
-                      },
-                      "end_position": {
-                        "bytes": 108,
-                        "character": 26,
-                        "line": 4
-                      },
-                      "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
-                      }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "unop": {
+                  "Not": {
+                    "start_position": {
+                      "bytes": 107,
+                      "character": 25,
+                      "line": 4
+                    },
+                    "end_position": {
+                      "bytes": 108,
+                      "character": 26,
+                      "line": 4
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
                     }
                   }
                 },
-                "binop": null
+                "expression": {
+                  "value": {
+                    "Var": {
+                      "Name": {
+                        "start_position": {
+                          "bytes": 107,
+                          "character": 25,
+                          "line": 4
+                        },
+                        "end_position": {
+                          "bytes": 108,
+                          "character": 26,
+                          "line": 4
+                        },
+                        "token_type": {
+                          "type": "Identifier",
+                          "identifier": "x"
+                        }
+                      }
+                    }
+                  },
+                  "binop": null
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       }
     },
     {
@@ -342,73 +358,77 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "End": {
-              "start_position": {
-                "bytes": 115,
-                "character": 7,
-                "line": 5
-              },
-              "end_position": {
-                "bytes": 121,
-                "character": 13,
-                "line": 5
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "length"
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 115,
+                  "character": 7,
+                  "line": 5
+                },
+                "end_position": {
+                  "bytes": 121,
+                  "character": 13,
+                  "line": 5
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "length"
+                }
               }
             }
-          }
-        ],
-        "expr_list": [
-          {
-            "End": {
-              "unop": {
-                "Hash": {
-                  "start_position": {
-                    "bytes": 125,
-                    "character": 17,
-                    "line": 5
-                  },
-                  "end_position": {
-                    "bytes": 126,
-                    "character": 18,
-                    "line": 5
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
-                  }
-                }
-              },
-              "expression": {
-                "value": {
-                  "Var": {
-                    "Name": {
-                      "start_position": {
-                        "bytes": 125,
-                        "character": 17,
-                        "line": 5
-                      },
-                      "end_position": {
-                        "bytes": 126,
-                        "character": 18,
-                        "line": 5
-                      },
-                      "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
-                      }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "unop": {
+                  "Hash": {
+                    "start_position": {
+                      "bytes": 125,
+                      "character": 17,
+                      "line": 5
+                    },
+                    "end_position": {
+                      "bytes": 126,
+                      "character": 18,
+                      "line": 5
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
                     }
                   }
                 },
-                "binop": null
+                "expression": {
+                  "value": {
+                    "Var": {
+                      "Name": {
+                        "start_position": {
+                          "bytes": 125,
+                          "character": 17,
+                          "line": 5
+                        },
+                        "end_position": {
+                          "bytes": 126,
+                          "character": 18,
+                          "line": 5
+                        },
+                        "token_type": {
+                          "type": "Identifier",
+                          "identifier": "x"
+                        }
+                      }
+                    }
+                  },
+                  "binop": null
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       }
     }
   ]

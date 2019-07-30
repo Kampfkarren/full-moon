@@ -1,6 +1,6 @@
 // Exported macros are documented since no amount of allow(missing_docs) silenced the lint
 
-use super::punctuated::{Pair, Pairs};
+use super::punctuated::{Pair, Punctuated};
 use crate::{
     node::Node,
     tokenizer::{Token, TokenReference},
@@ -202,7 +202,7 @@ macro_rules! test_pairs_logic {
     ($nodes:expr, $cause:expr) => {
         if cfg!(debug_assertions) {
             let len = $nodes.len();
-            for (index, node) in $nodes.iter().enumerate() {
+            for (index, node) in $nodes.pairs().enumerate() {
                 if index + 1 == len && node.punctuation().is_some() {
                     panic!(
                         "{} pairs illogical: last node has punctuation: {:?}",
@@ -236,19 +236,19 @@ where
     Delimiter: Parser<'a, Item = TokenReference<'a>>,
     T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Pairs<'a, T>;
+    type Item = Punctuated<'a, T>;
 
     fn parse(
         &self,
         mut state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Pairs<'a, T>), InternalAstError<'a>> {
-        let mut nodes = Vec::new();
+    ) -> Result<(ParserState<'a>, Punctuated<'a, T>), InternalAstError<'a>> {
+        let mut nodes = Punctuated::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state.clone())) {
             state = new_state;
             nodes.push(Pair::End(node));
         } else {
-            return Ok((state.clone(), Vec::new()));
+            return Ok((state.clone(), Punctuated::new()));
         }
 
         while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state.clone())) {
@@ -304,13 +304,13 @@ where
     Delimiter: Parser<'a, Item = TokenReference<'a>>,
     T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Pairs<'a, ItemParser::Item>;
+    type Item = Punctuated<'a, ItemParser::Item>;
 
     fn parse(
         &self,
         state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Pairs<'a, ItemParser::Item>), InternalAstError<'a>> {
-        let mut nodes = Vec::new();
+    ) -> Result<(ParserState<'a>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
+        let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state.clone())?;
         nodes.push(Pair::End(node));
 
