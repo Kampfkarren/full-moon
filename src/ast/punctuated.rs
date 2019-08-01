@@ -34,6 +34,10 @@ pub struct Punctuated<'a, T> {
 
 impl<'a, T> Punctuated<'a, T> {
     /// Creates an empty punctuated sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated: Punctuated<i32> = Punctuated::new();
+    /// ```
     pub fn new() -> Self {
         Self {
             pairs: Vec::new(),
@@ -41,46 +45,114 @@ impl<'a, T> Punctuated<'a, T> {
     }
 
     /// Returns whether there's any nodes in the punctuated sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// assert!(punctuated.is_empty());
+    /// punctuated.push(Pair::new((), None));
+    /// assert!(!punctuated.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// Returns the number of pairs in the punctuated sequence
+    /// /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// assert_eq!(punctuated.len(), 0);
+    /// punctuated.push(Pair::new((), None));
+    /// assert_eq!(!punctuated.len(), 1);
+    /// ```
     pub fn len(&self) -> usize {
         self.pairs.len()
     }
 
-    /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences
-    pub fn into_pairs(self) -> impl Iterator<Item = Pair<'a, T>> {
-        self.pairs.into_iter()
-    }
-
     /// Returns an iterator over references of the sequence values, ignoring punctuation
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// let mut iterator = punctuated.iter();
+    /// assert_eq!(iterator.next(), Some(&1));
+    /// assert_eq!(iterator.next(), None);
+    /// ```
     pub fn iter(&self) -> Iter<'a, '_, T> {
         self.into_iter()
     }
 
     /// Returns an iterator over mutable references of the sequence values, ignoring punctuation
-    pub fn iter_mut(&'a mut self) -> impl Iterator<Item = &'a mut T> {
-        self.pairs.iter_mut().map(Pair::value_mut)
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// for item in punctuated.iter_mut() {
+    ///     *item += 1;
+    /// }
+    /// assert_eq!(punctuated.pop(), Some(Pair::new(2, None)));
+    /// ```
+    pub fn iter_mut(&mut self) -> IterMut<'a, '_, T> {
+        self.into_iter()
+    }
+
+    /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// let mut iterator = punctuated.into_pairs();
+    /// assert_eq!(iterator.next(), Some(Pair::new(1, None)));
+    /// assert_eq!(iterator.next(), None);
+    /// ```
+    pub fn into_pairs(self) -> impl Iterator<Item = Pair<'a, T>> {
+        self.pairs.into_iter()
     }
 
     /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as references
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// let mut iterator = punctuated.pairs();
+    /// assert_eq!(iterator.next(), Some(&Pair::new(1, None)));
+    /// assert_eq!(iterator.next(), None);
+    /// ```
     pub fn pairs(&self) -> impl Iterator<Item = &Pair<'a, T>> {
         self.pairs.iter()
     }
 
     /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as mutable references
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// for item in punctuated.pairs_mut() {
+    ///     *item.value_mut() += 1;
+    /// }
+    /// assert_eq!(punctuated.pop(), Some(Pair::new(2, None)));
+    /// ```
     pub fn pairs_mut(&mut self) -> impl Iterator<Item = &mut Pair<'a, T>> {
         self.pairs.iter_mut()
     }
 
     /// Pops off the last [`Pair`](enum.Pair.html), if it isn't empty
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.pop(), Some(Pair::new(1, None)));
+    /// ```
     pub fn pop(&mut self) -> Option<Pair<'a, T>> {
         self.pairs.pop()
     }
 
     /// Pushes a new [`Pair`](enum.Pair.html) onto the sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.pop(), Some(Pair::new(1, None)));
+    /// ```
     pub fn push(&mut self, pair: Pair<'a, T>) {
         self.pairs.push(pair);
     }
@@ -208,6 +280,10 @@ pub enum Pair<'a, T> {
 
 impl<'a, T> Pair<'a, T> {
     /// Creates a `Pair` with node `T` and optional punctuation
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(1, None);
+    /// ```
     pub fn new(value: T, punctuation: Option<TokenReference<'a>>) -> Self {
         match punctuation {
             None => Pair::End(value),
@@ -216,6 +292,11 @@ impl<'a, T> Pair<'a, T> {
     }
 
     /// Takes the `Pair` and returns the node `T` and the punctuation, if it exists as a tuple
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(1, None);
+    /// assert_eq!(pair.into_tuple(), (1, None));
+    /// ```
     pub fn into_tuple(self) -> (T, Option<TokenReference<'a>>) {
         match self {
             Pair::End(value) => (value, None),
@@ -224,11 +305,21 @@ impl<'a, T> Pair<'a, T> {
     }
 
     /// Takes the `Pair` and returns the node `T`
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(1, None);
+    /// assert_eq!(pair.into_value(), 1);
+    /// ```
     pub fn into_value(self) -> T {
         self.into_tuple().0
     }
 
     /// Returns a reference to the node `T`
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(1, None);
+    /// assert_eq!(pair.value(), &1);
+    /// ```
     pub fn value(&self) -> &T {
         match self {
             Pair::End(value) => value,
@@ -237,6 +328,12 @@ impl<'a, T> Pair<'a, T> {
     }
 
     /// Returns a mutable reference to the node `T`
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let mut pair = Pair::new(1, None);
+    /// *pair.value_mut() += 1;
+    /// assert_eq!(pair.into_value(), 2);
+    /// ```
     pub fn value_mut(&mut self) -> &mut T {
         match self {
             Pair::End(value) => value,
@@ -245,6 +342,11 @@ impl<'a, T> Pair<'a, T> {
     }
 
     /// Returns the trailing punctuation, if it exists
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(1, None);
+    /// assert_eq!(pair.punctuation(), None);
+    /// ```
     pub fn punctuation(&self) -> Option<&TokenReference<'a>> {
         match self {
             Pair::End(_) => None,
