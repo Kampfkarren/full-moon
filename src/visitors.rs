@@ -1,5 +1,4 @@
-use crate::ast;
-use crate::tokenizer::TokenReference;
+use crate::{ast, private::Sealed, tokenizer::TokenReference};
 use std::borrow::Cow;
 
 macro_rules! create_visitor {
@@ -23,7 +22,7 @@ macro_rules! create_visitor {
         ///
         /// impl<'ast> Visitor<'ast> for LocalVariableVisitor {
         ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment<'ast>) {
-        ///         self.names.extend(&mut local_assignment.iter_name_list().map(|name| name.to_string()));
+        ///         self.names.extend(&mut local_assignment.name_list().iter().map(|name| name.to_string()));
         ///     }
         /// }
         ///
@@ -71,11 +70,13 @@ macro_rules! create_visitor {
     };
 }
 
-pub(crate) trait Visit<'ast> {
+#[doc(hidden)]
+pub trait Visit<'ast>: Sealed {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V);
 }
 
-pub(crate) trait VisitMut<'ast> {
+#[doc(hidden)]
+pub trait VisitMut<'ast>: Sealed {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V);
 }
 

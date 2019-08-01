@@ -18,41 +18,67 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "start_position": {
-              "bytes": 6,
-              "character": 7,
-              "line": 1
+        "name_list": {
+          "pairs": [
+            {
+              "Punctuated": [
+                {
+                  "start_position": {
+                    "bytes": 6,
+                    "character": 7,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 7,
+                    "character": 8,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "x"
+                  }
+                },
+                {
+                  "start_position": {
+                    "bytes": 7,
+                    "character": 8,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 8,
+                    "character": 9,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": ","
+                  }
+                }
+              ]
             },
-            "end_position": {
-              "bytes": 7,
-              "character": 8,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "x"
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 9,
+                  "character": 10,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "y"
+                }
+              }
             }
-          },
-          {
-            "start_position": {
-              "bytes": 9,
-              "character": 10,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 10,
-              "character": 11,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "y"
-            }
-          }
-        ],
-        "expr_list": []
+          ]
+        },
+        "expr_list": {
+          "pairs": []
+        }
       }
     }
   ]

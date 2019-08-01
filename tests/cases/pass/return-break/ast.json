@@ -38,29 +38,33 @@
                   "symbol": "return"
                 }
               },
-              "returns": [
-                {
-                  "value": {
-                    "Number": {
-                      "start_position": {
-                        "bytes": 11,
-                        "character": 9,
-                        "line": 2
+              "returns": {
+                "pairs": [
+                  {
+                    "End": {
+                      "value": {
+                        "Number": {
+                          "start_position": {
+                            "bytes": 11,
+                            "character": 9,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 12,
+                            "character": 10,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Number",
+                            "text": "1"
+                          }
+                        }
                       },
-                      "end_position": {
-                        "bytes": 12,
-                        "character": 10,
-                        "line": 2
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "1"
-                      }
+                      "binop": null
                     }
-                  },
-                  "binop": null
-                }
-              ]
+                  }
+                ]
+              }
             }
           }
         },
@@ -158,42 +162,48 @@
           "symbol": "return"
         }
       },
-      "returns": [
-        {
-          "value": {
-            "FunctionCall": {
-              "prefix": {
-                "Name": {
-                  "start_position": {
-                    "bytes": 40,
-                    "character": 8,
-                    "line": 9
+      "returns": {
+        "pairs": [
+          {
+            "End": {
+              "value": {
+                "FunctionCall": {
+                  "prefix": {
+                    "Name": {
+                      "start_position": {
+                        "bytes": 40,
+                        "character": 8,
+                        "line": 9
+                      },
+                      "end_position": {
+                        "bytes": 44,
+                        "character": 12,
+                        "line": 9
+                      },
+                      "token_type": {
+                        "type": "Identifier",
+                        "identifier": "call"
+                      }
+                    }
                   },
-                  "end_position": {
-                    "bytes": 44,
-                    "character": 12,
-                    "line": 9
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "call"
-                  }
+                  "suffixes": [
+                    {
+                      "Call": {
+                        "AnonymousCall": {
+                          "Parentheses": {
+                            "pairs": []
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
-              "suffixes": [
-                {
-                  "Call": {
-                    "AnonymousCall": {
-                      "Parentheses": []
-                    }
-                  }
-                }
-              ]
+              "binop": null
             }
-          },
-          "binop": null
-        }
-      ]
+          }
+        ]
+      }
     }
   }
 }

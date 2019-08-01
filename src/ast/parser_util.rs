@@ -1,14 +1,16 @@
 // Exported macros are documented since no amount of allow(missing_docs) silenced the lint
 
-use crate::tokenizer::{Token, TokenReference};
+use super::punctuated::{Pair, Punctuated};
+use crate::{
+    node::Node,
+    tokenizer::{Token, TokenReference},
+    visitors::{Visit, VisitMut},
+};
 use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{
-	fmt,
-	sync::Arc,
-};
+use std::{fmt, sync::Arc};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone)]
@@ -168,7 +170,6 @@ pub enum InternalAstError<'a> {
     },
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMore<P>(pub P);
 
@@ -197,6 +198,28 @@ where
     }
 }
 
+macro_rules! test_pairs_logic {
+    ($nodes:expr, $cause:expr) => {
+        if cfg!(debug_assertions) {
+            let len = $nodes.len();
+            for (index, node) in $nodes.pairs().enumerate() {
+                if index + 1 == len && node.punctuation().is_some() {
+                    panic!(
+                        "{} pairs illogical: last node has punctuation: {:?}",
+                        $cause,
+                        node.punctuation().unwrap()
+                    );
+                } else if index + 1 != len && node.punctuation().is_none() {
+                    panic!(
+                        "{} pairs illogical: non-last node ({}) has punctuation",
+                        $cause, index
+                    );
+                }
+            }
+        }
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
     pub ItemParser, // What items to parse, what is actually returned in a vec
@@ -204,33 +227,40 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
     pub bool,       // Allow trailing delimiter?
 );
 
+// False positive clippy lints
+#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::nonminimal_bool)]
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Vec<T>;
+    type Item = Punctuated<'a, T>;
 
     fn parse(
         &self,
         mut state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
-        let mut nodes = Vec::new();
+    ) -> Result<(ParserState<'a>, Punctuated<'a, T>), InternalAstError<'a>> {
+        let mut nodes = Punctuated::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state.clone())) {
             state = new_state;
-            nodes.push(node);
+            nodes.push(Pair::End(node));
         } else {
-            return Ok((state.clone(), Vec::new()));
+            return Ok((state.clone(), Punctuated::new()));
         }
 
-        while let Ok((new_state, _)) = keep_going!(self.1.parse(state.clone())) {
+        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state.clone())) {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::Punctuated(last_value, delimiter));
+
             state = new_state;
 
             match self.0.parse(state.clone()) {
                 Ok((new_state, node)) => {
                     state = new_state;
-                    nodes.push(node);
+                    nodes.push(Pair::End(node));
                 }
 
                 Err(InternalAstError::NoMatch) => {
@@ -250,6 +280,10 @@ where
             }
         }
 
+        if !self.2 {
+            test_pairs_logic!(nodes, "ZeroOrMoreDelimited");
+        }
+
         Ok((state, nodes))
     }
 }
@@ -261,24 +295,33 @@ pub struct OneOrMore<ItemParser, Delimiter>(
     pub bool,       // Allow trailing delimiter?
 );
 
-impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
-    for OneOrMore<ItemParser, Delimiter>
+// False positive clippy lints
+#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::nonminimal_bool)]
+impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
+where
+    ItemParser: Parser<'a, Item = T>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    T: Node + Visit<'a> + VisitMut<'a>,
 {
-    type Item = Vec<ItemParser::Item>;
+    type Item = Punctuated<'a, ItemParser::Item>;
 
     fn parse(
         &self,
         state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<ItemParser::Item>), InternalAstError<'a>> {
-        let mut nodes = Vec::new();
+    ) -> Result<(ParserState<'a>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
+        let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state.clone())?;
-        nodes.push(node);
+        nodes.push(Pair::End(node));
 
-        while let Ok((new_state, _)) = self.1.parse(state.clone()) {
+        while let Ok((new_state, delimiter)) = self.1.parse(state.clone()) {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::Punctuated(last_value, delimiter));
+
             match self.0.parse(new_state.clone()) {
                 Ok((new_state, node)) => {
                     state = new_state;
-                    nodes.push(node);
+                    nodes.push(Pair::End(node));
                 }
 
                 Err(InternalAstError::NoMatch) => {
@@ -293,6 +336,13 @@ impl<'a, ItemParser: Parser<'a>, Delimiter: Parser<'a>> Parser<'a>
                     return Err(other);
                 }
             }
+        }
+
+        if !self.2 {
+            let last_value = nodes.pop().unwrap().into_value();
+            nodes.push(Pair::End(last_value));
+
+            test_pairs_logic!(nodes, "OneOrMore");
         }
 
         Ok((state, nodes))

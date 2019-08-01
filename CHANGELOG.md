@@ -5,13 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Changed
-- Fields of `Token` and `Position` have been made private with public accessors
+### Added
 - Added `TokenKind` to get the kind of a token without any additional data
-- Changed signatures from `Token` to `TokenReference`, which dereference to tokens
 - Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
 - Added `Ast::update_positions` to update all the position structs if you mutate it
 - Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node
+- Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
+
+### Changed
+- Fields of `Token` and `Position` have been made private with public accessors
+- Changed signatures from `Token` to `TokenReference`, which dereference to tokens
 - Changed `visit_do` to use a new `Do` struct instead of `Block`
 
 ## [0.3.0] - 2019-05-24

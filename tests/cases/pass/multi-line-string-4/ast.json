@@ -24,31 +24,35 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "value": {
-                      "String": {
-                        "start_position": {
-                          "bytes": 5,
-                          "character": 6,
-                          "line": 1
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 5,
+                              "character": 6,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 13,
+                              "character": 14,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "doge",
+                              "multi_line": 0,
+                              "quote_type": "Brackets"
+                            }
+                          }
                         },
-                        "end_position": {
-                          "bytes": 13,
-                          "character": 14,
-                          "line": 1
-                        },
-                        "token_type": {
-                          "type": "StringLiteral",
-                          "literal": "doge",
-                          "multi_line": 0,
-                          "quote_type": "Brackets"
-                        }
+                        "binop": null
                       }
-                    },
-                    "binop": null
-                  }
-                ]
+                    }
+                  ]
+                }
               }
             }
           }

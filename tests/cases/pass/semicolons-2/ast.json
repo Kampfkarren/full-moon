@@ -18,47 +18,55 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "start_position": {
-              "bytes": 6,
-              "character": 7,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 7,
-              "character": 8,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "x"
-            }
-          }
-        ],
-        "expr_list": [
-          {
-            "value": {
-              "Number": {
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
                 "start_position": {
-                  "bytes": 10,
-                  "character": 11,
+                  "bytes": 6,
+                  "character": 7,
                   "line": 1
                 },
                 "end_position": {
-                  "bytes": 11,
-                  "character": 12,
+                  "bytes": 7,
+                  "character": 8,
                   "line": 1
                 },
                 "token_type": {
-                  "type": "Number",
-                  "text": "1"
+                  "type": "Identifier",
+                  "identifier": "x"
                 }
               }
-            },
-            "binop": null
-          }
-        ]
+            }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "value": {
+                  "Number": {
+                    "start_position": {
+                      "bytes": 10,
+                      "character": 11,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 11,
+                      "character": 12,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Number",
+                      "text": "1"
+                    }
+                  }
+                },
+                "binop": null
+              }
+            }
+          ]
+        }
       }
     }
   ],
@@ -80,31 +88,35 @@
           "symbol": "return"
         }
       },
-      "returns": [
-        {
-          "value": {
-            "Var": {
-              "Name": {
-                "start_position": {
-                  "bytes": 19,
-                  "character": 8,
-                  "line": 2
-                },
-                "end_position": {
-                  "bytes": 20,
-                  "character": 9,
-                  "line": 2
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "x"
+      "returns": {
+        "pairs": [
+          {
+            "End": {
+              "value": {
+                "Var": {
+                  "Name": {
+                    "start_position": {
+                      "bytes": 19,
+                      "character": 8,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 20,
+                      "character": 9,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
+                  }
                 }
-              }
+              },
+              "binop": null
             }
-          },
-          "binop": null
-        }
-      ]
+          }
+        ]
+      }
     }
   }
 }

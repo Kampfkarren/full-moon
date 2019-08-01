@@ -3,24 +3,28 @@
     {
       "FunctionDeclaration": {
         "name": {
-          "names": [
-            {
-              "start_position": {
-                "bytes": 9,
-                "character": 10,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 10,
-                "character": 11,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "x"
+          "names": {
+            "pairs": [
+              {
+                "End": {
+                  "start_position": {
+                    "bytes": 9,
+                    "character": 10,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 10,
+                    "character": 11,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "x"
+                  }
+                }
               }
-            }
-          ],
+            ]
+          },
           "colon_name": null
         },
         "body": {
@@ -67,7 +71,9 @@
                     {
                       "Call": {
                         "AnonymousCall": {
-                          "Parentheses": []
+                          "Parentheses": {
+                            "pairs": []
+                          }
                         }
                       }
                     }

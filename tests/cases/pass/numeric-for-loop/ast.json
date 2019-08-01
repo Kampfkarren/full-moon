@@ -103,31 +103,35 @@
                   {
                     "Call": {
                       "AnonymousCall": {
-                        "Parentheses": [
-                          {
-                            "value": {
-                              "Var": {
-                                "Name": {
-                                  "start_position": {
-                                    "bytes": 26,
-                                    "character": 27,
-                                    "line": 1
-                                  },
-                                  "end_position": {
-                                    "bytes": 31,
-                                    "character": 32,
-                                    "line": 1
-                                  },
-                                  "token_type": {
-                                    "type": "Identifier",
-                                    "identifier": "index"
+                        "Parentheses": {
+                          "pairs": [
+                            {
+                              "End": {
+                                "value": {
+                                  "Var": {
+                                    "Name": {
+                                      "start_position": {
+                                        "bytes": 26,
+                                        "character": 27,
+                                        "line": 1
+                                      },
+                                      "end_position": {
+                                        "bytes": 31,
+                                        "character": 32,
+                                        "line": 1
+                                      },
+                                      "token_type": {
+                                        "type": "Identifier",
+                                        "identifier": "index"
+                                      }
+                                    }
                                   }
-                                }
+                                },
+                                "binop": null
                               }
-                            },
-                            "binop": null
-                          }
-                        ]
+                            }
+                          ]
+                        }
                       }
                     }
                   }

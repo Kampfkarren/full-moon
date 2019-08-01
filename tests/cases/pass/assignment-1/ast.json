@@ -2,49 +2,57 @@
   "stmts": [
     {
       "Assignment": {
-        "var_list": [
-          {
-            "Name": {
-              "start_position": {
-                "bytes": 0,
-                "character": 1,
-                "line": 1
-              },
-              "end_position": {
-                "bytes": 1,
-                "character": 2,
-                "line": 1
-              },
-              "token_type": {
-                "type": "Identifier",
-                "identifier": "x"
-              }
-            }
-          }
-        ],
-        "expr_list": [
-          {
-            "value": {
-              "Number": {
-                "start_position": {
-                  "bytes": 4,
-                  "character": 5,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 5,
-                  "character": 6,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Number",
-                  "text": "1"
+        "var_list": {
+          "pairs": [
+            {
+              "End": {
+                "Name": {
+                  "start_position": {
+                    "bytes": 0,
+                    "character": 1,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 1,
+                    "character": 2,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "x"
+                  }
                 }
               }
-            },
-            "binop": null
-          }
-        ]
+            }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "value": {
+                  "Number": {
+                    "start_position": {
+                      "bytes": 4,
+                      "character": 5,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 5,
+                      "character": 6,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Number",
+                      "text": "1"
+                    }
+                  }
+                },
+                "binop": null
+              }
+            }
+          ]
+        }
       }
     }
   ]

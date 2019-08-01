@@ -18,66 +18,74 @@
             "symbol": "local"
           }
         },
-        "name_list": [
-          {
-            "start_position": {
-              "bytes": 6,
-              "character": 7,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 7,
-              "character": 8,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "x"
-            }
-          }
-        ],
-        "expr_list": [
-          {
-            "value": {
-              "TableConstructor": {
-                "start_brace": {
-                  "start_position": {
-                    "bytes": 10,
-                    "character": 11,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 11,
-                    "character": 12,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Symbol",
-                    "symbol": "{"
-                  }
+        "name_list": {
+          "pairs": [
+            {
+              "End": {
+                "start_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
                 },
-                "fields": [],
-                "end_brace": {
-                  "start_position": {
-                    "bytes": 12,
-                    "character": 12,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 13,
-                    "character": 2,
-                    "line": 2
-                  },
-                  "token_type": {
-                    "type": "Symbol",
-                    "symbol": "}"
-                  }
+                "end_position": {
+                  "bytes": 7,
+                  "character": 8,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Identifier",
+                  "identifier": "x"
                 }
               }
-            },
-            "binop": null
-          }
-        ]
+            }
+          ]
+        },
+        "expr_list": {
+          "pairs": [
+            {
+              "End": {
+                "value": {
+                  "TableConstructor": {
+                    "start_brace": {
+                      "start_position": {
+                        "bytes": 10,
+                        "character": 11,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 11,
+                        "character": 12,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "{"
+                      }
+                    },
+                    "fields": [],
+                    "end_brace": {
+                      "start_position": {
+                        "bytes": 12,
+                        "character": 12,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 13,
+                        "character": 2,
+                        "line": 2
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "}"
+                      }
+                    }
+                  }
+                },
+                "binop": null
+              }
+            }
+          ]
+        }
       }
     }
   ]

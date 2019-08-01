@@ -24,7 +24,9 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": []
+                "Parentheses": {
+                  "pairs": []
+                }
               }
             }
           }
@@ -55,29 +57,33 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 12,
-                          "character": 6,
-                          "line": 2
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 12,
+                              "character": 6,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 13,
+                              "character": 7,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "1"
+                            }
+                          }
                         },
-                        "end_position": {
-                          "bytes": 13,
-                          "character": 7,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "1"
-                        }
+                        "binop": null
                       }
-                    },
-                    "binop": null
-                  }
-                ]
+                    }
+                  ]
+                }
               }
             }
           }
@@ -108,50 +114,74 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 20,
-                          "character": 6,
-                          "line": 3
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "Punctuated": [
+                        {
+                          "value": {
+                            "Number": {
+                              "start_position": {
+                                "bytes": 20,
+                                "character": 6,
+                                "line": 3
+                              },
+                              "end_position": {
+                                "bytes": 21,
+                                "character": 7,
+                                "line": 3
+                              },
+                              "token_type": {
+                                "type": "Number",
+                                "text": "1"
+                              }
+                            }
+                          },
+                          "binop": null
                         },
-                        "end_position": {
-                          "bytes": 21,
-                          "character": 7,
-                          "line": 3
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "1"
+                        {
+                          "start_position": {
+                            "bytes": 21,
+                            "character": 7,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 22,
+                            "character": 8,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ","
+                          }
                         }
-                      }
+                      ]
                     },
-                    "binop": null
-                  },
-                  {
-                    "value": {
-                      "Number": {
-                        "start_position": {
-                          "bytes": 23,
-                          "character": 9,
-                          "line": 3
+                    {
+                      "End": {
+                        "value": {
+                          "Number": {
+                            "start_position": {
+                              "bytes": 23,
+                              "character": 9,
+                              "line": 3
+                            },
+                            "end_position": {
+                              "bytes": 24,
+                              "character": 10,
+                              "line": 3
+                            },
+                            "token_type": {
+                              "type": "Number",
+                              "text": "2"
+                            }
+                          }
                         },
-                        "end_position": {
-                          "bytes": 24,
-                          "character": 10,
-                          "line": 3
-                        },
-                        "token_type": {
-                          "type": "Number",
-                          "text": "2"
-                        }
+                        "binop": null
                       }
-                    },
-                    "binop": null
-                  }
-                ]
+                    }
+                  ]
+                }
               }
             }
           }

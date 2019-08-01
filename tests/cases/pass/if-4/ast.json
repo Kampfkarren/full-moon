@@ -67,7 +67,9 @@
                   {
                     "Call": {
                       "AnonymousCall": {
-                        "Parentheses": []
+                        "Parentheses": {
+                          "pairs": []
+                        }
                       }
                     }
                   }
@@ -127,7 +129,9 @@
                       {
                         "Call": {
                           "AnonymousCall": {
-                            "Parentheses": []
+                            "Parentheses": {
+                              "pairs": []
+                            }
                           }
                         }
                       }
@@ -180,7 +184,9 @@
                   {
                     "Call": {
                       "AnonymousCall": {
-                        "Parentheses": []
+                        "Parentheses": {
+                          "pairs": []
+                        }
                       }
                     }
                   }

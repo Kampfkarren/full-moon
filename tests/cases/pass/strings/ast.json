@@ -24,30 +24,34 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "value": {
-                      "String": {
-                        "start_position": {
-                          "bytes": 5,
-                          "character": 6,
-                          "line": 1
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 5,
+                              "character": 6,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 13,
+                              "character": 14,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "double",
+                              "quote_type": "Double"
+                            }
+                          }
                         },
-                        "end_position": {
-                          "bytes": 13,
-                          "character": 14,
-                          "line": 1
-                        },
-                        "token_type": {
-                          "type": "StringLiteral",
-                          "literal": "double",
-                          "quote_type": "Double"
-                        }
+                        "binop": null
                       }
-                    },
-                    "binop": null
-                  }
-                ]
+                    }
+                  ]
+                }
               }
             }
           }
@@ -78,30 +82,34 @@
           {
             "Call": {
               "AnonymousCall": {
-                "Parentheses": [
-                  {
-                    "value": {
-                      "String": {
-                        "start_position": {
-                          "bytes": 20,
-                          "character": 6,
-                          "line": 2
+                "Parentheses": {
+                  "pairs": [
+                    {
+                      "End": {
+                        "value": {
+                          "String": {
+                            "start_position": {
+                              "bytes": 20,
+                              "character": 6,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 28,
+                              "character": 14,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "StringLiteral",
+                              "literal": "single",
+                              "quote_type": "Single"
+                            }
+                          }
                         },
-                        "end_position": {
-                          "bytes": 28,
-                          "character": 14,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "StringLiteral",
-                          "literal": "single",
-                          "quote_type": "Single"
-                        }
+                        "binop": null
                       }
-                    },
-                    "binop": null
-                  }
-                ]
+                    }
+                  ]
+                }
               }
             }
           }

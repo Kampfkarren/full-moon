@@ -36,10 +36,10 @@ fn test_visitor_mut() {
 
     impl<'ast> VisitorMut<'ast> for SnakeNamer {
         fn visit_local_assignment(&mut self, assignment: &mut ast::LocalAssignment<'ast>) {
-            for name in assignment.iter_name_list_mut() {
+            for name in assignment.name_list_mut().pairs_mut() {
                 let identifier;
 
-                match *name.token_type() {
+                match *name.value_mut().token_type() {
                     tokenizer::TokenType::Identifier {
                         identifier: ref identifier_tmp,
                     } => {
@@ -49,9 +49,10 @@ fn test_visitor_mut() {
                     _ => unreachable!(),
                 }
 
-                name.set_token_type(tokenizer::TokenType::Identifier {
-                    identifier: Cow::from(identifier),
-                });
+                name.value_mut()
+                    .set_token_type(tokenizer::TokenType::Identifier {
+                        identifier: Cow::from(identifier),
+                    });
             }
         }
     }
@@ -64,7 +65,7 @@ fn test_visitor_mut() {
 
     impl<'ast> Visitor<'ast> for PositionValidator {
         fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
-            for name in assignment.iter_name_list() {
+            for name in assignment.name_list() {
                 assert_eq!(
                     name.end_position().bytes() - name.start_position().bytes(),
                     name.to_string().len()
