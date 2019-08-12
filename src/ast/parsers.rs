@@ -203,9 +203,8 @@ define_parser!(
         Ok((
             state,
             TableConstructor {
+                braces: ContainedSpan::new(start_brace, end_brace),
                 fields,
-                start_brace,
-                end_brace,
             },
         ))
     }

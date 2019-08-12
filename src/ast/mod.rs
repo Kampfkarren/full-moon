@@ -101,9 +101,8 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    start_brace: TokenReference<'a>,
+    braces: ContainedSpan<'a>,
     fields: Vec<TableConstructorField<'a>>,
-    end_brace: TokenReference<'a>,
 }
 
 impl<'a> TableConstructor<'a> {
