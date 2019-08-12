@@ -28,21 +28,41 @@
           "colon_name": null
         },
         "body": {
-          "start_paranthese": {
-            "start_position": {
-              "bytes": 10,
-              "character": 11,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 11,
-              "character": 12,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "("
-            }
+          "parameters_parantheses": {
+            "tokens": [
+              {
+                "start_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 11,
+                  "character": 12,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "("
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 11,
+                  "character": 12,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 12,
+                  "character": 13,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": ")"
+                }
+              }
+            ]
           },
           "parameters": [],
           "block": {

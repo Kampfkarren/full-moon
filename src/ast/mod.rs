@@ -230,12 +230,10 @@ pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
     Brackets {
         #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The `[` part of `["y"]`
-        start_bracket: TokenReference<'a>,
+        /// The `[...]` part of `["y"]`
+        brackets: ContainedSpan<'a>,
         /// The `"y"` part of `["y"]`
         expression: Expression<'a>,
-        /// The `]` part of `["y"]`
-        end_bracket: TokenReference<'a>,
     },
 
     /// Indexing in the form of `x.y`
@@ -459,7 +457,7 @@ pub enum Call<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    start_paranthese: TokenReference<'a>,
+    parameters_parantheses: ContainedSpan<'a>,
     parameters: Vec<Parameter<'a>>,
     block: Block<'a>,
     end_token: TokenReference<'a>,

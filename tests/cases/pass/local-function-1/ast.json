@@ -35,21 +35,41 @@
           }
         },
         "func_body": {
-          "start_paranthese": {
-            "start_position": {
-              "bytes": 16,
-              "character": 17,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 17,
-              "character": 18,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "("
-            }
+          "parameters_parantheses": {
+            "tokens": [
+              {
+                "start_position": {
+                  "bytes": 16,
+                  "character": 17,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 17,
+                  "character": 18,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "("
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 17,
+                  "character": 18,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 18,
+                  "character": 19,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": ")"
+                }
+              }
+            ]
           },
           "parameters": [],
           "block": {

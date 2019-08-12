@@ -46,21 +46,41 @@
               "End": {
                 "value": {
                   "Function": {
-                    "start_paranthese": {
-                      "start_position": {
-                        "bytes": 18,
-                        "character": 19,
-                        "line": 1
-                      },
-                      "end_position": {
-                        "bytes": 19,
-                        "character": 20,
-                        "line": 1
-                      },
-                      "token_type": {
-                        "type": "Symbol",
-                        "symbol": "("
-                      }
+                    "parameters_parantheses": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 18,
+                            "character": 19,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 19,
+                            "character": 20,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "("
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 19,
+                            "character": 20,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 20,
+                            "character": 21,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ")"
+                          }
+                        }
+                      ]
                     },
                     "parameters": [],
                     "block": {

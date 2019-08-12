@@ -348,9 +348,8 @@ define_parser!(
         Ok((
             state,
             Index::Brackets {
-                start_bracket,
+                brackets: ContainedSpan::new(start_bracket, end_bracket),
                 expression,
-                end_bracket,
             },
         ))
     } else if let Ok((state, dot)) = ParseSymbol(Symbol::Dot).parse(state.clone()) {
@@ -687,7 +686,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
         parameters.push(Parameter::Ellipse(ellipse));
     }
 
-    let (state, _) = expect!(
+    let (state, end_parenthese) = expect!(
         state,
         ParseSymbol(Symbol::RightParen).parse(state.clone()),
         "expected ')'"
@@ -701,7 +700,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
     Ok((
         state,
         FunctionBody {
-            start_paranthese,
+            parameters_parantheses: ContainedSpan::new(start_paranthese, end_parenthese),
             parameters,
             block,
             end_token,
