@@ -148,7 +148,45 @@
                                       "Call": {
                                         "AnonymousCall": {
                                           "Parentheses": {
-                                            "pairs": []
+                                            "arguments": {
+                                              "pairs": []
+                                            },
+                                            "parentheses": {
+                                              "tokens": [
+                                                {
+                                                  "start_position": {
+                                                    "bytes": 18,
+                                                    "character": 7,
+                                                    "line": 2
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 19,
+                                                    "character": 8,
+                                                    "line": 2
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": "("
+                                                  }
+                                                },
+                                                {
+                                                  "start_position": {
+                                                    "bytes": 19,
+                                                    "character": 8,
+                                                    "line": 2
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 20,
+                                                    "character": 9,
+                                                    "line": 2
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": ")"
+                                                  }
+                                                }
+                                              ]
+                                            }
                                           }
                                         }
                                       }

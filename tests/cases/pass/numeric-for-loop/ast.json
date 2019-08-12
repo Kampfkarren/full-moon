@@ -104,33 +104,71 @@
                     "Call": {
                       "AnonymousCall": {
                         "Parentheses": {
-                          "pairs": [
-                            {
-                              "End": {
-                                "value": {
-                                  "Var": {
-                                    "Name": {
-                                      "start_position": {
-                                        "bytes": 26,
-                                        "character": 27,
-                                        "line": 1
-                                      },
-                                      "end_position": {
-                                        "bytes": 31,
-                                        "character": 32,
-                                        "line": 1
-                                      },
-                                      "token_type": {
-                                        "type": "Identifier",
-                                        "identifier": "index"
+                          "arguments": {
+                            "pairs": [
+                              {
+                                "End": {
+                                  "value": {
+                                    "Var": {
+                                      "Name": {
+                                        "start_position": {
+                                          "bytes": 26,
+                                          "character": 27,
+                                          "line": 1
+                                        },
+                                        "end_position": {
+                                          "bytes": 31,
+                                          "character": 32,
+                                          "line": 1
+                                        },
+                                        "token_type": {
+                                          "type": "Identifier",
+                                          "identifier": "index"
+                                        }
                                       }
                                     }
-                                  }
-                                },
-                                "binop": null
+                                  },
+                                  "binop": null
+                                }
                               }
-                            }
-                          ]
+                            ]
+                          },
+                          "parentheses": {
+                            "tokens": [
+                              {
+                                "start_position": {
+                                  "bytes": 25,
+                                  "character": 26,
+                                  "line": 1
+                                },
+                                "end_position": {
+                                  "bytes": 26,
+                                  "character": 27,
+                                  "line": 1
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": "("
+                                }
+                              },
+                              {
+                                "start_position": {
+                                  "bytes": 31,
+                                  "character": 32,
+                                  "line": 1
+                                },
+                                "end_position": {
+                                  "bytes": 32,
+                                  "character": 33,
+                                  "line": 1
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": ")"
+                                }
+                              }
+                            ]
+                          }
                         }
                       }
                     }

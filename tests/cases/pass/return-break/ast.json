@@ -191,7 +191,45 @@
                       "Call": {
                         "AnonymousCall": {
                           "Parentheses": {
-                            "pairs": []
+                            "arguments": {
+                              "pairs": []
+                            },
+                            "parentheses": {
+                              "tokens": [
+                                {
+                                  "start_position": {
+                                    "bytes": 44,
+                                    "character": 12,
+                                    "line": 9
+                                  },
+                                  "end_position": {
+                                    "bytes": 45,
+                                    "character": 13,
+                                    "line": 9
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "("
+                                  }
+                                },
+                                {
+                                  "start_position": {
+                                    "bytes": 45,
+                                    "character": 13,
+                                    "line": 9
+                                  },
+                                  "end_position": {
+                                    "bytes": 46,
+                                    "character": 14,
+                                    "line": 9
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": ")"
+                                  }
+                                }
+                              ]
+                            }
                           }
                         }
                       }

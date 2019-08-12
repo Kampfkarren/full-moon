@@ -105,33 +105,71 @@
                         "Call": {
                           "AnonymousCall": {
                             "Parentheses": {
-                              "pairs": [
-                                {
-                                  "End": {
-                                    "value": {
-                                      "Var": {
-                                        "Name": {
-                                          "start_position": {
-                                            "bytes": 26,
-                                            "character": 27,
-                                            "line": 1
-                                          },
-                                          "end_position": {
-                                            "bytes": 30,
-                                            "character": 31,
-                                            "line": 1
-                                          },
-                                          "token_type": {
-                                            "type": "Identifier",
-                                            "identifier": "list"
+                              "arguments": {
+                                "pairs": [
+                                  {
+                                    "End": {
+                                      "value": {
+                                        "Var": {
+                                          "Name": {
+                                            "start_position": {
+                                              "bytes": 26,
+                                              "character": 27,
+                                              "line": 1
+                                            },
+                                            "end_position": {
+                                              "bytes": 30,
+                                              "character": 31,
+                                              "line": 1
+                                            },
+                                            "token_type": {
+                                              "type": "Identifier",
+                                              "identifier": "list"
+                                            }
                                           }
                                         }
-                                      }
-                                    },
-                                    "binop": null
+                                      },
+                                      "binop": null
+                                    }
                                   }
-                                }
-                              ]
+                                ]
+                              },
+                              "parentheses": {
+                                "tokens": [
+                                  {
+                                    "start_position": {
+                                      "bytes": 25,
+                                      "character": 26,
+                                      "line": 1
+                                    },
+                                    "end_position": {
+                                      "bytes": 26,
+                                      "character": 27,
+                                      "line": 1
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": "("
+                                    }
+                                  },
+                                  {
+                                    "start_position": {
+                                      "bytes": 30,
+                                      "character": 31,
+                                      "line": 1
+                                    },
+                                    "end_position": {
+                                      "bytes": 31,
+                                      "character": 32,
+                                      "line": 1
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": ")"
+                                    }
+                                  }
+                                ]
+                              }
                             }
                           }
                         }
@@ -171,76 +209,114 @@
                     "Call": {
                       "AnonymousCall": {
                         "Parentheses": {
-                          "pairs": [
-                            {
-                              "Punctuated": [
-                                {
+                          "arguments": {
+                            "pairs": [
+                              {
+                                "Punctuated": [
+                                  {
+                                    "value": {
+                                      "Var": {
+                                        "Name": {
+                                          "start_position": {
+                                            "bytes": 41,
+                                            "character": 7,
+                                            "line": 2
+                                          },
+                                          "end_position": {
+                                            "bytes": 46,
+                                            "character": 12,
+                                            "line": 2
+                                          },
+                                          "token_type": {
+                                            "type": "Identifier",
+                                            "identifier": "index"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "binop": null
+                                  },
+                                  {
+                                    "start_position": {
+                                      "bytes": 46,
+                                      "character": 12,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 47,
+                                      "character": 13,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": ","
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "End": {
                                   "value": {
                                     "Var": {
                                       "Name": {
                                         "start_position": {
-                                          "bytes": 41,
-                                          "character": 7,
+                                          "bytes": 48,
+                                          "character": 14,
                                           "line": 2
                                         },
                                         "end_position": {
-                                          "bytes": 46,
-                                          "character": 12,
+                                          "bytes": 53,
+                                          "character": 19,
                                           "line": 2
                                         },
                                         "token_type": {
                                           "type": "Identifier",
-                                          "identifier": "index"
+                                          "identifier": "value"
                                         }
                                       }
                                     }
                                   },
                                   "binop": null
-                                },
-                                {
-                                  "start_position": {
-                                    "bytes": 46,
-                                    "character": 12,
-                                    "line": 2
-                                  },
-                                  "end_position": {
-                                    "bytes": 47,
-                                    "character": 13,
-                                    "line": 2
-                                  },
-                                  "token_type": {
-                                    "type": "Symbol",
-                                    "symbol": ","
-                                  }
                                 }
-                              ]
-                            },
-                            {
-                              "End": {
-                                "value": {
-                                  "Var": {
-                                    "Name": {
-                                      "start_position": {
-                                        "bytes": 48,
-                                        "character": 14,
-                                        "line": 2
-                                      },
-                                      "end_position": {
-                                        "bytes": 53,
-                                        "character": 19,
-                                        "line": 2
-                                      },
-                                      "token_type": {
-                                        "type": "Identifier",
-                                        "identifier": "value"
-                                      }
-                                    }
-                                  }
-                                },
-                                "binop": null
                               }
-                            }
-                          ]
+                            ]
+                          },
+                          "parentheses": {
+                            "tokens": [
+                              {
+                                "start_position": {
+                                  "bytes": 40,
+                                  "character": 6,
+                                  "line": 2
+                                },
+                                "end_position": {
+                                  "bytes": 41,
+                                  "character": 7,
+                                  "line": 2
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": "("
+                                }
+                              },
+                              {
+                                "start_position": {
+                                  "bytes": 53,
+                                  "character": 19,
+                                  "line": 2
+                                },
+                                "end_position": {
+                                  "bytes": 54,
+                                  "character": 20,
+                                  "line": 2
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": ")"
+                                }
+                              }
+                            ]
+                          }
                         }
                       }
                     }

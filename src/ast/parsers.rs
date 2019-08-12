@@ -365,21 +365,24 @@ struct ParseFunctionArgs;
 define_parser!(ParseFunctionArgs, FunctionArgs<'a>, |_,
                                                      state: ParserState<
     'a,
->| if let Ok((state, _)) =
+>| if let Ok((state, left_paren)) =
     keep_going!(ParseSymbol(Symbol::LeftParen).parse(state.clone()))
 {
-    let (state, expr_list) = expect!(
+    let (state, arguments) = expect!(
         state,
         ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false)
             .parse(state.clone()),
         "expected arguments"
     );
-    let (state, _) = expect!(
+    let (state, right_paren) = expect!(
         state,
         ParseSymbol(Symbol::RightParen).parse(state.clone()),
         "expected ')'"
     );
-    Ok((state, FunctionArgs::Parentheses(expr_list)))
+    Ok((state, FunctionArgs::Parentheses {
+        arguments,
+        parentheses: ContainedSpan::new(left_paren, right_paren),
+    }))
 } else if let Ok((state, table_constructor)) =
     keep_going!(ParseTableConstructor.parse(state.clone()))
 {

@@ -436,7 +436,45 @@
                           },
                           "args": {
                             "Parentheses": {
-                              "pairs": []
+                              "arguments": {
+                                "pairs": []
+                              },
+                              "parentheses": {
+                                "tokens": [
+                                  {
+                                    "start_position": {
+                                      "bytes": 74,
+                                      "character": 26,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 75,
+                                      "character": 27,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": "("
+                                    }
+                                  },
+                                  {
+                                    "start_position": {
+                                      "bytes": 75,
+                                      "character": 27,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 76,
+                                      "character": 28,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": ")"
+                                    }
+                                  }
+                                ]
+                              }
                             }
                           }
                         }
@@ -566,7 +604,45 @@
                           },
                           "args": {
                             "Parentheses": {
-                              "pairs": []
+                              "arguments": {
+                                "pairs": []
+                              },
+                              "parentheses": {
+                                "tokens": [
+                                  {
+                                    "start_position": {
+                                      "bytes": 83,
+                                      "character": 35,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 84,
+                                      "character": 36,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": "("
+                                    }
+                                  },
+                                  {
+                                    "start_position": {
+                                      "bytes": 84,
+                                      "character": 36,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 85,
+                                      "character": 37,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Symbol",
+                                      "symbol": ")"
+                                    }
+                                  }
+                                ]
+                              }
                             }
                           }
                         }

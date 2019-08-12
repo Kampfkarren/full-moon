@@ -250,10 +250,16 @@ pub enum Index<'a> {
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
     /// Used when a function is called in the form of `call(1, 2, 3)`
-    Parentheses(Punctuated<'a, Expression<'a>>),
+    Parentheses {
+        /// The `1, 2, 3` part of `1, 2, 3`
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        arguments: Punctuated<'a, Expression<'a>>,
+        /// The `(...) part of (1, 2, 3)`
+        parentheses: ContainedSpan<'a>,
+    },
     /// Used when a function is called in the form of `call "foobar"`
+    #[cfg_attr(feature = "serde", serde(borrow))]
     String(TokenReference<'a>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
     TableConstructor(TableConstructor<'a>),
