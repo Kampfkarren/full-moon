@@ -66,21 +66,41 @@
                       [
                         {
                           "ExpressionKey": {
-                            "start_bracket": {
-                              "start_position": {
-                                "bytes": 13,
-                                "character": 2,
-                                "line": 2
-                              },
-                              "end_position": {
-                                "bytes": 14,
-                                "character": 3,
-                                "line": 2
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "["
-                              }
+                            "brackets": {
+                              "tokens": [
+                                {
+                                  "start_position": {
+                                    "bytes": 13,
+                                    "character": 2,
+                                    "line": 2
+                                  },
+                                  "end_position": {
+                                    "bytes": 14,
+                                    "character": 3,
+                                    "line": 2
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "["
+                                  }
+                                },
+                                {
+                                  "start_position": {
+                                    "bytes": 20,
+                                    "character": 9,
+                                    "line": 2
+                                  },
+                                  "end_position": {
+                                    "bytes": 21,
+                                    "character": 10,
+                                    "line": 2
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "]"
+                                  }
+                                }
+                              ]
                             },
                             "key": {
                               "value": {
@@ -117,22 +137,6 @@
                                 }
                               },
                               "binop": null
-                            },
-                            "end_bracket": {
-                              "start_position": {
-                                "bytes": 20,
-                                "character": 9,
-                                "line": 2
-                              },
-                              "end_position": {
-                                "bytes": 21,
-                                "character": 10,
-                                "line": 2
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "]"
-                              }
                             },
                             "equal": {
                               "start_position": {

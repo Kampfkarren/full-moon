@@ -5,24 +5,22 @@ use crate::{
 };
 
 use full_moon_derive::Visit;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan<'a> {
+    #[serde(borrow)]
     #[visit(skip)]
-    range: (Position, Position),
     tokens: (TokenReference<'a>, TokenReference<'a>),
 }
 
 impl<'a> ContainedSpan<'a> {
     pub fn new(
-        range: (Position, Position),
-        tokens: (TokenReference<'a>, TokenReference<'a>),
+        start: TokenReference<'a>,
+        end: TokenReference<'a>,
     ) -> Self {
-        Self { range, tokens }
-    }
-
-    pub fn range(&self) -> (Position, Position) {
-        (self.range.0, self.range.1)
+        Self { tokens: (start, end) }
     }
 
     pub fn tokens(&self) -> (&Token<'a>, &Token<'a>) {

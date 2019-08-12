@@ -19,6 +19,7 @@ use parser_util::{
 };
 
 use punctuated::{Pair, Punctuated};
+use span::ContainedSpan;
 
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
@@ -64,13 +65,11 @@ pub enum LastStmt<'a> {
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
     ExpressionKey {
-        /// The `[` part of `[expression] = value`
+        /// The `[...]` part of `[expression] = value`
         #[cfg_attr(feature = "serde", serde(borrow))]
-        start_bracket: TokenReference<'a>,
+        brackets: ContainedSpan<'a>,
         /// The `expression` part of `[expression] = value`
         key: Expression<'a>,
-        /// The `]` part of `[expression] = value`
-        end_bracket: TokenReference<'a>,
         /// The `=` part of `[expression] = value`
         equal: TokenReference<'a>,
         /// The `value` part of `[expression] = value`

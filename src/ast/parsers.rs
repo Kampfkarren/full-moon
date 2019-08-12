@@ -1,7 +1,9 @@
 use super::{
     parser_util::{InternalAstError, Parser, ParserState},
+    span::ContainedSpan,
     *,
 };
+
 use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -136,9 +138,8 @@ define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a>| {
         return Ok((
             state.clone(),
             Field::ExpressionKey {
-                start_bracket,
+                brackets: ContainedSpan::new(start_bracket, end_bracket),
                 key,
-                end_bracket,
                 equal,
                 value,
             },

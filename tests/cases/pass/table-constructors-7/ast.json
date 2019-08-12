@@ -66,21 +66,41 @@
                       [
                         {
                           "ExpressionKey": {
-                            "start_bracket": {
-                              "start_position": {
-                                "bytes": 21,
-                                "character": 2,
-                                "line": 2
-                              },
-                              "end_position": {
-                                "bytes": 22,
-                                "character": 3,
-                                "line": 2
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "["
-                              }
+                            "brackets": {
+                              "tokens": [
+                                {
+                                  "start_position": {
+                                    "bytes": 21,
+                                    "character": 2,
+                                    "line": 2
+                                  },
+                                  "end_position": {
+                                    "bytes": 22,
+                                    "character": 3,
+                                    "line": 2
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "["
+                                  }
+                                },
+                                {
+                                  "start_position": {
+                                    "bytes": 55,
+                                    "character": 36,
+                                    "line": 2
+                                  },
+                                  "end_position": {
+                                    "bytes": 56,
+                                    "character": 37,
+                                    "line": 2
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "]"
+                                  }
+                                }
+                              ]
                             },
                             "key": {
                               "value": {
@@ -103,22 +123,6 @@
                                 }
                               },
                               "binop": null
-                            },
-                            "end_bracket": {
-                              "start_position": {
-                                "bytes": 55,
-                                "character": 36,
-                                "line": 2
-                              },
-                              "end_position": {
-                                "bytes": 56,
-                                "character": 37,
-                                "line": 2
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "]"
-                              }
                             },
                             "equal": {
                               "start_position": {
@@ -179,21 +183,41 @@
                       [
                         {
                           "ExpressionKey": {
-                            "start_bracket": {
-                              "start_position": {
-                                "bytes": 66,
-                                "character": 2,
-                                "line": 3
-                              },
-                              "end_position": {
-                                "bytes": 67,
-                                "character": 3,
-                                "line": 3
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "["
-                              }
+                            "brackets": {
+                              "tokens": [
+                                {
+                                  "start_position": {
+                                    "bytes": 66,
+                                    "character": 2,
+                                    "line": 3
+                                  },
+                                  "end_position": {
+                                    "bytes": 67,
+                                    "character": 3,
+                                    "line": 3
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "["
+                                  }
+                                },
+                                {
+                                  "start_position": {
+                                    "bytes": 131,
+                                    "character": 67,
+                                    "line": 3
+                                  },
+                                  "end_position": {
+                                    "bytes": 132,
+                                    "character": 68,
+                                    "line": 3
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "]"
+                                  }
+                                }
+                              ]
                             },
                             "key": {
                               "value": {
@@ -216,22 +240,6 @@
                                 }
                               },
                               "binop": null
-                            },
-                            "end_bracket": {
-                              "start_position": {
-                                "bytes": 131,
-                                "character": 67,
-                                "line": 3
-                              },
-                              "end_position": {
-                                "bytes": 132,
-                                "character": 68,
-                                "line": 3
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "]"
-                              }
                             },
                             "equal": {
                               "start_position": {
@@ -292,21 +300,41 @@
                       [
                         {
                           "ExpressionKey": {
-                            "start_bracket": {
-                              "start_position": {
-                                "bytes": 142,
-                                "character": 2,
-                                "line": 4
-                              },
-                              "end_position": {
-                                "bytes": 143,
-                                "character": 3,
-                                "line": 4
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "["
-                              }
+                            "brackets": {
+                              "tokens": [
+                                {
+                                  "start_position": {
+                                    "bytes": 142,
+                                    "character": 2,
+                                    "line": 4
+                                  },
+                                  "end_position": {
+                                    "bytes": 143,
+                                    "character": 3,
+                                    "line": 4
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "["
+                                  }
+                                },
+                                {
+                                  "start_position": {
+                                    "bytes": 205,
+                                    "character": 65,
+                                    "line": 4
+                                  },
+                                  "end_position": {
+                                    "bytes": 206,
+                                    "character": 66,
+                                    "line": 4
+                                  },
+                                  "token_type": {
+                                    "type": "Symbol",
+                                    "symbol": "]"
+                                  }
+                                }
+                              ]
                             },
                             "key": {
                               "value": {
@@ -329,22 +357,6 @@
                                 }
                               },
                               "binop": null
-                            },
-                            "end_bracket": {
-                              "start_position": {
-                                "bytes": 205,
-                                "character": 65,
-                                "line": 4
-                              },
-                              "end_position": {
-                                "bytes": 206,
-                                "character": 66,
-                                "line": 4
-                              },
-                              "token_type": {
-                                "type": "Symbol",
-                                "symbol": "]"
-                              }
                             },
                             "equal": {
                               "start_position": {
