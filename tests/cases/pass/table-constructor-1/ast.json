@@ -46,39 +46,43 @@
               "End": {
                 "value": {
                   "TableConstructor": {
-                    "start_brace": {
-                      "start_position": {
-                        "bytes": 10,
-                        "character": 11,
-                        "line": 1
-                      },
-                      "end_position": {
-                        "bytes": 11,
-                        "character": 12,
-                        "line": 1
-                      },
-                      "token_type": {
-                        "type": "Symbol",
-                        "symbol": "{"
-                      }
+                    "braces": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 10,
+                            "character": 11,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 11,
+                            "character": 12,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "{"
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 12,
+                            "character": 12,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 13,
+                            "character": 2,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "}"
+                          }
+                        }
+                      ]
                     },
-                    "fields": [],
-                    "end_brace": {
-                      "start_position": {
-                        "bytes": 12,
-                        "character": 12,
-                        "line": 1
-                      },
-                      "end_position": {
-                        "bytes": 13,
-                        "character": 2,
-                        "line": 2
-                      },
-                      "token_type": {
-                        "type": "Symbol",
-                        "symbol": "}"
-                      }
-                    }
+                    "fields": []
                   }
                 },
                 "binop": null

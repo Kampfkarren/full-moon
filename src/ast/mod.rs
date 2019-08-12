@@ -2,6 +2,7 @@
 mod parser_util;
 mod parsers;
 pub mod punctuated;
+pub mod span;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::{Node, Visit};
@@ -18,6 +19,7 @@ use parser_util::{
 };
 
 use punctuated::{Pair, Punctuated};
+use span::ContainedSpan;
 
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
@@ -63,13 +65,11 @@ pub enum LastStmt<'a> {
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
     ExpressionKey {
-        /// The `[` part of `[expression] = value`
+        /// The `[...]` part of `[expression] = value`
         #[cfg_attr(feature = "serde", serde(borrow))]
-        start_bracket: TokenReference<'a>,
+        brackets: ContainedSpan<'a>,
         /// The `expression` part of `[expression] = value`
         key: Expression<'a>,
-        /// The `]` part of `[expression] = value`
-        end_bracket: TokenReference<'a>,
         /// The `=` part of `[expression] = value`
         equal: TokenReference<'a>,
         /// The `value` part of `[expression] = value`
@@ -101,9 +101,8 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    start_brace: TokenReference<'a>,
+    braces: ContainedSpan<'a>,
     fields: Vec<TableConstructorField<'a>>,
-    end_brace: TokenReference<'a>,
 }
 
 impl<'a> TableConstructor<'a> {
@@ -231,12 +230,10 @@ pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
     Brackets {
         #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The `[` part of `["y"]`
-        start_bracket: TokenReference<'a>,
+        /// The `[...]` part of `["y"]`
+        brackets: ContainedSpan<'a>,
         /// The `"y"` part of `["y"]`
         expression: Expression<'a>,
-        /// The `]` part of `["y"]`
-        end_bracket: TokenReference<'a>,
     },
 
     /// Indexing in the form of `x.y`
@@ -253,10 +250,16 @@ pub enum Index<'a> {
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
     /// Used when a function is called in the form of `call(1, 2, 3)`
-    Parentheses(Punctuated<'a, Expression<'a>>),
+    Parentheses {
+        /// The `1, 2, 3` part of `1, 2, 3`
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        arguments: Punctuated<'a, Expression<'a>>,
+        /// The `(...) part of (1, 2, 3)`
+        parentheses: ContainedSpan<'a>,
+    },
     /// Used when a function is called in the form of `call "foobar"`
+    #[cfg_attr(feature = "serde", serde(borrow))]
     String(TokenReference<'a>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
     TableConstructor(TableConstructor<'a>),
@@ -460,7 +463,7 @@ pub enum Call<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    start_paranthese: TokenReference<'a>,
+    parameters_parantheses: ContainedSpan<'a>,
     parameters: Vec<Parameter<'a>>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
@@ -603,9 +606,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list_mut(
-        &mut self,
-    ) -> &mut Punctuated<'a, TokenReference<'a>> {
+    pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, TokenReference<'a>> {
         &mut self.name_list
     }
 }

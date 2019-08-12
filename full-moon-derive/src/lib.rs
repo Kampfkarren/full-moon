@@ -136,6 +136,33 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
             let fields = strukt
                 .fields
                 .iter()
+                .filter(|field| {
+                    field
+                        .attrs
+                        .iter()
+                        .filter_map(|attr| attr.parse_meta().ok())
+                        .filter(|attr| attr.name() == "visit")
+                        .filter_map(|variant| {
+                            if let syn::Meta::List(list) = variant {
+                                Some(list)
+                            } else {
+                                None
+                            }
+                        })
+                        .all(|list| {
+                            for nested in list.nested {
+                                if let syn::NestedMeta::Meta(meta) = nested {
+                                    if let syn::Meta::Word(ident) = meta {
+                                        if ident == "skip" {
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            true
+                        })
+                })
                 .map(|field| field.ident.as_ref().unwrap());
 
             quote! {
@@ -223,14 +250,16 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
 
                 match &variant.fields {
                     syn::Fields::Named(named) => {
-                        let fields = named.named
+                        let fields = named
+                            .named
                             .iter()
-                            .map(|field| {
-                                field.ident.as_ref().unwrap()
-                            })
+                            .map(|field| field.ident.as_ref().unwrap())
                             .collect::<Vec<_>>();
 
-                        let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+                        let (mut start_position, mut end_position) = (
+                            Vec::with_capacity(fields.len()),
+                            Vec::with_capacity(fields.len()),
+                        );
 
                         for field in &fields {
                             start_position.push(quote! {
@@ -255,8 +284,6 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                                 Some((None#(#start_position)*?, None#(#end_position)*?))
                             }
                         });
-                        cases.push(quote! {
-                        })
                     }
 
                     syn::Fields::Unnamed(unnamed) => {
@@ -313,26 +340,28 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                 .map(|field| field.ident.as_ref().unwrap())
                 .collect::<Vec<_>>();
 
-            let (mut start_position, mut end_position) = (Vec::with_capacity(fields.len()), Vec::with_capacity(fields.len()));
+            let (mut start_position, mut end_position) = (
+                Vec::with_capacity(fields.len()),
+                Vec::with_capacity(fields.len()),
+            );
 
             for field in &fields {
                 start_position.push(quote! {
-                    .or_else(|| {
-                        self.#field.start_position()
-                    })
+                    self.#field.start_position()
                 });
             }
 
-            for field in fields.iter().rev() {
+            for field in &fields {
                 end_position.push(quote! {
-                    .or_else(|| {
-                        self.#field.end_position()
-                    })
+                    self.#field.end_position()
                 });
             }
 
             quote! {
-                Some((None#(#start_position)*?, None#(#end_position)*?))
+                Some((
+                    vec![#(#start_position,)*].into_iter().flatten().min()?,
+                    vec![#(#end_position,)*].into_iter().flatten().max()?,
+                ))
             }
         }
 

@@ -46,21 +46,41 @@
               "End": {
                 "value": {
                   "Function": {
-                    "start_paranthese": {
-                      "start_position": {
-                        "bytes": 18,
-                        "character": 19,
-                        "line": 1
-                      },
-                      "end_position": {
-                        "bytes": 19,
-                        "character": 20,
-                        "line": 1
-                      },
-                      "token_type": {
-                        "type": "Symbol",
-                        "symbol": "("
-                      }
+                    "parameters_parantheses": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 18,
+                            "character": 19,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 19,
+                            "character": 20,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "("
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 19,
+                            "character": 20,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 20,
+                            "character": 21,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ")"
+                          }
+                        }
+                      ]
                     },
                     "parameters": [],
                     "block": {
@@ -90,31 +110,69 @@
                                 "Call": {
                                   "AnonymousCall": {
                                     "Parentheses": {
-                                      "pairs": [
-                                        {
-                                          "End": {
-                                            "value": {
-                                              "Number": {
-                                                "start_position": {
-                                                  "bytes": 27,
-                                                  "character": 7,
-                                                  "line": 2
-                                                },
-                                                "end_position": {
-                                                  "bytes": 28,
-                                                  "character": 8,
-                                                  "line": 2
-                                                },
-                                                "token_type": {
-                                                  "type": "Number",
-                                                  "text": "1"
+                                      "arguments": {
+                                        "pairs": [
+                                          {
+                                            "End": {
+                                              "value": {
+                                                "Number": {
+                                                  "start_position": {
+                                                    "bytes": 27,
+                                                    "character": 7,
+                                                    "line": 2
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 28,
+                                                    "character": 8,
+                                                    "line": 2
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Number",
+                                                    "text": "1"
+                                                  }
                                                 }
-                                              }
-                                            },
-                                            "binop": null
+                                              },
+                                              "binop": null
+                                            }
                                           }
-                                        }
-                                      ]
+                                        ]
+                                      },
+                                      "parentheses": {
+                                        "tokens": [
+                                          {
+                                            "start_position": {
+                                              "bytes": 26,
+                                              "character": 6,
+                                              "line": 2
+                                            },
+                                            "end_position": {
+                                              "bytes": 27,
+                                              "character": 7,
+                                              "line": 2
+                                            },
+                                            "token_type": {
+                                              "type": "Symbol",
+                                              "symbol": "("
+                                            }
+                                          },
+                                          {
+                                            "start_position": {
+                                              "bytes": 28,
+                                              "character": 8,
+                                              "line": 2
+                                            },
+                                            "end_position": {
+                                              "bytes": 29,
+                                              "character": 9,
+                                              "line": 2
+                                            },
+                                            "token_type": {
+                                              "type": "Symbol",
+                                              "symbol": ")"
+                                            }
+                                          }
+                                        ]
+                                      }
                                     }
                                   }
                                 }

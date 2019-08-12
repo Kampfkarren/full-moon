@@ -25,33 +25,71 @@
             "Call": {
               "AnonymousCall": {
                 "Parentheses": {
-                  "pairs": [
-                    {
-                      "End": {
-                        "value": {
-                          "String": {
-                            "start_position": {
-                              "bytes": 5,
-                              "character": 6,
-                              "line": 1
-                            },
-                            "end_position": {
-                              "bytes": 13,
-                              "character": 14,
-                              "line": 1
-                            },
-                            "token_type": {
-                              "type": "StringLiteral",
-                              "literal": "doge",
-                              "multi_line": 0,
-                              "quote_type": "Brackets"
+                  "arguments": {
+                    "pairs": [
+                      {
+                        "End": {
+                          "value": {
+                            "String": {
+                              "start_position": {
+                                "bytes": 5,
+                                "character": 6,
+                                "line": 1
+                              },
+                              "end_position": {
+                                "bytes": 13,
+                                "character": 14,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "StringLiteral",
+                                "literal": "doge",
+                                "multi_line": 0,
+                                "quote_type": "Brackets"
+                              }
                             }
-                          }
-                        },
-                        "binop": null
+                          },
+                          "binop": null
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  },
+                  "parentheses": {
+                    "tokens": [
+                      {
+                        "start_position": {
+                          "bytes": 4,
+                          "character": 5,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 5,
+                          "character": 6,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Symbol",
+                          "symbol": "("
+                        }
+                      },
+                      {
+                        "start_position": {
+                          "bytes": 13,
+                          "character": 14,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 14,
+                          "character": 15,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Symbol",
+                          "symbol": ")"
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             }

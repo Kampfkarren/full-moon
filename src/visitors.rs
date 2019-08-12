@@ -1,4 +1,8 @@
-use crate::{ast, private::Sealed, tokenizer::TokenReference};
+use crate::{
+    ast::{*, span::ContainedSpan},
+    private::Sealed,
+    tokenizer::TokenReference,
+};
 use std::borrow::Cow;
 
 macro_rules! create_visitor {
@@ -34,13 +38,13 @@ macro_rules! create_visitor {
         /// ```
         pub trait Visitor<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
-            fn visit_ast(&mut self, ast: &ast::Ast<'ast>) where Self: Sized {
+            fn visit_ast(&mut self, ast: &Ast<'ast>) where Self: Sized {
                 ast.nodes().visit(self);
             }
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_name(&mut self, _node: &ast::$ast_type<'ast>) { }
+                fn $visit_name(&mut self, _node: &$ast_type<'ast>) { }
             )+
 
             $(
@@ -53,13 +57,13 @@ macro_rules! create_visitor {
         /// Unlike [`Visitor`](trait.Visitor.html), nodes/tokens passed are mutable.
         pub trait VisitorMut<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
-            fn visit_ast(&mut self, ast: &mut ast::Ast<'ast>) where Self: Sized {
+            fn visit_ast(&mut self, ast: &mut Ast<'ast>) where Self: Sized {
                 ast.nodes_mut().visit_mut(self);
             }
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_name(&mut self, _node: &mut ast::$ast_type<'ast>) { }
+                fn $visit_name(&mut self, _node: &mut $ast_type<'ast>) { }
             )+
 
             $(
@@ -156,6 +160,7 @@ create_visitor!(ast: {
     visit_bin_op => BinOpRhs,
     visit_block => Block,
     visit_call => Call,
+    visit_contained_span => ContainedSpan,
     visit_do => Do,
     visit_expression => Expression,
     visit_field => Field,

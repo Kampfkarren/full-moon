@@ -35,21 +35,41 @@
           }
         },
         "func_body": {
-          "start_paranthese": {
-            "start_position": {
-              "bytes": 18,
-              "character": 19,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 19,
-              "character": 20,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "("
-            }
+          "parameters_parantheses": {
+            "tokens": [
+              {
+                "start_position": {
+                  "bytes": 18,
+                  "character": 19,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 19,
+                  "character": 20,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "("
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 23,
+                  "character": 24,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 24,
+                  "character": 25,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": ")"
+                }
+              }
+            ]
           },
           "parameters": [
             {
@@ -168,21 +188,41 @@
           }
         },
         "func_body": {
-          "start_paranthese": {
-            "start_position": {
-              "bytes": 47,
-              "character": 19,
-              "line": 2
-            },
-            "end_position": {
-              "bytes": 48,
-              "character": 20,
-              "line": 2
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "("
-            }
+          "parameters_parantheses": {
+            "tokens": [
+              {
+                "start_position": {
+                  "bytes": 47,
+                  "character": 19,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 48,
+                  "character": 20,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "("
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 51,
+                  "character": 23,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 52,
+                  "character": 24,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": ")"
+                }
+              }
+            ]
           },
           "parameters": [
             {
@@ -261,21 +301,41 @@
           }
         },
         "func_body": {
-          "start_paranthese": {
-            "start_position": {
-              "bytes": 75,
-              "character": 19,
-              "line": 3
-            },
-            "end_position": {
-              "bytes": 76,
-              "character": 20,
-              "line": 3
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "("
-            }
+          "parameters_parantheses": {
+            "tokens": [
+              {
+                "start_position": {
+                  "bytes": 75,
+                  "character": 19,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 76,
+                  "character": 20,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": "("
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 85,
+                  "character": 29,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 86,
+                  "character": 30,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Symbol",
+                  "symbol": ")"
+                }
+              }
+            ]
           },
           "parameters": [
             {

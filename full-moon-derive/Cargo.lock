@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "full_moon_derive"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "quote 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.15.34 (registry+https://github.com/rust-lang/crates.io-index)",

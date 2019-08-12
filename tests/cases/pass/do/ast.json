@@ -45,7 +45,45 @@
                     "Call": {
                       "AnonymousCall": {
                         "Parentheses": {
-                          "pairs": []
+                          "arguments": {
+                            "pairs": []
+                          },
+                          "parentheses": {
+                            "tokens": [
+                              {
+                                "start_position": {
+                                  "bytes": 8,
+                                  "character": 6,
+                                  "line": 2
+                                },
+                                "end_position": {
+                                  "bytes": 9,
+                                  "character": 7,
+                                  "line": 2
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": "("
+                                }
+                              },
+                              {
+                                "start_position": {
+                                  "bytes": 9,
+                                  "character": 7,
+                                  "line": 2
+                                },
+                                "end_position": {
+                                  "bytes": 10,
+                                  "character": 8,
+                                  "line": 2
+                                },
+                                "token_type": {
+                                  "type": "Symbol",
+                                  "symbol": ")"
+                                }
+                              }
+                            ]
+                          }
                         }
                       }
                     }

@@ -25,21 +25,41 @@
             "Call": {
               "AnonymousCall": {
                 "TableConstructor": {
-                  "start_brace": {
-                    "start_position": {
-                      "bytes": 5,
-                      "character": 6,
-                      "line": 1
-                    },
-                    "end_position": {
-                      "bytes": 6,
-                      "character": 7,
-                      "line": 1
-                    },
-                    "token_type": {
-                      "type": "Symbol",
-                      "symbol": "{"
-                    }
+                  "braces": {
+                    "tokens": [
+                      {
+                        "start_position": {
+                          "bytes": 5,
+                          "character": 6,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 6,
+                          "character": 7,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Symbol",
+                          "symbol": "{"
+                        }
+                      },
+                      {
+                        "start_position": {
+                          "bytes": 13,
+                          "character": 14,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 14,
+                          "character": 15,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Symbol",
+                          "symbol": "}"
+                        }
+                      }
+                    ]
                   },
                   "fields": [
                     [
@@ -102,23 +122,7 @@
                       },
                       null
                     ]
-                  ],
-                  "end_brace": {
-                    "start_position": {
-                      "bytes": 13,
-                      "character": 14,
-                      "line": 1
-                    },
-                    "end_position": {
-                      "bytes": 14,
-                      "character": 15,
-                      "line": 1
-                    },
-                    "token_type": {
-                      "type": "Symbol",
-                      "symbol": "}"
-                    }
-                  }
+                  ]
                 }
               }
             }
