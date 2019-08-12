@@ -13,7 +13,6 @@ edition = "2018"
 [features]
 default = ["serde"]
 no-source-tests = []
-only-source-tests = []
 
 [dependencies]
 atomic_refcell = "0.1"

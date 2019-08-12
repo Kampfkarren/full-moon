@@ -992,7 +992,7 @@ make_op_parser!(UnOp, ParseUnOp,
     }
 );
 
-#[cfg(all(test, not(feature = "only-source-tests")))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::tokenizer::tokens;
