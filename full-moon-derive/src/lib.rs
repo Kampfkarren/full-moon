@@ -136,6 +136,33 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
             let fields = strukt
                 .fields
                 .iter()
+                .filter(|field| {
+                    field
+                        .attrs
+                        .iter()
+                        .filter_map(|attr| attr.parse_meta().ok())
+                        .filter(|attr| attr.name() == "visit")
+                        .filter_map(|variant| {
+                            if let syn::Meta::List(list) = variant {
+                                Some(list)
+                            } else {
+                                None
+                            }
+                        })
+                        .all(|list| {
+                            for nested in list.nested {
+                                if let syn::NestedMeta::Meta(meta) = nested {
+                                    if let syn::Meta::Word(ident) = meta {
+                                        if ident == "skip" {
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            true
+                        })
+                })
                 .map(|field| field.ident.as_ref().unwrap());
 
             quote! {

@@ -18,7 +18,7 @@ use crate::{
     node::Node,
     private::Sealed,
     tokenizer::{Position, TokenReference},
-    visitors::{Visit, Visitor, VisitMut, VisitorMut},
+    visitors::{Visit, VisitMut, Visitor, VisitorMut},
 };
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -39,9 +39,7 @@ impl<'a, T> Punctuated<'a, T> {
     /// let mut punctuated: Punctuated<i32> = Punctuated::new();
     /// ```
     pub fn new() -> Self {
-        Self {
-            pairs: Vec::new(),
-        }
+        Self { pairs: Vec::new() }
     }
 
     /// Returns whether there's any nodes in the punctuated sequence
@@ -194,7 +192,7 @@ impl<'a, T> IntoIterator for Punctuated<'a, T> {
 
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
-            inner: self.pairs.into_iter()
+            inner: self.pairs.into_iter(),
         }
     }
 }
@@ -205,7 +203,7 @@ impl<'a: 'b, 'b, T> IntoIterator for &'b Punctuated<'a, T> {
 
     fn into_iter(self) -> Self::IntoIter {
         Iter {
-            inner: self.pairs.iter()
+            inner: self.pairs.iter(),
         }
     }
 }
@@ -216,7 +214,7 @@ impl<'a: 'b, 'b, T> IntoIterator for &'b mut Punctuated<'a, T> {
 
     fn into_iter(self) -> Self::IntoIter {
         IterMut {
-            inner: self.pairs.iter_mut()
+            inner: self.pairs.iter_mut(),
         }
     }
 }
@@ -363,7 +361,8 @@ impl<'a, T: Node> Node for Pair<'a, T> {
     }
 
     fn end_position(&self) -> Option<Position> {
-        self.punctuation().and_then(Node::end_position)
+        self.punctuation()
+            .and_then(Node::end_position)
             .or_else(|| self.value().end_position())
     }
 }

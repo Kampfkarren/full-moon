@@ -2,6 +2,7 @@
 mod parser_util;
 mod parsers;
 pub mod punctuated;
+pub mod span;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::{Node, Visit};
@@ -603,9 +604,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list_mut(
-        &mut self,
-    ) -> &mut Punctuated<'a, TokenReference<'a>> {
+    pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, TokenReference<'a>> {
         &mut self.name_list
     }
 }
