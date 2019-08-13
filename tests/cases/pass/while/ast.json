@@ -41,6 +41,22 @@
           },
           "binop": null
         },
+        "do_token": {
+          "start_position": {
+            "bytes": 16,
+            "character": 17,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 18,
+            "character": 19,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
         "block": {
           "stmts": [
             {

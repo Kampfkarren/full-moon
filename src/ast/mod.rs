@@ -431,6 +431,7 @@ pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     while_token: TokenReference<'a>,
     condition: Expression<'a>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }

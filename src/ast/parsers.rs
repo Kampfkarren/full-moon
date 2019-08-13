@@ -596,7 +596,7 @@ define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
         ParseExpression.parse(state.clone()),
         "expected condition"
     );
-    let (state, _) = expect!(
+    let (state, do_token) = expect!(
         state,
         ParseSymbol(Symbol::Do).parse(state.clone()),
         "expected 'do'"
@@ -612,6 +612,7 @@ define_parser!(ParseWhile, While<'a>, |_, state: ParserState<'a>| {
         While {
             while_token,
             condition,
+            do_token,
             block,
             end_token,
         },
