@@ -162,6 +162,7 @@ create_visitor!(ast: {
     visit_call => Call,
     visit_contained_span => ContainedSpan,
     visit_do => Do,
+    visit_else_if => ElseIf,
     visit_expression => Expression,
     visit_field => Field,
     visit_function_args => FunctionArgs,

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `visit_do` to use a new `Do` struct instead of `Block`
 - Changed `FunctionArgs::Parentheses` to be a struct item
 - `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
+- Changed `If::else_if` to use a new `Vec<ElseIf>`
 
 ## [0.3.0] - 2019-05-24
 ### Added

@@ -525,7 +525,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
         ParseExpression.parse(state.clone()),
         "expected condition"
     );
-    let (state, _) = expect!(
+    let (state, then_token) = expect!(
         state,
         ParseSymbol(Symbol::Then).parse(state.clone()),
         "expected 'then'"
@@ -533,20 +533,25 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
     let (mut state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
 
     let mut else_ifs = Vec::new();
-    while let Ok((new_state, _)) = ParseSymbol(Symbol::ElseIf).parse(state.clone()) {
+    while let Ok((new_state, else_if_token)) = ParseSymbol(Symbol::ElseIf).parse(state.clone()) {
         let (new_state, condition) = expect!(
             state,
             ParseExpression.parse(new_state),
             "expected condition"
         );
-        let (new_state, _) = expect!(
+        let (new_state, then_token) = expect!(
             state,
             ParseSymbol(Symbol::Then).parse(new_state),
             "expected 'then'"
         );
         let (new_state, block) = expect!(state, ParseBlock.parse(new_state), "expected block");
         state = new_state;
-        else_ifs.push((condition, block));
+        else_ifs.push(ElseIf {
+            else_if_token,
+            condition,
+            then_token,
+            block,
+        });
     }
 
     let (state, else_token, r#else) =
@@ -568,6 +573,7 @@ define_parser!(ParseIf, If<'a>, |_, state: ParserState<'a>| {
         If {
             if_token,
             condition,
+            then_token,
             block,
             else_token,
             r#else,

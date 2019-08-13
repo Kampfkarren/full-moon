@@ -41,6 +41,22 @@
           },
           "binop": null
         },
+        "then_token": {
+          "start_position": {
+            "bytes": 5,
+            "character": 6,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 9,
+            "character": 10,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "then"
+          }
+        },
         "block": {
           "stmts": [
             {
@@ -117,8 +133,24 @@
           ]
         },
         "else_if": [
-          [
-            {
+          {
+            "else_if_token": {
+              "start_position": {
+                "bytes": 17,
+                "character": 7,
+                "line": 2
+              },
+              "end_position": {
+                "bytes": 23,
+                "character": 7,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "elseif"
+              }
+            },
+            "condition": {
               "value": {
                 "Var": {
                   "Name": {
@@ -141,7 +173,23 @@
               },
               "binop": null
             },
-            {
+            "then_token": {
+              "start_position": {
+                "bytes": 26,
+                "character": 10,
+                "line": 3
+              },
+              "end_position": {
+                "bytes": 30,
+                "character": 14,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "then"
+              }
+            },
+            "block": {
               "stmts": [
                 {
                   "FunctionCall": {
@@ -216,7 +264,7 @@
                 }
               ]
             }
-          ]
+          }
         ],
         "else_token": {
           "start_position": {

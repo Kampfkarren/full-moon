@@ -375,8 +375,9 @@ pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     if_token: TokenReference<'a>,
     condition: Expression<'a>,
+    then_token: TokenReference<'a>,
     block: Block<'a>,
-    else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+    else_if: Option<Vec<ElseIf<'a>>>,
     else_token: Option<TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
@@ -402,7 +403,7 @@ impl<'a> If<'a> {
     /// If there are `elseif` conditions, returns a vector of them
     /// Expression is the condition, block is the code if the condition is true
     // TODO: Make this return an iterator, and remove Option part entirely?
-    pub fn else_if(&self) -> Option<&Vec<(Expression<'a>, Block<'a>)>> {
+    pub fn else_if(&self) -> Option<&Vec<ElseIf<'a>>> {
         self.else_if.as_ref()
     }
 
@@ -410,6 +411,17 @@ impl<'a> If<'a> {
     pub fn else_block(&self) -> Option<&Block<'a>> {
         self.r#else.as_ref()
     }
+}
+
+/// An elseif block in a bigger [`If`](struct.If.html) statement
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct ElseIf<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    else_if_token: TokenReference<'a>,
+    condition: Expression<'a>,
+    then_token: TokenReference<'a>,
+    block: Block<'a>,
 }
 
 /// A while loop
