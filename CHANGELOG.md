@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `FunctionArgs::Parentheses` to be a struct item
 - `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
 - Changed `If::else_if` to use a new `Vec<ElseIf>`
+- Changed `Value::Function` to also include the function token
 
 ## [0.3.0] - 2019-05-24
 ### Added

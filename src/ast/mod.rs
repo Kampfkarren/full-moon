@@ -189,7 +189,7 @@ pub enum Expression<'a> {
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
-    Function(FunctionBody<'a>),
+    Function((TokenReference<'a>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
     FunctionCall(FunctionCall<'a>),
     /// A table constructor, such as `{ 1, 2, 3 }`

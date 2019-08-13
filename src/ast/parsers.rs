@@ -761,10 +761,11 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
 struct ParseFunction;
 define_parser!(
     ParseFunction,
-    FunctionBody<'a>,
+    (TokenReference<'a>, FunctionBody<'a>),
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::Function).parse(state.clone())?;
-        ParseFunctionBody.parse(state.clone())
+        let (state, token) = ParseSymbol(Symbol::Function).parse(state.clone())?;
+        let (state, body) = expect!(state, ParseFunctionBody.parse(state.clone()), "expected function body");
+        Ok((state, (token, body)))
     }
 );
 
