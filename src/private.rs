@@ -3,7 +3,9 @@ use std::borrow::Cow;
 
 pub trait Sealed {}
 
-impl<'a, T: Clone + Sealed> Sealed for Cow<'a, T> {}
+impl<T> Sealed for &T {}
+impl<T> Sealed for &mut T {}
+impl<'a, T: Clone> Sealed for Cow<'a, T> {}
 impl<'a> Sealed for TokenReference<'a> {}
 impl<T> Sealed for Box<T> {}
 impl<T> Sealed for Option<T> {}

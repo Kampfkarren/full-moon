@@ -19,6 +19,26 @@ pub trait Node: private::Sealed {
     }
 }
 
+impl<T: Node> Node for &T {
+    fn start_position(&self) -> Option<Position> {
+        (**self).start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        (**self).end_position()
+    }
+}
+
+impl<T: Node> Node for &mut T {
+    fn start_position(&self) -> Option<Position> {
+        (**self).start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        (**self).end_position()
+    }
+}
+
 impl<'a> Node for TokenReference<'a> {
     fn start_position(&self) -> Option<Position> {
         Some((**self).start_position())
