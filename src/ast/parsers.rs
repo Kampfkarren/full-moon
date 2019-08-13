@@ -764,7 +764,11 @@ define_parser!(
     (TokenReference<'a>, FunctionBody<'a>),
     |_, state: ParserState<'a>| {
         let (state, token) = ParseSymbol(Symbol::Function).parse(state.clone())?;
-        let (state, body) = expect!(state, ParseFunctionBody.parse(state.clone()), "expected function body");
+        let (state, body) = expect!(
+            state,
+            ParseFunctionBody.parse(state.clone()),
+            "expected function body"
+        );
         Ok((state, (token, body)))
     }
 );
@@ -869,18 +873,22 @@ define_parser!(
             "expected name"
         );
 
-        let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state.clone()) {
-            Ok((state, equal_token)) => (OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
-                .parse(state.clone())
-                .or_else(|_| {
-                    Err(InternalAstError::UnexpectedToken {
-                        token: state.peek(),
-                        additional: Some("expected expression"),
-                    })
-                })?, Some(equal_token)),
-            Err(InternalAstError::NoMatch) => ((state, Punctuated::new()), None),
-            Err(other) => return Err(other),
-        };
+        let ((state, expr_list), equal_token) =
+            match ParseSymbol(Symbol::Equal).parse(state.clone()) {
+                Ok((state, equal_token)) => (
+                    OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
+                        .parse(state.clone())
+                        .or_else(|_| {
+                            Err(InternalAstError::UnexpectedToken {
+                                token: state.peek(),
+                                additional: Some("expected expression"),
+                            })
+                        })?,
+                    Some(equal_token),
+                ),
+                Err(InternalAstError::NoMatch) => ((state, Punctuated::new()), None),
+                Err(other) => return Err(other),
+            };
 
         Ok((
             state,
