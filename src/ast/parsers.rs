@@ -410,13 +410,13 @@ define_parser!(
             ParseIdentifier.parse(state.clone()),
             "expected names"
         );
-        let (state, _) = ParseSymbol(Symbol::Equal).parse(state.clone())?; // Numeric fors run before generic fors, so we can't guarantee this
+        let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state.clone())?; // Numeric fors run before generic fors, so we can't guarantee this
         let (state, start) = expect!(
             state,
             ParseExpression.parse(state.clone()),
             "expected start expression"
         );
-        let (state, _) = expect!(
+        let (state, start_end_comma) = expect!(
             state,
             ParseSymbol(Symbol::Comma).parse(state.clone()),
             "expected comma"
@@ -426,18 +426,18 @@ define_parser!(
             ParseExpression.parse(state.clone()),
             "expected end expression"
         );
-        let (state, step) = if let Ok((state, _)) = ParseSymbol(Symbol::Comma).parse(state.clone())
+        let (state, step, end_step_comma) = if let Ok((state, comma)) = ParseSymbol(Symbol::Comma).parse(state.clone())
         {
             let (state, expression) = expect!(
                 state,
                 ParseExpression.parse(state.clone()),
                 "expected limit expression"
             );
-            (state, Some(expression))
+            (state, Some(expression), Some(comma))
         } else {
-            (state, None)
+            (state, None, None)
         };
-        let (state, _) = expect!(
+        let (state, do_token) = expect!(
             state,
             ParseSymbol(Symbol::Do).parse(state.clone()),
             "expected 'do'"
@@ -454,9 +454,13 @@ define_parser!(
             NumericFor {
                 for_token,
                 index_variable,
+                equal_token,
                 start,
+                start_end_comma,
                 end,
+                end_step_comma,
                 step,
+                do_token,
                 block,
                 end_token,
             },

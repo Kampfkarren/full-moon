@@ -34,6 +34,22 @@
             "identifier": "index"
           }
         },
+        "equal_token": {
+          "start_position": {
+            "bytes": 10,
+            "character": 11,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 11,
+            "character": 12,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "="
+          }
+        },
         "start": {
           "value": {
             "Number": {
@@ -54,6 +70,22 @@
             }
           },
           "binop": null
+        },
+        "start_end_comma": {
+          "start_position": {
+            "bytes": 13,
+            "character": 14,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 14,
+            "character": 15,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": ","
+          }
         },
         "end": {
           "value": {
@@ -76,7 +108,24 @@
           },
           "binop": null
         },
+        "end_step_comma": null,
         "step": null,
+        "do_token": {
+          "start_position": {
+            "bytes": 18,
+            "character": 19,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 20,
+            "character": 21,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
         "block": {
           "stmts": [
             {
@@ -230,6 +279,22 @@
             "identifier": "_"
           }
         },
+        "equal_token": {
+          "start_position": {
+            "bytes": 43,
+            "character": 7,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 44,
+            "character": 8,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "="
+          }
+        },
         "start": {
           "value": {
             "Var": {
@@ -252,6 +317,22 @@
             }
           },
           "binop": null
+        },
+        "start_end_comma": {
+          "start_position": {
+            "bytes": 50,
+            "character": 14,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 51,
+            "character": 15,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": ","
+          }
         },
         "end": {
           "value": {
@@ -276,7 +357,24 @@
           },
           "binop": null
         },
+        "end_step_comma": null,
         "step": null,
+        "do_token": {
+          "start_position": {
+            "bytes": 58,
+            "character": 22,
+            "line": 2
+          },
+          "end_position": {
+            "bytes": 60,
+            "character": 24,
+            "line": 2
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
+        },
         "block": {
           "stmts": []
         },
@@ -332,6 +430,22 @@
             "identifier": "_"
           }
         },
+        "equal_token": {
+          "start_position": {
+            "bytes": 71,
+            "character": 7,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 72,
+            "character": 8,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "="
+          }
+        },
         "start": {
           "value": {
             "Number": {
@@ -352,6 +466,22 @@
             }
           },
           "binop": null
+        },
+        "start_end_comma": {
+          "start_position": {
+            "bytes": 74,
+            "character": 10,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 75,
+            "character": 11,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": ","
+          }
         },
         "end": {
           "value": {
@@ -374,6 +504,22 @@
           },
           "binop": null
         },
+        "end_step_comma": {
+          "start_position": {
+            "bytes": 78,
+            "character": 14,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 79,
+            "character": 15,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": ","
+          }
+        },
         "step": {
           "value": {
             "Number": {
@@ -394,6 +540,22 @@
             }
           },
           "binop": null
+        },
+        "do_token": {
+          "start_position": {
+            "bytes": 82,
+            "character": 18,
+            "line": 3
+          },
+          "end_position": {
+            "bytes": 84,
+            "character": 20,
+            "line": 3
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
         },
         "block": {
           "stmts": []

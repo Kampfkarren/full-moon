@@ -297,9 +297,13 @@ pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     index_variable: TokenReference<'a>,
+    equal_token: TokenReference<'a>,
     start: Expression<'a>,
+    start_end_comma: TokenReference<'a>,
     end: Expression<'a>,
+    end_step_comma: Option<TokenReference<'a>>,
     step: Option<Expression<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
