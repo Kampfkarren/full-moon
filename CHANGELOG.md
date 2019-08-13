@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node
 - Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
+- Added `Return` and `visit_return`
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
 - Changed signatures from `Token` to `TokenReference`, which dereference to tokens
 - Changed `visit_do` to use a new `Do` struct instead of `Block`
 - Changed `FunctionArgs::Parentheses` to be a struct item
+- `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
 
 ## [0.3.0] - 2019-05-24
 ### Added

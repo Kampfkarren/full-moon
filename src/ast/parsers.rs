@@ -106,7 +106,7 @@ define_parser!(
             "return values"
         );
 
-        Ok((state, LastStmt::Return { token, returns }))
+        Ok((state, LastStmt::Return(Return { token, returns })))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state.clone()) {
         Ok((state, LastStmt::Break(token)))
     } else {

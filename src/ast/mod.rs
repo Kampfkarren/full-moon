@@ -47,16 +47,32 @@ impl<'a> Block<'a> {
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
     Break(TokenReference<'a>),
-    /// A `return` statement, expression is what is being returned
-    Return {
-        /// The `return` token
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        token: TokenReference<'a>,
-        /// The values being returned
-        returns: Punctuated<'a, Expression<'a>>,
-    },
+    /// A `return` statement
+    Return(Return<'a>),
+}
+
+/// A `return` statement
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct Return<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    token: TokenReference<'a>,
+    returns: Punctuated<'a, Expression<'a>>,
+}
+
+impl<'a> Return<'a> {
+    /// The `return` token
+    pub fn token(&self) -> &TokenReference<'a> {
+        &self.token
+    }
+
+    /// The values being returned
+    pub fn returns(&self) -> &Punctuated<'a, Expression<'a>> {
+        &self.returns
+    }
 }
 
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)

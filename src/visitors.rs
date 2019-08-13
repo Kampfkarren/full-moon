@@ -179,6 +179,7 @@ create_visitor!(ast: {
     visit_numeric_for => NumericFor,
     visit_parameter => Parameter,
     visit_prefix => Prefix,
+    visit_return => Return,
     visit_repeat => Repeat,
     visit_stmt => Stmt,
     visit_suffix => Suffix,
