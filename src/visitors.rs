@@ -71,21 +71,6 @@ macro_rules! create_visitor {
                 fn $visit_token(&mut self, _token: &mut TokenReference<'ast>) { }
             )+
         }
-
-        // #[cfg(test)]
-        // pub(crate) trait DebugVisitor<'ast>: Visitor<'ast> {
-        //     $(
-        //         fn $visit_name(&mut self, node: &mut $ast_type<'ast>) {
-        //             self.visit_node(node);
-        //         }
-        //     )+
-
-        //     $(
-        //         fn $visit_token(&mut self, token: &mut TokenReference<'ast>) {
-        //             self.visit_node(node);
-        //         }
-        //     )+
-        // }
     };
 }
 
