@@ -162,6 +162,22 @@
             {
               "Call": {
                 "MethodCall": {
+                  "colon_token": {
+                    "start_position": {
+                      "bytes": 10,
+                      "character": 2,
+                      "line": 2
+                    },
+                    "end_position": {
+                      "bytes": 11,
+                      "character": 3,
+                      "line": 2
+                    },
+                    "token_type": {
+                      "type": "Symbol",
+                      "symbol": ":"
+                    }
+                  },
                   "name": {
                     "start_position": {
                       "bytes": 11,

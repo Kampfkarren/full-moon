@@ -476,6 +476,7 @@ impl<'a> Repeat<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    colon_token: TokenReference<'a>,
     name: TokenReference<'a>,
     args: FunctionArgs<'a>,
 }

@@ -657,7 +657,7 @@ define_parser!(
     ParseMethodCall,
     MethodCall<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::Colon).parse(state.clone())?;
+        let (state, colon_token) = ParseSymbol(Symbol::Colon).parse(state.clone())?;
         let (state, name) = expect!(
             state,
             ParseIdentifier.parse(state.clone()),
@@ -668,7 +668,7 @@ define_parser!(
             ParseFunctionArgs.parse(state.clone()),
             "expected args"
         );
-        Ok((state, MethodCall { name, args }))
+        Ok((state, MethodCall { colon_token, name, args }))
     }
 );
 

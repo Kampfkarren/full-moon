@@ -419,6 +419,22 @@
                       {
                         "Call": {
                           "MethodCall": {
+                            "colon_token": {
+                              "start_position": {
+                                "bytes": 72,
+                                "character": 24,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 73,
+                                "character": 25,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": ":"
+                              }
+                            },
                             "name": {
                               "start_position": {
                                 "bytes": 73,
@@ -587,6 +603,22 @@
                       {
                         "Call": {
                           "MethodCall": {
+                            "colon_token": {
+                              "start_position": {
+                                "bytes": 81,
+                                "character": 33,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 82,
+                                "character": 34,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": ":"
+                              }
+                            },
                             "name": {
                               "start_position": {
                                 "bytes": 82,
