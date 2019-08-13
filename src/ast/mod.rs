@@ -1102,8 +1102,14 @@ impl<'a> Ast<'a> {
     }
 
     /// An iterator over the tokens used to create the Ast
-    pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.tokens.iter().map(|(_, token)| token).sorted()
+    pub fn iter_tokens(&self) -> impl Iterator<Item = TokenReference<'a>> {
+        self.tokens
+            .iter()
+            .map(|(index, _)| TokenReference::Borrowed {
+                arena: Arc::clone(&self.tokens),
+                index,
+            })
+            .sorted()
     }
 
     /// Will update the positions of all the tokens in the tree

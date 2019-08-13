@@ -1,4 +1,5 @@
 use crate::{
+    ast::Ast,
     private,
     tokenizer::{Position, TokenReference},
 };
@@ -16,6 +17,53 @@ pub trait Node: private::Sealed {
     /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
         Some((self.start_position()?, self.end_position()?))
+    }
+
+    /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
+    /// Use this if you want to get surrounding comments or whitespace.
+    /// Return value is None if a token doesn't have both a start and end position. Otherwise, it is a tuple
+    /// of two token vectors, first being the preceding and the second being the following.
+    fn surrounding_ignore_tokens<'ast>(
+        &self,
+        ast: &'ast Ast<'ast>,
+    ) -> Option<(Vec<TokenReference<'ast>>, Vec<TokenReference<'ast>>)> {
+        let (start, end) = self.range()?;
+        let (mut previous, mut following) = (Vec::new(), Vec::new());
+
+        let mut tokens = ast.iter_tokens();
+
+        while let Some(token) = tokens.next() {
+            let this_end = token.end_position()?;
+
+            if start < this_end {
+                break;
+            }
+
+            if token.token_type().ignore() {
+                previous.push(token);
+            } else {
+                previous = Vec::new();
+            }
+        }
+
+        // Skip all tokens within range
+        while let Some(token) = tokens.next() {
+            let (this_start, this_end) = token.range()?;
+
+            if start >= this_start || end <= this_end {
+                break;
+            }
+        }
+
+        for token in tokens {
+            if token.token_type().ignore() {
+                following.push(token);
+            } else {
+                break;
+            }
+        }
+
+        Some((previous, following))
     }
 }
 

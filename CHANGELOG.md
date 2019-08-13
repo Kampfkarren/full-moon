@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `TokenKind` to get the kind of a token without any additional data
 - Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
 - Added `Ast::update_positions` to update all the position structs if you mutate it
-- Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node
+- Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node, as well as `surrounding_ignore_tokens` to get surrounding comments/whitespace.
 - Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
 - Added `Return` and `visit_return`
