@@ -52,18 +52,18 @@
                               "bin_op": {
                                 "LessThan": {
                                   "start_position": {
-                                    "bytes": 9,
-                                    "character": 10,
+                                    "bytes": 7,
+                                    "character": 8,
                                     "line": 1
                                   },
                                   "end_position": {
-                                    "bytes": 10,
-                                    "character": 11,
+                                    "bytes": 8,
+                                    "character": 9,
                                     "line": 1
                                   },
                                   "token_type": {
-                                    "type": "Number",
-                                    "text": "2"
+                                    "type": "Symbol",
+                                    "symbol": "<"
                                   }
                                 }
                               },
@@ -190,18 +190,18 @@
                               "bin_op": {
                                 "LessThanEqual": {
                                   "start_position": {
-                                    "bytes": 22,
-                                    "character": 11,
+                                    "bytes": 19,
+                                    "character": 8,
                                     "line": 2
                                   },
                                   "end_position": {
-                                    "bytes": 23,
-                                    "character": 12,
+                                    "bytes": 21,
+                                    "character": 10,
                                     "line": 2
                                   },
                                   "token_type": {
-                                    "type": "Number",
-                                    "text": "2"
+                                    "type": "Symbol",
+                                    "symbol": "<="
                                   }
                                 }
                               },
@@ -328,18 +328,18 @@
                               "bin_op": {
                                 "GreaterThan": {
                                   "start_position": {
-                                    "bytes": 34,
-                                    "character": 10,
+                                    "bytes": 32,
+                                    "character": 8,
                                     "line": 3
                                   },
                                   "end_position": {
-                                    "bytes": 35,
-                                    "character": 11,
+                                    "bytes": 33,
+                                    "character": 9,
                                     "line": 3
                                   },
                                   "token_type": {
-                                    "type": "Number",
-                                    "text": "1"
+                                    "type": "Symbol",
+                                    "symbol": ">"
                                   }
                                 }
                               },
@@ -466,18 +466,18 @@
                               "bin_op": {
                                 "GreaterThanEqual": {
                                   "start_position": {
-                                    "bytes": 47,
-                                    "character": 11,
+                                    "bytes": 44,
+                                    "character": 8,
                                     "line": 4
                                   },
                                   "end_position": {
-                                    "bytes": 48,
-                                    "character": 12,
+                                    "bytes": 46,
+                                    "character": 10,
                                     "line": 4
                                   },
                                   "token_type": {
-                                    "type": "Number",
-                                    "text": "1"
+                                    "type": "Symbol",
+                                    "symbol": ">="
                                   }
                                 }
                               },
@@ -606,18 +606,18 @@
                               "bin_op": {
                                 "GreaterThanEqual": {
                                   "start_position": {
-                                    "bytes": 60,
-                                    "character": 11,
+                                    "bytes": 57,
+                                    "character": 8,
                                     "line": 5
                                   },
                                   "end_position": {
-                                    "bytes": 61,
-                                    "character": 12,
+                                    "bytes": 59,
+                                    "character": 10,
                                     "line": 5
                                   },
                                   "token_type": {
-                                    "type": "Identifier",
-                                    "identifier": "y"
+                                    "type": "Symbol",
+                                    "symbol": ">="
                                   }
                                 }
                               },

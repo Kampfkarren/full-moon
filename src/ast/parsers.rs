@@ -233,6 +233,7 @@ define_parser!(
                 ParseExpression.parse(state.clone()),
                 "expected expression"
             );
+
             (
                 state,
                 Some(BinOpRhs {
@@ -998,8 +999,8 @@ macro_rules! make_op_parser {
         struct $parser;
         define_parser!($parser, $enum<'a>, |_, state: ParserState<'a>| {
             $(
-                if let Ok((state, _)) = ParseSymbol(Symbol::$operator).parse(state.clone()) {
-                    return Ok((state.clone(), $enum::$operator(state.peek())));
+                if let Ok((state, operator)) = ParseSymbol(Symbol::$operator).parse(state.clone()) {
+                    return Ok((state.clone(), $enum::$operator(operator)));
                 }
             )+
 

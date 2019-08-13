@@ -120,18 +120,18 @@
                   "unop": {
                     "Minus": {
                       "start_position": {
+                        "bytes": 52,
+                        "character": 26,
+                        "line": 2
+                      },
+                      "end_position": {
                         "bytes": 53,
                         "character": 27,
                         "line": 2
                       },
-                      "end_position": {
-                        "bytes": 54,
-                        "character": 28,
-                        "line": 2
-                      },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
+                        "type": "Symbol",
+                        "symbol": "-"
                       }
                     }
                   },
@@ -214,18 +214,18 @@
                   "unop": {
                     "Not": {
                       "start_position": {
-                        "bytes": 78,
-                        "character": 24,
+                        "bytes": 74,
+                        "character": 20,
                         "line": 3
                       },
                       "end_position": {
-                        "bytes": 82,
-                        "character": 28,
+                        "bytes": 77,
+                        "character": 23,
                         "line": 3
                       },
                       "token_type": {
                         "type": "Symbol",
-                        "symbol": "true"
+                        "symbol": "not"
                       }
                     }
                   },
@@ -306,18 +306,18 @@
                   "unop": {
                     "Not": {
                       "start_position": {
-                        "bytes": 107,
-                        "character": 25,
+                        "bytes": 103,
+                        "character": 21,
                         "line": 4
                       },
                       "end_position": {
-                        "bytes": 108,
-                        "character": 26,
+                        "bytes": 106,
+                        "character": 24,
                         "line": 4
                       },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
+                        "type": "Symbol",
+                        "symbol": "not"
                       }
                     }
                   },
@@ -400,18 +400,18 @@
                   "unop": {
                     "Hash": {
                       "start_position": {
+                        "bytes": 124,
+                        "character": 16,
+                        "line": 5
+                      },
+                      "end_position": {
                         "bytes": 125,
                         "character": 17,
                         "line": 5
                       },
-                      "end_position": {
-                        "bytes": 126,
-                        "character": 18,
-                        "line": 5
-                      },
                       "token_type": {
-                        "type": "Identifier",
-                        "identifier": "x"
+                        "type": "Symbol",
+                        "symbol": "#"
                       }
                     }
                   },

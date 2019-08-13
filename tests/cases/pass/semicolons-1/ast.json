@@ -158,18 +158,18 @@
                     "bin_op": {
                       "Plus": {
                         "start_position": {
-                          "bytes": 21,
-                          "character": 22,
+                          "bytes": 19,
+                          "character": 20,
                           "line": 1
                         },
                         "end_position": {
-                          "bytes": 22,
-                          "character": 23,
+                          "bytes": 20,
+                          "character": 21,
                           "line": 1
                         },
                         "token_type": {
-                          "type": "Number",
-                          "text": "1"
+                          "type": "Symbol",
+                          "symbol": "+"
                         }
                       }
                     },
