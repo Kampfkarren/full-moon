@@ -71,10 +71,20 @@ impl<T: Node> Node for Vec<T> {
 
 impl<A: Node, B: Node> Node for (A, B) {
     fn start_position(&self) -> Option<Position> {
-        self.0.start_position()
+        match (self.0.start_position(), self.1.start_position()) {
+            (Some(x), Some(y)) => Some(std::cmp::min(x, y)),
+            (Some(x), None) => Some(x),
+            (None, Some(y)) => Some(y),
+            (None, None) => None,
+        }
     }
 
     fn end_position(&self) -> Option<Position> {
-        self.1.end_position()
+        match (self.0.end_position(), self.1.end_position()) {
+            (Some(x), Some(y)) => Some(std::cmp::max(x, y)),
+            (Some(x), None) => Some(x),
+            (None, Some(y)) => Some(y),
+            (None, None) => None,
+        }
     }
 }
