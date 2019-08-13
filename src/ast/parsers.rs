@@ -480,7 +480,7 @@ define_parser!(
             OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
             "expected names"
         );
-        let (state, _) = expect!(
+        let (state, in_token) = expect!(
             state,
             ParseSymbol(Symbol::In).parse(state.clone()),
             "expected 'in'"
@@ -490,7 +490,7 @@ define_parser!(
             OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
             "expected expression"
         );
-        let (state, _) = expect!(
+        let (state, do_token) = expect!(
             state,
             ParseSymbol(Symbol::Do).parse(state.clone()),
             "expected 'do'"
@@ -506,7 +506,9 @@ define_parser!(
             GenericFor {
                 for_token,
                 names,
+                in_token,
                 expr_list,
+                do_token,
                 block,
                 end_token,
             },

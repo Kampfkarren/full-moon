@@ -342,7 +342,9 @@ pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     names: Punctuated<'a, TokenReference<'a>>,
+    in_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }

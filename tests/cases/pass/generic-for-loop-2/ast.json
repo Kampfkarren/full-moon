@@ -76,6 +76,22 @@
             }
           ]
         },
+        "in_token": {
+          "start_position": {
+            "bytes": 17,
+            "character": 18,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 19,
+            "character": 20,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "in"
+          }
+        },
         "expr_list": {
           "pairs": [
             {
@@ -147,6 +163,22 @@
               }
             }
           ]
+        },
+        "do_token": {
+          "start_position": {
+            "bytes": 31,
+            "character": 32,
+            "line": 1
+          },
+          "end_position": {
+            "bytes": 33,
+            "character": 34,
+            "line": 1
+          },
+          "token_type": {
+            "type": "Symbol",
+            "symbol": "do"
+          }
         },
         "block": {
           "stmts": [
