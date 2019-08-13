@@ -84,46 +84,64 @@
                   "rhs": {
                     "value": {
                       "ParseExpression": {
-                        "value": {
-                          "Number": {
-                            "start_position": {
-                              "bytes": 15,
-                              "character": 16,
-                              "line": 1
-                            },
-                            "end_position": {
-                              "bytes": 16,
-                              "character": 17,
-                              "line": 1
-                            },
-                            "token_type": {
-                              "type": "Number",
-                              "text": "2"
-                            }
-                          }
-                        },
-                        "binop": {
-                          "bin_op": {
-                            "Minus": {
+                        "contained": {
+                          "tokens": [
+                            {
                               "start_position": {
-                                "bytes": 19,
-                                "character": 20,
+                                "bytes": 14,
+                                "character": 15,
                                 "line": 1
                               },
                               "end_position": {
+                                "bytes": 15,
+                                "character": 16,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": "("
+                              }
+                            },
+                            {
+                              "start_position": {
                                 "bytes": 20,
                                 "character": 21,
                                 "line": 1
                               },
+                              "end_position": {
+                                "bytes": 21,
+                                "character": 22,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "Symbol",
+                                "symbol": ")"
+                              }
+                            }
+                          ]
+                        },
+                        "expression": {
+                          "value": {
+                            "Number": {
+                              "start_position": {
+                                "bytes": 15,
+                                "character": 16,
+                                "line": 1
+                              },
+                              "end_position": {
+                                "bytes": 16,
+                                "character": 17,
+                                "line": 1
+                              },
                               "token_type": {
                                 "type": "Number",
-                                "text": "3"
+                                "text": "2"
                               }
                             }
                           },
-                          "rhs": {
-                            "value": {
-                              "Number": {
+                          "binop": {
+                            "bin_op": {
+                              "Minus": {
                                 "start_position": {
                                   "bytes": 19,
                                   "character": 20,
@@ -140,7 +158,27 @@
                                 }
                               }
                             },
-                            "binop": null
+                            "rhs": {
+                              "value": {
+                                "Number": {
+                                  "start_position": {
+                                    "bytes": 19,
+                                    "character": 20,
+                                    "line": 1
+                                  },
+                                  "end_position": {
+                                    "bytes": 20,
+                                    "character": 21,
+                                    "line": 1
+                                  },
+                                  "token_type": {
+                                    "type": "Number",
+                                    "text": "3"
+                                  }
+                                }
+                              },
+                              "binop": null
+                            }
                           }
                         }
                       }

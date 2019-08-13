@@ -155,6 +155,15 @@ impl<'a> BinOpRhs<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
+    /// A statement in parentheses, such as `(#list)`
+    Parentheses {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The parentheses of the `ParenExpression`
+        contained: ContainedSpan<'a>,
+        /// The expression inside the parentheses
+        expression: Box<Expression<'a>>,
+    },
+
     /// A unary operation, such as `#list`
     UnaryOperator {
         #[cfg_attr(feature = "serde", serde(borrow))]

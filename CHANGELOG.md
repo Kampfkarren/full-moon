@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
 - Added `Return` and `visit_return`
+- Added `Expression::Parentheses`
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors

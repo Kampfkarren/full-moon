@@ -258,7 +258,7 @@ struct ParseParenExpression;
 define_parser!(
     ParseParenExpression,
     Expression<'a>,
-    |_, state: ParserState<'a>| if let Ok((state, _)) =
+    |_, state: ParserState<'a>| if let Ok((state, left_paren)) =
         ParseSymbol(Symbol::LeftParen).parse(state.clone())
     {
         let (state, expression) = expect!(
@@ -266,12 +266,17 @@ define_parser!(
             ParseExpression.parse(state.clone()),
             "expected expression"
         );
-        let (state, _) = expect!(
+
+        let (state, right_paren) = expect!(
             state,
             ParseSymbol(Symbol::RightParen).parse(state.clone()),
             "expected ')'"
         );
-        Ok((state, expression))
+
+        Ok((state, Expression::Parentheses {
+            contained: ContainedSpan::new(left_paren, right_paren),
+            expression: Box::new(expression),
+        }))
     } else {
         Err(InternalAstError::NoMatch)
     }
