@@ -867,16 +867,17 @@ define_parser!(
             OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
             "expected name"
         );
-        let (state, expr_list) = match ParseSymbol(Symbol::Equal).parse(state.clone()) {
-            Ok((state, _)) => OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
+
+        let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state.clone()) {
+            Ok((state, equal_token)) => (OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
                 .parse(state.clone())
                 .or_else(|_| {
                     Err(InternalAstError::UnexpectedToken {
                         token: state.peek(),
                         additional: Some("expected expression"),
                     })
-                })?,
-            Err(InternalAstError::NoMatch) => (state, Punctuated::new()),
+                })?, Some(equal_token)),
+            Err(InternalAstError::NoMatch) => ((state, Punctuated::new()), None),
             Err(other) => return Err(other),
         };
 
@@ -885,6 +886,7 @@ define_parser!(
             LocalAssignment {
                 local_token,
                 name_list,
+                equal_token,
                 expr_list,
             },
         ))

@@ -41,6 +41,7 @@
               }
             ]
           },
+          "equal_token": null,
           "expr_list": {
             "pairs": []
           }

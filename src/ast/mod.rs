@@ -636,6 +636,7 @@ pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
     name_list: Punctuated<'a, TokenReference<'a>>,
+    equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 

@@ -41,6 +41,22 @@
               }
             ]
           },
+          "equal_token": {
+            "start_position": {
+              "bytes": 8,
+              "character": 9,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 9,
+              "character": 10,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "="
+            }
+          },
           "expr_list": {
             "pairs": [
               {
@@ -112,6 +128,22 @@
                 }
               }
             ]
+          },
+          "equal_token": {
+            "start_position": {
+              "bytes": 38,
+              "character": 9,
+              "line": 3
+            },
+            "end_position": {
+              "bytes": 39,
+              "character": 10,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "="
+            }
           },
           "expr_list": {
             "pairs": [
