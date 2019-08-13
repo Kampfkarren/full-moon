@@ -510,7 +510,7 @@ pub enum Call<'a> {
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     parameters_parantheses: ContainedSpan<'a>,
-    parameters: Vec<Parameter<'a>>,
+    parameters: Punctuated<'a, Parameter<'a>>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -535,7 +535,7 @@ pub enum Parameter<'a> {
     /// The `...` vararg syntax, such as `function x(...)`
     Ellipse(TokenReference<'a>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(Pair<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`

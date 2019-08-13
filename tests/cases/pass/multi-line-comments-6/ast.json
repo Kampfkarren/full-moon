@@ -88,26 +88,30 @@
                 }
               ]
             },
-            "parameters": [
-              {
-                "Ellipse": {
-                  "start_position": {
-                    "bytes": 17,
-                    "character": 18,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 20,
-                    "character": 21,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Symbol",
-                    "symbol": "..."
+            "parameters": {
+              "pairs": [
+                {
+                  "End": {
+                    "Ellipse": {
+                      "start_position": {
+                        "bytes": 17,
+                        "character": 18,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 20,
+                        "character": 21,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "..."
+                      }
+                    }
                   }
                 }
-              }
-            ],
+              ]
+            },
             "block": {
               "stmts": []
             },

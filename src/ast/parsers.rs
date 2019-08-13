@@ -709,7 +709,8 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
         ParseSymbol(Symbol::LeftParen).parse(state.clone()),
         "expected '('"
     );
-    let mut parameters = Vec::new();
+
+    let mut parameters = Punctuated::new();
 
     if let Ok((new_state, names)) =
         keep_going!(
@@ -717,17 +718,20 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_,
         )
     {
         state = new_state;
-        parameters.extend(names.into_pairs().map(Parameter::Name));
+        parameters.extend(names.into_pairs().map(|pair| {
+            let tuple = pair.into_tuple();
+            Pair::new(Parameter::Name(tuple.0), tuple.1)
+        }));
 
-        if let Ok((new_state, _)) = ParseSymbol(Symbol::Comma).parse(state.clone()) {
+        if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state.clone()) {
             if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
                 state = new_state;
-                parameters.push(Parameter::Ellipse(ellipse));
+                parameters.push(Pair::new(Parameter::Ellipse(ellipse), Some(comma)));
             }
         }
     } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state.clone()) {
         state = new_state;
-        parameters.push(Parameter::Ellipse(ellipse));
+        parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
     }
 
     let (state, end_parenthese) = expect!(

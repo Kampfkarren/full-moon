@@ -68,7 +68,9 @@
                                     }
                                   ]
                                 },
-                                "parameters": [],
+                                "parameters": {
+                                  "pairs": []
+                                },
                                 "block": {
                                   "stmts": [
                                     [
