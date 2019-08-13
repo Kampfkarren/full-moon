@@ -752,6 +752,22 @@
               }
             ]
           },
+          "equal_token": {
+            "start_position": {
+              "bytes": 89,
+              "character": 41,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 90,
+              "character": 42,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "="
+            }
+          },
           "expr_list": {
             "pairs": [
               {

@@ -588,6 +588,7 @@ pub enum Var<'a> {
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
+    equal_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -611,6 +612,7 @@ impl<'a> Assignment<'a> {
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
+    function_token: TokenReference<'a>,
     name: TokenReference<'a>,
     func_body: FunctionBody<'a>,
 }
@@ -695,13 +697,13 @@ impl<'a> FunctionCall<'a> {
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     names: Punctuated<'a, TokenReference<'a>>,
-    colon_name: Option<TokenReference<'a>>,
+    colon_name: Option<(TokenReference<'a>, TokenReference<'a>)>,
 }
 
 impl<'a> FunctionName<'a> {
     /// A method name if one exists, the `y` part of `function x:y() end`
     pub fn method_name(&self) -> Option<&TokenReference<'a>> {
-        self.colon_name.as_ref()
+        Some(&self.colon_name.as_ref()?.1)
     }
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the names used when defining the function.
@@ -717,6 +719,7 @@ impl<'a> FunctionName<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    function_token: TokenReference<'a>,
     name: FunctionName<'a>,
     body: FunctionBody<'a>,
 }

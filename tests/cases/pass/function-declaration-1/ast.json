@@ -3,6 +3,22 @@
     [
       {
         "FunctionDeclaration": {
+          "function_token": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 8,
+              "character": 9,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "function"
+            }
+          },
           "name": {
             "names": {
               "pairs": [

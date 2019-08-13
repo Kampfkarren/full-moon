@@ -19,6 +19,22 @@
               "symbol": "local"
             }
           },
+          "function_token": {
+            "start_position": {
+              "bytes": 6,
+              "character": 7,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 14,
+              "character": 15,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "function"
+            }
+          },
           "name": {
             "start_position": {
               "bytes": 15,
@@ -175,6 +191,22 @@
               "symbol": "local"
             }
           },
+          "function_token": {
+            "start_position": {
+              "bytes": 35,
+              "character": 7,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 43,
+              "character": 15,
+              "line": 2
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "function"
+            }
+          },
           "name": {
             "start_position": {
               "bytes": 44,
@@ -289,6 +321,22 @@
             "token_type": {
               "type": "Symbol",
               "symbol": "local"
+            }
+          },
+          "function_token": {
+            "start_position": {
+              "bytes": 63,
+              "character": 7,
+              "line": 3
+            },
+            "end_position": {
+              "bytes": 71,
+              "character": 15,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "function"
             }
           },
           "name": {

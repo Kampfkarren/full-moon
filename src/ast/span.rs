@@ -28,11 +28,10 @@ pub struct ContainedSpan<'a> {
 
 impl<'a> ContainedSpan<'a> {
     /// Creates a contained span from the start and end bounds
-    pub fn new(
-        start: TokenReference<'a>,
-        end: TokenReference<'a>,
-    ) -> Self {
-        Self { tokens: (start, end) }
+    pub fn new(start: TokenReference<'a>, end: TokenReference<'a>) -> Self {
+        Self {
+            tokens: (start, end),
+        }
     }
 
     /// Returns the start and end bounds in a tuple as references

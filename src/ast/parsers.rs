@@ -64,7 +64,8 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state: ParserState<'a>| {
         state = new_state;
         let mut semicolon = None;
 
-        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
+        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone())
+        {
             state = new_state;
             semicolon = Some(new_semicolon);
         }
@@ -75,7 +76,8 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state: ParserState<'a>| {
     if let Ok((mut state, last_stmt)) = keep_going!(ParseLastStmt.parse(state.clone())) {
         let mut semicolon = None;
 
-        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
+        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone())
+        {
             state = new_state;
             semicolon = Some(new_semicolon)
         }
@@ -280,10 +282,13 @@ define_parser!(
             "expected ')'"
         );
 
-        Ok((state, Expression::Parentheses {
-            contained: ContainedSpan::new(left_paren, right_paren),
-            expression: Box::new(expression),
-        }))
+        Ok((
+            state,
+            Expression::Parentheses {
+                contained: ContainedSpan::new(left_paren, right_paren),
+                expression: Box::new(expression),
+            },
+        ))
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -391,10 +396,13 @@ define_parser!(ParseFunctionArgs, FunctionArgs<'a>, |_,
         ParseSymbol(Symbol::RightParen).parse(state.clone()),
         "expected ')'"
     );
-    Ok((state, FunctionArgs::Parentheses {
-        arguments,
-        parentheses: ContainedSpan::new(left_paren, right_paren),
-    }))
+    Ok((
+        state,
+        FunctionArgs::Parentheses {
+            arguments,
+            parentheses: ContainedSpan::new(left_paren, right_paren),
+        },
+    ))
 } else if let Ok((state, table_constructor)) =
     keep_going!(ParseTableConstructor.parse(state.clone()))
 {
@@ -433,17 +441,17 @@ define_parser!(
             ParseExpression.parse(state.clone()),
             "expected end expression"
         );
-        let (state, step, end_step_comma) = if let Ok((state, comma)) = ParseSymbol(Symbol::Comma).parse(state.clone())
-        {
-            let (state, expression) = expect!(
-                state,
-                ParseExpression.parse(state.clone()),
-                "expected limit expression"
-            );
-            (state, Some(expression), Some(comma))
-        } else {
-            (state, None, None)
-        };
+        let (state, step, end_step_comma) =
+            if let Ok((state, comma)) = ParseSymbol(Symbol::Comma).parse(state.clone()) {
+                let (state, expression) = expect!(
+                    state,
+                    ParseExpression.parse(state.clone()),
+                    "expected limit expression"
+                );
+                (state, Some(expression), Some(comma))
+            } else {
+                (state, None, None)
+            };
         let (state, do_token) = expect!(
             state,
             ParseSymbol(Symbol::Do).parse(state.clone()),
@@ -668,7 +676,14 @@ define_parser!(
             ParseFunctionArgs.parse(state.clone()),
             "expected args"
         );
-        Ok((state, MethodCall { colon_token, name, args }))
+        Ok((
+            state,
+            MethodCall {
+                colon_token,
+                name,
+                args,
+            },
+        ))
     }
 );
 
@@ -795,7 +810,7 @@ define_parser!(
     |_, state: ParserState<'a>| {
         let (state, var_list) =
             OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state.clone())?;
-        let (state, _) = ParseSymbol(Symbol::Equal).parse(state.clone())?;
+        let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state.clone())?;
         let (state, expr_list) = expect!(
             state,
             OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state.clone()),
@@ -806,6 +821,7 @@ define_parser!(
             state,
             Assignment {
                 var_list,
+                equal_token,
                 expr_list,
             },
         ))
@@ -819,13 +835,14 @@ define_parser!(
     LocalFunction<'a>,
     |_, state: ParserState<'a>| {
         let (state, local_token) = ParseSymbol(Symbol::Local).parse(state.clone())?;
-        let (state, _) = ParseSymbol(Symbol::Function).parse(state.clone())?;
+        let (state, function_token) = ParseSymbol(Symbol::Function).parse(state.clone())?;
         let (state, name) = expect!(state, ParseIdentifier.parse(state.clone()), "expected name");
         let (state, func_body) = ParseFunctionBody.parse(state.clone())?;
         Ok((
             state,
             LocalFunction {
                 local_token,
+                function_token,
                 name,
                 func_body,
             },
@@ -915,13 +932,13 @@ define_parser!(ParseFunctionName, FunctionName<'a>, |_,
     let (state, names) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state.clone())?;
     let (state, colon_name) =
-        if let Ok((state, _)) = ParseSymbol(Symbol::Colon).parse(state.clone()) {
+        if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(state.clone()) {
             let (state, colon_name) = expect!(
                 state,
                 ParseIdentifier.parse(state.clone()),
                 "expected method name"
             );
-            (state, Some(colon_name))
+            (state, Some((colon, colon_name)))
         } else {
             (state, None)
         };
@@ -935,7 +952,7 @@ define_parser!(
     ParseFunctionDeclaration,
     FunctionDeclaration<'a>,
     |_, state: ParserState<'a>| {
-        let (state, _) = ParseSymbol(Symbol::Function).parse(state.clone())?;
+        let (state, function_token) = ParseSymbol(Symbol::Function).parse(state.clone())?;
         let (state, name) = expect!(
             state,
             ParseFunctionName.parse(state.clone()),
@@ -946,7 +963,14 @@ define_parser!(
             ParseFunctionBody.parse(state.clone()),
             "expected function body"
         );
-        Ok((state, FunctionDeclaration { name, body }))
+        Ok((
+            state,
+            FunctionDeclaration {
+                function_token,
+                name,
+                body,
+            },
+        ))
     }
 );
 
