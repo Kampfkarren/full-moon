@@ -1,142 +1,145 @@
 {
   "stmts": [
-    {
-      "FunctionDeclaration": {
-        "name": {
-          "names": {
-            "pairs": [
-              {
-                "Punctuated": [
-                  {
-                    "start_position": {
-                      "bytes": 9,
-                      "character": 10,
-                      "line": 1
+    [
+      {
+        "FunctionDeclaration": {
+          "name": {
+            "names": {
+              "pairs": [
+                {
+                  "Punctuated": [
+                    {
+                      "start_position": {
+                        "bytes": 9,
+                        "character": 10,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 10,
+                        "character": 11,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Identifier",
+                        "identifier": "x"
+                      }
                     },
-                    "end_position": {
-                      "bytes": 10,
-                      "character": 11,
-                      "line": 1
-                    },
-                    "token_type": {
-                      "type": "Identifier",
-                      "identifier": "x"
+                    {
+                      "start_position": {
+                        "bytes": 10,
+                        "character": 11,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 11,
+                        "character": 12,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Symbol",
+                        "symbol": "."
+                      }
                     }
-                  },
-                  {
+                  ]
+                },
+                {
+                  "End": {
                     "start_position": {
-                      "bytes": 10,
-                      "character": 11,
-                      "line": 1
-                    },
-                    "end_position": {
                       "bytes": 11,
                       "character": 12,
                       "line": 1
                     },
+                    "end_position": {
+                      "bytes": 12,
+                      "character": 13,
+                      "line": 1
+                    },
                     "token_type": {
-                      "type": "Symbol",
-                      "symbol": "."
+                      "type": "Identifier",
+                      "identifier": "y"
                     }
                   }
-                ]
+                }
+              ]
+            },
+            "colon_name": {
+              "start_position": {
+                "bytes": 13,
+                "character": 14,
+                "line": 1
               },
-              {
-                "End": {
+              "end_position": {
+                "bytes": 14,
+                "character": 15,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "z"
+              }
+            }
+          },
+          "body": {
+            "parameters_parantheses": {
+              "tokens": [
+                {
                   "start_position": {
-                    "bytes": 11,
-                    "character": 12,
+                    "bytes": 14,
+                    "character": 15,
                     "line": 1
                   },
                   "end_position": {
-                    "bytes": 12,
-                    "character": 13,
+                    "bytes": 15,
+                    "character": 16,
                     "line": 1
                   },
                   "token_type": {
-                    "type": "Identifier",
-                    "identifier": "y"
+                    "type": "Symbol",
+                    "symbol": "("
+                  }
+                },
+                {
+                  "start_position": {
+                    "bytes": 15,
+                    "character": 16,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 16,
+                    "character": 17,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Symbol",
+                    "symbol": ")"
                   }
                 }
-              }
-            ]
-          },
-          "colon_name": {
-            "start_position": {
-              "bytes": 13,
-              "character": 14,
-              "line": 1
+              ]
             },
-            "end_position": {
-              "bytes": 14,
-              "character": 15,
-              "line": 1
+            "parameters": [],
+            "block": {
+              "stmts": []
             },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "z"
-            }
-          }
-        },
-        "body": {
-          "parameters_parantheses": {
-            "tokens": [
-              {
-                "start_position": {
-                  "bytes": 14,
-                  "character": 15,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 15,
-                  "character": 16,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Symbol",
-                  "symbol": "("
-                }
+            "end_token": {
+              "start_position": {
+                "bytes": 17,
+                "character": 18,
+                "line": 1
               },
-              {
-                "start_position": {
-                  "bytes": 15,
-                  "character": 16,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 16,
-                  "character": 17,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Symbol",
-                  "symbol": ")"
-                }
+              "end_position": {
+                "bytes": 20,
+                "character": 21,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "end"
               }
-            ]
-          },
-          "parameters": [],
-          "block": {
-            "stmts": []
-          },
-          "end_token": {
-            "start_position": {
-              "bytes": 17,
-              "character": 18,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 20,
-              "character": 21,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "end"
             }
           }
         }
-      }
-    }
+      },
+      null
+    ]
   ]
 }

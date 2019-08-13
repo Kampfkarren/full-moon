@@ -26,20 +26,20 @@ use span::ContainedSpan;
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<Stmt<'a>>,
+    stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    last_stmt: Option<LastStmt<'a>>,
+    last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
 }
 
 impl<'a> Block<'a> {
     /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
-        self.stmts.iter()
+        self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
     /// The last statement of the block if one exists, such as `return foo`
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
-        self.last_stmt.as_ref()
+        Some(&self.last_stmt.as_ref()?.0)
     }
 }
 

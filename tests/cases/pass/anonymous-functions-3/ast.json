@@ -1,134 +1,137 @@
 {
   "stmts": [
-    {
-      "LocalAssignment": {
-        "local_token": {
-          "start_position": {
-            "bytes": 0,
-            "character": 1,
-            "line": 1
+    [
+      {
+        "LocalAssignment": {
+          "local_token": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 5,
+              "character": 6,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "local"
+            }
           },
-          "end_position": {
-            "bytes": 5,
-            "character": 6,
-            "line": 1
-          },
-          "token_type": {
-            "type": "Symbol",
-            "symbol": "local"
-          }
-        },
-        "name_list": {
-          "pairs": [
-            {
-              "End": {
-                "start_position": {
-                  "bytes": 6,
-                  "character": 7,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 7,
-                  "character": 8,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "x"
+          "name_list": {
+            "pairs": [
+              {
+                "End": {
+                  "start_position": {
+                    "bytes": 6,
+                    "character": 7,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 7,
+                    "character": 8,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "x"
+                  }
                 }
               }
-            }
-          ]
-        },
-        "expr_list": {
-          "pairs": [
-            {
-              "End": {
-                "value": {
-                  "Function": {
-                    "parameters_parantheses": {
-                      "tokens": [
-                        {
-                          "start_position": {
-                            "bytes": 18,
-                            "character": 19,
-                            "line": 1
+            ]
+          },
+          "expr_list": {
+            "pairs": [
+              {
+                "End": {
+                  "value": {
+                    "Function": {
+                      "parameters_parantheses": {
+                        "tokens": [
+                          {
+                            "start_position": {
+                              "bytes": 18,
+                              "character": 19,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 19,
+                              "character": 20,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": "("
+                            }
                           },
-                          "end_position": {
-                            "bytes": 19,
-                            "character": 20,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "Symbol",
-                            "symbol": "("
+                          {
+                            "start_position": {
+                              "bytes": 22,
+                              "character": 23,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 23,
+                              "character": 24,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": ")"
+                            }
                           }
+                        ]
+                      },
+                      "parameters": [
+                        {
+                          "Ellipse": {
+                            "start_position": {
+                              "bytes": 19,
+                              "character": 20,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 22,
+                              "character": 23,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": "..."
+                            }
+                          }
+                        }
+                      ],
+                      "block": {
+                        "stmts": []
+                      },
+                      "end_token": {
+                        "start_position": {
+                          "bytes": 24,
+                          "character": 25,
+                          "line": 1
                         },
-                        {
-                          "start_position": {
-                            "bytes": 22,
-                            "character": 23,
-                            "line": 1
-                          },
-                          "end_position": {
-                            "bytes": 23,
-                            "character": 24,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "Symbol",
-                            "symbol": ")"
-                          }
+                        "end_position": {
+                          "bytes": 27,
+                          "character": 28,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Symbol",
+                          "symbol": "end"
                         }
-                      ]
-                    },
-                    "parameters": [
-                      {
-                        "Ellipse": {
-                          "start_position": {
-                            "bytes": 19,
-                            "character": 20,
-                            "line": 1
-                          },
-                          "end_position": {
-                            "bytes": 22,
-                            "character": 23,
-                            "line": 1
-                          },
-                          "token_type": {
-                            "type": "Symbol",
-                            "symbol": "..."
-                          }
-                        }
-                      }
-                    ],
-                    "block": {
-                      "stmts": []
-                    },
-                    "end_token": {
-                      "start_position": {
-                        "bytes": 24,
-                        "character": 25,
-                        "line": 1
-                      },
-                      "end_position": {
-                        "bytes": 27,
-                        "character": 28,
-                        "line": 1
-                      },
-                      "token_type": {
-                        "type": "Symbol",
-                        "symbol": "end"
                       }
                     }
-                  }
-                },
-                "binop": null
+                  },
+                  "binop": null
+                }
               }
-            }
-          ]
+            ]
+          }
         }
-      }
-    }
+      },
+      null
+    ]
   ]
 }

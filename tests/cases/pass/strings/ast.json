@@ -1,196 +1,202 @@
 {
   "stmts": [
-    {
-      "FunctionCall": {
-        "prefix": {
-          "Name": {
-            "start_position": {
-              "bytes": 0,
-              "character": 1,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 4,
-              "character": 5,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "call"
+    [
+      {
+        "FunctionCall": {
+          "prefix": {
+            "Name": {
+              "start_position": {
+                "bytes": 0,
+                "character": 1,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 4,
+                "character": 5,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "call"
+              }
             }
-          }
-        },
-        "suffixes": [
-          {
-            "Call": {
-              "AnonymousCall": {
-                "Parentheses": {
-                  "arguments": {
-                    "pairs": [
-                      {
-                        "End": {
-                          "value": {
-                            "String": {
-                              "start_position": {
-                                "bytes": 5,
-                                "character": 6,
-                                "line": 1
-                              },
-                              "end_position": {
-                                "bytes": 13,
-                                "character": 14,
-                                "line": 1
-                              },
-                              "token_type": {
-                                "type": "StringLiteral",
-                                "literal": "double",
-                                "quote_type": "Double"
+          },
+          "suffixes": [
+            {
+              "Call": {
+                "AnonymousCall": {
+                  "Parentheses": {
+                    "arguments": {
+                      "pairs": [
+                        {
+                          "End": {
+                            "value": {
+                              "String": {
+                                "start_position": {
+                                  "bytes": 5,
+                                  "character": 6,
+                                  "line": 1
+                                },
+                                "end_position": {
+                                  "bytes": 13,
+                                  "character": 14,
+                                  "line": 1
+                                },
+                                "token_type": {
+                                  "type": "StringLiteral",
+                                  "literal": "double",
+                                  "quote_type": "Double"
+                                }
                               }
-                            }
+                            },
+                            "binop": null
+                          }
+                        }
+                      ]
+                    },
+                    "parentheses": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 4,
+                            "character": 5,
+                            "line": 1
                           },
-                          "binop": null
+                          "end_position": {
+                            "bytes": 5,
+                            "character": 6,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "("
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 13,
+                            "character": 14,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 14,
+                            "character": 15,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ")"
+                          }
                         }
-                      }
-                    ]
-                  },
-                  "parentheses": {
-                    "tokens": [
-                      {
-                        "start_position": {
-                          "bytes": 4,
-                          "character": 5,
-                          "line": 1
-                        },
-                        "end_position": {
-                          "bytes": 5,
-                          "character": 6,
-                          "line": 1
-                        },
-                        "token_type": {
-                          "type": "Symbol",
-                          "symbol": "("
-                        }
-                      },
-                      {
-                        "start_position": {
-                          "bytes": 13,
-                          "character": 14,
-                          "line": 1
-                        },
-                        "end_position": {
-                          "bytes": 14,
-                          "character": 15,
-                          "line": 1
-                        },
-                        "token_type": {
-                          "type": "Symbol",
-                          "symbol": ")"
-                        }
-                      }
-                    ]
+                      ]
+                    }
                   }
                 }
               }
             }
-          }
-        ]
-      }
-    },
-    {
-      "FunctionCall": {
-        "prefix": {
-          "Name": {
-            "start_position": {
-              "bytes": 15,
-              "character": 15,
-              "line": 1
-            },
-            "end_position": {
-              "bytes": 19,
-              "character": 5,
-              "line": 2
-            },
-            "token_type": {
-              "type": "Identifier",
-              "identifier": "call"
+          ]
+        }
+      },
+      null
+    ],
+    [
+      {
+        "FunctionCall": {
+          "prefix": {
+            "Name": {
+              "start_position": {
+                "bytes": 15,
+                "character": 15,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 19,
+                "character": 5,
+                "line": 2
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "call"
+              }
             }
-          }
-        },
-        "suffixes": [
-          {
-            "Call": {
-              "AnonymousCall": {
-                "Parentheses": {
-                  "arguments": {
-                    "pairs": [
-                      {
-                        "End": {
-                          "value": {
-                            "String": {
-                              "start_position": {
-                                "bytes": 20,
-                                "character": 6,
-                                "line": 2
-                              },
-                              "end_position": {
-                                "bytes": 28,
-                                "character": 14,
-                                "line": 2
-                              },
-                              "token_type": {
-                                "type": "StringLiteral",
-                                "literal": "single",
-                                "quote_type": "Single"
+          },
+          "suffixes": [
+            {
+              "Call": {
+                "AnonymousCall": {
+                  "Parentheses": {
+                    "arguments": {
+                      "pairs": [
+                        {
+                          "End": {
+                            "value": {
+                              "String": {
+                                "start_position": {
+                                  "bytes": 20,
+                                  "character": 6,
+                                  "line": 2
+                                },
+                                "end_position": {
+                                  "bytes": 28,
+                                  "character": 14,
+                                  "line": 2
+                                },
+                                "token_type": {
+                                  "type": "StringLiteral",
+                                  "literal": "single",
+                                  "quote_type": "Single"
+                                }
                               }
-                            }
+                            },
+                            "binop": null
+                          }
+                        }
+                      ]
+                    },
+                    "parentheses": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 19,
+                            "character": 5,
+                            "line": 2
                           },
-                          "binop": null
+                          "end_position": {
+                            "bytes": 20,
+                            "character": 6,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "("
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 28,
+                            "character": 14,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 29,
+                            "character": 15,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ")"
+                          }
                         }
-                      }
-                    ]
-                  },
-                  "parentheses": {
-                    "tokens": [
-                      {
-                        "start_position": {
-                          "bytes": 19,
-                          "character": 5,
-                          "line": 2
-                        },
-                        "end_position": {
-                          "bytes": 20,
-                          "character": 6,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "Symbol",
-                          "symbol": "("
-                        }
-                      },
-                      {
-                        "start_position": {
-                          "bytes": 28,
-                          "character": 14,
-                          "line": 2
-                        },
-                        "end_position": {
-                          "bytes": 29,
-                          "character": 15,
-                          "line": 2
-                        },
-                        "token_type": {
-                          "type": "Symbol",
-                          "symbol": ")"
-                        }
-                      }
-                    ]
+                      ]
+                    }
                   }
                 }
               }
             }
-          }
-        ]
-      }
-    }
+          ]
+        }
+      },
+      null
+    ]
   ]
 }

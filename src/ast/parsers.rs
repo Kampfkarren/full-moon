@@ -62,22 +62,29 @@ define_parser!(ParseBlock, Block<'a>, |_, mut state: ParserState<'a>| {
     let mut stmts = Vec::new();
     while let Ok((new_state, stmt)) = keep_going!(ParseStmt.parse(state.clone())) {
         state = new_state;
-        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
+        let mut semicolon = None;
+
+        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
             state = new_state;
+            semicolon = Some(new_semicolon);
         }
-        stmts.push(stmt);
+
+        stmts.push((stmt, semicolon));
     }
 
     if let Ok((mut state, last_stmt)) = keep_going!(ParseLastStmt.parse(state.clone())) {
-        if let Ok((new_state, _)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
+        let mut semicolon = None;
+
+        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state.clone()) {
             state = new_state;
+            semicolon = Some(new_semicolon)
         }
 
         Ok((
             state,
             Block {
                 stmts,
-                last_stmt: Some(last_stmt),
+                last_stmt: Some((last_stmt, semicolon)),
             },
         ))
     } else {

@@ -1,75 +1,78 @@
 {
   "stmts": [
-    {
-      "LocalAssignment": {
-        "local_token": {
-          "start_position": {
-            "bytes": 0,
-            "character": 1,
-            "line": 1
+    [
+      {
+        "LocalAssignment": {
+          "local_token": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 5,
+              "character": 6,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "local"
+            }
           },
-          "end_position": {
-            "bytes": 5,
-            "character": 6,
-            "line": 1
-          },
-          "token_type": {
-            "type": "Symbol",
-            "symbol": "local"
-          }
-        },
-        "name_list": {
-          "pairs": [
-            {
-              "End": {
-                "start_position": {
-                  "bytes": 6,
-                  "character": 7,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 7,
-                  "character": 8,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "x"
+          "name_list": {
+            "pairs": [
+              {
+                "End": {
+                  "start_position": {
+                    "bytes": 6,
+                    "character": 7,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 7,
+                    "character": 8,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Identifier",
+                    "identifier": "x"
+                  }
                 }
               }
-            }
-          ]
-        },
-        "expr_list": {
-          "pairs": [
-            {
-              "End": {
-                "value": {
-                  "String": {
-                    "start_position": {
-                      "bytes": 10,
-                      "character": 11,
-                      "line": 1
-                    },
-                    "end_position": {
-                      "bytes": 43,
-                      "character": 9,
-                      "line": 3
-                    },
-                    "token_type": {
-                      "type": "StringLiteral",
-                      "literal": "This is\nseveral equal\nsigns",
-                      "multi_line": 1,
-                      "quote_type": "Brackets"
+            ]
+          },
+          "expr_list": {
+            "pairs": [
+              {
+                "End": {
+                  "value": {
+                    "String": {
+                      "start_position": {
+                        "bytes": 10,
+                        "character": 11,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 43,
+                        "character": 9,
+                        "line": 3
+                      },
+                      "token_type": {
+                        "type": "StringLiteral",
+                        "literal": "This is\nseveral equal\nsigns",
+                        "multi_line": 1,
+                        "quote_type": "Brackets"
+                      }
                     }
-                  }
-                },
-                "binop": null
+                  },
+                  "binop": null
+                }
               }
-            }
-          ]
+            ]
+          }
         }
-      }
-    }
+      },
+      null
+    ]
   ]
 }
