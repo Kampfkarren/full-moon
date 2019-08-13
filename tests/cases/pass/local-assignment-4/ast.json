@@ -1,85 +1,89 @@
 {
   "stmts": [
-    {
-      "LocalAssignment": {
-        "local_token": {
-          "start_position": {
-            "bytes": 0,
-            "character": 1,
-            "line": 1
+    [
+      {
+        "LocalAssignment": {
+          "local_token": {
+            "start_position": {
+              "bytes": 0,
+              "character": 1,
+              "line": 1
+            },
+            "end_position": {
+              "bytes": 5,
+              "character": 6,
+              "line": 1
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "local"
+            }
           },
-          "end_position": {
-            "bytes": 5,
-            "character": 6,
-            "line": 1
-          },
-          "token_type": {
-            "type": "Symbol",
-            "symbol": "local"
-          }
-        },
-        "name_list": {
-          "pairs": [
-            {
-              "Punctuated": [
-                {
+          "name_list": {
+            "pairs": [
+              {
+                "Punctuated": [
+                  {
+                    "start_position": {
+                      "bytes": 6,
+                      "character": 7,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 7,
+                      "character": 8,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
+                  },
+                  {
+                    "start_position": {
+                      "bytes": 7,
+                      "character": 8,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 8,
+                      "character": 9,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Symbol",
+                      "symbol": ","
+                    }
+                  }
+                ]
+              },
+              {
+                "End": {
                   "start_position": {
-                    "bytes": 6,
-                    "character": 7,
+                    "bytes": 9,
+                    "character": 10,
                     "line": 1
                   },
                   "end_position": {
-                    "bytes": 7,
-                    "character": 8,
+                    "bytes": 10,
+                    "character": 11,
                     "line": 1
                   },
                   "token_type": {
                     "type": "Identifier",
-                    "identifier": "x"
+                    "identifier": "y"
                   }
-                },
-                {
-                  "start_position": {
-                    "bytes": 7,
-                    "character": 8,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 8,
-                    "character": 9,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Symbol",
-                    "symbol": ","
-                  }
-                }
-              ]
-            },
-            {
-              "End": {
-                "start_position": {
-                  "bytes": 9,
-                  "character": 10,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 10,
-                  "character": 11,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Identifier",
-                  "identifier": "y"
                 }
               }
-            }
-          ]
-        },
-        "expr_list": {
-          "pairs": []
+            ]
+          },
+          "equal_token": null,
+          "expr_list": {
+            "pairs": []
+          }
         }
-      }
-    }
+      },
+      null
+    ]
   ]
 }

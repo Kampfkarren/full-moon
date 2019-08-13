@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
 - Added `Return` and `visit_return`
+- Added `Expression::Parentheses`
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
@@ -20,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `visit_do` to use a new `Do` struct instead of `Block`
 - Changed `FunctionArgs::Parentheses` to be a struct item
 - `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
+- Changed `If::else_if` to use a new `Vec<ElseIf>`
+- Changed `Value::Function` to also include the function token
 
 ## [0.3.0] - 2019-05-24
 ### Added

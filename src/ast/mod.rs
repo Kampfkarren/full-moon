@@ -26,20 +26,20 @@ use span::ContainedSpan;
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<Stmt<'a>>,
+    stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    last_stmt: Option<LastStmt<'a>>,
+    last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
 }
 
 impl<'a> Block<'a> {
     /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
-        self.stmts.iter()
+        self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
     /// The last statement of the block if one exists, such as `return foo`
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
-        self.last_stmt.as_ref()
+        Some(&self.last_stmt.as_ref()?.0)
     }
 }
 
@@ -155,6 +155,15 @@ impl<'a> BinOpRhs<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
+    /// A statement in parentheses, such as `(#list)`
+    Parentheses {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The parentheses of the `ParenExpression`
+        contained: ContainedSpan<'a>,
+        /// The expression inside the parentheses
+        expression: Box<Expression<'a>>,
+    },
+
     /// A unary operation, such as `#list`
     UnaryOperator {
         #[cfg_attr(feature = "serde", serde(borrow))]
@@ -180,7 +189,7 @@ pub enum Expression<'a> {
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
-    Function(FunctionBody<'a>),
+    Function((TokenReference<'a>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
     FunctionCall(FunctionCall<'a>),
     /// A table constructor, such as `{ 1, 2, 3 }`
@@ -288,9 +297,13 @@ pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     index_variable: TokenReference<'a>,
+    equal_token: TokenReference<'a>,
     start: Expression<'a>,
+    start_end_comma: TokenReference<'a>,
     end: Expression<'a>,
+    end_step_comma: Option<TokenReference<'a>>,
     step: Option<Expression<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -329,7 +342,9 @@ pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     names: Punctuated<'a, TokenReference<'a>>,
+    in_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -360,8 +375,9 @@ pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     if_token: TokenReference<'a>,
     condition: Expression<'a>,
+    then_token: TokenReference<'a>,
     block: Block<'a>,
-    else_if: Option<Vec<(Expression<'a>, Block<'a>)>>,
+    else_if: Option<Vec<ElseIf<'a>>>,
     else_token: Option<TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
@@ -387,7 +403,7 @@ impl<'a> If<'a> {
     /// If there are `elseif` conditions, returns a vector of them
     /// Expression is the condition, block is the code if the condition is true
     // TODO: Make this return an iterator, and remove Option part entirely?
-    pub fn else_if(&self) -> Option<&Vec<(Expression<'a>, Block<'a>)>> {
+    pub fn else_if(&self) -> Option<&Vec<ElseIf<'a>>> {
         self.else_if.as_ref()
     }
 
@@ -397,6 +413,17 @@ impl<'a> If<'a> {
     }
 }
 
+/// An elseif block in a bigger [`If`](struct.If.html) statement
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct ElseIf<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    else_if_token: TokenReference<'a>,
+    condition: Expression<'a>,
+    then_token: TokenReference<'a>,
+    block: Block<'a>,
+}
+
 /// A while loop
 #[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -404,6 +431,7 @@ pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     while_token: TokenReference<'a>,
     condition: Expression<'a>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -427,6 +455,7 @@ pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     repeat_token: TokenReference<'a>,
     block: Block<'a>,
+    until_token: TokenReference<'a>,
     until: Expression<'a>,
 }
 
@@ -447,6 +476,7 @@ impl<'a> Repeat<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    colon_token: TokenReference<'a>,
     name: TokenReference<'a>,
     args: FunctionArgs<'a>,
 }
@@ -480,7 +510,7 @@ pub enum Call<'a> {
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     parameters_parantheses: ContainedSpan<'a>,
-    parameters: Vec<Parameter<'a>>,
+    parameters: Punctuated<'a, Parameter<'a>>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -505,7 +535,7 @@ pub enum Parameter<'a> {
     /// The `...` vararg syntax, such as `function x(...)`
     Ellipse(TokenReference<'a>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(Pair<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
@@ -558,6 +588,7 @@ pub enum Var<'a> {
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
+    equal_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -581,6 +612,7 @@ impl<'a> Assignment<'a> {
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
+    function_token: TokenReference<'a>,
     name: TokenReference<'a>,
     func_body: FunctionBody<'a>,
 }
@@ -604,6 +636,7 @@ pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
     name_list: Punctuated<'a, TokenReference<'a>>,
+    equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -665,13 +698,13 @@ impl<'a> FunctionCall<'a> {
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     names: Punctuated<'a, TokenReference<'a>>,
-    colon_name: Option<TokenReference<'a>>,
+    colon_name: Option<(TokenReference<'a>, TokenReference<'a>)>,
 }
 
 impl<'a> FunctionName<'a> {
     /// A method name if one exists, the `y` part of `function x:y() end`
     pub fn method_name(&self) -> Option<&TokenReference<'a>> {
-        self.colon_name.as_ref()
+        Some(&self.colon_name.as_ref()?.1)
     }
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the names used when defining the function.
@@ -687,6 +720,7 @@ impl<'a> FunctionName<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    function_token: TokenReference<'a>,
     name: FunctionName<'a>,
     body: FunctionBody<'a>,
 }
