@@ -122,6 +122,11 @@ pub struct TableConstructor<'a> {
 }
 
 impl<'a> TableConstructor<'a> {
+    /// The braces of the constructor
+    pub fn braces(&self) -> &ContainedSpan<'a> {
+        &self.braces
+    }
+
     /// An iterator over the [fields](type.TableConstructorField.html) used to create the table
     pub fn iter_fields(&self) -> impl Iterator<Item = &TableConstructorField<'a>> {
         self.fields.iter()
@@ -309,9 +314,19 @@ pub struct NumericFor<'a> {
 }
 
 impl<'a> NumericFor<'a> {
+    /// The `for` token
+    pub fn for_token(&self) -> &TokenReference<'a> {
+        &self.for_token
+    }
+
     /// The index identity, `index` in the initial example
-    pub fn index_variable(&self) -> &Token<'a> {
+    pub fn index_variable(&self) -> &TokenReference<'a> {
         &self.index_variable
+    }
+
+    /// The `=` token
+    pub fn equal_token(&self) -> &TokenReference<'a> {
+        &self.equal_token
     }
 
     /// The starting point, `1` in the initial example
@@ -319,9 +334,23 @@ impl<'a> NumericFor<'a> {
         &self.start
     }
 
+    /// The comma in between the starting point and end point
+    /// for _ = 1, 10 do
+    ///          ^
+    pub fn start_end_comma(&self) -> &TokenReference<'a> {
+        &self.start_end_comma
+    }
+
     /// The ending point, `10` in the initial example
     pub fn end(&self) -> &Expression<'a> {
         &self.end
+    }
+
+    /// The comma in between the ending point and limit, if one exists
+    /// for _ = 0, 10, 2 do
+    ///              ^
+    pub fn end_step_comma(&self) -> Option<&TokenReference<'a>> {
+        self.end_step_comma.as_ref()
     }
 
     /// The step if one exists, `2` in `for index = 0, 10, 2 do end`
@@ -329,9 +358,19 @@ impl<'a> NumericFor<'a> {
         self.step.as_ref()
     }
 
+    /// The `do` token
+    pub fn do_token(&self) -> &TokenReference<'a> {
+        &self.do_token
+    }
+
     /// The code inside the for loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
+    }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
     }
 }
 
@@ -350,10 +389,20 @@ pub struct GenericFor<'a> {
 }
 
 impl<'a> GenericFor<'a> {
+    /// The `for` token
+    pub fn for_token(&self) -> &TokenReference<'a> {
+        &self.for_token
+    }
+
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
     pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
         &self.names
+    }
+
+    /// The `in` token
+    pub fn in_token(&self) -> &TokenReference<'a> {
+        &self.in_token
     }
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of the expressions looped over
@@ -362,9 +411,19 @@ impl<'a> GenericFor<'a> {
         &self.expr_list
     }
 
+    /// The `do` token
+    pub fn do_token(&self) -> &TokenReference<'a> {
+        &self.do_token
+    }
+
     /// The code inside the for loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
+    }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
     }
 }
 
@@ -385,9 +444,19 @@ pub struct If<'a> {
 }
 
 impl<'a> If<'a> {
+    /// The `if` token
+    pub fn if_token(&self) -> &TokenReference<'a> {
+        &self.if_token
+    }
+
     /// The condition of the if statement, `condition` in `if condition then`
     pub fn condition(&self) -> &Expression<'a> {
         &self.condition
+    }
+
+    /// The `then` token
+    pub fn then_token(&self) -> &TokenReference<'a> {
+        &self.then_token
     }
 
     /// The block inside the initial if statement
@@ -411,6 +480,11 @@ impl<'a> If<'a> {
     pub fn else_block(&self) -> Option<&Block<'a>> {
         self.r#else.as_ref()
     }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
+    }
 }
 
 /// An elseif block in a bigger [`If`](struct.If.html) statement
@@ -422,6 +496,28 @@ pub struct ElseIf<'a> {
     condition: Expression<'a>,
     then_token: TokenReference<'a>,
     block: Block<'a>,
+}
+
+impl<'a> ElseIf<'a> {
+    /// The `elseif` token
+    pub fn else_if_token(&self) -> &TokenReference<'a> {
+        &self.else_if_token
+    }
+
+    /// The condition of the `elseif`, `condition` in `elseif condition then`
+    pub fn condition(&self) -> &Expression<'a> {
+        &self.condition
+    }
+
+    /// The `then` token
+    pub fn then_token(&self) -> &TokenReference<'a> {
+        &self.then_token
+    }
+
+    /// The body of the `elseif`
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
 }
 
 /// A while loop
@@ -437,14 +533,29 @@ pub struct While<'a> {
 }
 
 impl<'a> While<'a> {
+    /// The `while` token
+    pub fn while_token(&self) -> &TokenReference<'a> {
+        &self.while_token
+    }
+
     /// The `condition` part of `while condition do`
     pub fn condition(&self) -> &Expression<'a> {
         &self.condition
     }
 
+    /// The `do` token
+    pub fn do_token(&self) -> &TokenReference<'a> {
+        &self.do_token
+    }
+
     /// The code inside the while loop
     pub fn block(&self) -> &Block<'a> {
         &self.block
+    }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
     }
 }
 
@@ -460,9 +571,19 @@ pub struct Repeat<'a> {
 }
 
 impl<'a> Repeat<'a> {
+    /// The `repeat` token
+    pub fn repeat_token(&self) -> &TokenReference<'a> {
+        &self.repeat_token
+    }
+
     /// The code inside the `repeat` block
     pub fn block(&self) -> &Block<'a> {
         &self.block
+    }
+
+    /// The `until` token
+    pub fn until_token(&self) -> &TokenReference<'a> {
+        &self.until_token
     }
 
     /// The condition for the `until` part
@@ -482,13 +603,18 @@ pub struct MethodCall<'a> {
 }
 
 impl<'a> MethodCall<'a> {
+    /// The `:` in `x:y()`
+    pub fn colon_token(&self) -> &TokenReference<'a> {
+        &self.colon_token
+    }
+
     /// The arguments of a method call, the `x, y, z` part of `method:call(x, y, z)`
     pub fn args(&self) -> &FunctionArgs<'a> {
         &self.args
     }
 
     /// The method being called, the `call` part of `method:call()`
-    pub fn name(&self) -> &Token<'a> {
+    pub fn name(&self) -> &TokenReference<'a> {
         &self.name
     }
 }
@@ -516,14 +642,24 @@ pub struct FunctionBody<'a> {
 }
 
 impl<'a> FunctionBody<'a> {
-    /// The code of a function body
-    pub fn block(&self) -> &Block<'a> {
-        &self.block
+    /// The parentheses of the parameters
+    pub fn parameters_parantheses(&self) -> &ContainedSpan<'a> {
+        &self.parameters_parantheses
     }
 
     /// An iterator over the parameters for the function declaration
     pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
         self.parameters.iter()
+    }
+
+    /// The code of a function body
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
     }
 }
 
@@ -599,6 +735,11 @@ impl<'a> Assignment<'a> {
         &self.expr_list
     }
 
+    /// The `=` token in between `x = y`
+    pub fn equal_token(&self) -> &TokenReference<'a> {
+        &self.equal_token
+    }
+
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the variables being assigned to.
     /// This is the `x, y["a"]` part of `x, y["a"] = 1, 2`
     pub fn var_list(&self) -> &Punctuated<'a, Var<'a>> {
@@ -618,13 +759,23 @@ pub struct LocalFunction<'a> {
 }
 
 impl<'a> LocalFunction<'a> {
+    /// The `local` token
+    pub fn local_token(&self) -> &TokenReference<'a> {
+        &self.local_token
+    }
+
+    /// The `function` token
+    pub fn function_token(&self) -> &TokenReference<'a> {
+        &self.function_token
+    }
+
     /// The function body, everything except `local function x` in `local function x(a, b, c) call() end`
     pub fn func_body(&self) -> &FunctionBody<'a> {
         &self.func_body
     }
 
     /// The name of the function, the `x` part of `local function x() end`
-    pub fn name(&self) -> &Token<'a> {
+    pub fn name(&self) -> &TokenReference<'a> {
         &self.name
     }
 }
@@ -641,6 +792,16 @@ pub struct LocalAssignment<'a> {
 }
 
 impl<'a> LocalAssignment<'a> {
+    /// The `local` token
+    pub fn local_token(&self) -> &TokenReference<'a> {
+        &self.local_token
+    }
+
+    /// The `=` token in between `local x = y`, if one exists
+    pub fn equal_token(&self) -> Option<&TokenReference<'a>> {
+        self.equal_token.as_ref()
+    }
+
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of the expressions being assigned.
     /// This is the `1, 2` part of `local x, y = 1, 2`
     pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
@@ -669,6 +830,23 @@ pub struct Do<'a> {
     do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
+}
+
+impl<'a> Do<'a> {
+    /// The `do` token
+    pub fn do_token(&self) -> &TokenReference<'a> {
+        &self.do_token
+    }
+
+    /// The code inside the `do ... end`
+    pub fn block(&self) -> &Block<'a> {
+        &self.block
+    }
+
+    /// The `end` token
+    pub fn end_token(&self) -> &TokenReference<'a> {
+        &self.end_token
+    }
 }
 
 /// A function being called, such as `call()`
@@ -726,6 +904,11 @@ pub struct FunctionDeclaration<'a> {
 }
 
 impl<'a> FunctionDeclaration<'a> {
+    /// The `function` token
+    pub fn function_token(&self) -> &TokenReference<'a> {
+        &self.function_token
+    }
+
     /// The body of the function
     pub fn body(&self) -> &FunctionBody<'a> {
         &self.body
