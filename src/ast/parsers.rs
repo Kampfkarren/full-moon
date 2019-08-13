@@ -631,7 +631,7 @@ struct ParseRepeat;
 define_parser!(ParseRepeat, Repeat<'a>, |_, state: ParserState<'a>| {
     let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state.clone())?;
     let (state, block) = expect!(state, ParseBlock.parse(state.clone()), "expected block");
-    let (state, _) = expect!(
+    let (state, until_token) = expect!(
         state,
         ParseSymbol(Symbol::Until).parse(state.clone()),
         "expected 'until'"
@@ -645,6 +645,7 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state: ParserState<'a>| {
         state,
         Repeat {
             repeat_token,
+            until_token,
             until,
             block,
         },

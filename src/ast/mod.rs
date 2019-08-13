@@ -455,6 +455,7 @@ pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     repeat_token: TokenReference<'a>,
     block: Block<'a>,
+    until_token: TokenReference<'a>,
     until: Expression<'a>,
 }
 

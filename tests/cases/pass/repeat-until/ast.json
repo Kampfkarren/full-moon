@@ -97,6 +97,22 @@
               ]
             ]
           },
+          "until_token": {
+            "start_position": {
+              "bytes": 15,
+              "character": 8,
+              "line": 2
+            },
+            "end_position": {
+              "bytes": 20,
+              "character": 6,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Symbol",
+              "symbol": "until"
+            }
+          },
           "until": {
             "value": {
               "Var": {
