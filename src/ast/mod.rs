@@ -1102,13 +1102,10 @@ impl<'a> Ast<'a> {
     }
 
     /// An iterator over the tokens used to create the Ast
-    pub fn iter_tokens(&self) -> impl Iterator<Item = TokenReference<'a>> {
+    pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
         self.tokens
             .iter()
-            .map(|(index, _)| TokenReference::Borrowed {
-                arena: Arc::clone(&self.tokens),
-                index,
-            })
+            .map(|(_, token)| token)
             .sorted()
     }
 

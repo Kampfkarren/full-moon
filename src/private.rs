@@ -1,4 +1,4 @@
-use crate::tokenizer::TokenReference;
+use crate::tokenizer::{Token, TokenReference};
 use std::borrow::Cow;
 
 pub trait Sealed {}
@@ -6,6 +6,7 @@ pub trait Sealed {}
 impl<T> Sealed for &T {}
 impl<T> Sealed for &mut T {}
 impl<'a, T: Clone> Sealed for Cow<'a, T> {}
+impl<'a> Sealed for Token<'a> {}
 impl<'a> Sealed for TokenReference<'a> {}
 impl<T> Sealed for Box<T> {}
 impl<T> Sealed for Option<T> {}

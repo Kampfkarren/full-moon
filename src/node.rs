@@ -1,7 +1,7 @@
 use crate::{
     ast::Ast,
     private,
-    tokenizer::{Position, TokenReference},
+    tokenizer::{Position, Token, TokenReference},
 };
 
 /// Used to represent nodes such as tokens or function definitions
@@ -26,14 +26,14 @@ pub trait Node: private::Sealed {
     fn surrounding_ignore_tokens<'ast>(
         &self,
         ast: &'ast Ast<'ast>,
-    ) -> Option<(Vec<TokenReference<'ast>>, Vec<TokenReference<'ast>>)> {
+    ) -> Option<(Vec<&Token<'ast>>, Vec<&Token<'ast>>)> {
         let (start, end) = self.range()?;
         let (mut previous, mut following) = (Vec::new(), Vec::new());
 
         let mut tokens = ast.iter_tokens();
 
         while let Some(token) = tokens.next() {
-            let this_end = token.end_position()?;
+            let this_end = token.end_position();
 
             if start < this_end {
                 break;
@@ -84,6 +84,16 @@ impl<T: Node> Node for &mut T {
 
     fn end_position(&self) -> Option<Position> {
         (**self).end_position()
+    }
+}
+
+impl<'a> Node for Token<'a> {
+    fn start_position(&self) -> Option<Position> {
+        Some(self.start_position())
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        Some(self.end_position())
     }
 }
 
