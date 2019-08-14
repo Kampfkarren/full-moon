@@ -1,4 +1,4 @@
-use full_moon::{node::Node, parse, tokenizer::TokenKind};
+use full_moon::{node::Node, parse};
 
 #[test]
 fn surrounding_ignore_tokens() {
