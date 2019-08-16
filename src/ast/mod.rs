@@ -1,3 +1,4 @@
+pub mod owned;
 #[macro_use]
 mod parser_util;
 mod parsers;
@@ -5,7 +6,7 @@ pub mod punctuated;
 pub mod span;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
-use full_moon_derive::{Node, Visit};
+use full_moon_derive::{Node, Owned, Visit};
 use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
@@ -22,7 +23,7 @@ use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
 
 /// A block of statements, such as in if/do/etc block
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -44,7 +45,7 @@ impl<'a> Block<'a> {
 }
 
 /// The last statement of a [`Block`](struct.Block.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -55,7 +56,7 @@ pub enum LastStmt<'a> {
 }
 
 /// A `return` statement
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Return<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -76,7 +77,7 @@ impl<'a> Return<'a> {
 }
 
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
@@ -113,7 +114,7 @@ pub enum Field<'a> {
 pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -134,7 +135,7 @@ impl<'a> TableConstructor<'a> {
 }
 
 /// A binary operation, such as (`+ 3`)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[visit(visit_as = "bin_op")]
 pub struct BinOpRhs<'a> {
@@ -156,7 +157,7 @@ impl<'a> BinOpRhs<'a> {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
@@ -189,7 +190,7 @@ pub enum Expression<'a> {
 }
 
 /// Values that cannot be used standalone, but as part of things such as [statements](enum.Stmt.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -212,7 +213,7 @@ pub enum Value<'a> {
 }
 
 /// A statement that stands alone
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -242,7 +243,7 @@ pub enum Stmt<'a> {
 
 /// A node used before another in cases such as function calling
 /// The `("foo")` part of `("foo"):upper()`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -254,7 +255,7 @@ pub enum Prefix<'a> {
 
 /// The indexing of something, such as `x.y` or `x["y"]`
 /// Values of variants are the keys, such as `"y"`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
@@ -277,7 +278,7 @@ pub enum Index<'a> {
 }
 
 /// Arguments used for a function
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call(1, 2, 3)`
@@ -296,7 +297,7 @@ pub enum FunctionArgs<'a> {
 }
 
 /// A numeric for loop, such as `for index = 1, 10 do end`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -375,7 +376,7 @@ impl<'a> NumericFor<'a> {
 }
 
 /// A generic for loop, such as `for index, value in pairs(list) do end`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -428,7 +429,7 @@ impl<'a> GenericFor<'a> {
 }
 
 /// An if statement
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -488,7 +489,7 @@ impl<'a> If<'a> {
 }
 
 /// An elseif block in a bigger [`If`](struct.If.html) statement
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ElseIf<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -521,7 +522,7 @@ impl<'a> ElseIf<'a> {
 }
 
 /// A while loop
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -560,7 +561,7 @@ impl<'a> While<'a> {
 }
 
 /// A repeat loop
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -593,7 +594,7 @@ impl<'a> Repeat<'a> {
 }
 
 /// A method call, such as `x:y()`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -620,7 +621,7 @@ impl<'a> MethodCall<'a> {
 }
 
 /// Something being called
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -631,7 +632,7 @@ pub enum Call<'a> {
 }
 
 /// A function body, everything except `function x` in `function x(a, b, c) call() end`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -664,7 +665,7 @@ impl<'a> FunctionBody<'a> {
 }
 
 /// A parameter in a function declaration
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -676,7 +677,7 @@ pub enum Parameter<'a> {
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
 /// Can be stacked on top of each other, such as in `x()()()`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -687,7 +688,7 @@ pub enum Suffix<'a> {
 }
 
 /// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VarExpression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -708,7 +709,7 @@ impl<'a> VarExpression<'a> {
 }
 
 /// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -719,7 +720,7 @@ pub enum Var<'a> {
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -748,7 +749,7 @@ impl<'a> Assignment<'a> {
 }
 
 /// A declaration of a local function, such as `local function x() end`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -781,7 +782,7 @@ impl<'a> LocalFunction<'a> {
 }
 
 /// An assignment to a local variable, such as `local x = 1`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -823,7 +824,7 @@ impl<'a> LocalAssignment<'a> {
 
 /// A `do` block, such as `do ... end`
 /// This is not used for things like `while true do end`, only those on their own
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Do<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -850,7 +851,7 @@ impl<'a> Do<'a> {
 }
 
 /// A function being called, such as `call()`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -871,7 +872,7 @@ impl<'a> FunctionCall<'a> {
 }
 
 /// A function name when being [declared](struct.FunctionDeclaration.html)
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -894,7 +895,7 @@ impl<'a> FunctionName<'a> {
 
 /// A normal function declaration, supports simple declarations like `function x() end`
 /// as well as complicated declarations such as `function x.y.z:a() end`
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -922,7 +923,7 @@ impl<'a> FunctionDeclaration<'a> {
 
 macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, PartialEq, Node, Visit)]
+        #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[visit(skip_visit_self)]
         $(#[$outer])*
