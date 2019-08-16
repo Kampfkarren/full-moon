@@ -31,15 +31,6 @@ impl Owned for Ast<'_> {
     }
 }
 
-impl Owned for ContainedSpan<'_> {
-    type Owned = ContainedSpan<'static>;
-
-    fn owned(&self) -> Self::Owned {
-        let (start, end) = self.tokens();
-        ContainedSpan::new(start.owned(), end.owned())
-    }
-}
-
 impl<T> Owned for Pair<'_, T>
 where
     T: Owned,
