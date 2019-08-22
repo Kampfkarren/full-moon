@@ -83,7 +83,7 @@ pub(crate) trait Parser<'a>: Sized {
     ) -> Result<(ParserState<'a>, Self::Item), InternalAstError<'a>>;
 }
 
-/// silence lint
+#[doc(hidden)]
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ident, $node:ty, $body:expr) => {
@@ -100,7 +100,7 @@ macro_rules! define_parser {
     };
 }
 
-/// silence lint
+#[doc(hidden)]
 #[macro_export]
 macro_rules! parse_first_of {
     ($state:ident, {$($parser:expr => $constructor:expr,)+}) => ({
@@ -116,7 +116,7 @@ macro_rules! parse_first_of {
     });
 }
 
-/// silence lint
+#[doc(hidden)]
 #[macro_export]
 macro_rules! expect {
     ($state:ident, $parsed:expr) => {
@@ -146,8 +146,8 @@ macro_rules! expect {
     };
 }
 
-/// silence lint
 // This name is bad
+#[doc(hidden)]
 #[macro_export]
 macro_rules! keep_going {
     ($parsed:expr) => {
