@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
 - Added `Return` and `visit_return`
 - Added `Expression::Parentheses`
+- Added `Owned` trait to get a `'static` lifetime version of nodes
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
