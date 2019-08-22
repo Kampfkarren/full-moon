@@ -387,6 +387,114 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
     TokenStream::from(source)
 }
 
+#[proc_macro_derive(Owned)]
+pub fn derive_owned(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let input_ident = &input.ident;
+
+    let expanded = match &input.data {
+        syn::Data::Enum(enumm) => {
+            let mut cases = Vec::with_capacity(enumm.variants.len());
+
+            for variant in &enumm.variants {
+                let variant_ident = &variant.ident;
+                match &variant.fields {
+                    syn::Fields::Named(named) => {
+                        let fields: Vec<_> = named
+                            .named
+                            .iter()
+                            .map(|field| field.ident.as_ref().unwrap())
+                            .collect();
+                        let fields = &fields;
+                        let fields2 = fields.clone();
+
+                        cases.push(quote! {
+                            #input_ident::#variant_ident {
+                                #(#fields,)*
+                            } => {
+                                #input_ident::#variant_ident {
+                                    #(
+                                        #fields: #fields2.owned(),
+                                    )*
+                                }
+                            }
+                        });
+                    }
+
+                    syn::Fields::Unnamed(fields) => {
+                        let fields: Vec<_> = fields
+                            .unnamed
+                            .iter()
+                            .enumerate()
+                            .map(|(index, _)| {
+                                syn::Ident::new(&format!("__self_{}", index), variant_ident.span())
+                            })
+                            .collect();
+                        let fields = &fields;
+
+                        cases.push(quote! {
+                            #input_ident::#variant_ident(
+                                #(#fields,)*
+                            ) => {
+                                #input_ident::#variant_ident(
+                                    #(
+                                        #fields.owned(),
+                                    )*
+                                )
+                            }
+                        });
+                    }
+
+                    syn::Fields::Unit => {
+                        cases.push(quote! {
+                            #input_ident::#variant_ident => #input_ident::#variant_ident
+                        })
+                    }
+                }
+            }
+
+            quote! {
+                match self {
+                    #(#cases)*
+                }
+            }
+        }
+
+        syn::Data::Struct(strukt) => {
+            let fields = strukt
+                .fields
+                .iter()
+                .map(|field| field.ident.as_ref().unwrap())
+                .collect::<Vec<_>>();
+            let fields2 = fields.clone();
+
+            quote! {
+                #input_ident {
+                    #(
+                        #fields: self.#fields2.owned(),
+                    )*
+                }
+            }
+        }
+
+        other => panic!("don't know how to derive Visit from {:?}", other),
+    };
+
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+
+    let source = quote! {
+        impl #impl_generics crate::ast::owned::Owned for #input_ident #ty_generics #where_clause {
+            type Owned = #input_ident<'static>;
+
+            fn owned(&self) -> Self::Owned {
+                #expanded
+            }
+        }
+    };
+
+    TokenStream::from(source)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
