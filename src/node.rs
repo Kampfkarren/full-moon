@@ -23,10 +23,10 @@ pub trait Node: private::Sealed {
     /// Use this if you want to get surrounding comments or whitespace.
     /// Return value is None if a token doesn't have both a start and end position. Otherwise, it is a tuple
     /// of two token vectors, first being the preceding and the second being the following.
-    fn surrounding_ignore_tokens<'ast>(
+    fn surrounding_ignore_tokens<'ast, 'b>(
         &self,
-        ast: &'ast Ast<'ast>,
-    ) -> Option<(Vec<&Token<'ast>>, Vec<&Token<'ast>>)> {
+        ast: &'b Ast<'ast>,
+    ) -> Option<(Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>)> {
         let (start, end) = self.range()?;
         let (mut previous, mut following) = (Vec::new(), Vec::new());
 
