@@ -31,6 +31,22 @@ impl Owned for Ast<'_> {
     }
 }
 
+impl Owned for AstError<'_> {
+    type Owned = AstError<'static>;
+
+    fn owned(&self) -> Self::Owned {
+        match self {
+            AstError::UnexpectedToken { token, additional } => AstError::UnexpectedToken {
+                additional: additional.clone().map(Cow::into_owned).map(Cow::Owned),
+                token: token.owned(),
+            },
+
+            AstError::Empty => AstError::Empty,
+            AstError::NoEof => AstError::NoEof,
+        }
+    }
+}
+
 impl<T> Owned for Pair<'_, T>
 where
     T: Owned,
@@ -67,6 +83,14 @@ impl Owned for Token<'_> {
             end_position: self.end_position.clone(),
             token_type: Arc::new(AtomicRefCell::new(self.token_type().owned())),
         }
+    }
+}
+
+impl Owned for TokenizerError {
+    type Owned = TokenizerError;
+
+    fn owned(&self) -> Self::Owned {
+        self.clone()
     }
 }
 

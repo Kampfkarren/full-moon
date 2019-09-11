@@ -11,9 +11,7 @@ use generational_arena::Arena;
 use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::iter::FromIterator;
-use std::sync::Arc;
+use std::{borrow::Cow, fmt, iter::FromIterator, sync::Arc};
 
 use parser_util::{
     InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
@@ -978,9 +976,10 @@ pub enum AstError<'a> {
     /// An unexpected token, the most likely scenario when getting an AstError
     UnexpectedToken {
         /// The token that caused the error
+        #[cfg_attr(feature = "serde", serde(borrow))]
         token: Token<'a>,
         /// Any additional information that could be provided for debugging
-        additional: Option<&'a str>,
+        additional: Option<Cow<'a, str>>,
     },
 }
 
@@ -1065,7 +1064,7 @@ impl<'a> Ast<'a> {
                     } else {
                         Err(AstError::UnexpectedToken {
                             token: (*state.peek()).to_owned(),
-                            additional: Some("leftover token"),
+                            additional: Some(Cow::Borrowed("leftover token")),
                         })
                     }
                 }
@@ -1078,7 +1077,7 @@ impl<'a> Ast<'a> {
                 Err(InternalAstError::UnexpectedToken { token, additional }) => {
                     Err(AstError::UnexpectedToken {
                         token: (*token).to_owned(),
-                        additional,
+                        additional: additional.map(Cow::Borrowed),
                     })
                 }
             }

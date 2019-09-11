@@ -1,8 +1,9 @@
-use full_moon::{parse, node::Node};
+use full_moon::{node::Node, parse};
 
 #[test]
 fn test_one_line_range() {
-	let ast = parse(r#"
+    let ast = parse(
+        r#"
 
 	local x = 1
 
@@ -14,10 +15,17 @@ fn test_one_line_range() {
 
 	for index, value in pairs(list) do print(index, value) end
 
-	"#).unwrap();
+	"#,
+    )
+    .unwrap();
 
-	for stmt in ast.nodes().iter_stmts() {
-		let (start, end) = stmt.range().unwrap();
-		assert_eq!(end.line() - start.line(), 0, "node {:?} does not have a range on the same line", stmt);
-	}
+    for stmt in ast.nodes().iter_stmts() {
+        let (start, end) = stmt.range().unwrap();
+        assert_eq!(
+            end.line() - start.line(),
+            0,
+            "node {:?} does not have a range on the same line",
+            stmt
+        );
+    }
 }

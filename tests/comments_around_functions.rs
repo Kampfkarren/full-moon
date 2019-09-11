@@ -1,13 +1,8 @@
 use full_moon::{
-    self,
-    ast::*,
-    visitors::Visitor,
-    node::Node,
-    tokenizer::TokenKind,
-    tokenizer::Token,
+    self, ast::*, node::Node, tokenizer::Token, tokenizer::TokenKind, visitors::Visitor,
 };
-use std::error::Error;
 use owned::Owned;
+use std::error::Error;
 
 const CODE: &str = r#"
 
@@ -41,7 +36,12 @@ impl Visitor<'static> for MemberVisitor<'_> {
         if let Some((tokens, _)) = function.surrounding_ignore_tokens(&self.ast) {
             let mut tokens = tokens.clone();
             tokens.retain(|&t| t.token_kind() == TokenKind::MultiLineComment);
-            self.comments.extend(tokens.into_iter().map(|t| t.to_string()).collect::<Vec<String>>())
+            self.comments.extend(
+                tokens
+                    .into_iter()
+                    .map(|t| t.to_string())
+                    .collect::<Vec<String>>(),
+            )
         }
     }
 }

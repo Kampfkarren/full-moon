@@ -1,6 +1,5 @@
 #![warn(missing_docs)]
 #![allow(clippy::large_enum_variant)]
-
 //! # Full Moon
 //!
 //! `full_moon` is a lossless parser for Lua 5.1
@@ -21,6 +20,7 @@ pub mod visitors;
 
 mod private;
 
+use full_moon_derive::Owned;
 use std::fmt;
 
 #[cfg(all(test, not(feature = "serde")))]
@@ -28,7 +28,7 @@ compile_error!("Serde feature must be enabled for tests");
 
 /// An error type that consists of both [`AstError`](ast/enum.AstError.html) and [`TokenizerError`](tokenizer/enum.TokenizerError.html)
 /// Used by [`parse`](fn.parse)
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Owned)]
 pub enum Error<'a> {
     /// Triggered if there's an issue creating an AST, but tokenizing must have succeeded
     AstError(ast::AstError<'a>),
