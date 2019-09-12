@@ -1,5 +1,7 @@
+// This is code from a real life usage of full-moon
+
 use full_moon::{
-    self, ast::*, node::Node, tokenizer::Token, tokenizer::TokenKind, visitors::Visitor,
+    self, ast::*, node::Node, tokenizer::TokenKind, visitors::Visitor,
 };
 use owned::Owned;
 use std::error::Error;

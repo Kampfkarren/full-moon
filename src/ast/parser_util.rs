@@ -50,12 +50,16 @@ impl<'a> ParserState<'a> {
             panic!("peek failed, when there should always be an eof");
         }
 
+        // sorted_by is commented out because it had a extremely high performance cost
+        // Uncommenting the line changes one large file from being parsed in ~0.1s to **14 seconds**!!!
+        // Iteration of self.tokens is explicitly undefined, but it happens to work out
+        // TODO: How can we guarantee order without the performance cost? Create our own arena?
         TokenReference::Borrowed {
             arena: Arc::clone(&self.tokens),
             index: self
                 .tokens
                 .iter()
-                .sorted_by(|left, right| left.1.cmp(&right.1))
+                // .sorted_by(|left, right| left.1.cmp(&right.1))
                 .nth(self.index)
                 .expect("couldn't peek, no eof?")
                 .0,
