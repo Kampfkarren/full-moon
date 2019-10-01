@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `If::else_if` to use a new `Vec<ElseIf>`
 - Changed `Value::Function` to also include the function token
 
+### Fixed
+- Unexpected parsing issues with UTF-8 strings
+
 ## [0.3.0] - 2019-05-24
 ### Added
 - Added std::fmt::Display and std::error::Error implementations for Error, AstError, and TokenizerError

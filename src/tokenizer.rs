@@ -545,7 +545,7 @@ macro_rules! advance_regex {
                 Ok(None)
             } else {
                 Ok(Some(TokenAdvancement {
-                    advance: $find.end() - $find.start(),
+                    advance: $find.as_str().chars().count(),
                     token_type: TokenType::$token_type $block,
                 }))
             }
@@ -571,11 +571,15 @@ fn advance_comment(code: &str) -> Advancement {
                 None => return Err(TokenizerErrorType::UnclosedComment),
             };
 
+            let comment = &code[whole_beginning.end()..end_find.start()];
+
             return Ok(Some(TokenAdvancement {
-                advance: end_find.end(),
+                advance: code[whole_beginning.start()..end_find.end()]
+                    .chars()
+                    .count(),
                 token_type: TokenType::MultiLineComment {
                     blocks: block_count,
-                    comment: Cow::from(&code[whole_beginning.end()..end_find.start()]),
+                    comment: Cow::from(comment),
                 },
             }));
         }
@@ -583,10 +587,12 @@ fn advance_comment(code: &str) -> Advancement {
 
     if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
         if find.start() == 0 {
+            let comment = &find.as_str()[2..];
+
             return Ok(Some(TokenAdvancement {
-                advance: find.end(),
+                advance: 2 + comment.chars().count(),
                 token_type: TokenType::SingleLineComment {
-                    comment: Cow::from(&find.as_str()[2..]),
+                    comment: Cow::from(comment),
                 },
             }));
         }
@@ -612,7 +618,7 @@ fn advance_quote(code: &str) -> Advancement {
         let whole_beginning = captures.get(0).unwrap();
         if whole_beginning.start() == 0 {
             let block_count = match captures.get(1) {
-                Some(block_count) => block_count.end() - block_count.start(),
+                Some(block_count) => block_count.as_str().chars().count(),
                 None => 0,
             };
 
@@ -624,7 +630,9 @@ fn advance_quote(code: &str) -> Advancement {
             };
 
             return Ok(Some(TokenAdvancement {
-                advance: end_find.end(),
+                advance: code[whole_beginning.start()..end_find.end()]
+                    .chars()
+                    .count(),
                 token_type: TokenType::StringLiteral {
                     multi_line: Some(block_count),
                     literal: Cow::from(&code[whole_beginning.end()..end_find.start()]),
@@ -645,14 +653,14 @@ fn advance_quote(code: &str) -> Advancement {
     let mut end = None;
     let mut escape = false;
 
-    for (index, character) in code.char_indices().skip(1) {
+    for (char_index, (byte_index, character)) in code.char_indices().enumerate().skip(1) {
         if character == '\\' {
             escape = !escape;
         } else if character == quote {
             if escape {
                 escape = false;
             } else {
-                end = Some(index);
+                end = Some((char_index, byte_index));
                 break;
             }
         } else if character == '\r' || character == '\n' {
@@ -662,11 +670,11 @@ fn advance_quote(code: &str) -> Advancement {
         }
     }
 
-    if let Some(end) = end {
+    if let Some((char_index, byte_index)) = end {
         Ok(Some(TokenAdvancement {
-            advance: end + 1,
+            advance: char_index + 1,
             token_type: TokenType::StringLiteral {
-                literal: Cow::from(&code[1..end]),
+                literal: Cow::from(&code[1..byte_index]),
                 multi_line: None,
                 quote_type: match quote {
                     '"' => StringLiteralQuoteType::Double,
@@ -802,7 +810,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         };
     }
 
-    while code.chars().count() > position.bytes {
+    while code.bytes().count() > position.bytes {
         advance!(advance_whitespace);
         advance!(advance_comment);
         advance!(advance_number);
@@ -813,7 +821,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
         return Err(TokenizerError {
             error: TokenizerErrorType::UnexpectedToken(
                 code.chars()
-                    .nth(position.bytes)
+                    .nth(position.character - 1)
                     .expect("text overflow while giving unexpected token error"),
             ),
             position,

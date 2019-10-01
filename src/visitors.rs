@@ -3,10 +3,7 @@ use crate::{
     private::Sealed,
     tokenizer::TokenReference,
 };
-use std::{
-    borrow::Cow,
-    sync::Arc,
-};
+use std::{borrow::Cow, sync::Arc};
 
 macro_rules! create_visitor {
     (ast: {

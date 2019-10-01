@@ -1134,7 +1134,7 @@ impl<'a> Ast<'a> {
                     bytes: start_position.bytes() + display.len(),
                     line: start_position.line() + new_lines,
                     character: {
-                        let offset = display.lines().last().unwrap_or("").len();
+                        let offset = display.lines().last().unwrap_or("").chars().count();
                         if new_lines > 0 || next_is_new_line {
                             offset + 1
                         } else {
