@@ -7,7 +7,6 @@ use crate::{
     visitors::{Visit, VisitMut},
 };
 use generational_arena::Arena;
-use itertools::Itertools;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{fmt, sync::Arc};
