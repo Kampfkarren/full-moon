@@ -77,3 +77,39 @@ fn test_visitor_mut() {
     code.update_positions();
     PositionValidator.visit_ast(&code);
 }
+
+#[test]
+fn test_visit_token() {
+    #[derive(Default)]
+    struct CommentVisitor {
+        comments: Vec<String>,
+    };
+
+    impl Visitor<'_> for CommentVisitor {
+        fn visit_single_line_comment(&mut self, token: &tokenizer::TokenReference<'_>) {
+            self.comments.push(token.to_string());
+        }
+    }
+
+    let mut visitor = CommentVisitor::default();
+
+    let code = parse(
+        r#"
+    -- bla bla bla
+    --[[
+        multi line comment
+    ]]
+
+    -- comment here
+    local x = 1
+    -- and here
+    "#,
+    )
+    .unwrap();
+
+    visitor.visit_ast(&code);
+    assert_eq!(
+        visitor.comments,
+        vec!["-- bla bla bla", "-- comment here", "-- and here"]
+    );
+}
