@@ -36,7 +36,7 @@ macro_rules! symbols {
             fn from_str(string: &str) -> Result<Self, Self::Err> {
                 Ok(match string {
                     $($string => Symbol::$ident,)+
-                    _ => Err(())?,
+                    _ => return Err(()),
                 })
             }
         }
@@ -684,7 +684,7 @@ fn advance_quote(code: &str) -> Advancement {
             },
         }))
     } else {
-        return Err(TokenizerErrorType::UnclosedString);
+        Err(TokenizerErrorType::UnclosedString)
     }
 }
 
