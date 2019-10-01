@@ -427,6 +427,8 @@ impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
 
 impl<'ast> Visit<'ast> for TokenReference<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        visitor.visit_token(self);
+
         match self.token_kind() {
             TokenKind::Eof => visitor.visit_eof(self),
             TokenKind::Identifier => visitor.visit_identifier(self),
@@ -442,6 +444,8 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
 
 impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
     fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
+        visitor.visit_token(self);
+
         match self.token_kind() {
             TokenKind::Eof => visitor.visit_eof(self),
             TokenKind::Identifier => visitor.visit_identifier(self),
