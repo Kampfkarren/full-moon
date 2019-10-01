@@ -1011,7 +1011,7 @@ impl<'a> std::error::Error for AstError<'a> {}
 #[derive(Clone, Debug)]
 pub struct Ast<'a> {
     nodes: Block<'a>,
-    tokens: Arc<Arena<Token<'a>>>,
+    pub(crate) tokens: Arc<Arena<Token<'a>>>,
 }
 
 impl<'a> Ast<'a> {
