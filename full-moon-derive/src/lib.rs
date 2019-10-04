@@ -185,13 +185,17 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let visit_self = match visit_self_hint(&input.attrs) {
-        Some(VisitSelfHint::Skip) => quote! {},
+    let (visit_self, visit_self_end) = match visit_self_hint(&input.attrs) {
+        Some(VisitSelfHint::Skip) => (quote! {}, quote! {}),
         Some(VisitSelfHint::VisitAs(visit_as)) => {
+            let visit_as_end = syn::Ident::new(&format!("visit_{}_end", visit_as), input_ident.span());
             let visit_as = syn::Ident::new(&format!("visit_{}", visit_as), input_ident.span());
-            quote! {
+
+            (quote! {
                 visitor.#visit_as(self);
-            }
+            }, quote! {
+                visitor.#visit_as_end(self);
+            })
         }
         None => {
             // name of self in snake_case
@@ -199,9 +203,17 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
                 &format!("visit_{}", snake_case(&input_ident.to_string())),
                 input_ident.span(),
             );
-            quote! {
+
+            let ssself_end = syn::Ident::new(
+                &format!("visit_{}_end", snake_case(&input_ident.to_string())),
+                input_ident.span(),
+            );
+
+            (quote! {
                 visitor.#ssself(self);
-            }
+            }, quote! {
+                visitor.#ssself_end(self);
+            })
         }
     };
 
@@ -216,6 +228,7 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 
                 #visit_self
                 #expanded
+                #visit_self_end
             }
         }
 
@@ -229,6 +242,7 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 
                 #visit_self
                 #expanded
+                #visit_self_end
             }
         }
     };

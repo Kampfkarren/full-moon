@@ -113,3 +113,42 @@ fn test_visit_token() {
         vec!["-- bla bla bla", "-- comment here", "-- and here"]
     );
 }
+
+#[test]
+fn test_end_visit() {
+    #[derive(Default)]
+    struct LogVisitor {
+        instructions: usize,
+        if_start_at: usize,
+        if_end_at: usize,
+        called_at: usize,
+    }
+
+    impl Visitor<'_> for LogVisitor {
+        fn visit_if(&mut self, _: &ast::If) {
+            self.instructions += 1;
+            self.if_start_at = self.instructions
+        }
+
+        fn visit_if_end(&mut self, _: &ast::If) {
+            self.instructions += 1;
+            self.if_end_at = self.instructions;
+        }
+
+        fn visit_call(&mut self, _: &ast::Call) {
+            self.instructions += 1;
+            self.called_at = self.instructions;
+        }
+    }
+
+    let mut visitor = LogVisitor::default();
+    visitor.visit_ast(&parse(r#"
+    if true then
+        call()
+    end
+    "#).unwrap());
+
+    assert_eq!(visitor.if_start_at, 1);
+    assert_eq!(visitor.called_at, 2);
+    assert_eq!(visitor.if_end_at, 3);
+}

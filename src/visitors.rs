@@ -49,10 +49,14 @@ macro_rules! create_visitor {
                 ast.nodes().visit(self);
             }
 
-            $(
-                #[allow(missing_docs)]
-                fn $visit_name(&mut self, _node: &$ast_type<'ast>) { }
-            )+
+            paste::item! {
+                $(
+                    #[allow(missing_docs)]
+                    fn $visit_name(&mut self, _node: &$ast_type<'ast>) { }
+                    #[allow(missing_docs)]
+                    fn [<$visit_name _end>](&mut self, _node: &$ast_type<'ast>) { }
+                )+
+            }
 
             $(
                 #[allow(missing_docs)]
@@ -75,10 +79,14 @@ macro_rules! create_visitor {
                 ast.nodes_mut().visit_mut(self);
             }
 
-            $(
-                #[allow(missing_docs)]
-                fn $visit_name(&mut self, _node: &mut $ast_type<'ast>) { }
-            )+
+            paste::item! {
+                $(
+                    #[allow(missing_docs)]
+                    fn $visit_name(&mut self, _node: &mut $ast_type<'ast>) { }
+                    #[allow(missing_docs)]
+                    fn [<$visit_name _end>](&mut self, _node: &mut $ast_type<'ast>) { }
+                )+
+            }
 
             $(
                 #[allow(missing_docs)]
