@@ -10,7 +10,10 @@ use std::{
     cmp::Ordering,
     fmt,
     str::FromStr,
-    sync::{atomic::{AtomicUsize, Ordering as AtomicOrdering}, Arc},
+    sync::{
+        atomic::{AtomicUsize, Ordering as AtomicOrdering},
+        Arc,
+    },
 };
 
 macro_rules! symbols {
@@ -526,7 +529,8 @@ impl AtomicPosition {
 
     pub fn store(&self, position: Position) {
         self.bytes.store(position.bytes(), AtomicOrdering::Release);
-        self.character.store(position.character(), AtomicOrdering::Release);
+        self.character
+            .store(position.character(), AtomicOrdering::Release);
         self.line.store(position.line(), AtomicOrdering::Release);
     }
 }
@@ -538,10 +542,7 @@ impl<'de> Deserialize<'de> for AtomicPosition {
 }
 
 impl Serialize for AtomicPosition {
-    fn serialize<S: Serializer>(
-        &self,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.load().serialize(serializer)
     }
 }
