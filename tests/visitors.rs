@@ -142,11 +142,16 @@ fn test_end_visit() {
     }
 
     let mut visitor = LogVisitor::default();
-    visitor.visit_ast(&parse(r#"
+    visitor.visit_ast(
+        &parse(
+            r#"
     if true then
         call()
     end
-    "#).unwrap());
+    "#,
+        )
+        .unwrap(),
+    );
 
     assert_eq!(visitor.if_start_at, 1);
     assert_eq!(visitor.called_at, 2);
