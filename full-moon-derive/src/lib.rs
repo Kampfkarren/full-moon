@@ -250,7 +250,37 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
     TokenStream::from(source)
 }
 
-#[proc_macro_derive(Node)]
+#[derive(PartialEq)]
+enum NodeHint {
+    FullRange,
+}
+
+fn visit_node_hint(attrs: &[syn::Attribute]) -> Option<NodeHint> {
+    for attr in attrs {
+        let meta = match attr.parse_meta() {
+            Ok(meta) => meta,
+            Err(_) => continue,
+        };
+
+        if meta.name() != "node" {
+            continue;
+        }
+
+        if let syn::Meta::List(list) = meta {
+            for nested in list.nested.iter() {
+                if let syn::NestedMeta::Meta(syn::Meta::Word(word)) = nested {
+                    if word == "full_range" {
+                        return Some(NodeHint::FullRange);
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+#[proc_macro_derive(Node, attributes(node))]
 pub fn derive_node(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let input_ident = &input.ident;
@@ -270,34 +300,49 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                             .map(|field| field.ident.as_ref().unwrap())
                             .collect::<Vec<_>>();
 
-                        let (mut start_position, mut end_position) = (
-                            Vec::with_capacity(fields.len()),
-                            Vec::with_capacity(fields.len()),
-                        );
+                        let full_range = named.named.iter().find(|field| {
+                            visit_node_hint(&field.attrs) == Some(NodeHint::FullRange)
+                        });
 
-                        for field in &fields {
-                            start_position.push(quote! {
-                                .or_else(|| {
-                                    #field.start_position()
-                                })
-                            });
-                        }
+                        let body = if let Some(full_range) = full_range {
+                            let ident = full_range.ident.as_ref().unwrap();
+                            quote! {
+                                #ident.range()
+                            }
+                        } else {
+                            let (mut start_position, mut end_position) = (
+                                Vec::with_capacity(fields.len()),
+                                Vec::with_capacity(fields.len()),
+                            );
 
-                        for field in fields.iter().rev() {
-                            end_position.push(quote! {
-                                .or_else(|| {
-                                    #field.end_position()
-                                })
-                            });
-                        }
+                            for field in &fields {
+                                start_position.push(quote! {
+                                    .or_else(|| {
+                                        #field.start_position()
+                                    })
+                                });
+                            }
+
+                            for field in fields.iter().rev() {
+                                end_position.push(quote! {
+                                    .or_else(|| {
+                                        #field.end_position()
+                                    })
+                                });
+                            }
+
+                            quote! {
+                                Some((None#(#start_position)*?, None#(#end_position)*?))
+                            }
+                        };
 
                         cases.push(quote! {
                             #input_ident::#variant_ident {
                                 #(#fields,)*
                             } => {
-                                Some((None#(#start_position)*?, None#(#end_position)*?))
+                                #body
                             }
-                        });
+                        })
                     }
 
                     syn::Fields::Unnamed(unnamed) => {
@@ -354,28 +399,40 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                 .map(|field| field.ident.as_ref().unwrap())
                 .collect::<Vec<_>>();
 
-            let (mut start_position, mut end_position) = (
-                Vec::with_capacity(fields.len()),
-                Vec::with_capacity(fields.len()),
-            );
+            let full_range = strukt.fields.iter().find(|field| {
+                visit_node_hint(&field.attrs) == Some(NodeHint::FullRange)
+            });
 
-            for field in &fields {
-                start_position.push(quote! {
-                    self.#field.start_position()
-                });
-            }
+            if let Some(full_range) = full_range {
+                let ident = full_range.ident.as_ref().unwrap();
+                quote! {
+                    self.#ident.range()
+                }
+            } else {
+                let (mut start_position, mut end_position) = (
+                    Vec::with_capacity(fields.len()),
+                    Vec::with_capacity(fields.len()),
+                );
 
-            for field in &fields {
-                end_position.push(quote! {
-                    self.#field.end_position()
-                });
-            }
+                for field in &fields {
+                    start_position.push(quote! {
+                        .or_else(|| {
+                            self.#field.start_position()
+                        })
+                    });
+                }
 
-            quote! {
-                Some((
-                    vec![#(#start_position,)*].into_iter().flatten().min()?,
-                    vec![#(#end_position,)*].into_iter().flatten().max()?,
-                ))
+                for field in fields.iter().rev() {
+                    end_position.push(quote! {
+                        .or_else(|| {
+                            self.#field.end_position()
+                        })
+                    });
+                }
+
+                quote! {
+                    Some((None#(#start_position)*?, None#(#end_position)*?))
+                }
             }
         }
 

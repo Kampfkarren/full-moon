@@ -116,6 +116,7 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[node(full_range)]
     braces: ContainedSpan<'a>,
     fields: Vec<TableConstructorField<'a>>,
 }
@@ -163,6 +164,7 @@ pub enum Expression<'a> {
     Parentheses {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The parentheses of the `ParenExpression`
+        #[node(full_range)]
         contained: ContainedSpan<'a>,
         /// The expression inside the parentheses
         expression: Box<Expression<'a>>,
@@ -285,6 +287,7 @@ pub enum FunctionArgs<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         arguments: Punctuated<'a, Expression<'a>>,
         /// The `(...) part of (1, 2, 3)`
+        #[node(full_range)]
         parentheses: ContainedSpan<'a>,
     },
     /// Used when a function is called in the form of `call "foobar"`
