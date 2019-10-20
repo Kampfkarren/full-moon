@@ -17,3 +17,13 @@ fn surrounding_ignore_tokens() {
     assert_eq!(next.next().unwrap().to_string(), "\n");
     assert_eq!(next.next(), None);
 }
+
+#[test]
+fn test_similar() {
+    let ast = parse("local x = 1; --[[ uh oh, filler ]] local x = 1; local x = 2;").unwrap();
+    let stmts = ast.nodes().iter_stmts().collect::<Vec<_>>();
+
+    assert!(stmts[0].similar(stmts[1]));
+    assert!(stmts[1].similar(stmts[0]));
+    assert!(!stmts[0].similar(stmts[2]));
+}

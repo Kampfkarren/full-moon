@@ -14,6 +14,9 @@ pub trait Node: private::Sealed {
     /// The end position of a node. None if it can't be determined
     fn end_position(&self) -> Option<Position>;
 
+    /// Whether another node of the same type is the same as this one semantically, ignoring position
+    fn similar(&self, other: &Self) -> bool;
+
     /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
         Some((self.start_position()?, self.end_position()?))
@@ -75,6 +78,10 @@ impl<T: Node> Node for &T {
     fn end_position(&self) -> Option<Position> {
         (**self).end_position()
     }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
+    }
 }
 
 impl<T: Node> Node for &mut T {
@@ -84,6 +91,10 @@ impl<T: Node> Node for &mut T {
 
     fn end_position(&self) -> Option<Position> {
         (**self).end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
     }
 }
 
@@ -95,6 +106,10 @@ impl<'a> Node for Token<'a> {
     fn end_position(&self) -> Option<Position> {
         Some(self.end_position())
     }
+
+    fn similar(&self, other: &Self) -> bool {
+        *self.token_type() == *other.token_type()
+    }
 }
 
 impl<'a> Node for TokenReference<'a> {
@@ -104,6 +119,10 @@ impl<'a> Node for TokenReference<'a> {
 
     fn end_position(&self) -> Option<Position> {
         Some((**self).end_position())
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
     }
 }
 
@@ -115,6 +134,14 @@ impl<T: Node> Node for Option<T> {
     fn end_position(&self) -> Option<Position> {
         self.as_ref().and_then(Node::end_position)
     }
+
+    fn similar(&self, other: &Self) -> bool {
+        match (self.as_ref(), other.as_ref()) {
+            (Some(x), Some(y)) => x.similar(y),
+            (None, None) => true,
+            _ => false,
+        }
+    }
 }
 
 impl<T: Node> Node for Vec<T> {
@@ -124,6 +151,14 @@ impl<T: Node> Node for Vec<T> {
 
     fn end_position(&self) -> Option<Position> {
         self.last()?.end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        if self.len() == other.len() {
+            self.iter().zip(other.iter()).all(|(x, y)| x.similar(y))
+        } else {
+            false
+        }
     }
 }
 
@@ -144,5 +179,9 @@ impl<A: Node, B: Node> Node for (A, B) {
             (None, Some(y)) => Some(y),
             (None, None) => None,
         }
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.0.similar(&other.0) && self.1.similar(&other.1)
     }
 }

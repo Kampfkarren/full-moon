@@ -166,6 +166,12 @@ impl<'a, T: Node> Node for Punctuated<'a, T> {
     fn end_position(&self) -> Option<Position> {
         self.pairs.last()?.end_position()
     }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.into_iter()
+            .collect::<Vec<_>>()
+            .similar(&other.into_iter().collect::<Vec<_>>())
+    }
 }
 
 impl<'a, T: Visit<'a>> Visit<'a> for Punctuated<'a, T> {
@@ -364,6 +370,10 @@ impl<'a, T: Node> Node for Pair<'a, T> {
         self.punctuation()
             .and_then(Node::end_position)
             .or_else(|| self.value().end_position())
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.value().similar(other.value())
     }
 }
 

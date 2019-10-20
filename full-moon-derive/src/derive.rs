@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{parse_macro_input, DeriveInput};
 
 pub trait DeriveGenerator: EnumGenerator + StructGenerator {
@@ -27,6 +27,8 @@ pub trait StructGenerator {
 }
 
 pub trait MatchEnumGenerator {
+    const SELF: &'static str = "self";
+
     fn case_named(
         _input: &syn::Ident,
         _variant: &syn::Ident,
@@ -68,9 +70,10 @@ impl<T: MatchEnumGenerator> EnumGenerator for T {
             }
         }
 
+        let self_ident = format_ident!("{}", T::SELF);
+
         quote! {
-            #[allow(unused_variables)]
-            match self {
+            match #self_ident {
                 #(#cases)*
             }
         }

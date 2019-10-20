@@ -1,7 +1,7 @@
 use crate::derive::*;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 
 #[derive(PartialEq)]
 enum NodeHint {
@@ -25,14 +25,35 @@ impl DeriveGenerator for NodeGenerator {
         let input_ident = &input.ident;
         let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
+        let macro_name = format_ident!("NodeGenerator{}", input_ident);
+
+        let pattern = quote! {{
+            range => $range:expr,
+            similar => $similar:expr,
+        }};
+
         quote! {
+            macro_rules! #macro_name {
+                ("range", #pattern) => {
+                    $range
+                };
+
+                ("similar", #pattern) => {
+                    $similar
+                };
+            }
+
             impl #impl_generics crate::node::Node for #input_ident #ty_generics #where_clause {
                 fn start_position(&self) -> Option<crate::tokenizer::Position> {
-                    Some(#tokens?.0)
+                    Some(#macro_name!("range", { #tokens })?.0)
                 }
 
                 fn end_position(&self) -> Option<crate::tokenizer::Position> {
-                    Some(#tokens?.1)
+                    Some(#macro_name!("range", { #tokens })?.1)
+                }
+
+                fn similar(&self, other: &Self) -> bool {
+                    #macro_name!("similar", { #tokens })
                 }
             }
 
@@ -42,6 +63,20 @@ impl DeriveGenerator for NodeGenerator {
 }
 
 impl StructGenerator for NodeGenerator {
+    fn generate(ident: &syn::Ident, strukt: &syn::DataStruct) -> TokenStream {
+        let range = StructRangeGenerator::generate(ident, strukt);
+        let similar = StructSimilarGenerator::generate(ident, strukt);
+
+        quote! {
+            range => { #range },
+            similar => { #similar },
+        }
+    }
+}
+
+pub struct StructRangeGenerator;
+
+impl StructGenerator for StructRangeGenerator {
     fn generate(_: &syn::Ident, strukt: &syn::DataStruct) -> TokenStream {
         let fields = strukt
             .fields
@@ -88,7 +123,43 @@ impl StructGenerator for NodeGenerator {
     }
 }
 
-impl MatchEnumGenerator for NodeGenerator {
+pub struct StructSimilarGenerator;
+
+impl StructGenerator for StructSimilarGenerator {
+    fn generate(_: &syn::Ident, strukt: &syn::DataStruct) -> TokenStream {
+        let fields = strukt
+            .fields
+            .iter()
+            .map(|field| field.ident.as_ref().unwrap())
+            .collect::<Vec<_>>();
+
+        quote! {
+            #(
+                self.#fields.similar(&other.#fields) &&
+            )* true
+        }
+    }
+}
+
+impl EnumGenerator for NodeGenerator {
+    fn generate(ident: &syn::Ident, enumm: &syn::DataEnum) -> TokenStream {
+        let range = EnumRangeGenerator::generate(ident, enumm);
+        let similar = EnumSimilarGenerator::generate(ident, enumm);
+
+        quote! {
+            range => {
+                #[allow(unused)]
+                #range
+            },
+
+            similar => { #similar },
+        }
+    }
+}
+
+pub struct EnumRangeGenerator;
+
+impl MatchEnumGenerator for EnumRangeGenerator {
     fn case_named(
         input: &syn::Ident,
         variant: &syn::Ident,
@@ -183,6 +254,77 @@ impl MatchEnumGenerator for NodeGenerator {
                     Some((first.start_position()?, last.end_position()?))
                 }
             }
+        }
+    }
+}
+
+pub struct EnumSimilarGenerator;
+
+impl MatchEnumGenerator for EnumSimilarGenerator {
+    fn case_named(
+        input: &syn::Ident,
+        variant: &syn::Ident,
+        named: &syn::FieldsNamed,
+    ) -> TokenStream {
+        let fields = named
+            .named
+            .iter()
+            .map(|field| field.ident.as_ref().unwrap())
+            .collect::<Vec<_>>();
+
+        let other_fields: Vec<_> = fields.iter().map(|ident| format_ident!("other_{}", ident)).collect();
+
+        quote! {
+            #input::#variant {
+                #(#fields,)*
+            } => {
+                if let #input::#variant {
+                    #(
+                        #fields: #other_fields,
+                    )*
+                } = &other {
+                    #(
+                        #fields.similar(#other_fields) &&
+                    )* true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    fn case_unnamed(
+        input: &syn::Ident,
+        variant: &syn::Ident,
+        fields: &syn::FieldsUnnamed,
+    ) -> TokenStream {
+        let fields: Vec<_> = fields
+            .unnamed
+            .iter()
+            .enumerate()
+            .map(|(index, _)| format_ident!("__self_{}", index))
+            .collect();
+
+        let other_fields: Vec<_> = fields.iter().map(|ident| format_ident!("other_{}", ident)).collect();
+
+        quote! {
+            #input::#variant(
+                #(#fields,)*
+            ) => {
+                if let #input::#variant(#(#other_fields,)*) = &other {
+                    #(
+                        #fields.similar(#other_fields) &&
+                    )* true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    fn case_unit(input: &syn::Ident, variant: &syn::Ident) -> TokenStream {
+        quote! {
+            #input::#variant => other == #input::#variant
         }
     }
 }

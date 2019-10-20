@@ -53,6 +53,10 @@ impl<'a> Node for ContainedSpan<'a> {
     fn end_position(&self) -> Option<Position> {
         self.tokens.1.end_position()
     }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.tokens.0.similar(&other.tokens.0) && self.tokens.1.similar(&other.tokens.1)
+    }
 }
 
 impl<'a> Sealed for ContainedSpan<'a> {}
