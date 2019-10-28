@@ -197,6 +197,105 @@
         }
       },
       null
+    ],
+    [
+      {
+        "FunctionCall": {
+          "prefix": {
+            "Name": {
+              "start_position": {
+                "bytes": 30,
+                "character": 15,
+                "line": 2
+              },
+              "end_position": {
+                "bytes": 34,
+                "character": 5,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Identifier",
+                "identifier": "call"
+              }
+            }
+          },
+          "suffixes": [
+            {
+              "Call": {
+                "AnonymousCall": {
+                  "Parentheses": {
+                    "arguments": {
+                      "pairs": [
+                        {
+                          "End": {
+                            "value": {
+                              "String": {
+                                "start_position": {
+                                  "bytes": 35,
+                                  "character": 6,
+                                  "line": 3
+                                },
+                                "end_position": {
+                                  "bytes": 45,
+                                  "character": 16,
+                                  "line": 3
+                                },
+                                "token_type": {
+                                  "type": "StringLiteral",
+                                  "literal": "foo\\nbar",
+                                  "quote_type": "Double"
+                                }
+                              }
+                            },
+                            "binop": null
+                          }
+                        }
+                      ]
+                    },
+                    "parentheses": {
+                      "tokens": [
+                        {
+                          "start_position": {
+                            "bytes": 34,
+                            "character": 5,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 35,
+                            "character": 6,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": "("
+                          }
+                        },
+                        {
+                          "start_position": {
+                            "bytes": 45,
+                            "character": 16,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 46,
+                            "character": 17,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Symbol",
+                            "symbol": ")"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      null
     ]
   ]
 }

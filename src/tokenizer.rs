@@ -713,7 +713,7 @@ fn advance_quote(code: &str) -> Advancement {
                 end = Some((char_index, byte_index));
                 break;
             }
-        } else if character == '\r' || character == '\n' {
+        } else if (character == '\r' || character == '\n') && !escape {
             return Err(TokenizerErrorType::UnclosedString);
         } else {
             escape = false;
@@ -1103,6 +1103,7 @@ mod tests {
                     character: 1,
                     line: 1,
                 })),
+
                 token_type: Arc::new(AtomicRefCell::new(TokenType::Whitespace {
                     characters: Cow::from("\n")
                 })),

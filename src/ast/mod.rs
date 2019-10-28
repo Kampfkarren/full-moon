@@ -1123,22 +1123,22 @@ impl<'a> Ast<'a> {
         let mut next_is_new_line = false;
 
         for (_, token) in self.tokens.iter() {
-            let display = token.to_string();
+            let display = dbg!(token.to_string());
 
-            let new_lines = match bytecount::count(display.as_bytes(), b'\n') {
-                0 | 1 => 0,
-                n => n,
-            };
+            let mut lines = bytecount::count(&display.as_bytes(), b'\n');
+            if token.token_kind() == TokenKind::Whitespace {
+                lines = lines.saturating_sub(1)
+            }
 
             let end_position = if token.token_kind() == TokenKind::Eof {
                 start_position
             } else {
                 let mut end_position = Position {
                     bytes: start_position.bytes() + display.len(),
-                    line: start_position.line() + new_lines,
+                    line: start_position.line() + lines,
                     character: {
                         let offset = display.lines().last().unwrap_or("").chars().count();
-                        if new_lines > 0 || next_is_new_line {
+                        if lines > 0 || next_is_new_line {
                             offset + 1
                         } else {
                             start_position.character() + offset
