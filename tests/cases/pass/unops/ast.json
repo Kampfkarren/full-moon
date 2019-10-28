@@ -61,25 +61,45 @@
             "pairs": [
               {
                 "End": {
-                  "value": {
-                    "Number": {
+                  "unop": {
+                    "Minus": {
                       "start_position": {
                         "bytes": 24,
                         "character": 25,
                         "line": 1
                       },
                       "end_position": {
-                        "bytes": 26,
-                        "character": 27,
+                        "bytes": 25,
+                        "character": 26,
                         "line": 1
                       },
                       "token_type": {
-                        "type": "Number",
-                        "text": "-3"
+                        "type": "Symbol",
+                        "symbol": "-"
                       }
                     }
                   },
-                  "binop": null
+                  "expression": {
+                    "value": {
+                      "Number": {
+                        "start_position": {
+                          "bytes": 25,
+                          "character": 26,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 26,
+                          "character": 27,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "3"
+                        }
+                      }
+                    },
+                    "binop": null
+                  }
                 }
               }
             ]
