@@ -1123,7 +1123,7 @@ impl<'a> Ast<'a> {
         let mut next_is_new_line = false;
 
         for (_, token) in self.tokens.iter() {
-            let display = dbg!(token.to_string());
+            let display = token.to_string();
 
             let mut lines = bytecount::count(&display.as_bytes(), b'\n');
             if token.token_kind() == TokenKind::Whitespace {
