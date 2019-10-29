@@ -1127,7 +1127,7 @@ impl<'a> Ast<'a> {
 
             let mut lines = bytecount::count(&display.as_bytes(), b'\n');
             if token.token_kind() == TokenKind::Whitespace {
-                lines = lines.saturating_sub(1)
+                lines = lines.saturating_sub(1);
             }
 
             let end_position = if token.token_kind() == TokenKind::Eof {
