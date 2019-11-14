@@ -581,9 +581,6 @@ lazy_static! {
     static ref PATTERN_NUMBER: Regex = {
         let mut set = Vec::new();
 
-        // Basic numbers (123456.346e123)
-        set.push(r"(((\d*\.\d+)|(\d+))([eE]-?\d+)?)");
-
         // Hexadecimal
         set.push(r"(0x[A-Fa-f\d]+)");
 
@@ -591,6 +588,9 @@ lazy_static! {
             // Binary literals
             set.push(r"(0b[01]+)");
         }
+
+        // Basic numbers (123456.346e123)
+        set.push(r"(((\d*\.\d+)|(\d+))([eE]-?\d+)?)");
 
         Regex::new(&format!("^({})", set.join("|"))).unwrap()
     };
@@ -979,6 +979,20 @@ mod tests {
                 advance: 6,
                 token_type: TokenType::Number {
                     text: Cow::from("123.45"),
+                },
+            }))
+        );
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "roblox"), ignore)]
+    fn test_advance_binary_literals() {
+        test_advancer!(
+            advance_number("0b101"),
+            Ok(Some(TokenAdvancement {
+                advance: 5,
+                token_type: TokenType::Number {
+                    text: Cow::from("0b101"),
                 },
             }))
         );
