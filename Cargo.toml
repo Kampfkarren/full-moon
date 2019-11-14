@@ -12,6 +12,7 @@ edition = "2018"
 
 [features]
 default = ["serde"]
+roblox = []
 no-source-tests = []
 
 [dependencies]

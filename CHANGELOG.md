@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Expression::Parentheses`
 - Added `Owned` trait to get a `'static` lifetime version of nodes
 - Added `visit_XXX_end` methods for when completing a visit on a node
+- Added a `roblox` feature flag for Roblox specific syntax.
+- Added binary literals when using `roblox` feature flag.
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
