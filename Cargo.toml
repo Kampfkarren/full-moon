@@ -32,5 +32,9 @@ pretty_assertions = "0.6.1"
 serde_json = "1.0"
 
 [[bench]]
+name = "date"
+harness = false
+
+[[bench]]
 name = "t"
 harness = false

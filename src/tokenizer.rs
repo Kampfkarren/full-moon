@@ -621,13 +621,9 @@ macro_rules! advance_regex {
 }
 
 fn advance_comment(code: &str) -> Advancement {
-    if let Some(captures) = PATTERN_COMMENT_MULTI_LINE_BEGIN.captures(code) {
-        let whole_beginning = captures.get(0).unwrap();
-        if whole_beginning.start() == 0 {
-            let block_count = match captures.get(1) {
-                Some(block_count) => block_count.end() - block_count.start(),
-                None => 0,
-            };
+    if let Some(beginning) = PATTERN_COMMENT_MULTI_LINE_BEGIN.find(code) {
+        if beginning.start() == 0 {
+            let block_count = beginning.end() - beginning.start() - "--[[".len();
 
             let end_regex = Regex::new(&format!(r"\]={{{}}}\]", block_count)).unwrap();
 
@@ -636,12 +632,10 @@ fn advance_comment(code: &str) -> Advancement {
                 None => return Err(TokenizerErrorType::UnclosedComment),
             };
 
-            let comment = &code[whole_beginning.end()..end_find.start()];
+            let comment = &code[beginning.end()..end_find.start()];
 
             return Ok(Some(TokenAdvancement {
-                advance: code[whole_beginning.start()..end_find.end()]
-                    .chars()
-                    .count(),
+                advance: code[beginning.start()..end_find.end()].chars().count(),
                 token_type: TokenType::MultiLineComment {
                     blocks: block_count,
                     comment: Cow::from(comment),
@@ -679,15 +673,11 @@ fn advance_identifier(code: &str) -> Advancement {
 }
 
 fn advance_quote(code: &str) -> Advancement {
-    if let Some(captures) = PATTERN_STRING_MULTI_LINE_BEGIN.captures(code) {
-        let whole_beginning = captures.get(0).unwrap();
-        if whole_beginning.start() == 0 {
-            let block_count = match captures.get(1) {
-                Some(block_count) => block_count.as_str().chars().count(),
-                None => 0,
-            };
+    if let Some(beginning) = PATTERN_STRING_MULTI_LINE_BEGIN.find(code) {
+        if beginning.start() == 0 {
+            let block_count = beginning.end() - beginning.start() - "[[".len();
 
-            let end_regex = Regex::new(&format!(r"\]={{{}}}\]", block_count)).unwrap();
+            let end_regex = Regex::new(&format!(r"\]{}\]", "=".repeat(block_count))).unwrap();
 
             let end_find = match end_regex.find(code) {
                 Some(find) => find,
@@ -695,12 +685,10 @@ fn advance_quote(code: &str) -> Advancement {
             };
 
             return Ok(Some(TokenAdvancement {
-                advance: code[whole_beginning.start()..end_find.end()]
-                    .chars()
-                    .count(),
+                advance: code[beginning.start()..end_find.end()].chars().count(),
                 token_type: TokenType::StringLiteral {
                     multi_line: Some(block_count),
-                    literal: Cow::from(&code[whole_beginning.end()..end_find.start()]),
+                    literal: Cow::from(&code[beginning.end()..end_find.start()]),
                     quote_type: StringLiteralQuoteType::Brackets,
                 },
             }));
