@@ -3,8 +3,7 @@ use atomic_refcell::AtomicRefCell;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use nom::{
-    bytes::complete::take_while,
-    character::{complete::alpha1, is_alphanumeric},
+    bytes::complete::{take_while, take_while1},
     combinator::recognize,
     sequence::pair,
     IResult,
@@ -677,9 +676,9 @@ fn advance_number(code: &str) -> Advancement {
 fn parse_identifier(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         // Identifiers must start with at least 1 alphabetic character
-        alpha1,
+        take_while1(|x: char| x.is_ascii_alphabetic() || x == '_'),
         // And then they must be followed by 0 or more alphanumeric (or '_') characters
-        take_while(|x| is_alphanumeric(x as u8) || x == '_'),
+        take_while(|x: char| x.is_ascii_alphanumeric() || x == '_'),
     ))(code)
 }
 
