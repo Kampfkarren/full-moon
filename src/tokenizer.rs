@@ -2,6 +2,13 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use atomic_refcell::AtomicRefCell;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
+use nom::{
+    bytes::complete::take_while,
+    character::{complete::alpha1, is_alphanumeric},
+    combinator::recognize,
+    sequence::pair,
+    IResult,
+};
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -666,10 +673,26 @@ fn advance_number(code: &str) -> Advancement {
     })
 }
 
+#[inline]
+fn parse_identifier(code: &str) -> IResult<&str, &str> {
+    recognize(pair(
+        // Identifiers must start with at least 1 alphabetic character
+        alpha1,
+        // And then they must be followed by 0 or more alphanumeric (or '_') characters
+        take_while(|x| is_alphanumeric(x as u8) || x == '_'),
+    ))(code)
+}
+
 fn advance_identifier(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_IDENTIFIER, Identifier(find) {
-        identifier: Cow::from(find.as_str()),
-    })
+    match parse_identifier(code) {
+        Ok((_, identifier)) => Ok(Some(TokenAdvancement {
+            advance: identifier.chars().count(),
+            token_type: TokenType::Identifier {
+                identifier: Cow::from(identifier),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
 }
 
 fn advance_quote(code: &str) -> Advancement {
