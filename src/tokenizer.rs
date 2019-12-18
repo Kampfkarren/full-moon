@@ -3,8 +3,10 @@ use atomic_refcell::AtomicRefCell;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use nom::{
+    branch::alt,
     bytes::complete::{take_while, take_while1},
-    combinator::recognize,
+    character::complete::{line_ending, space1},
+    combinator::{opt, recognize},
     sequence::pair,
     IResult,
 };
@@ -603,7 +605,6 @@ lazy_static! {
     static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
     static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--([^\n]*)").unwrap();
     static ref PATTERN_STRING_MULTI_LINE_BEGIN: Regex = Regex::new(r"\[(=*)\[").unwrap();
-    static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
@@ -787,11 +788,23 @@ fn advance_symbol(code: &str) -> Advancement {
     }
 }
 
+#[inline]
+fn parse_whitespace(code: &str) -> IResult<&str, &str> {
+    // From regex "^[^\S\n]+\n?|\n"
+    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
+}
+
 // Keep finding whitespace until the line ends
 fn advance_whitespace(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_WHITESPACE, Whitespace(find) {
-        characters: Cow::from(find.as_str()),
-    })
+    match parse_whitespace(code) {
+        Ok((_, whitespace)) => Ok(Some(TokenAdvancement {
+            advance: whitespace.chars().count(),
+            token_type: TokenType::Whitespace {
+                characters: Cow::from(whitespace),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
 }
 
 /// Information about an error that occurs while tokenizing
