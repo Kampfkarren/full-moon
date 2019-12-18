@@ -583,7 +583,6 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
 }
 
 lazy_static! {
-    static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
     static ref PATTERN_NUMBER: Regex = {
         let mut set = Vec::new();
 
@@ -765,8 +764,12 @@ fn advance_quote(code: &str) -> Advancement {
 
 fn advance_symbol(code: &str) -> Advancement {
     if code.chars().next().unwrap().is_ascii_alphanumeric() {
-        let identifier = PATTERN_IDENTIFIER.find(code).unwrap();
-        let expected_len = identifier.end() - identifier.start();
+        let identifier = match parse_identifier(code) {
+            Ok((_, identifier)) => identifier,
+            Err(_) => panic!("Parsing identifier failed"),
+        };
+
+        let expected_len = identifier.len();
 
         advance_regex!(&code[0..expected_len], PATTERN_SYMBOL, Symbol(find) {
             symbol: {
