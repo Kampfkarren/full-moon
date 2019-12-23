@@ -1,10 +1,11 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use atomic_refcell::AtomicRefCell;
+use full_moon_derive::symbols;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use nom::{
     branch::alt,
-    bytes::complete::{take_while, take_while1},
+    bytes::complete::{tag, take_while, take_while1},
     character::complete::{line_ending, space1},
     combinator::{opt, recognize},
     sequence::pair,
@@ -23,53 +24,6 @@ use std::{
         Arc,
     },
 };
-
-macro_rules! symbols {
-    ($($ident:ident => $string:tt,)+) => {
-        /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
-        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        pub enum Symbol {
-            $(
-                #[cfg_attr(feature = "serde", serde(rename = $string))]
-                #[allow(missing_docs)]
-                $ident,
-            )+
-        }
-
-        impl<'a> fmt::Display for Symbol {
-            fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                match *self {
-                    $(Symbol::$ident => $string,)+
-                }
-                .fmt(formatter)
-            }
-        }
-
-        impl FromStr for Symbol {
-            type Err = ();
-
-            fn from_str(string: &str) -> Result<Self, Self::Err> {
-                Ok(match string {
-                    $($string => Symbol::$ident,)+
-                    _ => return Err(()),
-                })
-            }
-        }
-
-        lazy_static! {
-            static ref PATTERN_SYMBOL: Regex = Regex::new(
-                &vec![$($string,)+]
-                    .iter()
-                    .map(|x| {
-                        regex::escape(&x.to_string())
-                    })
-                    .collect::<Vec<_>>()
-                    .join("|")
-            ).unwrap();
-        }
-    };
-}
 
 symbols!(
     And => "and",
@@ -764,27 +718,15 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    if code.chars().next().unwrap().is_ascii_alphanumeric() {
-        let identifier = match parse_identifier(code) {
-            Ok((_, identifier)) => identifier,
-            Err(_) => panic!("Parsing identifier failed"),
-        };
+    match parse_symbol(code) {
+        Ok((_, string)) => Ok(Some(TokenAdvancement {
+            advance: string.chars().count(),
+            token_type: TokenType::Symbol {
+                symbol: Symbol::from_str(string).unwrap(),
+            },
+        })),
 
-        let expected_len = identifier.len();
-
-        advance_regex!(&code[0..expected_len], PATTERN_SYMBOL, Symbol(find) {
-            symbol: {
-                if find.end() - find.start() == expected_len {
-                    Symbol::from_str(find.as_str()).unwrap()
-                } else {
-                    return Ok(None)
-                }
-            }
-        })
-    } else {
-        advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
-            symbol: Symbol::from_str(find.as_str()).unwrap(),
-        })
+        Err(_) => Ok(None),
     }
 }
 
