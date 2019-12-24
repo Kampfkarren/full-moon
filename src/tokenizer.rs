@@ -5,10 +5,11 @@ use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_while, take_while1},
-    character::complete::{line_ending, space1},
+    bytes::complete::{tag, take_till, take_while, take_while1},
+    character::complete::{anychar, line_ending, space1},
     combinator::{opt, recognize},
-    sequence::pair,
+    multi::many_till,
+    sequence::{delimited, pair, preceded, tuple},
     IResult,
 };
 use regex::{self, Regex};
@@ -556,8 +557,6 @@ lazy_static! {
         Regex::new(&format!("^({})", set.join("|"))).unwrap()
     };
 
-    static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
-    static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--([^\n]*)").unwrap();
     static ref PATTERN_STRING_MULTI_LINE_BEGIN: Regex = Regex::new(r"\[(=*)\[").unwrap();
 }
 
@@ -580,44 +579,55 @@ macro_rules! advance_regex {
     };
 }
 
+#[inline]
+fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
+    preceded(tag("--"), take_till(|x: char| x.is_ascii_control()))(code)
+}
+
+#[inline]
+fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
+    delimited(tag("--["), take_while(|x: char| x == '='), tag("["))(code)
+}
+
+#[inline]
+fn parse_multi_line_comment_body<'a>(
+    code: &'a str,
+    equality_symbol: &'a str,
+) -> IResult<&'a str, &'a str> {
+    recognize(many_till(
+        anychar,
+        recognize(tuple((tag("]"), tag(equality_symbol), tag("]")))),
+    ))(code)
+}
+
 fn advance_comment(code: &str) -> Advancement {
-    if let Some(beginning) = PATTERN_COMMENT_MULTI_LINE_BEGIN.find(code) {
-        if beginning.start() == 0 {
-            let block_count = beginning.end() - beginning.start() - "--[[".len();
-
-            let end_regex = Regex::new(&format!(r"\]={{{}}}\]", block_count)).unwrap();
-
-            let end_find = match end_regex.find(code) {
-                Some(find) => find,
-                None => return Err(TokenizerErrorType::UnclosedComment),
-            };
-
-            let comment = &code[beginning.end()..end_find.start()];
-
-            return Ok(Some(TokenAdvancement {
-                advance: code[beginning.start()..end_find.end()].chars().count(),
-                token_type: TokenType::MultiLineComment {
-                    blocks: block_count,
-                    comment: Cow::from(comment),
-                },
-            }));
-        }
+    if let Ok((code, equality_symbol)) = parse_multi_line_comment_start(code) {
+        return match parse_multi_line_comment_body(code, equality_symbol) {
+            Ok((_, comment)) => {
+                let blocks = equality_symbol.len();
+                // Get the comment without the ending "]]"
+                let comment = &comment[..(comment.len() - "]]".len() - blocks)];
+                Ok(Some(TokenAdvancement {
+                    advance: comment.len() + blocks * 2 + "--[[]]".len(),
+                    token_type: TokenType::MultiLineComment {
+                        blocks,
+                        comment: Cow::from(comment),
+                    },
+                }))
+            }
+            Err(_) => Err(TokenizerErrorType::UnclosedComment),
+        };
     }
 
-    if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
-        if find.start() == 0 {
-            let comment = &find.as_str()[2..];
-
-            return Ok(Some(TokenAdvancement {
-                advance: 2 + comment.chars().count(),
-                token_type: TokenType::SingleLineComment {
-                    comment: Cow::from(comment),
-                },
-            }));
-        }
+    match parse_single_line_comment(code) {
+        Ok((_, comment)) => Ok(Some(TokenAdvancement {
+            advance: 2 + comment.chars().count(),
+            token_type: TokenType::SingleLineComment {
+                comment: Cow::from(comment),
+            },
+        })),
+        Err(_) => Ok(None),
     }
-
-    Ok(None)
 }
 
 fn advance_number(code: &str) -> Advancement {
@@ -924,6 +934,28 @@ mod tests {
                 advance: 14,
                 token_type: TokenType::SingleLineComment {
                     comment: Cow::from(" hello world"),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_comment("--[[ hello world ]]"),
+            Ok(Some(TokenAdvancement {
+                advance: 19,
+                token_type: TokenType::MultiLineComment {
+                    blocks: 0,
+                    comment: Cow::from(" hello world "),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_comment("--[=[ hello world ]=]"),
+            Ok(Some(TokenAdvancement {
+                advance: 21,
+                token_type: TokenType::MultiLineComment {
+                    blocks: 1,
+                    comment: Cow::from(" hello world "),
                 },
             }))
         );
