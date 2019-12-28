@@ -592,19 +592,19 @@ fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
 #[inline]
 fn parse_multi_line_comment_body<'a>(
     code: &'a str,
-    equality_symbol: &'a str,
+    block_count: &'a str,
 ) -> IResult<&'a str, &'a str> {
     recognize(many_till(
         anychar,
-        recognize(tuple((tag("]"), tag(equality_symbol), tag("]")))),
+        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
     ))(code)
 }
 
 fn advance_comment(code: &str) -> Advancement {
-    if let Ok((code, equality_symbol)) = parse_multi_line_comment_start(code) {
-        return match parse_multi_line_comment_body(code, equality_symbol) {
+    if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
+        return match parse_multi_line_comment_body(code, block_count) {
             Ok((_, comment)) => {
-                let blocks = equality_symbol.len();
+                let blocks = block_count.len();
                 // Get the comment without the ending "]]"
                 let comment = &comment[..(comment.len() - "]]".len() - blocks)];
                 Ok(Some(TokenAdvancement {
