@@ -1,7 +1,17 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use atomic_refcell::AtomicRefCell;
+use full_moon_derive::symbols;
 use generational_arena::{Arena, Index};
 use lazy_static::lazy_static;
+use nom::{
+    branch::alt,
+    bytes::complete::{tag, take_till, take_while, take_while1},
+    character::complete::{anychar, line_ending, space1},
+    combinator::{opt, recognize},
+    multi::many_till,
+    sequence::{delimited, pair, preceded, tuple},
+    IResult,
+};
 use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -15,53 +25,6 @@ use std::{
         Arc,
     },
 };
-
-macro_rules! symbols {
-    ($($ident:ident => $string:tt,)+) => {
-        /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
-        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        pub enum Symbol {
-            $(
-                #[cfg_attr(feature = "serde", serde(rename = $string))]
-                #[allow(missing_docs)]
-                $ident,
-            )+
-        }
-
-        impl<'a> fmt::Display for Symbol {
-            fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                match *self {
-                    $(Symbol::$ident => $string,)+
-                }
-                .fmt(formatter)
-            }
-        }
-
-        impl FromStr for Symbol {
-            type Err = ();
-
-            fn from_str(string: &str) -> Result<Self, Self::Err> {
-                Ok(match string {
-                    $($string => Symbol::$ident,)+
-                    _ => return Err(()),
-                })
-            }
-        }
-
-        lazy_static! {
-            static ref PATTERN_SYMBOL: Regex = Regex::new(
-                &vec![$($string,)+]
-                    .iter()
-                    .map(|x| {
-                        regex::escape(&x.to_string())
-                    })
-                    .collect::<Vec<_>>()
-                    .join("|")
-            ).unwrap();
-        }
-    };
-}
 
 symbols!(
     And => "and",
@@ -577,7 +540,6 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
 }
 
 lazy_static! {
-    static ref PATTERN_IDENTIFIER: Regex = Regex::new(r"[^\W\d]+\w*").unwrap();
     static ref PATTERN_NUMBER: Regex = {
         let mut set = Vec::new();
 
@@ -595,10 +557,7 @@ lazy_static! {
         Regex::new(&format!("^({})", set.join("|"))).unwrap()
     };
 
-    static ref PATTERN_COMMENT_MULTI_LINE_BEGIN: Regex = Regex::new(r"--\[(=*)\[").unwrap();
-    static ref PATTERN_COMMENT_SINGLE_LINE: Regex = Regex::new(r"--([^\n]*)").unwrap();
     static ref PATTERN_STRING_MULTI_LINE_BEGIN: Regex = Regex::new(r"\[(=*)\[").unwrap();
-    static ref PATTERN_WHITESPACE: Regex = Regex::new(r"(^[^\S\n]+\n?|\n)").unwrap();
 }
 
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
@@ -620,44 +579,55 @@ macro_rules! advance_regex {
     };
 }
 
+#[inline]
+fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
+    preceded(tag("--"), take_till(|x: char| x.is_ascii_control()))(code)
+}
+
+#[inline]
+fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
+    delimited(tag("--["), take_while(|x: char| x == '='), tag("["))(code)
+}
+
+#[inline]
+fn parse_multi_line_comment_body<'a>(
+    code: &'a str,
+    block_count: &'a str,
+) -> IResult<&'a str, &'a str> {
+    recognize(many_till(
+        anychar,
+        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
+    ))(code)
+}
+
 fn advance_comment(code: &str) -> Advancement {
-    if let Some(beginning) = PATTERN_COMMENT_MULTI_LINE_BEGIN.find(code) {
-        if beginning.start() == 0 {
-            let block_count = beginning.end() - beginning.start() - "--[[".len();
-
-            let end_regex = Regex::new(&format!(r"\]={{{}}}\]", block_count)).unwrap();
-
-            let end_find = match end_regex.find(code) {
-                Some(find) => find,
-                None => return Err(TokenizerErrorType::UnclosedComment),
-            };
-
-            let comment = &code[beginning.end()..end_find.start()];
-
-            return Ok(Some(TokenAdvancement {
-                advance: code[beginning.start()..end_find.end()].chars().count(),
-                token_type: TokenType::MultiLineComment {
-                    blocks: block_count,
-                    comment: Cow::from(comment),
-                },
-            }));
-        }
+    if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
+        return match parse_multi_line_comment_body(code, block_count) {
+            Ok((_, comment)) => {
+                let blocks = block_count.len();
+                // Get the comment without the ending "]]"
+                let comment = &comment[..(comment.len() - "]]".len() - blocks)];
+                Ok(Some(TokenAdvancement {
+                    advance: comment.len() + blocks * 2 + "--[[]]".len(),
+                    token_type: TokenType::MultiLineComment {
+                        blocks,
+                        comment: Cow::from(comment),
+                    },
+                }))
+            }
+            Err(_) => Err(TokenizerErrorType::UnclosedComment),
+        };
     }
 
-    if let Some(find) = PATTERN_COMMENT_SINGLE_LINE.find(code) {
-        if find.start() == 0 {
-            let comment = &find.as_str()[2..];
-
-            return Ok(Some(TokenAdvancement {
-                advance: 2 + comment.chars().count(),
-                token_type: TokenType::SingleLineComment {
-                    comment: Cow::from(comment),
-                },
-            }));
-        }
+    match parse_single_line_comment(code) {
+        Ok((_, comment)) => Ok(Some(TokenAdvancement {
+            advance: 2 + comment.chars().count(),
+            token_type: TokenType::SingleLineComment {
+                comment: Cow::from(comment),
+            },
+        })),
+        Err(_) => Ok(None),
     }
-
-    Ok(None)
 }
 
 fn advance_number(code: &str) -> Advancement {
@@ -666,10 +636,26 @@ fn advance_number(code: &str) -> Advancement {
     })
 }
 
+#[inline]
+fn parse_identifier(code: &str) -> IResult<&str, &str> {
+    recognize(pair(
+        // Identifiers must start with at least 1 alphabetic character
+        take_while1(|x: char| x.is_ascii_alphabetic() || x == '_'),
+        // And then they must be followed by 0 or more alphanumeric (or '_') characters
+        take_while(|x: char| x.is_ascii_alphanumeric() || x == '_'),
+    ))(code)
+}
+
 fn advance_identifier(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_IDENTIFIER, Identifier(find) {
-        identifier: Cow::from(find.as_str()),
-    })
+    match parse_identifier(code) {
+        Ok((_, identifier)) => Ok(Some(TokenAdvancement {
+            advance: identifier.chars().count(),
+            token_type: TokenType::Identifier {
+                identifier: Cow::from(identifier),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
 }
 
 fn advance_quote(code: &str) -> Advancement {
@@ -742,31 +728,35 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    if code.chars().next().unwrap().is_ascii_alphanumeric() {
-        let identifier = PATTERN_IDENTIFIER.find(code).unwrap();
-        let expected_len = identifier.end() - identifier.start();
+    match parse_symbol(code) {
+        Ok((_, string)) => Ok(Some(TokenAdvancement {
+            advance: string.chars().count(),
+            token_type: TokenType::Symbol {
+                symbol: Symbol::from_str(string).unwrap(),
+            },
+        })),
 
-        advance_regex!(&code[0..expected_len], PATTERN_SYMBOL, Symbol(find) {
-            symbol: {
-                if find.end() - find.start() == expected_len {
-                    Symbol::from_str(find.as_str()).unwrap()
-                } else {
-                    return Ok(None)
-                }
-            }
-        })
-    } else {
-        advance_regex!(code, PATTERN_SYMBOL, Symbol(find) {
-            symbol: Symbol::from_str(find.as_str()).unwrap(),
-        })
+        Err(_) => Ok(None),
     }
+}
+
+#[inline]
+fn parse_whitespace(code: &str) -> IResult<&str, &str> {
+    // From regex "^[^\S\n]+\n?|\n"
+    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
 }
 
 // Keep finding whitespace until the line ends
 fn advance_whitespace(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_WHITESPACE, Whitespace(find) {
-        characters: Cow::from(find.as_str()),
-    })
+    match parse_whitespace(code) {
+        Ok((_, whitespace)) => Ok(Some(TokenAdvancement {
+            advance: whitespace.chars().count(),
+            token_type: TokenType::Whitespace {
+                characters: Cow::from(whitespace),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
 }
 
 /// Information about an error that occurs while tokenizing
@@ -944,6 +934,28 @@ mod tests {
                 advance: 14,
                 token_type: TokenType::SingleLineComment {
                     comment: Cow::from(" hello world"),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_comment("--[[ hello world ]]"),
+            Ok(Some(TokenAdvancement {
+                advance: 19,
+                token_type: TokenType::MultiLineComment {
+                    blocks: 0,
+                    comment: Cow::from(" hello world "),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_comment("--[=[ hello world ]=]"),
+            Ok(Some(TokenAdvancement {
+                advance: 21,
+                token_type: TokenType::MultiLineComment {
+                    blocks: 1,
+                    comment: Cow::from(" hello world "),
                 },
             }))
         );
