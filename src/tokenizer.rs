@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while, take_while1},
-    character::complete::{anychar, line_ending, space1},
+    character::complete::{anychar, digit1, line_ending, space1},
     combinator::{opt, recognize},
     multi::many_till,
     sequence::{delimited, pair, preceded, tuple},
@@ -562,23 +562,6 @@ lazy_static! {
 
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
 
-macro_rules! advance_regex {
-    ($code:expr, $regex:ident, $token_type:ident($find:ident) $block:tt) => {
-        if let Some($find) = $regex.find($code) {
-            if $find.start() != 0 {
-                Ok(None)
-            } else {
-                Ok(Some(TokenAdvancement {
-                    advance: $find.as_str().chars().count(),
-                    token_type: TokenType::$token_type $block,
-                }))
-            }
-        } else {
-            Ok(None)
-        }
-    };
-}
-
 #[inline]
 fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
     preceded(tag("--"), take_till(|x: char| x.is_ascii_control()))(code)
@@ -630,10 +613,44 @@ fn advance_comment(code: &str) -> Advancement {
     }
 }
 
+fn parse_hex_number(code: &str) -> IResult<&str, &str> {
+    recognize(pair(tag("0x"), take_while1(|c: char| c.is_digit(16))))(code)
+}
+
+fn parse_basic_number(code: &str) -> IResult<&str, &str> {
+    recognize(pair(
+        digit1,
+        pair(opt(pair(tag("."), digit1)), opt(pair(tag("e"), digit1))),
+    ))(code)
+}
+
+#[cfg(not(feature = "roblox"))]
+fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
+    Err(nom::Err::Error((
+        "roblox feature not enabled",
+        nom::error::ErrorKind::Alt,
+    )))
+}
+
+#[cfg(feature = "roblox")]
+fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
+    recognize(pair(tag("0b"), take_while1(alt(tag("0"), tag("1")))))(code)
+}
+
+fn parse_number(code: &str) -> IResult<&str, &str> {
+    alt((parse_basic_number, parse_hex_number, parse_roblox_number))(code)
+}
+
 fn advance_number(code: &str) -> Advancement {
-    advance_regex!(code, PATTERN_NUMBER, Number(find) {
-        text: Cow::from(find.as_str()),
-    })
+    match parse_number(code) {
+        Ok((_, number)) => Ok(Some(TokenAdvancement {
+            advance: number.chars().count(),
+            token_type: TokenType::Number {
+                text: Cow::from(number),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
 }
 
 #[inline]
