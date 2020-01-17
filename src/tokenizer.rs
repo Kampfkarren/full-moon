@@ -2,7 +2,6 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use atomic_refcell::AtomicRefCell;
 use full_moon_derive::symbols;
 use generational_arena::{Arena, Index};
-use lazy_static::lazy_static;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while, take_while1},
@@ -12,7 +11,6 @@ use nom::{
     sequence::{delimited, pair, preceded, tuple},
     IResult,
 };
-use regex::{self, Regex};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
@@ -539,27 +537,6 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
     }
 }
 
-lazy_static! {
-    static ref PATTERN_NUMBER: Regex = {
-        let mut set = Vec::new();
-
-        // Hexadecimal
-        set.push(r"(0x[A-Fa-f\d]+)");
-
-        if cfg!(feature = "roblox") {
-            // Binary literals
-            set.push(r"(0b[01]+)");
-        }
-
-        // Basic numbers (123456.346e123)
-        set.push(r"(((\d*\.\d+)|(\d+))([eE]-?\d+)?)");
-
-        Regex::new(&format!("^({})", set.join("|"))).unwrap()
-    };
-
-    static ref PATTERN_STRING_MULTI_LINE_BEGIN: Regex = Regex::new(r"\[(=*)\[").unwrap();
-}
-
 type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
 
 #[inline]
@@ -675,27 +652,40 @@ fn advance_identifier(code: &str) -> Advancement {
     }
 }
 
+#[inline]
+fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
+    delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
+}
+
+#[inline]
+fn parse_multi_line_string_body<'a>(
+    code: &'a str,
+    block_count: &'a str,
+) -> IResult<&'a str, &'a str> {
+    recognize(many_till(
+        anychar,
+        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
+    ))(code)
+}
+
 fn advance_quote(code: &str) -> Advancement {
-    if let Some(beginning) = PATTERN_STRING_MULTI_LINE_BEGIN.find(code) {
-        if beginning.start() == 0 {
-            let block_count = beginning.end() - beginning.start() - "[[".len();
-
-            let end_regex = Regex::new(&format!(r"\]{}\]", "=".repeat(block_count))).unwrap();
-
-            let end_find = match end_regex.find(code) {
-                Some(find) => find,
-                None => return Err(TokenizerErrorType::UnclosedString),
-            };
-
-            return Ok(Some(TokenAdvancement {
-                advance: code[beginning.start()..end_find.end()].chars().count(),
-                token_type: TokenType::StringLiteral {
-                    multi_line: Some(block_count),
-                    literal: Cow::from(&code[beginning.end()..end_find.start()]),
-                    quote_type: StringLiteralQuoteType::Brackets,
-                },
-            }));
-        }
+    if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
+        return match parse_multi_line_string_body(code, block_count) {
+            Ok((_, body)) => {
+                let blocks = block_count.len();
+                // Get the body without the ending "]]"
+                let body = &body[..(body.len() - "]]".len() - blocks)];
+                Ok(Some(TokenAdvancement {
+                    advance: body.len() + blocks * 2 + "[[]]".len(),
+                    token_type: TokenType::StringLiteral {
+                        multi_line: Some(blocks),
+                        literal: Cow::from(body),
+                        quote_type: StringLiteralQuoteType::Brackets,
+                    },
+                }))
+            }
+            Err(_) => Err(TokenizerErrorType::UnclosedString),
+        };
     }
 
     let quote = if code.starts_with('"') {
