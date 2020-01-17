@@ -611,11 +611,11 @@ fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
 
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("0b"), take_while1(alt(tag("0"), tag("1")))))(code)
+    recognize(pair(tag("0b"), take_while1(|x: char| x == '0' || x == '1')))(code)
 }
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
-    alt((parse_basic_number, parse_hex_number, parse_roblox_number))(code)
+    alt((parse_roblox_number, parse_hex_number, parse_basic_number))(code)
 }
 
 fn advance_number(code: &str) -> Advancement {
