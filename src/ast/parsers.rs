@@ -1180,7 +1180,35 @@ define_parser!(ParseTypeInfo, TypeInfo<'a>, |_, state: ParserState<'a>| {
             .parse(state.clone())
             .or_else(|_| ParseSymbol(Symbol::Nil).parse(state.clone()))
     } {
-        if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state.clone()) {
+        if identifier.to_string() == "typeof" {
+            let (state, start_parenthese) = expect!(
+                state,
+                ParseSymbol(Symbol::LeftParen).parse(state.clone()),
+                "expected '(' when parsing typeof type"
+            );
+
+            let (state, expression) = expect!(
+                state,
+                ParseExpression.parse(state.clone()),
+                "expected expression when parsing typeof type"
+            );
+
+            let (state, end_parenthese) = expect!(
+                state,
+                ParseSymbol(Symbol::RightParen).parse(state.clone()),
+                "expected ')' when parsing typeof type"
+            );
+
+            (
+                state,
+                TypeInfo::Typeof {
+                    typeof_token: identifier,
+                    parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                    inner: Box::new(expression),
+                },
+            )
+        } else if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state.clone())
+        {
             let (state, generics) =
                 OneOrMore(ParseTypeInfo, ParseSymbol(Symbol::Comma), false).parse(state.clone())?;
             let (state, end_arrow) = ParseSymbol(Symbol::GreaterThan).parse(state.clone())?;

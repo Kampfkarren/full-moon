@@ -39,6 +39,15 @@ pub enum TypeInfo<'a> {
 		fields: Punctuated<'a, TypeField<'a>>,
 	},
 
+	Typeof {
+		#[cfg_attr(feature = "serde", serde(borrow))]
+		typeof_token: TokenReference<'a>,
+		#[cfg_attr(feature = "serde", serde(borrow))]
+		parentheses: ContainedSpan<'a>,
+		#[cfg_attr(feature = "serde", serde(borrow))]
+		inner: Box<Expression<'a>>,
+	},
+
 	Tuple {
 		#[cfg_attr(feature = "serde", serde(borrow))]
 		parentheses: ContainedSpan<'a>,

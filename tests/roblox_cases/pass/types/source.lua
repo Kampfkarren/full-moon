@@ -1,6 +1,7 @@
 type Identity<T> = T
 type Array<T> = { [string]: number }
 type Object = { x: number, y: number }
+type Typeof = typeof(2 + 2 + foo())
 
 type Callback1 = (string) => number
 type Callback2 = (string, string) => number
