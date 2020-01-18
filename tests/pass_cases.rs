@@ -3,13 +3,14 @@ use full_moon::{
     tokenizer::{self, Token},
 };
 use pretty_assertions::assert_eq;
-use std::fs::{self, File};
-use std::io::Write;
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::Path,
+};
 
-#[test]
-#[cfg_attr(feature = "no-source-tests", ignore)]
-fn test_pass_cases() {
-    for entry in fs::read_dir("./tests/cases/pass").expect("couldn't read directory") {
+fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
+    for entry in fs::read_dir(folder).expect("couldn't read directory") {
         let entry = entry.unwrap();
         let path = entry.path();
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
@@ -67,4 +68,18 @@ fn test_pass_cases() {
             assert_eq!(print(&ast), source);
         }
     }
+}
+
+#[test]
+#[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_pass_cases() {
+    test_pass_cases_folder("./tests/cases/pass");
+}
+
+#[test]
+#[cfg(feature = "roblox")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_roblox_pass_cases() {
+    test_pass_cases_folder("./tests/roblox_cases/pass");
 }

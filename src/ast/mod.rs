@@ -20,6 +20,11 @@ use parser_util::{
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
 
+#[cfg(feature = "roblox")]
+pub mod types;
+#[cfg(feature = "roblox")]
+use types::*;
+
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -186,6 +191,12 @@ pub enum Expression<'a> {
         value: Box<Value<'a>>,
         /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
+        /// What the value is being asserted as using `as`.
+        /// Only available when the "roblox" feature flag is enabled.
+        #[cfg(feature = "roblox")]
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+        as_assertion: Option<AsAssertion<'a>>,
     },
 }
 
@@ -239,6 +250,10 @@ pub enum Stmt<'a> {
     Repeat(Repeat<'a>),
     /// A while loop
     While(While<'a>),
+    /// A type declaration, such as `type Meters = number`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    TypeDeclaration(TypeDeclaration<'a>),
 }
 
 /// A node used before another in cases such as function calling
@@ -639,6 +654,16 @@ pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     parameters_parantheses: ContainedSpan<'a>,
     parameters: Punctuated<'a, Parameter<'a>>,
+
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
+
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    return_type: Option<TypeSpecifier<'a>>,
+
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -662,6 +687,22 @@ impl<'a> FunctionBody<'a> {
     /// The `end` token
     pub fn end_token(&self) -> &TokenReference<'a> {
         &self.end_token
+    }
+
+    /// The type specifiers of the variables, in the order that they were assigned.
+    /// `(foo: number, bar, baz: boolean)` returns an iterator containing:
+    /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
+        self.type_specifiers.iter().map(Option::as_ref)
+    }
+
+    /// The return type of the function, if one exists.
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn return_type(&self) -> Option<&TypeSpecifier<'a>> {
+        self.return_type.as_ref()
     }
 }
 
@@ -788,6 +829,9 @@ impl<'a> LocalFunction<'a> {
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
     name_list: Punctuated<'a, TokenReference<'a>>,
     equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
@@ -820,6 +864,15 @@ impl<'a> LocalAssignment<'a> {
     /// This is the `x, y` part of `local x, y = 1, 2`
     pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, TokenReference<'a>> {
         &mut self.name_list
+    }
+
+    /// The type specifiers of the variables, in the order that they were assigned.
+    /// `local foo: number, bar, baz: boolean` returns an iterator containing:
+    /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
+        self.type_specifiers.iter().map(Option::as_ref)
     }
 }
 

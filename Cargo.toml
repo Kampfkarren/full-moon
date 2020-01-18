@@ -18,6 +18,7 @@ no-source-tests = []
 [dependencies]
 atomic_refcell = "0.1"
 bytecount = "0.5"
+cfg-if = "0.1"
 full_moon_derive = { path = "./full-moon-derive", version = "0.4.0" }
 generational-arena = "0.2"
 itertools = "0.8"
