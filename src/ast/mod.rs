@@ -684,6 +684,16 @@ impl<'a> FunctionBody<'a> {
     pub fn end_token(&self) -> &TokenReference<'a> {
         &self.end_token
     }
+
+    #[cfg(feature = "roblox")]
+    pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
+        self.type_specifiers.iter().map(Option::as_ref)
+    }
+
+    #[cfg(feature = "roblox")]
+    pub fn return_type(&self) -> Option<&TypeSpecifier<'a>> {
+        self.return_type.as_ref()
+    }
 }
 
 /// A parameter in a function declaration
@@ -844,6 +854,11 @@ impl<'a> LocalAssignment<'a> {
     /// This is the `x, y` part of `local x, y = 1, 2`
     pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, TokenReference<'a>> {
         &mut self.name_list
+    }
+
+    #[cfg(feature = "roblox")]
+    pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
+        self.type_specifiers.iter().map(Option::as_ref)
     }
 }
 

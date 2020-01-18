@@ -69,11 +69,25 @@ pub enum TypeInfo<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TypeField<'a> {
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub key: TypeFieldKey<'a>,
+	pub(crate) key: TypeFieldKey<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub colon: TokenReference<'a>,
+	pub(crate) colon: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub value: TypeInfo<'a>,
+	pub(crate) value: TypeInfo<'a>,
+}
+
+impl<'a> TypeField<'a> {
+	pub fn key(&self) -> &TypeFieldKey<'a> {
+		&self.key
+	}
+
+	pub fn colon_token(&self) -> &TokenReference<'a> {
+		&self.colon
+	}
+
+	pub fn value(&self) -> &TypeInfo<'a> {
+		&self.value
+	}
 }
 
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
@@ -92,40 +106,92 @@ pub enum TypeFieldKey<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct AsAssertion<'a> {
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub as_token: TokenReference<'a>,
+	pub(crate) as_token: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub coerce_to: TypeInfo<'a>,
+	pub(crate) coerce_to: TypeInfo<'a>,
+}
+
+impl<'a> AsAssertion<'a> {
+	pub fn as_token(&self) -> &TokenReference<'a> {
+		&self.as_token
+	}
+
+	pub fn coerce_to(&self) -> &TypeInfo<'a> {
+		&self.coerce_to
+	}
 }
 
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TypeDeclaration<'a> {
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub type_token: TokenReference<'a>,
+	pub(crate) type_token: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub base: TokenReference<'a>,
+	pub(crate) base: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub generics: Option<GenericDeclaration<'a>>,
+	pub(crate) generics: Option<GenericDeclaration<'a>>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub equal_token: TokenReference<'a>,
+	pub(crate) equal_token: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub declare_as: TypeInfo<'a>,
+	pub(crate) declare_as: TypeInfo<'a>,
+}
+
+impl<'a> TypeDeclaration<'a> {
+	pub fn type_token(&self) -> &TokenReference<'a> {
+		&self.type_token
+	}
+
+	pub fn type_name(&self) -> &TokenReference<'a> {
+		&self.base
+	}
+
+	pub fn generics(&self) -> Option<&GenericDeclaration<'a>> {
+		self.generics.as_ref()
+	}
+
+	pub fn equal_token(&self) -> &TokenReference<'a> {
+		&self.equal_token
+	}
+
+	pub fn type_definition(&self) -> &TypeInfo<'a> {
+		&self.declare_as
+	}
 }
 
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericDeclaration<'a> {
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub arrows: ContainedSpan<'a>,
+	pub(crate) arrows: ContainedSpan<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub generics: Punctuated<'a, TokenReference<'a>>,
+	pub(crate) generics: Punctuated<'a, TokenReference<'a>>,
+}
+
+impl<'a> GenericDeclaration<'a> {
+	pub fn arrows(&self) -> &ContainedSpan<'a> {
+		&self.arrows
+	}
+
+	pub fn generics(&self) -> &Punctuated<'a, TokenReference<'a>> {
+		&self.generics
+	}
 }
 
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TypeSpecifier<'a> {
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub punctuation: TokenReference<'a>,
+	pub(crate) punctuation: TokenReference<'a>,
 	#[cfg_attr(feature = "serde", serde(borrow))]
-	pub type_info: TypeInfo<'a>,
+	pub(crate) type_info: TypeInfo<'a>,
+}
+
+impl<'a> TypeSpecifier<'a> {
+	pub fn punctuation(&self) -> &TokenReference<'a> {
+		&self.punctuation
+	}
+
+	pub fn type_info(&self) -> &TypeInfo<'a> {
+		&self.type_info
+	}
 }
