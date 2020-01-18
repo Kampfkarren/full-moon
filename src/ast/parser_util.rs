@@ -163,6 +163,22 @@ macro_rules! keep_going {
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! define_roblox_parser {
+    ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "roblox")] {
+                define_parser!($parser, $node, $body);
+            } else {
+                define_parser!($parser, $mock_ty, |_, _| {
+                    Err(InternalAstError::NoMatch)
+                });
+            }
+        }
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum InternalAstError<'a> {

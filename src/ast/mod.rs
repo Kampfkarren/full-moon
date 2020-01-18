@@ -4,8 +4,6 @@ mod parser_util;
 mod parsers;
 pub mod punctuated;
 pub mod span;
-// #[cfg(feature = "roblox")]
-pub mod types;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::{Node, Owned, Visit};
@@ -21,6 +19,10 @@ use parser_util::{
 
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
+
+#[cfg(feature = "roblox")]
+pub mod types;
+#[cfg(feature = "roblox")]
 use types::*;
 
 /// A block of statements, such as in if/do/etc block

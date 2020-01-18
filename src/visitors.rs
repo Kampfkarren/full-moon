@@ -1,13 +1,20 @@
 use crate::{
-    ast::{span::ContainedSpan, types::*, *},
+    ast::{span::ContainedSpan, *},
     private::Sealed,
     tokenizer::TokenReference,
 };
 use std::{borrow::Cow, sync::Arc};
 
+#[cfg(feature = "roblox")]
+use crate::ast::types::*;
+
 macro_rules! create_visitor {
     (ast: {
         $($visit_name:ident => $ast_type:ident,)+
+
+        $(#[$meta:meta] {
+            $($meta_visit_name:ident => $meta_ast_type:ident,)+
+        })+
     }, token: {
         $($visit_token:ident,)+
     }) => {
@@ -56,6 +63,17 @@ macro_rules! create_visitor {
                     #[allow(missing_docs)]
                     fn [<$visit_name _end>](&mut self, _node: &$ast_type<'ast>) { }
                 )+
+
+                $(
+                    $(
+                        #[$meta]
+                        #[allow(missing_docs)]
+                        fn $meta_visit_name(&mut self, _node: &$meta_ast_type<'ast>) { }
+                        #[$meta]
+                        #[allow(missing_docs)]
+                        fn [<$meta_visit_name _end>](&mut self, _node: &$meta_ast_type<'ast>) { }
+                    )+
+                )+
             }
 
             $(
@@ -85,6 +103,18 @@ macro_rules! create_visitor {
                     fn $visit_name(&mut self, _node: &mut $ast_type<'ast>) { }
                     #[allow(missing_docs)]
                     fn [<$visit_name _end>](&mut self, _node: &mut $ast_type<'ast>) { }
+                )+
+
+                $(
+                    #[$meta]
+                    $(
+                        #[$meta]
+                        #[allow(missing_docs)]
+                        fn $meta_visit_name(&mut self, _node: &$meta_ast_type<'ast>) { }
+                        #[$meta]
+                        #[allow(missing_docs)]
+                        fn [<$meta_visit_name _end>](&mut self, _node: &$meta_ast_type<'ast>) { }
+                    )+
                 )+
             }
 
@@ -214,13 +244,15 @@ create_visitor!(ast: {
     visit_while => While,
 
     // Types
-    visit_as_assertion => AsAssertion,
-    visit_generic_declaration => GenericDeclaration,
-    visit_type_declaration => TypeDeclaration,
-    visit_type_field => TypeField,
-    visit_type_field_key => TypeFieldKey,
-    visit_type_info => TypeInfo,
-    visit_type_specifier => TypeSpecifier,
+    #[cfg(feature = "roblox")] {
+        visit_as_assertion => AsAssertion,
+        visit_generic_declaration => GenericDeclaration,
+        visit_type_declaration => TypeDeclaration,
+        visit_type_field => TypeField,
+        visit_type_field_key => TypeFieldKey,
+        visit_type_info => TypeInfo,
+        visit_type_specifier => TypeSpecifier,
+    }
 }, token: {
     visit_eof,
     visit_identifier,
