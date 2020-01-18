@@ -228,7 +228,7 @@ pub struct Token<'a> {
     pub(crate) start_position: Arc<AtomicPosition>,
     pub(crate) end_position: Arc<AtomicPosition>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[serde(with = "serde_arc_atomic_refcell")]
+    #[cfg_attr(feature = "serde", serde(with = "serde_arc_atomic_refcell"))]
     pub(crate) token_type: Arc<AtomicRefCell<TokenType<'a>>>,
 }
 
@@ -502,12 +502,14 @@ impl AtomicPosition {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for AtomicPosition {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         Ok(AtomicPosition::new(Position::deserialize(deserializer)?))
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for AtomicPosition {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.load().serialize(serializer)

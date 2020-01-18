@@ -14,6 +14,7 @@ use crate::{
 };
 
 use full_moon_derive::{Owned, Visit};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// A contained span with the beginning and ending bounds.
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Owned, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan<'a> {
-    #[serde(borrow)]
+    #[cfg_attr(feature = "serde", serde(borrow))]
     #[visit(skip)]
     tokens: (TokenReference<'a>, TokenReference<'a>),
 }
