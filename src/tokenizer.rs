@@ -47,6 +47,8 @@ symbols!(
     Until => "until",
     While => "while",
 
+    // TODO: This only is valid in Roblox
+    FatArrow => "=>",
     Caret => "^",
     Colon => ":",
     Comma => ",",
@@ -65,7 +67,11 @@ symbols!(
     LessThan => "<",
     Minus => "-",
     Percent => "%",
+    // TODO: This only is valid in Roblox
+    Pipe => "|",
     Plus => "+",
+    // TODO: This only is valid in Roblox
+    QuestionMark => "?",
     RightBrace => "}",
     RightBracket => "]",
     RightParen => ")",

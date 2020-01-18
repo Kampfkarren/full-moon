@@ -357,6 +357,13 @@ impl<'a, T> Pair<'a, T> {
             Pair::Punctuated(_, punctuation) => Some(punctuation),
         }
     }
+
+    pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> Pair<'a, U> {
+        match self {
+            Pair::End(value) => Pair::End(f(value)),
+            Pair::Punctuated(value, punctuated) => Pair::Punctuated(f(value), punctuated),
+        }
+    }
 }
 
 impl<'a, T> Sealed for Pair<'a, T> {}

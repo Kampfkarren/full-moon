@@ -106,8 +106,9 @@ macro_rules! define_parser {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! parse_first_of {
-    ($state:ident, {$($parser:expr => $constructor:expr,)+}) => ({
+    ($state:ident, {$($(@#[$meta:meta])? $parser:expr => $constructor:expr,)+}) => ({
         $(
+            $(#[$meta])?
             match $parser.parse($state.clone()) {
                 Ok((state, node)) => return Ok((state, $constructor(node.into()))),
                 Err(InternalAstError::NoMatch) => {},

@@ -4,6 +4,8 @@ mod parser_util;
 mod parsers;
 pub mod punctuated;
 pub mod span;
+// #[cfg(feature = "roblox")]
+pub mod types;
 
 use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
 use full_moon_derive::{Node, Owned, Visit};
@@ -19,6 +21,7 @@ use parser_util::{
 
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
+use types::*;
 
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
@@ -186,6 +189,10 @@ pub enum Expression<'a> {
         value: Box<Value<'a>>,
         /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
+        #[cfg(feature = "roblox")]
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+        as_assertion: Option<AsAssertion<'a>>,
     },
 }
 
@@ -239,6 +246,8 @@ pub enum Stmt<'a> {
     Repeat(Repeat<'a>),
     /// A while loop
     While(While<'a>),
+    #[cfg(feature = "roblox")]
+    TypeDeclaration(TypeDeclaration<'a>),
 }
 
 /// A node used before another in cases such as function calling
@@ -639,6 +648,16 @@ pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     parameters_parantheses: ContainedSpan<'a>,
     parameters: Punctuated<'a, Parameter<'a>>,
+
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
+
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    return_type: Option<TypeSpecifier<'a>>,
+
     block: Block<'a>,
     end_token: TokenReference<'a>,
 }
@@ -788,6 +807,9 @@ impl<'a> LocalFunction<'a> {
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
     name_list: Punctuated<'a, TokenReference<'a>>,
     equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,

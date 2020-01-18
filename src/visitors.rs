@@ -1,5 +1,5 @@
 use crate::{
-    ast::{span::ContainedSpan, *},
+    ast::{span::ContainedSpan, types::*, *},
     private::Sealed,
     tokenizer::TokenReference,
 };
@@ -212,6 +212,15 @@ create_visitor!(ast: {
     visit_var => Var,
     visit_var_expression => VarExpression,
     visit_while => While,
+
+    // Types
+    visit_as_assertion => AsAssertion,
+    visit_generic_declaration => GenericDeclaration,
+    visit_type_declaration => TypeDeclaration,
+    visit_type_field => TypeField,
+    visit_type_field_key => TypeFieldKey,
+    visit_type_info => TypeInfo,
+    visit_type_specifier => TypeSpecifier,
 }, token: {
     visit_eof,
     visit_identifier,

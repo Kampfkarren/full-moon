@@ -71,6 +71,7 @@ fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
 }
 
 #[test]
+#[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     test_pass_cases_folder("./tests/cases/pass");
