@@ -296,7 +296,7 @@ define_roblox_parser!(
     |_, state: ParserState<'a>| {
         let (state, as_token) = ParseIdentifier.parse(state.clone())?;
         if as_token.to_string() == "as" {
-            let (state, coerce_to) = expect!(
+            let (state, cast_to) = expect!(
                 state,
                 ParseTypeInfo.parse(state.clone()),
                 "expected type in `as` expression"
@@ -306,7 +306,7 @@ define_roblox_parser!(
                 state,
                 AsAssertion {
                     as_token,
-                    coerce_to,
+                    cast_to,
                 },
             ))
         } else {

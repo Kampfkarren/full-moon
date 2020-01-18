@@ -191,6 +191,8 @@ pub enum Expression<'a> {
         value: Box<Value<'a>>,
         /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
+        /// What the value is being asserted as using `as`.
+        /// Only available when the "roblox" feature flag is enabled.
         #[cfg(feature = "roblox")]
         #[cfg_attr(feature = "serde", serde(borrow))]
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -248,6 +250,8 @@ pub enum Stmt<'a> {
     Repeat(Repeat<'a>),
     /// A while loop
     While(While<'a>),
+    /// A type declaration, such as `type Meters = number`
+    /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     TypeDeclaration(TypeDeclaration<'a>),
 }
@@ -685,11 +689,17 @@ impl<'a> FunctionBody<'a> {
         &self.end_token
     }
 
+    /// The type specifiers of the variables, in the order that they were assigned.
+    /// `(foo: number, bar, baz: boolean)` returns an iterator containing:
+    /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
+    /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
 
+    /// The return type of the function, if one exists.
+    /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     pub fn return_type(&self) -> Option<&TypeSpecifier<'a>> {
         self.return_type.as_ref()
@@ -856,6 +866,10 @@ impl<'a> LocalAssignment<'a> {
         &mut self.name_list
     }
 
+    /// The type specifiers of the variables, in the order that they were assigned.
+    /// `local foo: number, bar, baz: boolean` returns an iterator containing:
+    /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
+    /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
         self.type_specifiers.iter().map(Option::as_ref)

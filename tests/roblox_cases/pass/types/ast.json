@@ -2436,7 +2436,7 @@
                         "identifier": "as"
                       }
                     },
-                    "coerce_to": {
+                    "cast_to": {
                       "Basic": {
                         "start_position": {
                           "bytes": 416,

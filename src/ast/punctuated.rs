@@ -358,6 +358,8 @@ impl<'a, T> Pair<'a, T> {
         }
     }
 
+    /// Maps a `Pair<'a, T>` to a `Pair<'a, U>` by applying a function to the value of the pair,
+    /// while preserving punctuation if it is not the end.
     pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> Pair<'a, U> {
         match self {
             Pair::End(value) => Pair::End(f(value)),
