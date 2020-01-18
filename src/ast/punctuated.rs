@@ -360,6 +360,11 @@ impl<'a, T> Pair<'a, T> {
 
     /// Maps a `Pair<'a, T>` to a `Pair<'a, U>` by applying a function to the value of the pair,
     /// while preserving punctuation if it is not the end.
+    /// ```rust
+    /// # use full_moon::ast::punctuated::Pair;
+    /// let pair = Pair::new(2, None);
+    /// assert_eq!(*pair.map(|i| i * 2).value(), 4);
+    /// ```
     pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> Pair<'a, U> {
         match self {
             Pair::End(value) => Pair::End(f(value)),
