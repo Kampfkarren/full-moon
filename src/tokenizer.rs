@@ -549,7 +549,7 @@ type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
 
 #[inline]
 fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
-    preceded(tag("--"), take_till(|x: char| x.is_ascii_control()))(code)
+    preceded(tag("--"), take_till(|x: char| x == '\r' || x == '\n'))(code)
 }
 
 #[inline]
