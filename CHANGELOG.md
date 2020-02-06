@@ -5,32 +5,94 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.4.0-rc.14] - 2020-01-27
+### Fixed
+- Fixed serde being used even when the `serde` feature flag was not active
+- Fixed tabs in comments leading to a parser error.
+
+## [0.4.0-rc.13] - 2020-01-18
 ### Added
-- Added `TokenKind` to get the kind of a token without any additional data
-- Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
-- Added `Ast::update_positions` to update all the position structs if you mutate it
+- Added support for Roblox typed Lua syntax under the `roblox` feature flag
+
+### Changed
+- Changed internal parser which should lead to better performance
+
+## [0.4.0-rc.12] - 2019-11-13
+### Added
+- Added a `roblox` feature flag for Roblox specific syntax
+- Added binary literals when using `roblox` feature flag
+
+### Fixed
+- Fixed strings with escaped new lines being unparseable
+
+### Removed
+- Removed leftover `dbg!` line
+
+## [0.4.0-rc.11] - 2019-10-27
+### Fixed
+- Fixed a bug where subtraction without spaces and the right hand side being a number would cause a parsing error (e.g. `x-7`)
+
+## [0.4.0-rc.10] - 2019-10-20
+### Added
+- Added a `similar` method to `node::Node` to check if two nodes are semantically equivalent
+
+## [0.4.0-rc.9] - 2019-10-11
+### Fixed
+- Fixed performance issue with `Node::start_position` and `Node::end_position`
+
+## [0.4.0-rc.8] - 2019-10-07
+### Removed
+- Removed dependency on crossbeam.
+
+## [0.4.0-rc.7] - 2019-10-03
+### Added
+- Added `visit_XXX_end` methods for when completing a visit on a node
+
+## [0.4.0-rc.6] - 2019-10-01
+### Fixed
+- Fixed unexpected parsing issues with UTF-8 strings
+
+## [0.4.0-rc.5] - 2019-09-30
+### Fixed
+- Fixed tokens not being visited for `TokenReference`
+
+## [0.4.0-rc.4] - 2019-09-30
+### Fixed
+- Fixed a massive performance bug
+- Fixed `visit_ast` not following tokens
+
+## [0.4.0-rc.3] - 2019-09-11
+### Added
+- Added `Owned` implementation for errors
+
+## [0.4.0-rc.2] - 2019-09-11
+### Changed
+- Changed signature of `Node::surrounding_ignore_tokens` to have more lenient lifetimes
+
+## [0.4.0-rc.1] - 2019-09-08
+### Added
 - Added `node::Node` which contains `start_position` and `end_position` methods to obtain the full range of a node, as well as `surrounding_ignore_tokens` to get surrounding comments/whitespace.
-- Added a `similar` method to `node::Node` to check if two nodes are semantically equivalent.
 - Added `Punctuated` and `Pair`, replaced lots of uses of `Vec<_>` with `Punctuated<_>`
 - Added `ContainedSpan`, a way to represent structures like `(...)` and `[...]`
 - Added `Return` and `visit_return`
 - Added `Expression::Parentheses`
 - Added `Owned` trait to get a `'static` lifetime version of nodes
-- Added `visit_XXX_end` methods for when completing a visit on a node
-- Added a `roblox` feature flag for Roblox specific syntax.
-- Added binary literals when using `roblox` feature flag.
+- Added `TokenKind` to get the kind of a token without any additional data
+- Added mutation methods: `set_start_position`, `set_end_position`, `set_token_type` for `TokenReference` objects
+- Added `Ast::update_positions` to update all the position structs if you mutate it
 
 ### Changed
 - Fields of `Token` and `Position` have been made private with public accessors
 - Changed signatures from `Token` to `TokenReference`, which dereference to tokens
-- Changed `visit_do` to use a new `Do` struct instead of `Block`
-- Changed `FunctionArgs::Parentheses` to be a struct item
-- `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
 - Changed `If::else_if` to use a new `Vec<ElseIf>`
 - Changed `Value::Function` to also include the function token
+- `LastStmt::Return` no longer uses an enum struct, and now uses `Return`
+- Changed `visit_do` to use a new `Do` struct instead of `Block`
+- Changed `FunctionArgs::Parentheses` to be a struct item
 
 ### Fixed
-- Unexpected parsing issues with UTF-8 strings
+- Fixed unexpected parsing issues with UTF-8 strings
 
 ## [0.3.0] - 2019-05-24
 ### Added
