@@ -1084,15 +1084,13 @@ impl<'a> Ast<'a> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {
-            unimplemented!("creating TokenReference vector from tokens");
-            let tokens = Arc::new(Arena::from_iter(tokens));
+            let tokens = extract_token_references(tokens);
 
-            // let mut state = ParserState::new(Arc::clone(&tokens));
-            let mut state = ParserState::new(&[]);
+            let mut state = ParserState::new(&tokens);
 
             if tokens
                 .iter()
-                .filter(|token| !token.1.token_type().ignore())
+                .filter(|token| !token.token_type().ignore())
                 .count()
                 == 1
             {
@@ -1113,7 +1111,10 @@ impl<'a> Ast<'a> {
             match parsers::ParseBlock.parse(state.clone()) {
                 Ok((state, block)) => {
                     if state.index == tokens.len() - 1 {
-                        Ok(Ast { nodes: block })
+                        // TODO: Can we avoid clone()?
+                        Ok(Ast {
+                            nodes: block.clone(),
+                        })
                     } else {
                         Err(AstError::UnexpectedToken {
                             token: (*state.peek()).to_owned(),
@@ -1218,5 +1219,77 @@ impl<'a> Ast<'a> {
         // token.end_position.store(end_position);
         // start_position = end_position;
         // }
+    }
+}
+
+/// Extracts leading and trailing trivia from tokens
+pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<TokenReference<'a>> {
+    let mut references = Vec::new();
+    let (mut leading_trivia, mut trailing_trivia) = (Vec::new(), Vec::new());
+    let mut tokens = tokens.drain(..).peekable();
+
+    while let Some(token) = tokens.next() {
+        if token.token_type().is_trivia() {
+            leading_trivia.push(token);
+        } else {
+            while let Some(token) = tokens.peek() {
+                if token.token_type().is_trivia() {
+                    if let TokenType::Whitespace { ref characters } = &*token.token_type() {
+                        if characters.starts_with('\n') {
+                            break;
+                        }
+                    }
+
+                    trailing_trivia.push(tokens.next().unwrap());
+                } else {
+                    break;
+                }
+            }
+
+            references.push(TokenReference {
+                leading_trivia: leading_trivia.drain(..).collect(),
+                trailing_trivia: trailing_trivia.drain(..).collect(),
+                token,
+            });
+        }
+    }
+
+    references
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tokenizer::tokens;
+
+    #[test]
+    fn test_extract_token_references() {
+        let tokens = tokens("print(1)\n-- hello world\nlocal foo -- this is the word foo").unwrap();
+
+        let references = extract_token_references(tokens);
+        assert_eq!(references.len(), 7);
+
+        assert!(references[0].trailing_trivia.is_empty());
+        assert_eq!(references[0].token.to_string(), "print");
+        assert!(references[0].leading_trivia.is_empty());
+
+        assert!(references[1].trailing_trivia.is_empty());
+        assert_eq!(references[1].token.to_string(), "(");
+        assert!(references[1].leading_trivia.is_empty());
+
+        assert!(references[2].trailing_trivia.is_empty());
+        assert_eq!(references[2].token.to_string(), "1");
+        assert!(references[2].leading_trivia.is_empty());
+
+        assert_eq!(references[4].leading_trivia[0].to_string(), "\n");
+
+        assert_eq!(
+            references[4].leading_trivia[1].to_string(),
+            "-- hello world",
+        );
+
+        assert_eq!(references[4].leading_trivia[2].to_string(), "\n");
+        assert_eq!(references[4].token.to_string(), "local");
+        assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
     }
 }

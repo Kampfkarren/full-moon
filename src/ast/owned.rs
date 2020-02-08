@@ -70,7 +70,7 @@ impl Owned for Token<'_> {
         Token {
             start_position: self.start_position.clone(),
             end_position: self.end_position.clone(),
-            token_type: Arc::new(AtomicRefCell::new(self.token_type().owned())),
+            token_type: self.token_type().owned(),
         }
     }
 }

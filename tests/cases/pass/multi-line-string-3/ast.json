@@ -4,58 +4,121 @@
       {
         "LocalAssignment": {
           "local_token": {
-            "start_position": {
-              "bytes": 0,
-              "character": 1,
-              "line": 1
+            "leading_trivia": [],
+            "token": {
+              "start_position": {
+                "bytes": 0,
+                "character": 1,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 5,
+                "character": 6,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "local"
+              }
             },
-            "end_position": {
-              "bytes": 5,
-              "character": 6,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "local"
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 5,
+                  "character": 6,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "name_list": {
             "pairs": [
               {
                 "End": {
-                  "start_position": {
-                    "bytes": 6,
-                    "character": 7,
-                    "line": 1
+                  "leading_trivia": [],
+                  "token": {
+                    "start_position": {
+                      "bytes": 6,
+                      "character": 7,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 7,
+                      "character": 8,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
                   },
-                  "end_position": {
-                    "bytes": 7,
-                    "character": 8,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
-                  }
+                  "trailing_trivia": [
+                    {
+                      "start_position": {
+                        "bytes": 7,
+                        "character": 8,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 8,
+                        "character": 9,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Whitespace",
+                        "characters": " "
+                      }
+                    }
+                  ]
                 }
               }
             ]
           },
           "equal_token": {
-            "start_position": {
-              "bytes": 8,
-              "character": 9,
-              "line": 1
+            "leading_trivia": [],
+            "token": {
+              "start_position": {
+                "bytes": 8,
+                "character": 9,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 9,
+                "character": 10,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "="
+              }
             },
-            "end_position": {
-              "bytes": 9,
-              "character": 10,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "="
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 9,
+                  "character": 10,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "expr_list": {
             "pairs": [
@@ -63,22 +126,26 @@
                 "End": {
                   "value": {
                     "String": {
-                      "start_position": {
-                        "bytes": 10,
-                        "character": 11,
-                        "line": 1
+                      "leading_trivia": [],
+                      "token": {
+                        "start_position": {
+                          "bytes": 10,
+                          "character": 11,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 154,
+                          "character": 3,
+                          "line": 6
+                        },
+                        "token_type": {
+                          "type": "StringLiteral",
+                          "literal": "\nlocal emotes = {\n\t[\":thinking:\"] = \"http://www.roblox.com/asset/?id=643340245\",\n\t[\":bug:\"] = \"http://www.roblox.com/asset/?id=860037275\"\n}\n",
+                          "multi_line": 0,
+                          "quote_type": "Brackets"
+                        }
                       },
-                      "end_position": {
-                        "bytes": 154,
-                        "character": 3,
-                        "line": 6
-                      },
-                      "token_type": {
-                        "type": "StringLiteral",
-                        "literal": "\nlocal emotes = {\n\t[\":thinking:\"] = \"http://www.roblox.com/asset/?id=643340245\",\n\t[\":bug:\"] = \"http://www.roblox.com/asset/?id=860037275\"\n}\n",
-                        "multi_line": 0,
-                        "quote_type": "Brackets"
-                      }
+                      "trailing_trivia": []
                     }
                   },
                   "binop": null

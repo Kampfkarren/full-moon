@@ -16,15 +16,15 @@ use std::{fmt, sync::Arc};
 pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
-    pub tokens: &'a [TokenReference<'a>],
+    pub tokens: *const TokenReference<'a>,
 }
 
 impl<'a> ParserState<'a> {
-    pub fn new(tokens: &'a [TokenReference<'a>]) -> ParserState<'a> {
+    pub fn new(tokens: &[TokenReference<'a>]) -> ParserState<'a> {
         ParserState {
             index: 0,
             len: tokens.len(),
-            tokens,
+            tokens: tokens.as_ptr(),
         }
     }
 
@@ -45,7 +45,15 @@ impl<'a> ParserState<'a> {
             panic!("peek failed, when there should always be an eof");
         }
 
-        self.tokens[self.index].clone()
+        let result = unsafe {
+            &*self
+                .tokens
+                .add(self.index)
+                .as_ref()
+                .expect("couldn't peek, no eof?")
+        };
+
+        result.clone()
     }
 }
 

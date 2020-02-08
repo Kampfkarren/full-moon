@@ -161,9 +161,14 @@ pub enum TokenType<'a> {
 }
 
 impl<'a> TokenType<'a> {
+    #[deprecated(since = "0.5.0", note = "Please use is_trivia instead")]
+    pub fn ignore(&self) -> bool {
+        self.is_trivia()
+    }
+
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
-    pub fn ignore(&self) -> bool {
+    pub fn is_trivia(&self) -> bool {
         match self {
             TokenType::SingleLineComment { .. }
             | TokenType::MultiLineComment { .. }
@@ -227,8 +232,7 @@ pub struct Token<'a> {
     pub(crate) start_position: Position,
     pub(crate) end_position: Position,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[cfg_attr(feature = "serde", serde(with = "serde_arc_atomic_refcell"))]
-    pub(crate) token_type: Arc<AtomicRefCell<TokenType<'a>>>,
+    pub(crate) token_type: TokenType<'a>,
 }
 
 impl<'a> Token<'a> {
@@ -244,8 +248,8 @@ impl<'a> Token<'a> {
 
     /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
-    pub fn token_type(&self) -> atomic_refcell::AtomicRef<TokenType<'a>> {
-        self.token_type.borrow()
+    pub fn token_type(&self) -> &TokenType<'a> {
+        &self.token_type
     }
 
     /// The [kind](enum.TokenKind.html) of token with no additional data.
@@ -310,22 +314,23 @@ impl<'a> PartialOrd for Token<'a> {
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`](struct.Token.html)
 // TODO: Change name
-#[derive(Clone, Owned)]
+#[derive(Clone, Debug, Owned)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenReference<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    leading_trivia: Vec<Token<'a>>,
+    pub(crate) leading_trivia: Vec<Token<'a>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token: Token<'a>,
+    pub(crate) token: Token<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    trailing_trivia: Vec<Token<'a>>,
+    pub(crate) trailing_trivia: Vec<Token<'a>>,
 }
 
 impl<'a> TokenReference<'a> {
     /// Sets the type of token. Note that positions will not update after using this function.
     /// If you need them to, call [`Ast::update_positions`](../ast/struct.Ast.html#method.update_positions)
     pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
-        *self.token_type.borrow_mut() = new_token_type;
+        // *self.token_type.borrow_mut() = new_token_type;
+        unimplemented!("TokenReference::set_token_type, which should probably get removed")
     }
 }
 
@@ -340,12 +345,6 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
 
     fn deref(&self) -> &Self::Target {
         &self.token
-    }
-}
-
-impl<'a> fmt::Debug for TokenReference<'a> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "TokenReference {{ {} }}", **self)
     }
 }
 
@@ -784,7 +783,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     tokens.push(Token {
                         start_position: start_position,
                         end_position: position,
-                        token_type: Arc::new(AtomicRefCell::new(advancement.token_type)),
+                        token_type: advancement.token_type,
                     });
 
                     continue;
@@ -820,28 +819,10 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     tokens.push(Token {
         start_position: position,
         end_position: position,
-        token_type: Arc::new(AtomicRefCell::new(TokenType::Eof)),
+        token_type: TokenType::Eof,
     });
 
     Ok(tokens)
-}
-
-#[cfg(feature = "serde")]
-mod serde_arc_atomic_refcell {
-    use super::*;
-
-    pub fn serialize<S: Serializer, T: Serialize>(
-        this: &Arc<AtomicRefCell<T>>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
-        this.borrow().serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
-        deserializer: D,
-    ) -> Result<Arc<AtomicRefCell<T>>, D::Error> {
-        Ok(Arc::new(AtomicRefCell::new(T::deserialize(deserializer)?)))
-    }
 }
 
 #[cfg(test)]
@@ -1067,21 +1048,21 @@ mod tests {
         assert_eq!(
             tokens("\n").unwrap()[0],
             Token {
-                start_position: Arc::new(AtomicPosition::new(Position {
+                start_position: Position {
                     bytes: 0,
                     character: 1,
                     line: 1,
-                })),
+                },
 
-                end_position: Arc::new(AtomicPosition::new(Position {
+                end_position: Position {
                     bytes: 1,
                     character: 1,
                     line: 1,
-                })),
+                },
 
-                token_type: Arc::new(AtomicRefCell::new(TokenType::Whitespace {
+                token_type: TokenType::Whitespace {
                     characters: Cow::from("\n")
-                })),
+                },
             }
         );
     }
