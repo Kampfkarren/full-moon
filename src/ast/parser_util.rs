@@ -12,15 +12,15 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, sync::Arc};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
-    pub tokens: Arc<Arena<Token<'a>>>,
+    pub tokens: &'a [TokenReference<'a>],
 }
 
 impl<'a> ParserState<'a> {
-    pub fn new(tokens: Arc<Arena<Token<'a>>>) -> ParserState<'a> {
+    pub fn new(tokens: &'a [TokenReference<'a>]) -> ParserState<'a> {
         ParserState {
             index: 0,
             len: tokens.len(),
@@ -28,41 +28,24 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    pub fn advance(&self) -> Option<ParserState<'a>> {
-        let mut state = self.clone();
-
-        loop {
-            state = ParserState {
-                index: state.index + 1,
-                len: self.len,
-                tokens: Arc::clone(&self.tokens),
-            };
-
-            if !state.peek().token_type().ignore() {
-                return Some(state);
-            }
+    pub fn advance(self) -> Option<ParserState<'a>> {
+        if self.index + 1 == self.len {
+            None
+        } else {
+            Some(ParserState {
+                index: self.index + 1,
+                ..self
+            })
         }
     }
 
+    // TODO: Change this to return a borrowed value
     pub fn peek(&self) -> TokenReference<'a> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
 
-        // sorted_by is commented out because it had a extremely high performance cost
-        // Uncommenting the line changes one large file from being parsed in ~0.1s to **14 seconds**!!!
-        // Iteration of self.tokens is explicitly undefined, but it happens to work out
-        // TODO: How can we guarantee order without the performance cost? Create our own arena?
-        TokenReference::Borrowed {
-            arena: Arc::clone(&self.tokens),
-            index: self
-                .tokens
-                .iter()
-                // .sorted_by(|left, right| left.1.cmp(&right.1))
-                .nth(self.index)
-                .expect("couldn't peek, no eof?")
-                .0,
-        }
+        self.tokens[self.index].clone()
     }
 }
 

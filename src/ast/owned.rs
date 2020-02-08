@@ -20,17 +20,6 @@ where
     fn owned(&self) -> Self::Owned;
 }
 
-impl Owned for Ast<'_> {
-    type Owned = Ast<'static>;
-
-    fn owned(&self) -> Self::Owned {
-        Ast {
-            nodes: self.nodes.owned(),
-            tokens: Arc::new(self.tokens.iter().map(|(_, token)| token.owned()).collect()),
-        }
-    }
-}
-
 impl Owned for AstError<'_> {
     type Owned = AstError<'static>;
 
@@ -91,14 +80,6 @@ impl Owned for TokenizerError {
 
     fn owned(&self) -> Self::Owned {
         self.clone()
-    }
-}
-
-impl Owned for TokenReference<'_> {
-    type Owned = TokenReference<'static>;
-
-    fn owned(&self) -> TokenReference<'static> {
-        TokenReference::Owned((**self).owned())
     }
 }
 

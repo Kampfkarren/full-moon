@@ -1,7 +1,6 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use atomic_refcell::AtomicRefCell;
-use full_moon_derive::symbols;
-use generational_arena::{Arena, Index};
+use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while, take_while1},
@@ -225,8 +224,8 @@ pub enum TokenKind {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    pub(crate) start_position: Arc<AtomicPosition>,
-    pub(crate) end_position: Arc<AtomicPosition>,
+    pub(crate) start_position: Position,
+    pub(crate) end_position: Position,
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[cfg_attr(feature = "serde", serde(with = "serde_arc_atomic_refcell"))]
     pub(crate) token_type: Arc<AtomicRefCell<TokenType<'a>>>,
@@ -235,12 +234,12 @@ pub struct Token<'a> {
 impl<'a> Token<'a> {
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
-        self.start_position.load()
+        self.start_position
     }
 
     /// The position a token ends at
     pub fn end_position(&self) -> Position {
-        self.end_position.load()
+        self.end_position
     }
 
     /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
@@ -310,18 +309,16 @@ impl<'a> PartialOrd for Token<'a> {
 
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`](struct.Token.html)
-#[derive(Clone)]
-pub enum TokenReference<'a> {
-    /// Token is borrowed from an Ast's arena
-    #[doc(hidden)]
-    Borrowed {
-        arena: Arc<Arena<Token<'a>>>,
-        index: Index,
-    },
-
-    /// Token reference was manually created, likely through deserialization
-    #[doc(hidden)]
-    Owned(Token<'a>),
+// TODO: Change name
+#[derive(Clone, Owned)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct TokenReference<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    leading_trivia: Vec<Token<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    token: Token<'a>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    trailing_trivia: Vec<Token<'a>>,
 }
 
 impl<'a> TokenReference<'a> {
@@ -342,13 +339,7 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
     type Target = Token<'a>;
 
     fn deref(&self) -> &Self::Target {
-        match self {
-            TokenReference::Borrowed { arena, index } => {
-                arena.get(*index).expect("arena doesn't have index?")
-            }
-
-            TokenReference::Owned(token) => &token,
-        }
+        &self.token
     }
 }
 
@@ -381,20 +372,6 @@ impl<'a> Ord for TokenReference<'a> {
 impl<'a> PartialOrd for TokenReference<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'a> Serialize for TokenReference<'a> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        (**self).serialize(serializer)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
     }
 }
 
@@ -467,52 +444,6 @@ impl Ord for Position {
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct AtomicPosition {
-    bytes: AtomicUsize,
-    character: AtomicUsize,
-    line: AtomicUsize,
-}
-
-impl AtomicPosition {
-    fn new(position: Position) -> Self {
-        AtomicPosition {
-            bytes: AtomicUsize::new(position.bytes()),
-            character: AtomicUsize::new(position.character()),
-            line: AtomicUsize::new(position.line()),
-        }
-    }
-
-    fn load(&self) -> Position {
-        Position {
-            bytes: self.bytes.load(AtomicOrdering::Acquire),
-            character: self.character.load(AtomicOrdering::Acquire),
-            line: self.line.load(AtomicOrdering::Acquire),
-        }
-    }
-
-    pub fn store(&self, position: Position) {
-        self.bytes.store(position.bytes(), AtomicOrdering::Release);
-        self.character
-            .store(position.character(), AtomicOrdering::Release);
-        self.line.store(position.line(), AtomicOrdering::Release);
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for AtomicPosition {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(AtomicPosition::new(Position::deserialize(deserializer)?))
-    }
-}
-
-#[cfg(feature = "serde")]
-impl Serialize for AtomicPosition {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.load().serialize(serializer)
     }
 }
 
@@ -758,7 +689,7 @@ fn advance_symbol(code: &str) -> Advancement {
 #[inline]
 fn parse_whitespace(code: &str) -> IResult<&str, &str> {
     // From regex "^[^\S\n]+\n?|\n"
-    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
+    alt((recognize(pair(opt(line_ending), space1)), line_ending))(code)
 }
 
 // Keep finding whitespace until the line ends
@@ -851,8 +782,8 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position: Arc::new(AtomicPosition::new(start_position)),
-                        end_position: Arc::new(AtomicPosition::new(position)),
+                        start_position: start_position,
+                        end_position: position,
                         token_type: Arc::new(AtomicRefCell::new(advancement.token_type)),
                     });
 
@@ -887,8 +818,8 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     }
 
     tokens.push(Token {
-        start_position: Arc::new(AtomicPosition::new(position)),
-        end_position: Arc::new(AtomicPosition::new(position)),
+        start_position: position,
+        end_position: position,
         token_type: Arc::new(AtomicRefCell::new(TokenType::Eof)),
     });
 
@@ -1066,9 +997,9 @@ mod tests {
         test_advancer!(
             advance_whitespace("\t  \n"),
             Ok(Some(TokenAdvancement {
-                advance: 4,
+                advance: 3,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t  \n"),
+                    characters: Cow::from("\t  "),
                 },
             }))
         );
@@ -1086,9 +1017,9 @@ mod tests {
         test_advancer!(
             advance_whitespace("\t\t\nhello"),
             Ok(Some(TokenAdvancement {
-                advance: 3,
+                advance: 2,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t\t\n"),
+                    characters: Cow::from("\t\t"),
                 },
             }))
         );

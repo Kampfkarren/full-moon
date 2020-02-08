@@ -46,13 +46,7 @@ macro_rules! create_visitor {
         pub trait Visitor<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
             fn visit_ast(&mut self, ast: &Ast<'ast>) where Self: Sized {
-                for (index, _) in Arc::clone(&ast.tokens).iter() {
-                    TokenReference::Borrowed {
-                        arena: Arc::clone(&ast.tokens),
-                        index,
-                    }.visit(self);
-                }
-
+                // TODO: Visit tokens?
                 ast.nodes().visit(self);
             }
 
@@ -87,13 +81,7 @@ macro_rules! create_visitor {
         pub trait VisitorMut<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
             fn visit_ast(&mut self, ast: &mut Ast<'ast>) where Self: Sized {
-                for (index, _) in Arc::clone(&ast.tokens).iter() {
-                    TokenReference::Borrowed {
-                        arena: Arc::clone(&ast.tokens),
-                        index,
-                    }.visit_mut(self);
-                }
-
+                // TODO: Visit tokens?
                 ast.nodes_mut().visit_mut(self);
             }
 

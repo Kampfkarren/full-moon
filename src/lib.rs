@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![allow(clippy::large_enum_variant)]
 //! # Full Moon
 //!
