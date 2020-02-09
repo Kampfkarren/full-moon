@@ -49,10 +49,11 @@ fn test_visitor_mut() {
                     _ => unreachable!(),
                 }
 
-                name.value_mut()
-                    .set_token_type(tokenizer::TokenType::Identifier {
-                        identifier: Cow::from(identifier),
-                    });
+                unimplemented!("SnakeNamer::visit_local_assignment")
+                // name.value_mut()
+                //     .set_token_type(tokenizer::TokenType::Identifier {
+                //         identifier: Cow::from(identifier),
+                //     });
             }
         }
     }
