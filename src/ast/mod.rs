@@ -1067,6 +1067,7 @@ impl<'a> std::error::Error for AstError<'a> {}
 #[derive(Clone, Debug, Owned)]
 pub struct Ast<'a> {
     nodes: Block<'a>,
+    tokens: Vec<TokenReference<'a>>,
 }
 
 impl<'a> Ast<'a> {
@@ -1085,7 +1086,6 @@ impl<'a> Ast<'a> {
             Err(AstError::NoEof)
         } else {
             let tokens = extract_token_references(tokens);
-
             let mut state = ParserState::new(&tokens);
 
             if tokens
@@ -1100,6 +1100,7 @@ impl<'a> Ast<'a> {
                         stmts: Vec::new(),
                         last_stmt: None,
                     },
+                    tokens,
                 });
             }
 
@@ -1113,7 +1114,8 @@ impl<'a> Ast<'a> {
                     if state.index == tokens.len() - 1 {
                         // TODO: Can we avoid clone()?
                         Ok(Ast {
-                            nodes: block.clone(),
+                            nodes: block,
+                            tokens,
                         })
                     } else {
                         Err(AstError::UnexpectedToken {
