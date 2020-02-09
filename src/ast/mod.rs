@@ -5,7 +5,11 @@ mod parsers;
 pub mod punctuated;
 pub mod span;
 
-use crate::tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType};
+use crate::{
+    tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
+    util::*,
+};
+use derive_more::Display;
 use full_moon_derive::{Node, Owned, Visit};
 use generational_arena::Arena;
 use itertools::Itertools;
@@ -26,8 +30,13 @@ pub mod types;
 use types::*;
 
 /// A block of statements, such as in if/do/etc block
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}",
+    "display_optional_punctuated_vec(stmts)",
+    "display_option(&last_stmt.as_ref().map(display_optional_punctuated))"
+)]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     stmts: Vec<(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
@@ -41,14 +50,19 @@ impl<'a> Block<'a> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
-    /// The last statement of the block if one exists, such as `return foo`
+    #[deprecated(since = "0.5.0", note = "Use last_stmt instead")]
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
+        self.last_stmt()
+    }
+
+    /// The last statement of the block if one exists, such as `return foo`
+    pub fn last_stmt(&self) -> Option<&LastStmt<'a>> {
         Some(&self.last_stmt.as_ref()?.0)
     }
 }
 
 /// The last statement of a [`Block`](struct.Block.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -59,8 +73,9 @@ pub enum LastStmt<'a> {
 }
 
 /// A `return` statement
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", token, returns)]
 pub struct Return<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     token: Cow<'a, TokenReference<'a>>,
@@ -80,10 +95,18 @@ impl<'a> Return<'a> {
 }
 
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
+    #[display(
+        fmt = "{}{}{}{}{}",
+        "brackets.tokens().0",
+        "key",
+        "brackets.tokens().1",
+        "equal",
+        "value"
+    )]
     ExpressionKey {
         /// The `[...]` part of `[expression] = value`
         #[cfg_attr(feature = "serde", serde(borrow))]
@@ -97,6 +120,7 @@ pub enum Field<'a> {
     },
 
     /// A key in the format of `name = value`
+    #[display(fmt = "{}{}{}", "key", "equal", "value")]
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `name` part of `name = value`
@@ -109,6 +133,7 @@ pub enum Field<'a> {
 
     /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", "_0")]
     NoKey(Expression<'a>),
 }
 
@@ -117,8 +142,14 @@ pub enum Field<'a> {
 pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, TokenReference<'a>>>);
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}",
+    "braces.tokens().0",
+    "display_optional_punctuated_vec(fields)",
+    "braces.tokens().1"
+)]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[node(full_range)]
@@ -139,8 +170,9 @@ impl<'a> TableConstructor<'a> {
 }
 
 /// A binary operation, such as (`+ 3`)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", bin_op, rhs)]
 #[visit(visit_as = "bin_op")]
 pub struct BinOpRhs<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -161,14 +193,20 @@ impl<'a> BinOpRhs<'a> {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
     /// A statement in parentheses, such as `(#list)`
+    #[display(
+        fmt = "{}{}{}",
+        "contained.tokens().0",
+        "expression",
+        "contained.tokens().1"
+    )]
     Parentheses {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The parentheses of the `ParenExpression`
+        #[cfg_attr(feature = "serde", serde(borrow))]
         #[node(full_range)]
         contained: ContainedSpan<'a>,
         /// The expression inside the parentheses
@@ -176,15 +214,29 @@ pub enum Expression<'a> {
     },
 
     /// A unary operation, such as `#list`
+    #[display(fmt = "{}{}", "unop", "expression")]
     UnaryOperator {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The unary operation, the `#` part of `#list`
+        #[cfg_attr(feature = "serde", serde(borrow))]
         unop: UnOp<'a>,
         /// The expression the operation is being done on, the `list` part of `#list`
         expression: Box<Expression<'a>>,
     },
 
     /// A value, such as "strings"
+    #[cfg_attr(
+        not(feature = "roblox"),
+        display(fmt = "{}{}", value, "display_option(binop)")
+    )]
+    #[cfg_attr(
+        feature = "roblox",
+        display(
+            fmt = "{}{}{}",
+            value,
+            "display_option(binop)",
+            "display_option(as_assertion)"
+        )
+    )]
     Value {
         /// The value itself
         #[cfg_attr(feature = "serde", serde(borrow))]
@@ -201,54 +253,73 @@ pub enum Expression<'a> {
 }
 
 /// Values that cannot be used standalone, but as part of things such as [statements](enum.Stmt.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
+    #[display(fmt = "{}{}", "_0.0", "_0.1")]
     Function((Cow<'a, TokenReference<'a>>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
+    #[display(fmt = "{}", "_0")]
     FunctionCall(FunctionCall<'a>),
     /// A table constructor, such as `{ 1, 2, 3 }`
+    #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<'a>),
     /// A number token, such as `3.3`
+    #[display(fmt = "{}", "_0")]
     Number(Cow<'a, TokenReference<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
+    #[display(fmt = "{}", "_0")]
     ParseExpression(Expression<'a>),
     /// A string token, such as `"hello"`
+    #[display(fmt = "{}", "_0")]
     String(Cow<'a, TokenReference<'a>>),
     /// A symbol, such as `true`
+    #[display(fmt = "{}", "_0")]
     Symbol(Cow<'a, TokenReference<'a>>),
     /// A more complex value, such as `call().x`
+    #[display(fmt = "{}", "_0")]
     Var(Var<'a>),
 }
 
 /// A statement that stands alone
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An assignment, such as `x = 1`
+    #[display(fmt = "{}", _0)]
     Assignment(Assignment<'a>),
     /// A do block, `do end`
+    #[display(fmt = "{}", _0)]
     Do(Do<'a>),
     /// A function call on its own, such as `call()`
+    #[display(fmt = "{}", _0)]
     FunctionCall(FunctionCall<'a>),
     /// A function declaration, such as `function x() end`
+    #[display(fmt = "{}", _0)]
     FunctionDeclaration(FunctionDeclaration<'a>),
     /// A generic for loop, such as `for index, value in pairs(list) do end`
+    #[display(fmt = "{}", _0)]
     GenericFor(GenericFor<'a>),
     /// An if statement
+    #[display(fmt = "{}", _0)]
     If(If<'a>),
     /// A local assignment, such as `local x = 1`
+    #[display(fmt = "{}", _0)]
     LocalAssignment(LocalAssignment<'a>),
     /// A local function declaration, such as `local function x() end`
+    #[display(fmt = "{}", _0)]
     LocalFunction(LocalFunction<'a>),
     /// A numeric for loop, such as `for index = 1, 10 do end`
+    #[display(fmt = "{}", _0)]
     NumericFor(NumericFor<'a>),
     /// A repeat loop
+    #[display(fmt = "{}", _0)]
     Repeat(Repeat<'a>),
     /// A while loop
+    #[display(fmt = "{}", _0)]
     While(While<'a>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
@@ -258,22 +329,30 @@ pub enum Stmt<'a> {
 
 /// A node used before another in cases such as function calling
 /// The `("foo")` part of `("foo"):upper()`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", _0)]
     /// A complicated expression, such as `("foo")`
     Expression(Expression<'a>),
+    #[display(fmt = "{}", _0)]
     /// Just a name, such as `foo`
     Name(Cow<'a, TokenReference<'a>>),
 }
 
 /// The indexing of something, such as `x.y` or `x["y"]`
 /// Values of variants are the keys, such as `"y"`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
+    #[display(
+        fmt = "{}{}{}",
+        "brackets.tokens().0",
+        "expression",
+        "brackets.tokens().1"
+    )]
     Brackets {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `[...]` part of `["y"]`
@@ -283,6 +362,7 @@ pub enum Index<'a> {
     },
 
     /// Indexing in the form of `x.y`
+    #[display(fmt = "{}{}", "dot", "name")]
     Dot {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `.` part of `.y`
@@ -293,10 +373,16 @@ pub enum Index<'a> {
 }
 
 /// Arguments used for a function
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call(1, 2, 3)`
+    #[display(
+        fmt = "{}{}{}",
+        "parentheses.tokens().0",
+        "arguments",
+        "parentheses.tokens().1"
+    )]
     Parentheses {
         /// The `1, 2, 3` part of `1, 2, 3`
         #[cfg_attr(feature = "serde", serde(borrow))]
@@ -307,14 +393,30 @@ pub enum FunctionArgs<'a> {
     },
     /// Used when a function is called in the form of `call "foobar"`
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", "_0")]
     String(Cow<'a, TokenReference<'a>>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
+    #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<'a>),
 }
 
 /// A numeric for loop, such as `for index = 1, 10 do end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}{}{}{}{}{}{}{}{}",
+    "for_token",
+    "index_variable",
+    "equal_token",
+    "start",
+    "start_end_comma",
+    "end",
+    "display_option(end_step_comma)",
+    "display_option(step)",
+    "do_token",
+    "block",
+    "end_token"
+)]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: Cow<'a, TokenReference<'a>>,
@@ -392,8 +494,18 @@ impl<'a> NumericFor<'a> {
 }
 
 /// A generic for loop, such as `for index, value in pairs(list) do end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}{}{}{}{}",
+    "for_token",
+    "names",
+    "in_token",
+    "expr_list",
+    "do_token",
+    "block",
+    "end_token"
+)]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: Cow<'a, TokenReference<'a>>,
@@ -445,8 +557,19 @@ impl<'a> GenericFor<'a> {
 }
 
 /// An if statement
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}{}{}{}{}{}",
+    "if_token",
+    "condition",
+    "then_token",
+    "block",
+    "display_option(else_if.as_ref().map(join_vec))",
+    "display_option(else_token)",
+    "display_option(r#else)",
+    "end_token"
+)]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     if_token: Cow<'a, TokenReference<'a>>,
@@ -505,8 +628,9 @@ impl<'a> If<'a> {
 }
 
 /// An elseif block in a bigger [`If`](struct.If.html) statement
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
 pub struct ElseIf<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     else_if_token: Cow<'a, TokenReference<'a>>,
@@ -538,8 +662,16 @@ impl<'a> ElseIf<'a> {
 }
 
 /// A while loop
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}{}{}",
+    "while_token",
+    "condition",
+    "do_token",
+    "block",
+    "end_token"
+)]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     while_token: Cow<'a, TokenReference<'a>>,
@@ -577,8 +709,9 @@ impl<'a> While<'a> {
 }
 
 /// A repeat loop
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}{}", "repeat_token", "block", "until_token", "until")]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     repeat_token: Cow<'a, TokenReference<'a>>,
@@ -610,8 +743,9 @@ impl<'a> Repeat<'a> {
 }
 
 /// A method call, such as `x:y()`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}", "colon_token", "name", "args")]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     colon_token: Cow<'a, TokenReference<'a>>,
@@ -637,18 +771,44 @@ impl<'a> MethodCall<'a> {
 }
 
 /// Something being called
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", "_0")]
     /// A function being called directly, such as `x(1)`
     AnonymousCall(FunctionArgs<'a>),
+    #[display(fmt = "{}", "_0")]
     /// A method call, such as `x:y()`
     MethodCall(MethodCall<'a>),
 }
 
 /// A function body, everything except `function x` in `function x(a, b, c) call() end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(
+    not(feature = "roblox"),
+    display(
+        fmt = "{}{}{}{}{}",
+        "parameters_parantheses.tokens().0",
+        "parameters",
+        "parameters_parantheses.tokens().1",
+        "block",
+        "end_token"
+    )
+)]
+#[cfg_attr(
+    feature = "roblox",
+    display(
+        fmt = "{}{}{}{}{}{}{}",
+        "parameters_parantheses.tokens().0",
+        "parameters",
+        "parameters_parantheses.tokens().1",
+        "type_specifiers",
+        "return_type",
+        "block",
+        "end_token"
+    )
+)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -707,7 +867,7 @@ impl<'a> FunctionBody<'a> {
 }
 
 /// A parameter in a function declaration
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -719,19 +879,22 @@ pub enum Parameter<'a> {
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
 /// Can be stacked on top of each other, such as in `x()()()`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", "_0")]
     /// A call, including method calls and direct calls
     Call(Call<'a>),
+    #[display(fmt = "{}", "_0")]
     /// An index, such as `x.y`
     Index(Index<'a>),
 }
 
 /// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
 pub struct VarExpression<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     prefix: Prefix<'a>,
@@ -751,19 +914,22 @@ impl<'a> VarExpression<'a> {
 }
 
 /// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
     /// An expression, such as `x.y.z` or `x()`
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    #[display(fmt = "{}", "_0")]
     Expression(VarExpression<'a>),
     /// A literal identifier, such as `x`
+    #[display(fmt = "{}", "_0")]
     Name(Cow<'a, TokenReference<'a>>),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}", "var_list", "equal_token", "expr_list")]
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
@@ -791,8 +957,9 @@ impl<'a> Assignment<'a> {
 }
 
 /// A declaration of a local function, such as `local function x() end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "func_body")]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: Cow<'a, TokenReference<'a>>,
@@ -876,10 +1043,26 @@ impl<'a> LocalAssignment<'a> {
     }
 }
 
+impl fmt::Display for LocalAssignment<'_> {
+    #[cfg(feature = "roblox")]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        unimplemented!("Display impl for LocalAssignment in the Roblox feature flag")
+    }
+
+    #[cfg(not(feature = "roblox"))]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "{}", self.local_token)?;
+        write!(formatter, "{}", self.name_list)?;
+        write!(formatter, "{}", display_option(&self.equal_token))?;
+        write!(formatter, "{}", self.expr_list)
+    }
+}
+
 /// A `do` block, such as `do ... end`
 /// This is not used for things like `while true do end`, only those on their own
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}", "do_token", "block", "end_token")]
 pub struct Do<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     do_token: Cow<'a, TokenReference<'a>>,
@@ -905,8 +1088,9 @@ impl<'a> Do<'a> {
 }
 
 /// A function being called, such as `call()`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
 pub struct FunctionCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     prefix: Prefix<'a>,
@@ -926,8 +1110,14 @@ impl<'a> FunctionCall<'a> {
 }
 
 /// A function name when being [declared](struct.FunctionDeclaration.html)
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}",
+    "names",
+    "display_option(self.method_colon())",
+    "display_option(self.method_name())"
+)]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
@@ -935,6 +1125,11 @@ pub struct FunctionName<'a> {
 }
 
 impl<'a> FunctionName<'a> {
+    /// The colon between the name and the method, the `:` part of `function x:y() end`
+    pub fn method_colon(&self) -> Option<&TokenReference<'a>> {
+        Some(&self.colon_name.as_ref()?.0)
+    }
+
     /// A method name if one exists, the `y` part of `function x:y() end`
     pub fn method_name(&self) -> Option<&TokenReference<'a>> {
         Some(&self.colon_name.as_ref()?.1)
@@ -949,8 +1144,9 @@ impl<'a> FunctionName<'a> {
 
 /// A normal function declaration, supports simple declarations like `function x() end`
 /// as well as complicated declarations such as `function x.y.z:a() end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}", "function_token", "name", "body")]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     function_token: Cow<'a, TokenReference<'a>>,
@@ -977,10 +1173,11 @@ impl<'a> FunctionDeclaration<'a> {
 
 macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+        #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[visit(skip_visit_self)]
         $(#[$outer])*
+        #[display(fmt = "{}")]
         pub enum $enum<'a> {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(

@@ -19,6 +19,7 @@ pub mod tokenizer;
 pub mod visitors;
 
 mod private;
+mod util;
 
 use full_moon_derive::Owned;
 use std::fmt;

@@ -350,7 +350,17 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
 
 impl<'a> fmt::Display for TokenReference<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        (**self).fmt(formatter)
+        for trivia in &self.leading_trivia {
+            formatter.write_str(&trivia.to_string())?;
+        }
+
+        formatter.write_str(&self.token.to_string())?;
+
+        for trivia in &self.trailing_trivia {
+            formatter.write_str(&trivia.to_string())?;
+        }
+
+        Ok(())
     }
 }
 

@@ -18,16 +18,20 @@ use crate::{
     node::Node,
     private::Sealed,
     tokenizer::{Position, TokenReference},
+    util,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
 };
+use derive_more::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 /// A punctuated sequence of node `T` separated by [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(bound = "T: Display")]
+#[display(fmt = "{}", "util::join_vec(pairs)")]
 pub struct Punctuated<'a, T> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     pairs: Vec<Pair<'a, T>>,
@@ -270,13 +274,15 @@ impl<'a, 'b, T> Iterator for IterMut<'a, 'b, T> {
 
 /// A node `T` followed by the possible trailing [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Pair<'a, T> {
     /// A node `T` with no trailing punctuation
+    #[display(fmt = "{}", "_0")]
     End(T),
 
     /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../tokenizer/enum.TokenReference.html))
+    #[display(fmt = "{}{}", "_0", "_1")]
     Punctuated(
         T,
         #[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>,
