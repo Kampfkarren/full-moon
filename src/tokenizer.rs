@@ -236,6 +236,15 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
+    /// Creates a token with a zero position
+    pub fn new(token_type: TokenType<'a>) -> Token<'a> {
+        Token {
+            start_position: Position::default(),
+            end_position: Position::default(),
+            token_type,
+        }
+    }
+
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
         self.start_position
@@ -326,11 +335,13 @@ pub struct TokenReference<'a> {
 }
 
 impl<'a> TokenReference<'a> {
-    /// Sets the type of token. Note that positions will not update after using this function.
-    /// If you need them to, call [`Ast::update_positions`](../ast/struct.Ast.html#method.update_positions)
-    pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
-        // *self.token_type.borrow_mut() = new_token_type;
-        unimplemented!("TokenReference::set_token_type, which should probably get removed")
+    /// Creates a clone of the current [BIKESHED] with the new inner token, preserving trivia.
+    pub fn with_token(&self, token: Token<'a>) -> Self {
+        Self {
+            token,
+            leading_trivia: self.leading_trivia.clone(),
+            trailing_trivia: self.trailing_trivia.clone(),
+        }
     }
 }
 

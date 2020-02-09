@@ -1,5 +1,6 @@
 use full_moon::{
-    ast, parse, print, tokenizer,
+    ast, parse, print,
+    tokenizer::*,
     visitors::{Visitor, VisitorMut},
 };
 use std::borrow::Cow;
@@ -40,7 +41,7 @@ fn test_visitor_mut() {
                 let identifier;
 
                 match *name.value_mut().token_type() {
-                    tokenizer::TokenType::Identifier {
+                    TokenType::Identifier {
                         identifier: ref identifier_tmp,
                     } => {
                         identifier = identifier_tmp.replace("s", "sss");
@@ -49,11 +50,10 @@ fn test_visitor_mut() {
                     _ => unreachable!(),
                 }
 
-                unimplemented!("SnakeNamer::visit_local_assignment")
-                // name.value_mut()
-                //     .set_token_type(tokenizer::TokenType::Identifier {
-                //         identifier: Cow::from(identifier),
-                //     });
+                *name.value_mut() =
+                    Cow::Owned(name.value().with_token(Token::new(TokenType::Identifier {
+                        identifier: Cow::from(identifier),
+                    })));
             }
         }
     }
@@ -87,7 +87,7 @@ fn test_visit_token() {
     };
 
     impl Visitor<'_> for CommentVisitor {
-        fn visit_single_line_comment(&mut self, token: &tokenizer::TokenReference<'_>) {
+        fn visit_single_line_comment(&mut self, token: &TokenReference<'_>) {
             self.comments.push(token.to_string());
         }
     }

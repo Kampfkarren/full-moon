@@ -1309,7 +1309,6 @@ impl<'a> Ast<'a> {
             match parsers::ParseBlock.parse(state.clone()) {
                 Ok((state, block)) => {
                     if state.index == tokens.len() - 1 {
-                        // TODO: Can we avoid clone()?
                         Ok(Ast {
                             nodes: block,
                             tokens,
