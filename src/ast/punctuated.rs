@@ -111,6 +111,17 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.into_iter()
     }
 
+    /// Returns the last [`Pair`](enum.Pair.html) in the sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.last()?.value(), 1);
+    /// ```
+    pub fn last(&self) -> Option<&Pair<'a, T>> {
+        self.pairs.last()
+    }
+
     /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as references
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};

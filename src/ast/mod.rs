@@ -1354,6 +1354,11 @@ impl<'a> Ast<'a> {
         &mut self.nodes
     }
 
+    /// The EOF token at the end of every Ast
+    pub fn eof(&self) -> &TokenReference<'a> {
+        self.tokens.last().expect("no eof token, somehow?")
+    }
+
     /// An iterator over the tokens used to create the Ast
     pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
         // self.tokens.iter().map(|(_, token)| token).sorted()

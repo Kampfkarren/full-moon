@@ -222,7 +222,7 @@ macro_rules! test_pairs_logic {
                     );
                 } else if index + 1 != len && node.punctuation().is_none() {
                     panic!(
-                        "{} pairs illogical: non-last node ({}) has punctuation",
+                        "{} pairs illogical: non-last node ({}) has no punctuation",
                         $cause, index
                     );
                 }

@@ -797,7 +797,12 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state: ParserState<'a>| 
         if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state.clone()) {
             if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
                 state = new_state;
-                parameters.push(Pair::new(Parameter::Ellipse(ellipse), Some(comma)));
+
+                let mut last_parameter = parameters.pop().expect("comma parsed and accepted, but no arguments before it?");
+                last_parameter = Pair::new(last_parameter.into_value(), Some(comma));
+                parameters.push(last_parameter);
+
+                parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
             }
         }
     } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state.clone()) {
