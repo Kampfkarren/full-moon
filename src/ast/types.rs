@@ -7,7 +7,7 @@ use super::{punctuated::Punctuated, span::ContainedSpan, *};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeInfo<'a> {
     /// A standalone type, such as `string` or `Foo`.
-    Basic(#[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>),
+    Basic(#[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>),
 
     /// A callback type, such as `(string, number) => boolean`.
     Callback {
@@ -130,7 +130,7 @@ impl<'a> TypeField<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeFieldKey<'a> {
     /// A name, such as `foo`.
-    Name(TokenReference<'a>),
+    Name(Cow<'a, TokenReference<'a>>),
 
     /// An index signature, such as `[number]`.
     IndexSignature {
