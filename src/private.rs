@@ -9,7 +9,7 @@ pub trait Sealed {}
 
 impl<T> Sealed for &T {}
 impl<T> Sealed for &mut T {}
-impl<T: Clone> Sealed for Cow<'_, T> {}
+impl<T: ToOwned> Sealed for Cow<'_, T> {}
 impl Sealed for Ast<'_> {}
 impl Sealed for AstError<'_> {}
 impl Sealed for Error<'_> {}

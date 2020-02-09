@@ -3,6 +3,7 @@ use crate::{
     private,
     tokenizer::{Position, Token, TokenReference},
 };
+use std::borrow::Cow;
 
 /// Used to represent nodes such as tokens or function definitions
 ///
@@ -85,6 +86,20 @@ impl<T: Node> Node for &T {
 }
 
 impl<T: Node> Node for &mut T {
+    fn start_position(&self) -> Option<Position> {
+        (**self).start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        (**self).end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
+    }
+}
+
+impl<T: Node + ToOwned> Node for Cow<'_, T> {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }

@@ -163,3 +163,12 @@ where
         (self.0.owned(), self.1.owned())
     }
 }
+
+// TODO: Generic Cow impl
+impl<'a> Owned for Cow<'a, TokenReference<'a>> {
+    type Owned = Cow<'static, TokenReference<'static>>;
+
+    fn owned(&self) -> <Self as Owned>::Owned {
+        Cow::Owned((*self.to_owned()).owned())
+    }
+}

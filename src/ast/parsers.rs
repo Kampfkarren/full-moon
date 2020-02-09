@@ -14,7 +14,7 @@ struct ParseSymbol(Symbol);
 
 define_parser!(
     ParseSymbol,
-    TokenReference<'a>,
+    Cow<'a, TokenReference<'a>>,
     |this: &ParseSymbol, state: ParserState<'a>| {
         let expecting = TokenType::Symbol { symbol: this.0 };
         let token = state.peek();
@@ -32,7 +32,7 @@ struct ParseNumber;
 
 define_parser!(
     ParseNumber,
-    TokenReference<'a>,
+    Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if token.token_kind() == TokenKind::Number {
@@ -48,7 +48,7 @@ struct ParseStringLiteral;
 
 define_parser!(
     ParseStringLiteral,
-    TokenReference<'a>,
+    Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
         let token = state.peek();
         if token.token_kind() == TokenKind::StringLiteral {
@@ -292,7 +292,7 @@ struct ParseAsAssertion;
 define_roblox_parser!(
     ParseAsAssertion,
     AsAssertion<'a>,
-    TokenReference<'a>,
+    Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
         let (state, as_token) = ParseIdentifier.parse(state.clone())?;
         if as_token.to_string() == "as" {
@@ -844,7 +844,7 @@ struct ParseFunctionReturnType;
 define_roblox_parser!(
     ParseFunctionReturnType,
     TypeSpecifier<'a>,
-    TokenReference<'a>,
+    Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
         let (state, fat_arrow) = ParseSymbol(Symbol::FatArrow).parse(state.clone())?;
         let (state, return_type) = expect!(
@@ -867,7 +867,7 @@ define_roblox_parser!(
 struct ParseFunction;
 define_parser!(
     ParseFunction,
-    (TokenReference<'a>, FunctionBody<'a>),
+    (Cow<'a, TokenReference<'a>>, FunctionBody<'a>),
     |_, state: ParserState<'a>| {
         let (state, token) = ParseSymbol(Symbol::Function).parse(state.clone())?;
         let (state, body) = expect!(
@@ -1011,7 +1011,7 @@ define_parser!(
                         .parse(state.clone())
                         .or_else(|_| {
                             Err(InternalAstError::UnexpectedToken {
-                                token: state.peek(),
+                                token: (*state.peek()).to_owned(),
                                 additional: Some("expected expression"),
                             })
                         })?,
@@ -1126,7 +1126,7 @@ define_parser!(
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 #[rustfmt::skip]
-define_parser!(ParseIdentifier, TokenReference<'a>, |_, state: ParserState<'a>| {
+define_parser!(ParseIdentifier, Cow<'a, TokenReference<'a>>, |_, state: ParserState<'a>| {
     let next_token = state.peek();
     match next_token.token_kind() {
         TokenKind::Identifier => Ok((
@@ -1142,8 +1142,8 @@ define_parser!(ParseIdentifier, TokenReference<'a>, |_, state: ParserState<'a>| 
 struct ParseNameWithType;
 define_roblox_parser!(
     ParseNameWithType,
-    (TokenReference<'a>, Option<TypeSpecifier<'a>>),
-    (TokenReference<'a>, Option<TokenReference<'a>>),
+    (Cow<'a, TokenReference<'a>>, Option<TypeSpecifier<'a>>),
+    (Cow<'a, TokenReference<'a>>, Option<TokenReference<'a>>),
     |_, state: ParserState<'a>| {
         let (state, name) = ParseIdentifier.parse(state.clone())?;
         let (state, type_specifier) = if let Ok((state, type_specifier)) =

@@ -30,9 +30,9 @@ use types::*;
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>,
+    stmts: Vec<(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
+    last_stmt: Option<(LastStmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
 }
 
 impl<'a> Block<'a> {
@@ -53,7 +53,7 @@ impl<'a> Block<'a> {
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
-    Break(TokenReference<'a>),
+    Break(Cow<'a, TokenReference<'a>>),
     /// A `return` statement
     Return(Return<'a>),
 }
@@ -63,7 +63,7 @@ pub enum LastStmt<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Return<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token: TokenReference<'a>,
+    token: Cow<'a, TokenReference<'a>>,
     returns: Punctuated<'a, Expression<'a>>,
 }
 
@@ -91,7 +91,7 @@ pub enum Field<'a> {
         /// The `expression` part of `[expression] = value`
         key: Expression<'a>,
         /// The `=` part of `[expression] = value`
-        equal: TokenReference<'a>,
+        equal: Cow<'a, TokenReference<'a>>,
         /// The `value` part of `[expression] = value`
         value: Expression<'a>,
     },
@@ -100,9 +100,9 @@ pub enum Field<'a> {
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `name` part of `name = value`
-        key: TokenReference<'a>,
+        key: Cow<'a, TokenReference<'a>>,
         /// The `=` part of `name = value`
-        equal: TokenReference<'a>,
+        equal: Cow<'a, TokenReference<'a>>,
         /// The `value` part of `name = value`
         value: Expression<'a>,
     },
@@ -114,7 +114,7 @@ pub enum Field<'a> {
 
 /// A [`Field`](enum.Field.html) used when creating a table
 /// Second parameter is the separator used (`,` or `;`) if one exists
-pub type TableConstructorField<'a> = (Field<'a>, Option<TokenReference<'a>>);
+pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, TokenReference<'a>>>);
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
 #[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
@@ -206,19 +206,19 @@ pub enum Expression<'a> {
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
-    Function((TokenReference<'a>, FunctionBody<'a>)),
+    Function((Cow<'a, TokenReference<'a>>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
     FunctionCall(FunctionCall<'a>),
     /// A table constructor, such as `{ 1, 2, 3 }`
     TableConstructor(TableConstructor<'a>),
     /// A number token, such as `3.3`
-    Number(TokenReference<'a>),
+    Number(Cow<'a, TokenReference<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
     ParseExpression(Expression<'a>),
     /// A string token, such as `"hello"`
-    String(TokenReference<'a>),
+    String(Cow<'a, TokenReference<'a>>),
     /// A symbol, such as `true`
-    Symbol(TokenReference<'a>),
+    Symbol(Cow<'a, TokenReference<'a>>),
     /// A more complex value, such as `call().x`
     Var(Var<'a>),
 }
@@ -265,7 +265,7 @@ pub enum Prefix<'a> {
     /// A complicated expression, such as `("foo")`
     Expression(Expression<'a>),
     /// Just a name, such as `foo`
-    Name(TokenReference<'a>),
+    Name(Cow<'a, TokenReference<'a>>),
 }
 
 /// The indexing of something, such as `x.y` or `x["y"]`
@@ -286,9 +286,9 @@ pub enum Index<'a> {
     Dot {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `.` part of `.y`
-        dot: TokenReference<'a>,
+        dot: Cow<'a, TokenReference<'a>>,
         /// The `y` part of `.y`
-        name: TokenReference<'a>,
+        name: Cow<'a, TokenReference<'a>>,
     },
 }
 
@@ -307,7 +307,7 @@ pub enum FunctionArgs<'a> {
     },
     /// Used when a function is called in the form of `call "foobar"`
     #[cfg_attr(feature = "serde", serde(borrow))]
-    String(TokenReference<'a>),
+    String(Cow<'a, TokenReference<'a>>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
     TableConstructor(TableConstructor<'a>),
 }
@@ -317,17 +317,17 @@ pub enum FunctionArgs<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: TokenReference<'a>,
-    index_variable: TokenReference<'a>,
-    equal_token: TokenReference<'a>,
+    for_token: Cow<'a, TokenReference<'a>>,
+    index_variable: Cow<'a, TokenReference<'a>>,
+    equal_token: Cow<'a, TokenReference<'a>>,
     start: Expression<'a>,
-    start_end_comma: TokenReference<'a>,
+    start_end_comma: Cow<'a, TokenReference<'a>>,
     end: Expression<'a>,
-    end_step_comma: Option<TokenReference<'a>>,
+    end_step_comma: Option<Cow<'a, TokenReference<'a>>>,
     step: Option<Expression<'a>>,
-    do_token: TokenReference<'a>,
+    do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> NumericFor<'a> {
@@ -367,7 +367,7 @@ impl<'a> NumericFor<'a> {
     /// for _ = 0, 10, 2 do
     ///              ^
     pub fn end_step_comma(&self) -> Option<&TokenReference<'a>> {
-        self.end_step_comma.as_ref()
+        self.end_step_comma.as_deref()
     }
 
     /// The step if one exists, `2` in `for index = 0, 10, 2 do end`
@@ -396,13 +396,13 @@ impl<'a> NumericFor<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: TokenReference<'a>,
-    names: Punctuated<'a, TokenReference<'a>>,
-    in_token: TokenReference<'a>,
+    for_token: Cow<'a, TokenReference<'a>>,
+    names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+    in_token: Cow<'a, TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
-    do_token: TokenReference<'a>,
+    do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> GenericFor<'a> {
@@ -413,7 +413,7 @@ impl<'a> GenericFor<'a> {
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
-    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.names
     }
 
@@ -449,15 +449,15 @@ impl<'a> GenericFor<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    if_token: TokenReference<'a>,
+    if_token: Cow<'a, TokenReference<'a>>,
     condition: Expression<'a>,
-    then_token: TokenReference<'a>,
+    then_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
     else_if: Option<Vec<ElseIf<'a>>>,
-    else_token: Option<TokenReference<'a>>,
+    else_token: Option<Cow<'a, TokenReference<'a>>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> If<'a> {
@@ -483,7 +483,7 @@ impl<'a> If<'a> {
 
     /// The `else` token if one exists
     pub fn else_token(&self) -> Option<&TokenReference<'a>> {
-        self.else_token.as_ref()
+        self.else_token.as_deref()
     }
 
     /// If there are `elseif` conditions, returns a vector of them
@@ -509,9 +509,9 @@ impl<'a> If<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ElseIf<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    else_if_token: TokenReference<'a>,
+    else_if_token: Cow<'a, TokenReference<'a>>,
     condition: Expression<'a>,
-    then_token: TokenReference<'a>,
+    then_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
 }
 
@@ -542,11 +542,11 @@ impl<'a> ElseIf<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    while_token: TokenReference<'a>,
+    while_token: Cow<'a, TokenReference<'a>>,
     condition: Expression<'a>,
-    do_token: TokenReference<'a>,
+    do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> While<'a> {
@@ -581,9 +581,9 @@ impl<'a> While<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    repeat_token: TokenReference<'a>,
+    repeat_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
-    until_token: TokenReference<'a>,
+    until_token: Cow<'a, TokenReference<'a>>,
     until: Expression<'a>,
 }
 
@@ -614,8 +614,8 @@ impl<'a> Repeat<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    colon_token: TokenReference<'a>,
-    name: TokenReference<'a>,
+    colon_token: Cow<'a, TokenReference<'a>>,
+    name: Cow<'a, TokenReference<'a>>,
     args: FunctionArgs<'a>,
 }
 
@@ -665,7 +665,7 @@ pub struct FunctionBody<'a> {
     return_type: Option<TypeSpecifier<'a>>,
 
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> FunctionBody<'a> {
@@ -712,9 +712,9 @@ impl<'a> FunctionBody<'a> {
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// The `...` vararg syntax, such as `function x(...)`
-    Ellipse(TokenReference<'a>),
+    Ellipse(Cow<'a, TokenReference<'a>>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(TokenReference<'a>),
+    Name(Cow<'a, TokenReference<'a>>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
@@ -758,7 +758,7 @@ pub enum Var<'a> {
     /// An expression, such as `x.y.z` or `x()`
     Expression(VarExpression<'a>),
     /// A literal identifier, such as `x`
-    Name(TokenReference<'a>),
+    Name(Cow<'a, TokenReference<'a>>),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
@@ -767,7 +767,7 @@ pub enum Var<'a> {
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
-    equal_token: TokenReference<'a>,
+    equal_token: Cow<'a, TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -795,9 +795,9 @@ impl<'a> Assignment<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: TokenReference<'a>,
-    function_token: TokenReference<'a>,
-    name: TokenReference<'a>,
+    local_token: Cow<'a, TokenReference<'a>>,
+    function_token: Cow<'a, TokenReference<'a>>,
+    name: Cow<'a, TokenReference<'a>>,
     func_body: FunctionBody<'a>,
 }
 
@@ -828,12 +828,12 @@ impl<'a> LocalFunction<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: TokenReference<'a>,
+    local_token: Cow<'a, TokenReference<'a>>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
-    name_list: Punctuated<'a, TokenReference<'a>>,
-    equal_token: Option<TokenReference<'a>>,
+    name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+    equal_token: Option<Cow<'a, TokenReference<'a>>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -845,7 +845,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// The `=` token in between `local x = y`, if one exists
     pub fn equal_token(&self) -> Option<&TokenReference<'a>> {
-        self.equal_token.as_ref()
+        self.equal_token.as_deref()
     }
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of the expressions being assigned.
@@ -856,13 +856,13 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn name_list(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.name_list
     }
 
     /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, TokenReference<'a>> {
+    pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &mut self.name_list
     }
 
@@ -882,9 +882,9 @@ impl<'a> LocalAssignment<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Do<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    do_token: TokenReference<'a>,
+    do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> Do<'a> {
@@ -930,8 +930,8 @@ impl<'a> FunctionCall<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Punctuated<'a, TokenReference<'a>>,
-    colon_name: Option<(TokenReference<'a>, TokenReference<'a>)>,
+    names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+    colon_name: Option<(Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>)>,
 }
 
 impl<'a> FunctionName<'a> {
@@ -942,7 +942,7 @@ impl<'a> FunctionName<'a> {
 
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the names used when defining the function.
     /// This is the `x.y.z` part of `function x.y.z() end`
-    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.names
     }
 }
@@ -953,7 +953,7 @@ impl<'a> FunctionName<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    function_token: TokenReference<'a>,
+    function_token: Cow<'a, TokenReference<'a>>,
     name: FunctionName<'a>,
     body: FunctionBody<'a>,
 }
@@ -985,7 +985,7 @@ macro_rules! make_op {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
                 #[allow(missing_docs)]
-                $operator(TokenReference<'a>),
+                $operator(Cow<'a, TokenReference<'a>>),
             )+
         }
     };
@@ -1117,14 +1117,14 @@ impl<'a> Ast<'a> {
                         })
                     } else {
                         Err(AstError::UnexpectedToken {
-                            token: (*state.peek()).to_owned(),
+                            token: (*state.peek()).to_owned().token,
                             additional: Some(Cow::Borrowed("leftover token")),
                         })
                     }
                 }
 
                 Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                    token: (*state.peek()).to_owned(),
+                    token: (*state.peek()).to_owned().token,
                     additional: None,
                 }),
 

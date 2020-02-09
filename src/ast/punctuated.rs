@@ -22,6 +22,7 @@ use crate::{
 };
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 /// A punctuated sequence of node `T` separated by [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
@@ -278,7 +279,7 @@ pub enum Pair<'a, T> {
     /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../tokenizer/enum.TokenReference.html))
     Punctuated(
         T,
-        #[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>,
+        #[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>,
     ),
 }
 
@@ -288,7 +289,7 @@ impl<'a, T> Pair<'a, T> {
     /// # use full_moon::ast::punctuated::Pair;
     /// let pair = Pair::new(1, None);
     /// ```
-    pub fn new(value: T, punctuation: Option<TokenReference<'a>>) -> Self {
+    pub fn new(value: T, punctuation: Option<Cow<'a, TokenReference<'a>>>) -> Self {
         match punctuation {
             None => Pair::End(value),
             Some(punctuation) => Pair::Punctuated(value, punctuation),
@@ -301,7 +302,7 @@ impl<'a, T> Pair<'a, T> {
     /// let pair = Pair::new(1, None);
     /// assert_eq!(pair.into_tuple(), (1, None));
     /// ```
-    pub fn into_tuple(self) -> (T, Option<TokenReference<'a>>) {
+    pub fn into_tuple(self) -> (T, Option<Cow<'a, TokenReference<'a>>>) {
         match self {
             Pair::End(value) => (value, None),
             Pair::Punctuated(value, punctuation) => (value, Some(punctuation)),

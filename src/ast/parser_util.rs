@@ -9,7 +9,7 @@ use crate::{
 use generational_arena::Arena;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{fmt, sync::Arc};
+use std::{borrow::Cow, fmt, sync::Arc};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy)]
@@ -40,7 +40,7 @@ impl<'a> ParserState<'a> {
     }
 
     // TODO: Change this to return a borrowed value
-    pub fn peek(&self) -> TokenReference<'a> {
+    pub fn peek(&self) -> Cow<'a, TokenReference<'a>> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
@@ -53,7 +53,7 @@ impl<'a> ParserState<'a> {
                 .expect("couldn't peek, no eof?")
         };
 
-        result.clone()
+        Cow::Borrowed(result)
     }
 }
 
@@ -119,7 +119,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek(),
+                    token: $state.peek().into_owned(),
                     additional: None,
                 });
             }
@@ -132,7 +132,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek(),
+                    token: $state.peek().into_owned(),
                     additional: Some($error),
                 });
             }
@@ -244,7 +244,7 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
     T: Node + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
@@ -279,7 +279,7 @@ where
                         break;
                     } else {
                         return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek(),
+                            token: state.peek().into_owned(),
                             additional: Some("trailing character"),
                         });
                     }
@@ -312,7 +312,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
     T: Node + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;

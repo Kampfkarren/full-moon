@@ -12,6 +12,7 @@ use crate::{
     private::Sealed,
     tokenizer::{Position, TokenReference},
 };
+use std::borrow::Cow;
 
 use full_moon_derive::{Owned, Visit};
 #[cfg(feature = "serde")]
@@ -24,12 +25,12 @@ use serde::{Deserialize, Serialize};
 pub struct ContainedSpan<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[visit(skip)]
-    tokens: (TokenReference<'a>, TokenReference<'a>),
+    tokens: (Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>),
 }
 
 impl<'a> ContainedSpan<'a> {
     /// Creates a contained span from the start and end bounds
-    pub fn new(start: TokenReference<'a>, end: TokenReference<'a>) -> Self {
+    pub fn new(start: Cow<'a, TokenReference<'a>>, end: Cow<'a, TokenReference<'a>>) -> Self {
         Self {
             tokens: (start, end),
         }
@@ -42,7 +43,7 @@ impl<'a> ContainedSpan<'a> {
 
     /// Returns the start and end bounds in a tuple as mutable references
     pub fn tokens_mut(&mut self) -> (&mut TokenReference<'a>, &mut TokenReference<'a>) {
-        (&mut self.tokens.0, &mut self.tokens.1)
+        unimplemented!("ContainedSpan::tokens_mut")
     }
 }
 
