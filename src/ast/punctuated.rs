@@ -24,7 +24,7 @@ use crate::{
 use derive_more::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt::Display};
+use std::{borrow::Cow, fmt::Display, iter::FromIterator};
 
 /// A punctuated sequence of node `T` separated by [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
@@ -197,8 +197,10 @@ impl<'a, T: Visit<'a>> Visit<'a> for Punctuated<'a, T> {
 }
 
 impl<'a, T: VisitMut<'a>> VisitMut<'a> for Punctuated<'a, T> {
-    fn visit_mut<V: VisitorMut<'a>>(&mut self, visitor: &mut V) {
-        self.pairs.visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'a>>(self, visitor: &mut V) -> Self {
+        Punctuated {
+            pairs: self.pairs.visit_mut(visitor),
+        }
     }
 }
 
@@ -215,6 +217,14 @@ impl<'a, T> IntoIterator for Punctuated<'a, T> {
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
             inner: self.pairs.into_iter(),
+        }
+    }
+}
+
+impl<'a, T> FromIterator<Pair<'a, T>> for Punctuated<'a, T> {
+    fn from_iter<I: IntoIterator<Item = Pair<'a, T>>>(iter: I) -> Self {
+        Punctuated {
+            pairs: iter.into_iter().collect(),
         }
     }
 }
@@ -422,12 +432,11 @@ impl<'a, T: Visit<'a>> Visit<'a> for Pair<'a, T> {
 }
 
 impl<'a, T: VisitMut<'a>> VisitMut<'a> for Pair<'a, T> {
-    fn visit_mut<V: VisitorMut<'a>>(&mut self, visitor: &mut V) {
+    fn visit_mut<V: VisitorMut<'a>>(self, visitor: &mut V) -> Self {
         match self {
-            Pair::End(value) => value.visit_mut(visitor),
+            Pair::End(value) => Pair::End(value.visit_mut(visitor)),
             Pair::Punctuated(value, punctuation) => {
-                value.visit_mut(visitor);
-                punctuation.visit_mut(visitor);
+                Pair::Punctuated(value.visit_mut(visitor), punctuation.visit_mut(visitor))
             }
         }
     }

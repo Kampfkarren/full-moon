@@ -88,9 +88,14 @@ macro_rules! create_visitor {
             paste::item! {
                 $(
                     #[allow(missing_docs)]
-                    fn $visit_name(&mut self, _node: &mut $ast_type<'ast>) { }
+                    fn $visit_name(&mut self, node: $ast_type<'ast>) -> $ast_type<'ast> {
+                        node
+                    }
+
                     #[allow(missing_docs)]
-                    fn [<$visit_name _end>](&mut self, _node: &mut $ast_type<'ast>) { }
+                    fn [<$visit_name _end>](&mut self, node: $ast_type<'ast>) -> $ast_type<'ast> {
+                        node
+                    }
                 )+
 
                 $(
@@ -98,17 +103,24 @@ macro_rules! create_visitor {
                     $(
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn $meta_visit_name(&mut self, _node: &$meta_ast_type<'ast>) { }
+                        fn $meta_visit_name(&mut self, node: $meta_ast_type<'ast>) -> $meta_ast_type<'ast> {
+                            node
+                        }
+
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn [<$meta_visit_name _end>](&mut self, _node: &$meta_ast_type<'ast>) { }
+                        fn [<$meta_visit_name _end>](&mut self, node: $meta_ast_type<'ast>) -> $meta_ast_type<'ast> {
+                            node
+                        }
                     )+
                 )+
             }
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, _token: &mut TokenReference<'ast>) { }
+                fn $visit_token(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+                    token
+                }
             )+
         }
     };
@@ -120,8 +132,11 @@ pub trait Visit<'ast>: Sealed {
 }
 
 #[doc(hidden)]
-pub trait VisitMut<'ast>: Sealed {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V);
+pub trait VisitMut<'ast>: Sealed
+where
+    Self: Sized,
+{
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self;
 }
 
 impl<'ast, T: Visit<'ast>> Visit<'ast> for Vec<T> {
@@ -133,10 +148,10 @@ impl<'ast, T: Visit<'ast>> Visit<'ast> for Vec<T> {
 }
 
 impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Vec<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        for item in self {
-            item.visit_mut(visitor);
-        }
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        self.into_iter()
+            .map(|item| item.visit_mut(visitor))
+            .collect()
     }
 }
 
@@ -149,10 +164,8 @@ impl<'ast, T: Visit<'ast>> Visit<'ast> for Option<T> {
 }
 
 impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Option<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        if let Some(item) = self {
-            item.visit_mut(visitor);
-        }
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        self.map(|item| item.visit_mut(visitor))
     }
 }
 
@@ -164,9 +177,8 @@ impl<'ast, A: Visit<'ast>, B: Visit<'ast>> Visit<'ast> for (A, B) {
 }
 
 impl<'ast, A: VisitMut<'ast>, B: VisitMut<'ast>> VisitMut<'ast> for (A, B) {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        self.0.visit_mut(visitor);
-        self.1.visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        (self.0.visit_mut(visitor), self.1.visit_mut(visitor))
     }
 }
 
@@ -176,9 +188,12 @@ impl<'ast, T: Clone + Visit<'ast>> Visit<'ast> for Cow<'ast, T> {
     }
 }
 
+// TODO: This clones every Cow every visit, and there are a lot
+// Can this be remedied? Is this an issue?
 impl<'ast, T: Clone + VisitMut<'ast>> VisitMut<'ast> for Cow<'ast, T> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        self.to_mut().visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let owned: &T = &self.to_owned();
+        Cow::Owned(owned.visit_mut(visitor).to_owned())
     }
 }
 
@@ -189,8 +204,8 @@ impl<'ast, T: Visit<'ast>> Visit<'ast> for Box<T> {
 }
 
 impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Box<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        (**self).visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        Box::new((*self).visit_mut(visitor))
     }
 }
 

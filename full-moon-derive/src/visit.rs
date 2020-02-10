@@ -23,26 +23,26 @@ fn snake_case(pascal_case: &str) -> String {
 #[derive(PartialEq)]
 enum VisitHint {
     Skip,
-	SkipVisitSelf,
+    SkipVisitSelf,
     VisitAs(String),
 }
 
 impl Hint for VisitHint {
-	fn key_value(key: String, value: String) -> Option<Self> {
-		if key == "visit_as" {
-			Some(VisitHint::VisitAs(value))
-		} else {
-			None
-		}
-	}
+    fn key_value(key: String, value: String) -> Option<Self> {
+        if key == "visit_as" {
+            Some(VisitHint::VisitAs(value))
+        } else {
+            None
+        }
+    }
 
-	fn unit(name: String) -> Option<Self> {
-		match name.as_str() {
-			"skip" => Some(VisitHint::Skip),
-			"skip_visit_self" => Some(VisitHint::SkipVisitSelf),
-			_ => None,
-		}
-	}
+    fn unit(name: String) -> Option<Self> {
+        match name.as_str() {
+            "skip" => Some(VisitHint::Skip),
+            "skip_visit_self" => Some(VisitHint::SkipVisitSelf),
+            _ => None,
+        }
+    }
 }
 
 pub struct VisitGenerator;
@@ -67,10 +67,10 @@ impl DeriveGenerator for VisitGenerator {
 
                 (
                     quote! {
-                        visitor.#visit_as(self);
+                        visit_self!(#visit_as);
                     },
                     quote! {
-                        visitor.#visit_as_end(self);
+                        visit_self!(#visit_as_end);
                     },
                 )
             }
@@ -88,10 +88,10 @@ impl DeriveGenerator for VisitGenerator {
 
                 (
                     quote! {
-                        visitor.#ssself(self);
+                        visit_self!(#ssself);
                     },
                     quote! {
-                        visitor.#ssself_end(self);
+                        visit_self!(#ssself_end);
                     },
                 )
             }
@@ -106,6 +106,26 @@ impl DeriveGenerator for VisitGenerator {
                         }
                     }
 
+                    macro_rules! visit_self {
+                        ($name: ident) => {
+                            visitor.$name(self);
+                        }
+                    }
+
+                    macro_rules! set_self {
+                        ($value: expr) => {
+                            $value;
+                        }
+                    }
+
+                    macro_rules! if_visit {
+                        ({ $($used: expr)* } else { $($unused: expr)* }) => {
+                            {
+                                $($used;)*
+                            }
+                        }
+                    }
+
                     #visit_self
                     #tokens
                     #visit_self_end
@@ -113,16 +133,35 @@ impl DeriveGenerator for VisitGenerator {
             }
 
             impl #impl_generics crate::visitors::VisitMut<#lifetime> for #input_ident #ty_generics #where_clause {
-                fn visit_mut<V: crate::visitors::VisitorMut<#lifetime>>(&mut self, visitor: &mut V) {
+                fn visit_mut<V: crate::visitors::VisitorMut<#lifetime>>(mut self, visitor: &mut V) -> Self {
                     macro_rules! visit {
                         ($visit_what: expr, $visitor: expr) => {
-                            $visit_what.visit_mut($visitor);
+                            $visit_what = $visit_what.visit_mut($visitor);
+                        }
+                    }
+
+                    macro_rules! visit_self {
+                        ($name: ident) => {
+                            self = visitor.$name(self);
+                        }
+                    }
+
+                    macro_rules! set_self {
+                        ($value: expr) => {
+                            self = $value;
+                        }
+                    }
+
+                    macro_rules! if_visit {
+                        ({ $($unused: expr)* } else { $($used: expr)* }) => {
+                            $($used)*
                         }
                     }
 
                     #visit_self
                     #tokens
                     #visit_self_end
+                    self
                 }
             }
         }
@@ -135,7 +174,7 @@ impl StructGenerator for VisitGenerator {
             .fields
             .iter()
             .filter(|field| search_hint("visit", &field.attrs) != Some(VisitHint::Skip))
-			.map(|field| field.ident.as_ref());
+            .map(|field| field.ident.as_ref());
 
         quote! {
             #(visit!(self.#fields, visitor);)*
@@ -144,6 +183,12 @@ impl StructGenerator for VisitGenerator {
 }
 
 impl MatchEnumGenerator for VisitGenerator {
+    fn complete(input: TokenStream) -> TokenStream {
+        quote! {
+            set_self!(#input);
+        }
+    }
+
     fn case_named(
         input: &syn::Ident,
         variant: &syn::Ident,
@@ -159,9 +204,17 @@ impl MatchEnumGenerator for VisitGenerator {
             #input::#variant {
                 #(#fields,)*
             } => {
-                #(
-                    visit!(#fields, visitor);
-                )*
+                if_visit!({
+                    #(
+                        #fields.visit(visitor)
+                    )*
+                } else {
+                    #input::#variant {
+                        #(
+                            #fields: #fields.visit_mut(visitor),
+                        )*
+                    }
+                })
             }
         }
     }
@@ -183,9 +236,17 @@ impl MatchEnumGenerator for VisitGenerator {
             #input::#variant(
                 #(#fields,)*
             ) => {
-                #(
-                    visit!(#fields, visitor);
-                )*
+                if_visit!({
+                    #(
+                        #fields.visit(visitor)
+                    )*
+                } else {
+                    #input::#variant(
+                        #(
+                            #fields.visit_mut(visitor),
+                        )*
+                    )
+                })
             }
         }
     }

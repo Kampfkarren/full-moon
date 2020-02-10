@@ -413,18 +413,18 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
 }
 
 impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        visitor.visit_token(self);
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let token = visitor.visit_token(self);
 
-        match self.token_kind() {
-            TokenKind::Eof => visitor.visit_eof(self),
-            TokenKind::Identifier => visitor.visit_identifier(self),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
-            TokenKind::Number => visitor.visit_number(self),
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
-            TokenKind::StringLiteral => visitor.visit_string_literal(self),
-            TokenKind::Symbol => visitor.visit_symbol(self),
-            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        match token.token_kind() {
+            TokenKind::Eof => visitor.visit_eof(token),
+            TokenKind::Identifier => visitor.visit_identifier(token),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(token),
+            TokenKind::Number => visitor.visit_number(token),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
+            TokenKind::StringLiteral => visitor.visit_string_literal(token),
+            TokenKind::Symbol => visitor.visit_symbol(token),
+            TokenKind::Whitespace => visitor.visit_whitespace(token),
         }
     }
 }
