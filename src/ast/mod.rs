@@ -1029,8 +1029,9 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list_mut(&mut self) -> &mut Punctuated<'a, Cow<'a, TokenReference<'a>>> {
-        &mut self.name_list
+    pub fn with_name_list(&self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+        let owned = self.to_owned();
+        Self { name_list, ..owned }
     }
 
     /// The type specifiers of the variables, in the order that they were assigned.
@@ -1263,8 +1264,8 @@ impl<'a> std::error::Error for AstError<'a> {}
 /// An abstract syntax tree, contains all the nodes used in the code
 #[derive(Clone, Debug, Owned)]
 pub struct Ast<'a> {
-    nodes: Block<'a>,
-    tokens: Vec<TokenReference<'a>>,
+    pub(crate) nodes: Block<'a>,
+    pub(crate) tokens: Vec<TokenReference<'a>>,
 }
 
 impl<'a> Ast<'a> {

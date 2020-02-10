@@ -335,6 +335,11 @@ pub struct TokenReference<'a> {
 }
 
 impl<'a> TokenReference<'a> {
+    /// Returns the inner [`Token`](struct.Token.html)
+    pub fn token(&self) -> &Token<'a> {
+        &self.token
+    }
+
     /// Creates a clone of the current [BIKESHED] with the new inner token, preserving trivia.
     pub fn with_token(&self, token: Token<'a>) -> Self {
         Self {

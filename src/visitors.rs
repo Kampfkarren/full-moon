@@ -80,9 +80,16 @@ macro_rules! create_visitor {
         /// Unlike [`Visitor`](trait.Visitor.html), nodes/tokens passed are mutable.
         pub trait VisitorMut<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
-            fn visit_ast(&mut self, ast: &mut Ast<'ast>) where Self: Sized {
+            fn visit_ast(&mut self, ast: Ast<'ast>) -> Ast<'ast> where Self: Sized {
                 // TODO: Visit tokens?
-                ast.nodes_mut().visit_mut(self);
+                let eof = ast.eof().to_owned();
+                let nodes = ast.nodes.visit_mut(self);
+
+                Ast {
+                    nodes,
+                    // Everything gets cloned with this visitor, so there's no original tokens
+                    tokens: vec![self.visit_eof(eof)],
+                }
             }
 
             paste::item! {
@@ -192,8 +199,7 @@ impl<'ast, T: Clone + Visit<'ast>> Visit<'ast> for Cow<'ast, T> {
 // Can this be remedied? Is this an issue?
 impl<'ast, T: Clone + VisitMut<'ast>> VisitMut<'ast> for Cow<'ast, T> {
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
-        let owned: &T = &self.to_owned();
-        Cow::Owned(owned.visit_mut(visitor).to_owned())
+        Cow::Owned(self.into_owned().visit_mut(visitor).to_owned())
     }
 }
 
