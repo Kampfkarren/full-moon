@@ -1029,9 +1029,8 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn with_name_list(&self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
-        let owned = self.to_owned();
-        Self { name_list, ..owned }
+    pub fn with_name_list(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+        Self { name_list, ..self }
     }
 
     /// The type specifiers of the variables, in the order that they were assigned.
