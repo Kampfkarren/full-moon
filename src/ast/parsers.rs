@@ -295,7 +295,7 @@ define_roblox_parser!(
     Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
         let (state, as_token) = ParseIdentifier.parse(state.clone())?;
-        if as_token.to_string() == "as" {
+        if as_token.token().to_string() == "as" {
             let (state, cast_to) = expect!(
                 state,
                 ParseTypeInfo.parse(state.clone()),
@@ -1172,7 +1172,7 @@ cfg_if::cfg_if! {
             TypeDeclaration<'a>,
             |_, state: ParserState<'a>| {
                 let (state, type_token) = ParseIdentifier.parse(state.clone())?;
-                if type_token.to_string() != "type" {
+                if type_token.token().to_string() != "type" {
                     return Err(InternalAstError::NoMatch);
                 }
 
@@ -1234,7 +1234,7 @@ cfg_if::cfg_if! {
                     .parse(state.clone())
                     .or_else(|_| ParseSymbol(Symbol::Nil).parse(state.clone()))
             } {
-                if identifier.to_string() == "typeof" {
+                if identifier.token().to_string() == "typeof" {
                     let (state, start_parenthese) = expect!(
                         state,
                         ParseSymbol(Symbol::LeftParen).parse(state.clone()),

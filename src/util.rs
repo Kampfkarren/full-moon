@@ -1,4 +1,4 @@
-use crate::tokenizer::TokenReference;
+use crate::{ast::punctuated::Punctuated, tokenizer::TokenReference};
 use std::{
     borrow::{Borrow, Cow},
     fmt::Display,
@@ -34,6 +34,29 @@ pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
 
     for item in vec.as_ref() {
         string.push_str(&item.to_string());
+    }
+
+    string
+}
+
+#[cfg(feature = "roblox")]
+pub fn join_type_specifiers<'a, I: IntoIterator<Item = Option<T2>>, T1: Display, T2: Display>(
+    parameters: &Punctuated<'a, T1>,
+    type_specifiers: I,
+) -> String {
+    let mut string = String::new();
+
+    for (parameter, type_specifier) in parameters.pairs().zip(
+        type_specifiers
+            .into_iter()
+            .chain(std::iter::repeat_with(|| None)),
+    ) {
+        string.push_str(&format!(
+            "{}{}{}",
+            parameter.value(),
+            display_option(type_specifier),
+            display_option(parameter.punctuation())
+        ));
     }
 
     string

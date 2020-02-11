@@ -784,31 +784,7 @@ pub enum Call<'a> {
 }
 
 /// A function body, everything except `function x` in `function x(a, b, c) call() end`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
-#[cfg_attr(
-    not(feature = "roblox"),
-    display(
-        fmt = "{}{}{}{}{}",
-        "parameters_parantheses.tokens().0",
-        "parameters",
-        "parameters_parantheses.tokens().1",
-        "block",
-        "end_token"
-    )
-)]
-#[cfg_attr(
-    feature = "roblox",
-    display(
-        fmt = "{}{}{}{}{}{}{}",
-        "parameters_parantheses.tokens().0",
-        "parameters",
-        "parameters_parantheses.tokens().1",
-        "type_specifiers",
-        "return_type",
-        "block",
-        "end_token"
-    )
-)]
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -863,6 +839,35 @@ impl<'a> FunctionBody<'a> {
     #[cfg(feature = "roblox")]
     pub fn return_type(&self) -> Option<&TypeSpecifier<'a>> {
         self.return_type.as_ref()
+    }
+}
+
+impl fmt::Display for FunctionBody<'_> {
+    #[cfg(feature = "roblox")]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}{}",
+            self.parameters_parantheses.tokens().0,
+            join_type_specifiers(&self.parameters, self.type_specifiers()),
+            self.parameters_parantheses.tokens().1,
+            display_option(self.return_type.as_ref()),
+            self.block,
+            self.end_token
+        )
+    }
+
+    #[cfg(not(feature = "roblox"))]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}",
+            self.parameters_parantheses.tokens().0,
+            self.parameters,
+            self.parameters_parantheses.tokens().1,
+            self.block,
+            self.end_token
+        )
     }
 }
 
@@ -1046,15 +1051,26 @@ impl<'a> LocalAssignment<'a> {
 impl fmt::Display for LocalAssignment<'_> {
     #[cfg(feature = "roblox")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!("Display impl for LocalAssignment in the Roblox feature flag")
+        write!(
+            formatter,
+            "{}{}{}{}",
+            self.local_token,
+            join_type_specifiers(&self.name_list, self.type_specifiers()),
+            display_option(&self.equal_token),
+            self.expr_list
+        )
     }
 
     #[cfg(not(feature = "roblox"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "{}", self.local_token)?;
-        write!(formatter, "{}", self.name_list)?;
-        write!(formatter, "{}", display_option(&self.equal_token))?;
-        write!(formatter, "{}", self.expr_list)
+        write!(
+            formatter,
+            "{}{}{}{}",
+            self.local_token,
+            self.name_list,
+            display_option(&self.equal_token),
+            self.expr_list
+        )
     }
 }
 
