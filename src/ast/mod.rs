@@ -1027,7 +1027,7 @@ impl<'a> LocalAssignment<'a> {
         &self.name_list
     }
 
-    /// Returns a mutable [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
+    /// Returns a new LocalAssignment with the provided list of names.
     /// This is the `x, y` part of `local x, y = 1, 2`
     pub fn with_name_list(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
         Self { name_list, ..self }

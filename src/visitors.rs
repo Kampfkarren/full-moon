@@ -24,7 +24,7 @@ macro_rules! create_visitor {
         /// ```rust
         /// # use full_moon::ast;
         /// # use full_moon::visitors::*;
-        /// # fn main() -> Result<(), Box<std::error::Error>> {
+        /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
         /// // A visitor that logs every local assignment made
         /// #[derive(Default)]
         /// struct LocalVariableVisitor {
@@ -33,7 +33,7 @@ macro_rules! create_visitor {
         ///
         /// impl<'ast> Visitor<'ast> for LocalVariableVisitor {
         ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment<'ast>) {
-        ///         self.names.extend(&mut local_assignment.name_list().iter().map(|name| name.to_string()));
+        ///         self.names.extend(&mut local_assignment.name_list().iter().map(|name| name.token().to_string()));
         ///     }
         /// }
         ///
