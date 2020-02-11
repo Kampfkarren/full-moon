@@ -40,11 +40,6 @@ impl<'a> ContainedSpan<'a> {
     pub fn tokens(&self) -> (&TokenReference<'a>, &TokenReference<'a>) {
         (&self.tokens.0, &self.tokens.1)
     }
-
-    /// Returns the start and end bounds in a tuple as mutable references
-    pub fn tokens_mut(&mut self) -> (&mut TokenReference<'a>, &mut TokenReference<'a>) {
-        unimplemented!("ContainedSpan::tokens_mut")
-    }
 }
 
 impl<'a> Node for ContainedSpan<'a> {
