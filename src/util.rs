@@ -1,4 +1,4 @@
-use crate::{ast::punctuated::Punctuated, tokenizer::TokenReference};
+use crate::tokenizer::TokenReference;
 use std::{
     borrow::{Borrow, Cow},
     fmt::Display,

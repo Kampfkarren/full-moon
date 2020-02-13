@@ -3,7 +3,7 @@ use crate::{
     private::Sealed,
     tokenizer::TokenReference,
 };
-use std::{borrow::Cow, sync::Arc};
+use std::borrow::Cow;
 
 #[cfg(feature = "roblox")]
 use crate::ast::types::*;
@@ -199,7 +199,7 @@ impl<'ast, T: Clone + Visit<'ast>> Visit<'ast> for Cow<'ast, T> {
 // Can this be remedied? Is this an issue?
 impl<'ast, T: Clone + VisitMut<'ast>> VisitMut<'ast> for Cow<'ast, T> {
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
-        Cow::Owned(self.into_owned().visit_mut(visitor).to_owned())
+        Cow::Owned(self.into_owned().visit_mut(visitor))
     }
 }
 

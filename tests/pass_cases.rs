@@ -46,7 +46,7 @@ fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
             .expect("couldn't write to tokens file");
         }
 
-        let mut ast = ast::Ast::from_tokens(tokens)
+        let ast = ast::Ast::from_tokens(tokens)
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
         // let old_positions: Vec<_> = ast

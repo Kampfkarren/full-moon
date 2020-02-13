@@ -3,13 +3,13 @@
 use super::punctuated::{Pair, Punctuated};
 use crate::{
     node::Node,
-    tokenizer::{Token, TokenReference},
+    tokenizer::TokenReference,
     visitors::{Visit, VisitMut},
 };
-use generational_arena::Arena;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt, sync::Arc};
+use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy)]
@@ -99,7 +99,7 @@ macro_rules! parse_first_of {
     ($state:ident, {$($(@#[$meta:meta])? $parser:expr => $constructor:expr,)+}) => ({
         $(
             $(#[$meta])?
-            match $parser.parse($state.clone()) {
+            match $parser.parse($state) {
                 Ok((state, node)) => return Ok((state, $constructor(node.into()))),
                 Err(InternalAstError::NoMatch) => {},
                 Err(other) => return Err(other),
@@ -195,7 +195,7 @@ where
     ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         loop {
-            match self.0.parse(state.clone()) {
+            match self.0.parse(state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(node);
@@ -254,20 +254,20 @@ where
     ) -> Result<(ParserState<'a>, Punctuated<'a, T>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
 
-        if let Ok((new_state, node)) = keep_going!(self.0.parse(state.clone())) {
+        if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
             state = new_state;
             nodes.push(Pair::End(node));
         } else {
-            return Ok((state.clone(), Punctuated::new()));
+            return Ok((state, Punctuated::new()));
         }
 
-        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state.clone())) {
+        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state)) {
             let last_value = nodes.pop().unwrap().into_value();
             nodes.push(Pair::Punctuated(last_value, delimiter));
 
             state = new_state;
 
-            match self.0.parse(state.clone()) {
+            match self.0.parse(state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(Pair::End(node));
@@ -321,14 +321,14 @@ where
         state: ParserState<'a>,
     ) -> Result<(ParserState<'a>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
-        let (mut state, node) = self.0.parse(state.clone())?;
+        let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));
 
-        while let Ok((new_state, delimiter)) = self.1.parse(state.clone()) {
+        while let Ok((new_state, delimiter)) = self.1.parse(state) {
             let last_value = nodes.pop().unwrap().into_value();
             nodes.push(Pair::Punctuated(last_value, delimiter));
 
-            match self.0.parse(new_state.clone()) {
+            match self.0.parse(new_state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(Pair::End(node));

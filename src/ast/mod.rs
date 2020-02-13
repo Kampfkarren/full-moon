@@ -6,16 +6,15 @@ pub mod punctuated;
 pub mod span;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
+    tokenizer::{Symbol, Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
 use full_moon_derive::{Node, Owned, Visit};
-use generational_arena::Arena;
-use itertools::Itertools;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt, iter::FromIterator, sync::Arc};
+use std::{borrow::Cow, fmt};
 
 use parser_util::{
     InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
@@ -1769,7 +1768,7 @@ impl<'a> Ast<'a> {
 
             if tokens
                 .iter()
-                .filter(|token| !token.token_type().ignore())
+                .filter(|token| !token.token_type().is_trivia())
                 .count()
                 == 1
             {
@@ -1784,11 +1783,11 @@ impl<'a> Ast<'a> {
             }
 
             // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-            if state.peek().token_type().ignore() {
+            if state.peek().token_type().is_trivia() {
                 state = state.advance().unwrap();
             }
 
-            match parsers::ParseBlock.parse(state.clone()) {
+            match parsers::ParseBlock.parse(state) {
                 Ok((state, block)) => {
                     if state.index == tokens.len() - 1 {
                         Ok(Ast {

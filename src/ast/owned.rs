@@ -4,7 +4,6 @@
 use super::*;
 use crate::tokenizer::*;
 
-use atomic_refcell::AtomicRefCell;
 use std::borrow::Cow;
 
 /// A trait for getting an owned version of a node.
@@ -68,8 +67,8 @@ impl Owned for Token<'_> {
 
     fn owned(&self) -> Self::Owned {
         Token {
-            start_position: self.start_position.clone(),
-            end_position: self.end_position.clone(),
+            start_position: self.start_position,
+            end_position: self.end_position,
             token_type: self.token_type().owned(),
         }
     }

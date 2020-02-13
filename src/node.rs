@@ -43,7 +43,7 @@ pub trait Node: private::Sealed {
                 break;
             }
 
-            if token.token_type().ignore() {
+            if token.token_type().is_trivia() {
                 previous.push(token);
             } else {
                 previous = Vec::new();
@@ -60,7 +60,7 @@ pub trait Node: private::Sealed {
         }
 
         for token in tokens {
-            if token.token_type().ignore() {
+            if token.token_type().is_trivia() {
                 following.push(token);
             } else {
                 break;

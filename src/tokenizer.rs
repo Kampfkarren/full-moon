@@ -1,5 +1,5 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
-use atomic_refcell::AtomicRefCell;
+
 use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
@@ -11,17 +11,8 @@ use nom::{
     IResult,
 };
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{
-    borrow::Cow,
-    cmp::Ordering,
-    fmt,
-    str::FromStr,
-    sync::{
-        atomic::{AtomicUsize, Ordering as AtomicOrdering},
-        Arc,
-    },
-};
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
     And => "and",

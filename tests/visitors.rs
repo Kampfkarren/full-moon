@@ -57,7 +57,7 @@ fn test_visitor_mut() {
     }
 
     let code = parse("local dogs, snakes = 1").unwrap();
-    let mut code = SnakeNamer.visit_ast(code);
+    let code = SnakeNamer.visit_ast(code);
     assert_eq!(print(&code), "local dogsss, sssnakesss = 1");
 
     // struct PositionValidator;
