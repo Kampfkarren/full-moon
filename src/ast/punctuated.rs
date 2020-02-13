@@ -60,7 +60,7 @@ impl<'a, T> Punctuated<'a, T> {
     }
 
     /// Returns the number of pairs in the punctuated sequence
-    /// /// ```rust
+    /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
     /// assert_eq!(punctuated.len(), 0);

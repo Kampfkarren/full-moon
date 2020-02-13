@@ -832,7 +832,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state: ParserState<'a>| 
     Ok((
         state,
         FunctionBody {
-            parameters_parantheses: ContainedSpan::new(start_parenthese, end_parenthese),
+            parameters_parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
             parameters,
             block,
             end_token,

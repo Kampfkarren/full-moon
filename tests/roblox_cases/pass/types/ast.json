@@ -5239,7 +5239,7 @@
             "colon_name": null
           },
           "body": {
-            "parameters_parantheses": {
+            "parameters_parentheses": {
               "tokens": [
                 {
                   "leading_trivia": [],
@@ -5694,7 +5694,7 @@
             "colon_name": null
           },
           "body": {
-            "parameters_parantheses": {
+            "parameters_parentheses": {
               "tokens": [
                 {
                   "leading_trivia": [],
@@ -6244,7 +6244,7 @@
                         "trailing_trivia": []
                       },
                       {
-                        "parameters_parantheses": {
+                        "parameters_parentheses": {
                           "tokens": [
                             {
                               "leading_trivia": [],

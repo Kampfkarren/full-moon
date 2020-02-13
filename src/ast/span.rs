@@ -6,7 +6,6 @@
 //! - Creating a table uses braces `{...}`
 //!
 //! Contained spans don't contain the inner data, just the start and end bounds.
-//! ```
 use crate::{
     node::Node,
     private::Sealed,
