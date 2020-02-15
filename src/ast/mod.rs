@@ -1817,6 +1817,21 @@ impl<'a> Ast<'a> {
         }
     }
 
+    /// Returns a new Ast with the given nodes
+    pub fn with_nodes(self, nodes: Block<'a>) -> Self {
+        Self { nodes, ..self }
+    }
+
+    /// Returns a new Ast with the given EOF token
+    pub fn with_eof(mut self, eof: TokenReference<'a>) -> Self {
+        self.tokens.pop();
+        self.tokens.push(eof);
+        Self {
+            tokens: self.tokens,
+            ..self
+        }
+    }
+
     /// The entire code of the function
     ///
     /// ```rust
@@ -1944,7 +1959,10 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tokenizer::tokens;
+    use crate::{
+        parse, print,
+        tokenizer::{tokens, TokenReference},
+    };
 
     #[test]
     fn test_extract_token_references() {
@@ -1975,5 +1993,27 @@ mod tests {
         assert_eq!(references[4].leading_trivia[2].to_string(), "\n");
         assert_eq!(references[4].token.to_string(), "local");
         assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
+    }
+
+    #[test]
+    fn test_with_eof_safety() {
+        let new_ast = {
+            let ast = parse("local foo = 1").unwrap();
+            let eof = ast.eof().clone();
+            ast.with_eof(eof)
+        };
+
+        print(&new_ast);
+    }
+
+    #[test]
+    fn test_with_nodes_safety() {
+        let new_ast = {
+            let ast = parse("local foo = 1").unwrap();
+            let nodes = ast.nodes().clone();
+            ast.with_nodes(nodes)
+        };
+
+        print(&new_ast);
     }
 }

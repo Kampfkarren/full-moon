@@ -326,6 +326,19 @@ pub struct TokenReference<'a> {
 }
 
 impl<'a> TokenReference<'a> {
+    /// Creates a TokenReference from leading/trailing trivia as well as the leading token
+    pub fn new(
+        leading_trivia: Vec<Token<'a>>,
+        token: Token<'a>,
+        trailing_trivia: Vec<Token<'a>>,
+    ) -> Self {
+        Self {
+            leading_trivia,
+            token,
+            trailing_trivia,
+        }
+    }
+
     /// Returns the inner [`Token`](struct.Token.html)
     pub fn token(&self) -> &Token<'a> {
         &self.token
