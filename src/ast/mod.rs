@@ -2189,10 +2189,7 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        parse, print,
-        tokenizer::{tokens, TokenReference},
-    };
+    use crate::{parse, print, tokenizer::tokens};
 
     #[test]
     fn test_extract_token_references() {
@@ -2245,5 +2242,47 @@ mod tests {
         };
 
         print(&new_ast);
+    }
+
+    // Tests AST nodes with new methods that call unwrap
+    #[test]
+    fn test_new_validity() {
+        let token: Cow<TokenReference> = Cow::Owned(TokenReference::new(
+            Vec::new(),
+            Token::new(TokenType::Identifier {
+                identifier: "foo".into(),
+            }),
+            Vec::new(),
+        ));
+
+        let expression = Expression::Value {
+            value: Box::new(Value::Var(Var::Name(token.clone()))),
+            binop: None,
+            #[cfg(feature = "roblox")]
+            as_assertion: None,
+        };
+
+        Assignment::new(Punctuated::new(), Punctuated::new());
+        Do::new();
+        ElseIf::new(expression.clone());
+        FunctionBody::new();
+        FunctionCall::new(Prefix::Name(token.clone()));
+        FunctionDeclaration::new(FunctionName::new(Punctuated::new()));
+        GenericFor::new(Punctuated::new(), Punctuated::new());
+        If::new(expression.clone());
+        LocalAssignment::new(Punctuated::new());
+        LocalFunction::new(token.clone());
+        MethodCall::new(
+            token.clone(),
+            FunctionArgs::Parentheses {
+                arguments: Punctuated::new(),
+                parentheses: ContainedSpan::new(token.clone(), token.clone()),
+            },
+        );
+        NumericFor::new(token.clone(), expression.clone(), expression.clone());
+        Repeat::new(expression.clone());
+        Return::new();
+        TableConstructor::new();
+        While::new(expression.clone());
     }
 }
