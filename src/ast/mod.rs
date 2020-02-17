@@ -44,6 +44,14 @@ pub struct Block<'a> {
 }
 
 impl<'a> Block<'a> {
+    /// Creates an empty block
+    pub fn new() -> Self {
+        Self {
+            stmts: Vec::new(),
+            last_stmt: None,
+        }
+    }
+
     /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter().map(|(stmt, _)| stmt)
@@ -97,6 +105,15 @@ pub struct Return<'a> {
 }
 
 impl<'a> Return<'a> {
+    /// Creates a new empty Return
+    /// Default return token is followed by a single space
+    pub fn new() -> Self {
+        Self {
+            token: Cow::Owned(TokenReference::symbol("return ").unwrap()),
+            returns: Punctuated::new(),
+        }
+    }
+
     /// The `return` token
     pub fn token(&self) -> &TokenReference<'a> {
         &self.token
@@ -182,6 +199,18 @@ pub struct TableConstructor<'a> {
 }
 
 impl<'a> TableConstructor<'a> {
+    /// Creates a new empty TableConstructor
+    /// Brace tokens are followed by spaces, such that { `fields` }
+    pub fn new() -> Self {
+        Self {
+            braces: ContainedSpan::new(
+                Cow::Owned(TokenReference::symbol("{ ").unwrap()),
+                Cow::Owned(TokenReference::symbol(" }").unwrap()),
+            ),
+            fields: Vec::new(),
+        }
+    }
+
     /// The braces of the constructor
     pub fn braces(&self) -> &ContainedSpan<'a> {
         &self.braces
@@ -215,6 +244,11 @@ pub struct BinOpRhs<'a> {
 }
 
 impl<'a> BinOpRhs<'a> {
+    /// Creates a new BinOpRhs from the given binary operator and right hand side
+    pub fn new(bin_op: BinOp<'a>, rhs: Box<Expression<'a>>) -> Self {
+        Self { bin_op, rhs }
+    }
+
     /// The binary operation used, the `+` part of `+ 3`
     pub fn bin_op(&self) -> &BinOp<'a> {
         &self.bin_op
@@ -477,6 +511,27 @@ pub struct NumericFor<'a> {
 }
 
 impl<'a> NumericFor<'a> {
+    /// Creates a new NumericFor from the given index variable, start, and end expressions
+    pub fn new(
+        index_variable: Cow<'a, TokenReference<'a>>,
+        start: Expression<'a>,
+        end: Expression<'a>,
+    ) -> Self {
+        Self {
+            for_token: Cow::Owned(TokenReference::symbol("for ").unwrap()),
+            index_variable,
+            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            start,
+            start_end_comma: Cow::Owned(TokenReference::symbol(", ").unwrap()),
+            end,
+            end_step_comma: None,
+            step: None,
+            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            block: Block::new(),
+            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+        }
+    }
+
     /// The `for` token
     pub fn for_token(&self) -> &TokenReference<'a> {
         &self.for_token
@@ -629,6 +684,22 @@ pub struct GenericFor<'a> {
 }
 
 impl<'a> GenericFor<'a> {
+    /// Creates a new GenericFor from the given names and expressions
+    pub fn new(
+        names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+        expr_list: Punctuated<'a, Expression<'a>>,
+    ) -> Self {
+        Self {
+            for_token: Cow::Owned(TokenReference::symbol("for ").unwrap()),
+            names,
+            in_token: Cow::Owned(TokenReference::symbol(" in ").unwrap()),
+            expr_list,
+            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            block: Block::new(),
+            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+        }
+    }
+
     /// The `for` token
     pub fn for_token(&self) -> &TokenReference<'a> {
         &self.for_token
@@ -730,6 +801,20 @@ pub struct If<'a> {
 }
 
 impl<'a> If<'a> {
+    /// Creates a new If from the given condition
+    pub fn new(condition: Expression<'a>) -> Self {
+        Self {
+            if_token: Cow::Owned(TokenReference::symbol("if ").unwrap()),
+            condition,
+            then_token: Cow::Owned(TokenReference::symbol(" then").unwrap()),
+            block: Block::new(),
+            else_if: None,
+            else_token: None,
+            r#else: None,
+            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+        }
+    }
+
     /// The `if` token
     pub fn if_token(&self) -> &TokenReference<'a> {
         &self.if_token
@@ -826,6 +911,16 @@ pub struct ElseIf<'a> {
 }
 
 impl<'a> ElseIf<'a> {
+    /// Creates a new ElseIf from the given condition
+    pub fn new(condition: Expression<'a>) -> Self {
+        Self {
+            else_if_token: Cow::Owned(TokenReference::symbol("elseif ").unwrap()),
+            condition,
+            then_token: Cow::Owned(TokenReference::symbol(" then\n").unwrap()),
+            block: Block::new(),
+        }
+    }
+
     /// The `elseif` token
     pub fn else_if_token(&self) -> &TokenReference<'a> {
         &self.else_if_token
@@ -891,6 +986,17 @@ pub struct While<'a> {
 }
 
 impl<'a> While<'a> {
+    /// Creates a new While from the given condition
+    pub fn new(condition: Expression<'a>) -> Self {
+        Self {
+            while_token: Cow::Owned(TokenReference::symbol("while ").unwrap()),
+            condition,
+            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            block: Block::new(),
+            end_token: Cow::Owned(TokenReference::symbol("end\n").unwrap()),
+        }
+    }
+
     /// The `while` token
     pub fn while_token(&self) -> &TokenReference<'a> {
         &self.while_token
@@ -958,6 +1064,16 @@ pub struct Repeat<'a> {
 }
 
 impl<'a> Repeat<'a> {
+    /// Creates a new Repeat from the given expression to repeat until
+    pub fn new(until: Expression<'a>) -> Self {
+        Self {
+            repeat_token: Cow::Owned(TokenReference::symbol("repeat\n").unwrap()),
+            block: Block::new(),
+            until_token: Cow::Owned(TokenReference::symbol("\nuntil ").unwrap()),
+            until,
+        }
+    }
+
     /// The `repeat` token
     pub fn repeat_token(&self) -> &TokenReference<'a> {
         &self.repeat_token
@@ -1017,6 +1133,15 @@ pub struct MethodCall<'a> {
 }
 
 impl<'a> MethodCall<'a> {
+    /// Returns a new MethodCall from the given name and args
+    pub fn new(name: Cow<'a, TokenReference<'a>>, args: FunctionArgs<'a>) -> Self {
+        Self {
+            colon_token: Cow::Owned(TokenReference::symbol(":").unwrap()),
+            name,
+            args,
+        }
+    }
+
     /// The `:` in `x:y()`
     pub fn colon_token(&self) -> &TokenReference<'a> {
         &self.colon_token
@@ -1086,6 +1211,26 @@ pub struct FunctionBody<'a> {
 }
 
 impl<'a> FunctionBody<'a> {
+    /// Returns a new empty FunctionBody
+    pub fn new() -> Self {
+        Self {
+            parameters_parentheses: ContainedSpan::new(
+                Cow::Owned(TokenReference::symbol("(").unwrap()),
+                Cow::Owned(TokenReference::symbol(")").unwrap()),
+            ),
+            parameters: Punctuated::new(),
+
+            #[cfg(feature = "roblox")]
+            type_specifiers: Vec::new(),
+
+            #[cfg(feature = "roblox")]
+            return_type: None,
+
+            block: Block::new(),
+            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+        }
+    }
+
     /// The parentheses of the parameters
     pub fn parameters_parentheses(&self) -> &ContainedSpan<'a> {
         &self.parameters_parentheses
@@ -1229,6 +1374,14 @@ pub struct VarExpression<'a> {
 }
 
 impl<'a> VarExpression<'a> {
+    /// Returns a new VarExpression from the given prefix
+    pub fn new(prefix: Prefix<'a>) -> Self {
+        Self {
+            prefix,
+            suffixes: Vec::new(),
+        }
+    }
+
     /// The prefix of the expression, such as a name
     pub fn prefix(&self) -> &Prefix<'a> {
         &self.prefix
@@ -1275,6 +1428,18 @@ pub struct Assignment<'a> {
 }
 
 impl<'a> Assignment<'a> {
+    /// Returns a new Assignment from the given variable and expression list
+    pub fn new(
+        var_list: Punctuated<'a, Var<'a>>,
+        expr_list: Punctuated<'a, Expression<'a>>,
+    ) -> Self {
+        Self {
+            var_list,
+            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            expr_list,
+        }
+    }
+
     /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the expressions being assigned.
     /// This is the the `1, 2` part of `x, y["a"] = 1, 2`
     pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
@@ -1324,6 +1489,16 @@ pub struct LocalFunction<'a> {
 }
 
 impl<'a> LocalFunction<'a> {
+    /// Returns a new LocalFunction from the given name
+    pub fn new(name: Cow<'a, TokenReference<'a>>) -> Self {
+        LocalFunction {
+            local_token: Cow::Owned(TokenReference::symbol("local ").unwrap()),
+            function_token: Cow::Owned(TokenReference::symbol("function ").unwrap()),
+            name,
+            func_body: FunctionBody::new(),
+        }
+    }
+
     /// The `local` token
     pub fn local_token(&self) -> &TokenReference<'a> {
         &self.local_token
@@ -1386,6 +1561,18 @@ pub struct LocalAssignment<'a> {
 }
 
 impl<'a> LocalAssignment<'a> {
+    /// Returns a new LocalAssignment from the given name list
+    pub fn new(name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+        Self {
+            local_token: Cow::Owned(TokenReference::symbol("local ").unwrap()),
+            #[cfg(feature = "roblox")]
+            type_specifiers: Vec::new(),
+            name_list,
+            equal_token: None,
+            expr_list: Punctuated::new(),
+        }
+    }
+
     /// The `local` token
     pub fn local_token(&self) -> &TokenReference<'a> {
         &self.local_token
@@ -1492,6 +1679,15 @@ pub struct Do<'a> {
 }
 
 impl<'a> Do<'a> {
+    /// Creates an empty Do
+    pub fn new() -> Self {
+        Self {
+            do_token: Cow::Owned(TokenReference::symbol("do\n").unwrap()),
+            block: Block::new(),
+            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+        }
+    }
+
     /// The `do` token
     pub fn do_token(&self) -> &TokenReference<'a> {
         &self.do_token
@@ -1534,6 +1730,23 @@ pub struct FunctionCall<'a> {
 }
 
 impl<'a> FunctionCall<'a> {
+    /// Creates a new FunctionCall from the given prefix
+    /// Sets the suffixes such that the return is `prefixes()`
+    pub fn new(prefix: Prefix<'a>) -> Self {
+        FunctionCall {
+            prefix,
+            suffixes: vec![Suffix::Call(Call::AnonymousCall(
+                FunctionArgs::Parentheses {
+                    arguments: Punctuated::new(),
+                    parentheses: ContainedSpan::new(
+                        Cow::Owned(TokenReference::symbol("(").unwrap()),
+                        Cow::Owned(TokenReference::symbol(")").unwrap()),
+                    ),
+                },
+            ))],
+        }
+    }
+
     /// The prefix of a function call, the `call` part of `call()`
     pub fn prefix(&self) -> &Prefix<'a> {
         &self.prefix
@@ -1571,6 +1784,14 @@ pub struct FunctionName<'a> {
 }
 
 impl<'a> FunctionName<'a> {
+    /// Creates a new FunctionName from the given list of names
+    pub fn new(names: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+        Self {
+            names,
+            colon_name: None,
+        }
+    }
+
     /// The colon between the name and the method, the `:` part of `function x:y() end`
     pub fn method_colon(&self) -> Option<&TokenReference<'a>> {
         Some(&self.colon_name.as_ref()?.0)
@@ -1618,6 +1839,15 @@ pub struct FunctionDeclaration<'a> {
 }
 
 impl<'a> FunctionDeclaration<'a> {
+    /// Creates a new FunctionDeclaration from the given name
+    pub fn new(name: FunctionName<'a>) -> Self {
+        Self {
+            function_token: Cow::Owned(TokenReference::symbol("function ").unwrap()),
+            name,
+            body: FunctionBody::new(),
+        }
+    }
+
     /// The `function` token
     pub fn function_token(&self) -> &TokenReference<'a> {
         &self.function_token

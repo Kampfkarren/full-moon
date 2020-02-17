@@ -72,7 +72,7 @@ symbols!(
 );
 
 /// The possible errors that can happen while tokenizing.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TokenizerErrorType {
     /// An unclosed multi-line comment was found
@@ -81,6 +81,9 @@ pub enum TokenizerErrorType {
     UnclosedString,
     /// An unexpected token was found
     UnexpectedToken(char),
+    /// Symbol passed is not valid
+    /// Returned from [`TokenReference::symbol`](struct.TokenReference.html#method.symbol)
+    InvalidSymbol(String),
 }
 
 /// The type of tokens in parsed code
@@ -191,6 +194,20 @@ impl<'a> TokenType<'a> {
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
+        }
+    }
+
+    /// Returns a whitespace `TokenType` consisting of spaces
+    pub fn spaces(spaces: usize) -> Self {
+        TokenType::Whitespace {
+            characters: Cow::from(" ".repeat(spaces)),
+        }
+    }
+
+    /// Returns a whitespace `TokenType` consisting of tabs
+    pub fn tabs(tabs: usize) -> Self {
+        TokenType::Whitespace {
+            characters: Cow::from("\t".repeat(tabs)),
         }
     }
 }
@@ -339,9 +356,79 @@ impl<'a> TokenReference<'a> {
         }
     }
 
+    /// Returns a symbol with the leading and trailing whitespace
+    /// Only whitespace is supported
+    /// ```rust
+    /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
+    /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
+    /// let symbol = TokenReference::symbol("\nreturn ")?;
+    /// assert_eq!(symbol.leading_trivia().next().unwrap().to_string(), "\n");
+    /// assert_eq!(symbol.token().token_type(), &TokenType::Symbol {
+    ///     symbol: Symbol::Return,
+    /// });
+    /// assert_eq!(symbol.trailing_trivia().next().unwrap().to_string(), " ");
+    /// assert!(TokenReference::symbol("isnt whitespace").is_err());
+    /// assert!(TokenReference::symbol(" notasymbol ").is_err());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
+        let mut chars = text.chars().peekable();
+
+        let mut leading_trivia = String::new();
+        while let Some(character) = chars.peek() {
+            if character.is_ascii_whitespace() {
+                leading_trivia.push(chars.next().unwrap());
+            } else {
+                break;
+            }
+        }
+
+        let mut symbol_text = String::new();
+        while let Some(character) = chars.peek() {
+            if !character.is_ascii_whitespace() {
+                symbol_text.push(chars.next().unwrap());
+            } else {
+                break;
+            }
+        }
+
+        let symbol = Symbol::from_str(&symbol_text)
+            .map_err(|_| TokenizerErrorType::InvalidSymbol(symbol_text))?;
+
+        let mut trailing_trivia = String::new();
+        while let Some(character) = chars.peek() {
+            if character.is_ascii_whitespace() {
+                trailing_trivia.push(chars.next().unwrap());
+            } else {
+                return Err(TokenizerErrorType::UnexpectedToken(*character));
+            }
+        }
+
+        Ok(Self {
+            leading_trivia: vec![Token::new(TokenType::Whitespace {
+                characters: Cow::Owned(leading_trivia),
+            })],
+            token: Token::new(TokenType::Symbol { symbol }),
+            trailing_trivia: vec![Token::new(TokenType::Whitespace {
+                characters: Cow::Owned(trailing_trivia),
+            })],
+        })
+    }
+
     /// Returns the inner [`Token`](struct.Token.html)
     pub fn token(&self) -> &Token<'a> {
         &self.token
+    }
+
+    /// Returns the leading trivia
+    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.leading_trivia.iter()
+    }
+
+    /// Returns the trailing trivia
+    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.trailing_trivia.iter()
     }
 
     /// Creates a clone of the current [BIKESHED] with the new inner token, preserving trivia.
@@ -749,11 +836,14 @@ impl fmt::Display for TokenizerError {
         write!(
             formatter,
             "{} at line {}, column {}",
-            match self.error {
+            match &self.error {
                 TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
                 TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
                 TokenizerErrorType::UnexpectedToken(character) => {
                     format!("unexpected character {}", character)
+                }
+                TokenizerErrorType::InvalidSymbol(symbol) => {
+                    format!("invalid symbol {}", symbol)
                 }
             },
             self.position.line,
