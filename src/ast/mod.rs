@@ -4,6 +4,7 @@ mod parser_util;
 mod parsers;
 pub mod punctuated;
 pub mod span;
+mod update_positions;
 
 use crate::{
     tokenizer::{Symbol, Token, TokenReference, TokenType},
@@ -2089,65 +2090,6 @@ impl<'a> Ast<'a> {
         // self.tokens.iter().map(|(_, token)| token).sorted()
         unimplemented!("Ast::iter_tokens");
         None.iter()
-    }
-
-    /// Will update the positions of all the tokens in the tree
-    /// Necessary if you are both mutating the tree and need the positions of the tokens
-    pub fn update_positions(&mut self) {
-        unimplemented!(
-            "Ast::update_positions is going to just create a clone of the token, probably"
-        );
-
-        // use crate::tokenizer::Position;
-
-        // let mut start_position = Position {
-        //     bytes: 0,
-        //     character: 1,
-        //     line: 1,
-        // };
-
-        // let mut next_is_new_line = false;
-
-        // for (_, token) in self.tokens.iter() {
-        //     let display = token.to_string();
-
-        //     let mut lines = bytecount::count(&display.as_bytes(), b'\n');
-        //     if token.token_kind() == TokenKind::Whitespace {
-        //         lines = lines.saturating_sub(1);
-        //     }
-
-        //     let end_position = if token.token_kind() == TokenKind::Eof {
-        //         start_position
-        //     } else {
-        //         let mut end_position = Position {
-        //             bytes: start_position.bytes() + display.len(),
-        //             line: start_position.line() + lines,
-        //             character: {
-        //                 let offset = display.lines().last().unwrap_or("").chars().count();
-        //                 if lines > 0 || next_is_new_line {
-        //                     offset + 1
-        //                 } else {
-        //                     start_position.character() + offset
-        //                 }
-        //             },
-        //         };
-
-        //         if next_is_new_line {
-        //             end_position.line += 1;
-        //             next_is_new_line = false;
-        //         }
-
-        //         end_position
-        //     };
-
-        //     if display.ends_with('\n') {
-        //         next_is_new_line = true;
-        //     }
-        //
-        // token.start_position.store(start_position);
-        // token.end_position.store(end_position);
-        // start_position = end_position;
-        // }
     }
 }
 

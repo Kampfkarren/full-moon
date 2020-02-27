@@ -60,21 +60,21 @@ fn test_visitor_mut() {
     let code = SnakeNamer.visit_ast(code);
     assert_eq!(print(&code), "local dogsss, sssnakesss = 1");
 
-    // struct PositionValidator;
+    struct PositionValidator;
 
-    // impl<'ast> Visitor<'ast> for PositionValidator {
-    //     fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
-    //         for name in assignment.name_list() {
-    //             assert_eq!(
-    //                 name.end_position().bytes() - name.start_position().bytes(),
-    //                 name.to_string().len()
-    //             );
-    //         }
-    //     }
-    // }
+    impl<'ast> Visitor<'ast> for PositionValidator {
+        fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
+            for name in assignment.name_list() {
+                assert_eq!(
+                    name.end_position().bytes() - name.start_position().bytes(),
+                    name.to_string().len()
+                );
+            }
+        }
+    }
 
-    // code.update_positions();
-    // PositionValidator.visit_ast(&code);
+    let code = code.update_positions();
+    PositionValidator.visit_ast(&code);
 }
 
 #[test]

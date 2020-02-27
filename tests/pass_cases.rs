@@ -49,17 +49,17 @@ fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
         let ast = ast::Ast::from_tokens(tokens)
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
-        // let old_positions: Vec<_> = ast
-        //     .iter_tokens()
-        //     .map(|token| (token.start_position(), token.end_position()))
-        //     .collect();
-        // ast.update_positions();
-        // assert_eq!(
-        //     old_positions,
-        //     ast.iter_tokens()
-        //         .map(|token| (token.start_position(), token.end_position()))
-        //         .collect::<Vec<_>>(),
-        // );
+        let old_positions: Vec<_> = ast
+            .iter_tokens()
+            .map(|token| (token.start_position(), token.end_position()))
+            .collect();
+        let ast = ast.update_positions();
+        assert_eq!(
+            old_positions,
+            ast.iter_tokens()
+                .map(|token| (token.start_position(), token.end_position()))
+                .collect::<Vec<_>>(),
+        );
 
         let ast_path = path.join("ast.json");
 

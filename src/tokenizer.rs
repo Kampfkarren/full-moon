@@ -431,7 +431,7 @@ impl<'a> TokenReference<'a> {
         self.trailing_trivia.iter()
     }
 
-    /// Creates a clone of the current [BIKESHED] with the new inner token, preserving trivia.
+    /// Creates a clone of the current TokenReference with the new inner token, preserving trivia.
     pub fn with_token(&self, token: Token<'a>) -> Self {
         Self {
             token,
