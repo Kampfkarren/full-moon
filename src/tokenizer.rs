@@ -5,9 +5,9 @@ use generational_arena::{Arena, Index};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_till, take_while, take_while1},
-    character::complete::{anychar, digit1, line_ending, space1},
+    character::complete::{anychar, digit1, one_of},
     combinator::{opt, recognize},
-    multi::many_till,
+    multi::{many1, many_till},
     sequence::{delimited, pair, preceded, tuple},
     IResult,
 };
@@ -602,10 +602,18 @@ fn parse_hex_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(tag("0x"), take_while1(|c: char| c.is_digit(16))))(code)
 }
 
+fn num_frac(code: &str) -> IResult<&str, &str> {
+    recognize(pair(tag("."), digit1))(code)
+}
+
+fn num_expt(code: &str) -> IResult<&str, &str> {
+    recognize(pair(tag("e"), digit1))(code)
+}
+
 fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
-        digit1,
-        pair(opt(pair(tag("."), digit1)), opt(pair(tag("e"), digit1))),
+        alt((num_frac, recognize(pair(digit1, opt(num_frac))))),
+        opt(num_expt),
     ))(code)
 }
 
@@ -758,7 +766,10 @@ fn advance_symbol(code: &str) -> Advancement {
 #[inline]
 fn parse_whitespace(code: &str) -> IResult<&str, &str> {
     // From regex "^[^\S\n]+\n?|\n"
-    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
+    alt((
+        recognize(pair(many1(one_of(" \t\r")), opt(tag("\n")))),
+        tag("\n"),
+    ))(code)
 }
 
 // Keep finding whitespace until the line ends
@@ -994,6 +1005,16 @@ mod tests {
                 advance: 6,
                 token_type: TokenType::Number {
                     text: Cow::from("123.45"),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_number(".45"),
+            Ok(Some(TokenAdvancement {
+                advance: 3,
+                token_type: TokenType::Number {
+                    text: Cow::from(".45"),
                 },
             }))
         );
