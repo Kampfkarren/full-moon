@@ -244,7 +244,7 @@ impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser
 where
     ItemParser: Parser<'a, Item = T>,
     Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
-    T: Node + Visit<'a> + VisitMut<'a>,
+    T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
 
@@ -312,7 +312,7 @@ impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemPars
 where
     ItemParser: Parser<'a, Item = T>,
     Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
-    T: Node + Visit<'a> + VisitMut<'a>,
+    T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;
 

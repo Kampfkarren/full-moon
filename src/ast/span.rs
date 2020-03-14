@@ -7,7 +7,7 @@
 //!
 //! Contained spans don't contain the inner data, just the start and end bounds.
 use crate::{
-    node::Node,
+    node::{Node, Tokens},
     private::Sealed,
     tokenizer::{Position, TokenReference},
 };
@@ -41,7 +41,7 @@ impl<'a> ContainedSpan<'a> {
     }
 }
 
-impl<'a> Node for ContainedSpan<'a> {
+impl<'a> Node<'a> for ContainedSpan<'a> {
     fn start_position(&self) -> Option<Position> {
         self.tokens.0.start_position()
     }
@@ -52,6 +52,10 @@ impl<'a> Node for ContainedSpan<'a> {
 
     fn similar(&self, other: &Self) -> bool {
         self.tokens.0.similar(&other.tokens.0) && self.tokens.1.similar(&other.tokens.1)
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.tokens.tokens()
     }
 }
 

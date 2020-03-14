@@ -15,7 +15,7 @@
 //! # }
 //! ```
 use crate::{
-    node::Node,
+    node::{Node, Tokens, TokenItem},
     private::Sealed,
     tokenizer::{Position, TokenReference},
     util,
@@ -174,7 +174,7 @@ impl<'a, T> Punctuated<'a, T> {
 
 impl<'a, T> Sealed for Punctuated<'a, T> {}
 
-impl<'a, T: Node> Node for Punctuated<'a, T> {
+impl<'a, T: Node<'a>> Node<'a> for Punctuated<'a, T> {
     fn start_position(&self) -> Option<Position> {
         self.pairs.first()?.start_position()
     }
@@ -187,6 +187,10 @@ impl<'a, T: Node> Node for Punctuated<'a, T> {
         self.into_iter()
             .collect::<Vec<_>>()
             .similar(&other.into_iter().collect::<Vec<_>>())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.pairs.tokens()
     }
 }
 
@@ -403,7 +407,7 @@ impl<'a, T> Pair<'a, T> {
 
 impl<'a, T> Sealed for Pair<'a, T> {}
 
-impl<'a, T: Node> Node for Pair<'a, T> {
+impl<'a, T: Node<'a>> Node<'a> for Pair<'a, T> {
     fn start_position(&self) -> Option<Position> {
         self.value().start_position()
     }
@@ -416,6 +420,21 @@ impl<'a, T: Node> Node for Pair<'a, T> {
 
     fn similar(&self, other: &Self) -> bool {
         self.value().similar(other.value())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        match self {
+            Pair::Punctuated(node, separator) => {
+                let mut items = node.tokens().items;
+                items.push(TokenItem::TokenReference(Cow::Borrowed(separator)));
+
+                Tokens {
+                    items,
+                }
+            },
+
+            Pair::End(node) => node.tokens(),
+        }
     }
 }
 

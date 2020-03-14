@@ -14,4 +14,4 @@ proc-macro = true
 indexmap = "1.3"
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0", features = ["extra-traits"] }
+syn = { version = "1.0.16", features = ["extra-traits"] }
