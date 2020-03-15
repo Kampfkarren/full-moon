@@ -313,4 +313,11 @@ mod tests {
         let tokens = source.nodes().tokens().collect::<Vec<_>>();
         assert_eq!(tokens.len(), 4);
     }
+
+    #[test]
+    fn test_tokens_back() {
+        let source = parse("local abcd = 1").unwrap();
+        let mut tokens = source.nodes().tokens();
+        assert_eq!(tokens.next_back().unwrap().to_string(), "1");
+    }
 }
