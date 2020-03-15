@@ -47,7 +47,7 @@ pub trait Node<'ast>: private::Sealed {
 }
 
 pub(crate) enum TokenItem<'ast, 'b> {
-    MoreTokens(Box<dyn FnOnce() -> Tokens<'ast, 'b>>),
+    MoreTokens(&'b dyn Node<'ast>),
     TokenReference(Cow<'b, TokenReference<'ast>>),
 }
 
@@ -66,8 +66,8 @@ impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
 
         match self.items.remove(0) {
             TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(get_tokens) => {
-                let mut tokens = get_tokens();
+            TokenItem::MoreTokens(node) => {
+                let mut tokens = node.tokens();
                 tokens.items.extend(self.items.drain(..));
                 self.items = tokens.items;
                 self.next()
@@ -84,8 +84,8 @@ impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
 
         match self.items.pop()? {
             TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(get_tokens) => {
-                let mut tokens = get_tokens();
+            TokenItem::MoreTokens(node) => {
+                let mut tokens = node.tokens();
                 self.items.extend(tokens.items.drain(..));
                 self.next_back()
             }

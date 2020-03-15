@@ -27,6 +27,7 @@ pub trait StructGenerator {
 }
 
 pub trait MatchEnumGenerator {
+    const DEREF: bool = false;
     const SELF: &'static str = "self";
 
     fn complete(input: TokenStream) -> TokenStream {
@@ -75,9 +76,14 @@ impl<T: MatchEnumGenerator> EnumGenerator for T {
         }
 
         let self_ident = format_ident!("{}", T::SELF);
+        let deref = if T::DEREF {
+            Some(quote! { * })
+        } else {
+            None
+        };
 
         T::complete(quote! {
-            match #self_ident {
+            match #deref#self_ident {
                 #(#cases)*
             }
         })

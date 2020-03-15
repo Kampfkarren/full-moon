@@ -3,7 +3,7 @@ use crate::derive::*;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-fn token_getter(ty: &syn::Type, ident: &syn::Ident, prefix: Option<TokenStream>) -> TokenStream {
+fn token_getter(ty: &syn::Type, ident: &syn::Ident, mut prefix: Option<TokenStream>, deref: bool) -> TokenStream {
     if let syn::Type::Path(path) = ty {
         let cow = path.path.segments.first().expect("no first segment?");
         if cow.ident.to_string() == "Cow".to_owned() {
@@ -22,12 +22,12 @@ fn token_getter(ty: &syn::Type, ident: &syn::Ident, prefix: Option<TokenStream>)
         }
     }
 
+    if deref {
+        prefix = Some(quote! { * });
+    }
+
     quote! {
-        crate::node::TokenItem::MoreTokens(Box::new(|| {
-            crate::node::Tokens {
-                items: Vec::new(),
-            }
-        }))
+        crate::node::TokenItem::MoreTokens(&#prefix#ident)
     }
 }
 
@@ -193,6 +193,7 @@ impl StructGenerator for StructTokensGenerator {
                 Some(quote! {
                     self.
                 }),
+                false,
             ));
         }
 
@@ -405,6 +406,8 @@ impl MatchEnumGenerator for EnumSimilarGenerator {
 pub struct EnumTokensGenerator;
 
 impl MatchEnumGenerator for EnumTokensGenerator {
+    const DEREF: bool = true;
+
     fn case_named(
         input: &syn::Ident,
         variant: &syn::Ident,
@@ -417,12 +420,12 @@ impl MatchEnumGenerator for EnumTokensGenerator {
 
         for field in named {
             fields.push(field.ident.as_ref().unwrap());
-            getters.push(token_getter(&field.ty, field.ident.as_ref().unwrap(), None));
+            getters.push(token_getter(&field.ty, field.ident.as_ref().unwrap(), None, true));
         }
 
         quote! {
             #input::#variant {
-                #(#fields,)*
+                #(ref #fields,)*
             } => {
                 crate::node::Tokens {
                     items: vec![#(
@@ -448,12 +451,12 @@ impl MatchEnumGenerator for EnumTokensGenerator {
         let mut getters = Vec::with_capacity(fields.unnamed.len());
 
         for (field, name) in fields.unnamed.iter().zip(&names) {
-            getters.push(token_getter(&field.ty, name, None));
+            getters.push(token_getter(&field.ty, name, None, true));
         }
 
         quote! {
             #input::#variant(
-                #(#names,)*
+                #(ref #names,)*
              ) => {
                 crate::node::Tokens {
                     items: vec![#(
