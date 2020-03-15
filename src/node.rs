@@ -3,7 +3,7 @@ use crate::{
     private,
     tokenizer::{Position, Token, TokenReference},
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 /// Used to represent nodes such as tokens or function definitions
 ///
@@ -49,6 +49,15 @@ pub trait Node<'ast>: private::Sealed {
 pub(crate) enum TokenItem<'ast, 'b> {
     MoreTokens(&'b dyn Node<'ast>),
     TokenReference(Cow<'b, TokenReference<'ast>>),
+}
+
+impl fmt::Debug for TokenItem<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),
+            TokenItem::TokenReference(token) => write!(f, "TokenItem::TokenReference({})", token),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -290,5 +299,18 @@ impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
         items.extend(self.1.tokens().items.drain(..));
 
         Tokens { items }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parse;
+    use super::Node;
+
+    #[test]
+    fn test_tokens_collect() {
+        let source = parse("local abcd = 1").unwrap();
+        let tokens = source.nodes().tokens().collect::<Vec<_>>();
+        assert_eq!(tokens.len(), 4);
     }
 }
