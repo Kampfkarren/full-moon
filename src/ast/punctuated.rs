@@ -15,7 +15,7 @@
 //! # }
 //! ```
 use crate::{
-    node::{Node, Tokens, TokenItem},
+    node::{Node, TokenItem, Tokens},
     private::Sealed,
     tokenizer::{Position, TokenReference},
     util,
@@ -428,10 +428,8 @@ impl<'a, T: Node<'a>> Node<'a> for Pair<'a, T> {
                 let mut items = node.tokens().items;
                 items.push(TokenItem::TokenReference(Cow::Borrowed(separator)));
 
-                Tokens {
-                    items,
-                }
-            },
+                Tokens { items }
+            }
 
             Pair::End(node) => node.tokens(),
         }

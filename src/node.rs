@@ -1,5 +1,4 @@
 use crate::{
-    ast::Ast,
     private,
     tokenizer::{Position, Token, TokenReference},
 };
@@ -30,19 +29,28 @@ pub trait Node<'ast>: private::Sealed {
 
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
-    /// Return value is None if a token doesn't have both a start and end position. Otherwise, it is a tuple
-    /// of two token vectors, first being the preceding and the second being the following.
-    fn surrounding_trivia<'b>(&self) -> (Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>) {
-        unimplemented!("surrounding_trivia")
-    }
+    /// Returns a tuple of the leading and trailing trivia.
+    fn surrounding_trivia<'b>(&'b self) -> (Vec<Cow<'b, Token<'ast>>>, Vec<Cow<'b, Token<'ast>>>) {
+        let mut tokens = self.tokens();
+        let leading = tokens.next();
+        let trailing = tokens.next_back();
 
-    /// Identical to `surrounding_trivia`, except it takes an unused Ast parameter and returns an Option
-    #[deprecated(since = "0.5.0", note = "Use surrounding_trivia instead")]
-    fn surrounding_ignore_tokens<'b>(
-        &self,
-        _ast: &'b Ast<'ast>,
-    ) -> Option<(Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>)> {
-        Some(self.surrounding_trivia())
+        (
+            match leading {
+                Some(Cow::Owned(token)) => {
+                    token.leading_trivia.into_iter().map(Cow::Owned).collect()
+                }
+                Some(Cow::Borrowed(token)) => token.leading_trivia().map(Cow::Borrowed).collect(),
+                None => Vec::new(),
+            },
+            match trailing {
+                Some(Cow::Owned(token)) => {
+                    token.trailing_trivia.into_iter().map(Cow::Owned).collect()
+                }
+                Some(Cow::Borrowed(token)) => token.trailing_trivia().map(Cow::Borrowed).collect(),
+                None => Vec::new(),
+            },
+        )
     }
 }
 
@@ -299,25 +307,5 @@ impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
         items.extend(self.1.tokens().items.drain(..));
 
         Tokens { items }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::parse;
-    use super::Node;
-
-    #[test]
-    fn test_tokens_collect() {
-        let source = parse("local abcd = 1").unwrap();
-        let tokens = source.nodes().tokens().collect::<Vec<_>>();
-        assert_eq!(tokens.len(), 4);
-    }
-
-    #[test]
-    fn test_tokens_back() {
-        let source = parse("local abcd = 1").unwrap();
-        let mut tokens = source.nodes().tokens();
-        assert_eq!(tokens.next_back().unwrap().to_string(), "1");
     }
 }

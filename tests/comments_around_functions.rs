@@ -26,23 +26,21 @@ end
 
 "#;
 
-struct MemberVisitor<'a> {
+struct MemberVisitor {
     comments: Vec<String>,
-    ast: &'a Ast<'static>,
 }
 
-impl Visitor<'static> for MemberVisitor<'_> {
+impl Visitor<'static> for MemberVisitor {
     fn visit_function_declaration(&mut self, function: &FunctionDeclaration<'static>) {
-        if let Some((tokens, _)) = function.surrounding_ignore_tokens(&self.ast) {
-            let mut tokens = tokens.clone();
-            tokens.retain(|&t| t.token_kind() == TokenKind::MultiLineComment);
-            self.comments.extend(
-                tokens
-                    .into_iter()
-                    .map(|t| t.to_string())
-                    .collect::<Vec<String>>(),
-            )
-        }
+        let (tokens, _) = function.surrounding_trivia();
+        let mut tokens = tokens.clone();
+        tokens.retain(|t| t.token_kind() == TokenKind::MultiLineComment);
+        self.comments.extend(
+            tokens
+                .into_iter()
+                .map(|t| t.to_string())
+                .collect::<Vec<String>>(),
+        )
     }
 }
 
@@ -51,7 +49,6 @@ fn generate() -> Result<(), Box<dyn Error>> {
 
     let mut visitor = MemberVisitor {
         comments: Vec::new(),
-        ast: &ast,
     };
 
     visitor.visit_ast(&ast);
