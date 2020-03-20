@@ -1,4 +1,5 @@
 use crate::{
+    ast::Ast,
     private,
     tokenizer::{Position, Token, TokenReference},
 };
@@ -107,6 +108,24 @@ impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
                 self.next_back()
             }
         }
+    }
+}
+
+impl<'a> Node<'a> for Ast<'a> {
+    fn start_position(&self) -> Option<Position> {
+        self.nodes().start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        self.nodes().end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.nodes().similar(other.nodes())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.nodes().tokens()
     }
 }
 

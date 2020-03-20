@@ -47,12 +47,15 @@ impl UpdatePositionsRewriter {
             self.next_is_new_line = true;
         }
 
-        self.start_position = end_position;
-        Token {
+        let result = Token {
             start_position: self.start_position,
             end_position,
             token_type: token.token_type.to_owned(),
-        }
+        };
+
+        self.start_position = end_position;
+
+        result
     }
 }
 
@@ -87,5 +90,27 @@ impl Ast<'_> {
         };
 
         rewriter.visit_ast(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{node::Node, parse};
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_update_positions_validity() {
+        let ast = parse("local foo = 1\nlocal bar = 2").unwrap();
+        let old_positions: Vec<_> = ast
+            .tokens()
+            .map(|token| (token.start_position(), token.end_position()))
+            .collect();
+        let ast = ast.update_positions();
+        assert_eq!(
+            old_positions,
+            ast.tokens()
+                .map(|token| (token.start_position(), token.end_position()))
+                .collect::<Vec<_>>(),
+        );
     }
 }

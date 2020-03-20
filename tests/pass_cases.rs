@@ -1,5 +1,7 @@
 use full_moon::{
-    ast, print,
+    ast,
+    node::Node,
+    print,
     tokenizer::{self, Token},
 };
 use pretty_assertions::assert_eq;
@@ -50,13 +52,13 @@ fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
         let old_positions: Vec<_> = ast
-            .iter_tokens()
+            .tokens()
             .map(|token| (token.start_position(), token.end_position()))
             .collect();
         let ast = ast.update_positions();
         assert_eq!(
             old_positions,
-            ast.iter_tokens()
+            ast.tokens()
                 .map(|token| (token.start_position(), token.end_position()))
                 .collect::<Vec<_>>(),
         );

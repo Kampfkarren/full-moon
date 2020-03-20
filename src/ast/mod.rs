@@ -2084,13 +2084,6 @@ impl<'a> Ast<'a> {
     pub fn eof(&self) -> &TokenReference<'a> {
         self.tokens.last().expect("no eof token, somehow?")
     }
-
-    /// An iterator over the tokens used to create the Ast
-    pub fn iter_tokens(&self) -> impl Iterator<Item = &Token<'a>> {
-        // self.tokens.iter().map(|(_, token)| token).sorted()
-        unimplemented!("Ast::iter_tokens");
-        None.iter()
-    }
 }
 
 /// Extracts leading and trailing trivia from tokens
@@ -2131,7 +2124,7 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{parse, print, tokenizer::tokens};
+    use crate::{parse, print, tokenizer::tokens, visitors::VisitorMut};
 
     #[test]
     fn test_extract_token_references() {
@@ -2181,6 +2174,24 @@ mod tests {
             let ast = parse("local foo = 1").unwrap();
             let nodes = ast.nodes().clone();
             ast.with_nodes(nodes)
+        };
+
+        print(&new_ast);
+    }
+
+    #[test]
+    fn test_with_visitor_safety() {
+        let new_ast = {
+            let ast = parse("local foo = 1").unwrap();
+
+            struct SyntaxRewriter;
+            impl<'ast> VisitorMut<'ast> for SyntaxRewriter {
+                fn visit_token(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+                    token
+                }
+            }
+
+            SyntaxRewriter.visit_ast(ast)
         };
 
         print(&new_ast);
