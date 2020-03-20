@@ -4,6 +4,9 @@ use std::{
     fmt::Display,
 };
 
+#[cfg(feature = "roblox")]
+use crate::ast::punctuated::Punctuated;
+
 pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
     match option.borrow() {
         Some(x) => x.to_string(),
