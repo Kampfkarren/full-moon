@@ -39,6 +39,9 @@ impl<'a> ParserState<'a> {
         }
     }
 
+    // TODO: This is super bad, containing both unsafe code and a mandatory clone
+    // on every call so that everything is backwards compatible, since it SHOULD
+    // just borrow. It is only like this because of a failure to tackle lifetimes.
     pub fn peek(&self) -> Cow<'a, TokenReference<'a>> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
@@ -52,7 +55,7 @@ impl<'a> ParserState<'a> {
                 .expect("couldn't peek, no eof?")
         };
 
-        Cow::Borrowed(result)
+        Cow::Owned(result.to_owned())
     }
 }
 

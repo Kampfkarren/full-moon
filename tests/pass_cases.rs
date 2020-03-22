@@ -2,10 +2,11 @@ use full_moon::{
     ast,
     node::Node,
     print,
-    tokenizer::{self, Token},
+    tokenizer::{self, Token, TokenReference},
 };
 use pretty_assertions::assert_eq;
 use std::{
+    borrow::Cow,
     fmt,
     fs::{self, File},
     io::Write,
@@ -20,6 +21,15 @@ impl<'a> fmt::Debug for PrettyString<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(self.0)
     }
+}
+
+fn unpack_token_reference<'a>(token: Cow<TokenReference<'a>>) -> Vec<Token<'a>> {
+    token
+        .leading_trivia()
+        .chain(std::iter::once(token.token()))
+        .chain(token.trailing_trivia())
+        .cloned()
+        .collect()
 }
 
 fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
@@ -51,15 +61,12 @@ fn test_pass_cases_folder<P: AsRef<Path>>(folder: P) {
         let ast = ast::Ast::from_tokens(tokens)
             .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
-        let old_positions: Vec<_> = ast
-            .tokens()
-            .map(|token| (token.start_position(), token.end_position()))
-            .collect();
+        let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
         let ast = ast.update_positions();
         assert_eq!(
             old_positions,
             ast.tokens()
-                .map(|token| (token.start_position(), token.end_position()))
+                .flat_map(unpack_token_reference)
                 .collect::<Vec<_>>(),
         );
 

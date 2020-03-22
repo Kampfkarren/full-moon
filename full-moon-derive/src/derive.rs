@@ -76,11 +76,7 @@ impl<T: MatchEnumGenerator> EnumGenerator for T {
         }
 
         let self_ident = format_ident!("{}", T::SELF);
-        let deref = if T::DEREF {
-            Some(quote! { * })
-        } else {
-            None
-        };
+        let deref = if T::DEREF { Some(quote! { * }) } else { None };
 
         T::complete(quote! {
             match #deref#self_ident {
@@ -136,12 +132,12 @@ pub fn search_hint<T: Hint>(name: &str, attrs: &[syn::Attribute]) -> Option<T> {
                             match name_value.lit {
                                 syn::Lit::Str(lit_str) => lit_str.value(),
 
-                                other => unimplemented!("nested meta value: {:?}", other),
+                                other => unimplemented!("nested meta value: {:#?}", other),
                             },
                         );
                     }
 
-                    _ => unimplemented!(),
+                    other => unimplemented!("unknown attribute: {:#?}", other),
                 }
             }
         }

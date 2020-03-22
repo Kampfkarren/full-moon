@@ -1,7 +1,7 @@
 use crate::derive::*;
-
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use std::collections::HashMap;
 
 // Not 100% accurate, but it is to full-moon's codebase
 fn snake_case(pascal_case: &str) -> String {
@@ -20,8 +20,9 @@ fn snake_case(pascal_case: &str) -> String {
     result
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum VisitHint {
+    Contains(String),
     Skip,
     SkipVisitSelf,
     VisitAs(String),
@@ -31,6 +32,8 @@ impl Hint for VisitHint {
     fn key_value(key: String, value: String) -> Option<Self> {
         if key == "visit_as" {
             Some(VisitHint::VisitAs(value))
+        } else if key == "contains" {
+            Some(VisitHint::Contains(value))
         } else {
             None
         }
@@ -46,6 +49,48 @@ impl Hint for VisitHint {
 }
 
 pub struct VisitGenerator;
+
+impl VisitGenerator {
+    fn visit_fields(data_fields: &syn::Fields, prefix: TokenStream) -> TokenStream {
+        let mut fields = Vec::new();
+        let mut contains = HashMap::new();
+
+        for field in data_fields
+            .iter()
+            .filter(|field| search_hint("visit", &field.attrs) != Some(VisitHint::Skip))
+        {
+            let ident = field.ident.as_ref().unwrap();
+            let token_stream = quote! { #prefix#ident };
+
+            if let Some(VisitHint::Contains(contains_node)) = search_hint("visit", &field.attrs) {
+                contains.insert(contains_node, ident);
+            } else if let Some(contains_me) = contains.remove(&ident.to_string()) {
+                fields.push(quote! {
+                    #prefix#contains_me.tokens.0
+                });
+
+                fields.push(token_stream);
+
+                fields.push(quote! {
+                    #prefix#contains_me.tokens.1
+                });
+            } else {
+                fields.push(token_stream);
+            }
+        }
+
+        if !contains.is_empty() {
+            panic!(
+                "#[visit(contains = \"...\")] used in wrong order: {:?}",
+                contains
+            );
+        }
+
+        quote! {
+            #(visit!(#fields, visitor);)*
+        }
+    }
+}
 
 impl DeriveGenerator for VisitGenerator {
     fn complete(input: &syn::DeriveInput, tokens: TokenStream) -> TokenStream {
@@ -170,15 +215,7 @@ impl DeriveGenerator for VisitGenerator {
 
 impl StructGenerator for VisitGenerator {
     fn generate(_: &syn::Ident, strukt: &syn::DataStruct) -> TokenStream {
-        let fields = strukt
-            .fields
-            .iter()
-            .filter(|field| search_hint("visit", &field.attrs) != Some(VisitHint::Skip))
-            .map(|field| field.ident.as_ref());
-
-        quote! {
-            #(visit!(self.#fields, visitor);)*
-        }
+        Self::visit_fields(&strukt.fields, quote! {self.})
     }
 }
 

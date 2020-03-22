@@ -5,6 +5,7 @@ mod parsers;
 pub mod punctuated;
 pub mod span;
 mod update_positions;
+mod visitors;
 
 use crate::{
     tokenizer::{Symbol, Token, TokenReference, TokenType},
@@ -137,7 +138,7 @@ impl<'a> Return<'a> {
 }
 
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
@@ -195,6 +196,7 @@ pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, TokenReference<'
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[node(full_range)]
+    #[visit(contains = "fields")]
     braces: ContainedSpan<'a>,
     fields: Vec<TableConstructorField<'a>>,
 }
@@ -272,7 +274,7 @@ impl<'a> BinOpRhs<'a> {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
@@ -422,7 +424,7 @@ pub enum Prefix<'a> {
 
 /// The indexing of something, such as `x.y` or `x["y"]`
 /// Values of variants are the keys, such as `"y"`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
@@ -452,7 +454,7 @@ pub enum Index<'a> {
 }
 
 /// Arguments used for a function
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call(1, 2, 3)`
@@ -463,12 +465,12 @@ pub enum FunctionArgs<'a> {
         "parentheses.tokens().1"
     )]
     Parentheses {
-        /// The `1, 2, 3` part of `1, 2, 3`
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        arguments: Punctuated<'a, Expression<'a>>,
         /// The `(...) part of (1, 2, 3)`
         #[node(full_range)]
         parentheses: ContainedSpan<'a>,
+        /// The `1, 2, 3` part of `1, 2, 3`
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        arguments: Punctuated<'a, Expression<'a>>,
     },
     /// Used when a function is called in the form of `call "foobar"`
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -1195,6 +1197,7 @@ pub enum Call<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[visit(contains = "parameters")]
     parameters_parentheses: ContainedSpan<'a>,
     parameters: Punctuated<'a, Parameter<'a>>,
 

@@ -23,8 +23,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[visit(skip)]
-    tokens: (Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>),
+    pub(crate) tokens: (Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>),
 }
 
 impl<'a> ContainedSpan<'a> {

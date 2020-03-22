@@ -14,37 +14,24 @@ impl UpdatePositionsRewriter {
     fn update_token<'ast>(&mut self, token: &Token<'ast>) -> Token<'ast> {
         let display = token.to_string();
 
-        let mut lines = bytecount::count(&display.as_bytes(), b'\n');
-        if token.token_kind() == TokenKind::Whitespace {
-            lines = lines.saturating_sub(1);
-        }
+        let mut end_position = self.start_position;
 
-        let end_position = if token.token_kind() == TokenKind::Eof {
-            self.start_position
-        } else {
-            let mut end_position = Position {
-                bytes: self.start_position.bytes() + display.len(),
-                line: self.start_position.line() + lines,
-                character: {
-                    let offset = display.lines().last().unwrap_or("").chars().count();
-                    if lines > 0 || self.next_is_new_line {
-                        offset + 1
-                    } else {
-                        self.start_position.character() + offset
-                    }
-                },
-            };
+        if token.token_kind() != TokenKind::Eof {
+            for character in display.chars() {
+                if self.next_is_new_line {
+                    self.next_is_new_line = false;
+                    end_position.line += 1;
+                    end_position.character = 1;
+                }
 
-            if self.next_is_new_line {
-                end_position.line += 1;
-                self.next_is_new_line = false;
+                if character == '\n' {
+                    self.next_is_new_line = true;
+                } else {
+                    end_position.character += 1;
+                }
+
+                end_position.bytes += character.len_utf8();
             }
-
-            end_position
-        };
-
-        if display.ends_with('\n') {
-            self.next_is_new_line = true;
         }
 
         let result = Token {
