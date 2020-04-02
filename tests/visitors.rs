@@ -67,7 +67,7 @@ fn test_visitor_mut() {
             for name in assignment.name_list() {
                 assert_eq!(
                     name.end_position().bytes() - name.start_position().bytes(),
-                    name.to_string().len()
+                    name.token().to_string().len()
                 );
             }
         }
