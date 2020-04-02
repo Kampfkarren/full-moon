@@ -1,7 +1,7 @@
 use crate::{
     ast::{span::ContainedSpan, *},
     private::Sealed,
-    tokenizer::TokenReference,
+    tokenizer::{Token, TokenReference},
 };
 use std::borrow::Cow;
 
@@ -46,8 +46,8 @@ macro_rules! create_visitor {
         pub trait Visitor<'ast> {
             /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
             fn visit_ast(&mut self, ast: &Ast<'ast>) where Self: Sized {
-                // TODO: Visit tokens?
                 ast.nodes().visit(self);
+                ast.eof().visit(self);
             }
 
             paste::item! {
@@ -72,7 +72,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, _token: &TokenReference<'ast>) { }
+                fn $visit_token(&mut self, _token: &Token<'ast>) { }
             )+
         }
 
@@ -125,7 +125,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+                fn $visit_token(&mut self, token: Token<'ast>) -> Token<'ast> {
                     token
                 }
             )+
@@ -224,6 +224,7 @@ create_visitor!(ast: {
     visit_contained_span => ContainedSpan,
     visit_do => Do,
     visit_else_if => ElseIf,
+    visit_eof => TokenReference,
     visit_expression => Expression,
     visit_field => Field,
     visit_function_args => FunctionArgs,
@@ -246,6 +247,7 @@ create_visitor!(ast: {
     visit_stmt => Stmt,
     visit_suffix => Suffix,
     visit_table_constructor => TableConstructor,
+    visit_token_reference => TokenReference,
     visit_un_op => UnOp,
     visit_value => Value,
     visit_var => Var,
@@ -263,7 +265,6 @@ create_visitor!(ast: {
         visit_type_specifier => TypeSpecifier,
     }
 }, token: {
-    visit_eof,
     visit_identifier,
     visit_multi_line_comment,
     visit_number,

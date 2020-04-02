@@ -47,7 +47,7 @@ impl UpdatePositionsRewriter {
 }
 
 impl<'ast> VisitorMut<'ast> for UpdatePositionsRewriter {
-    fn visit_token(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+    fn visit_token_reference(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
         TokenReference::new(
             token
                 .leading_trivia()

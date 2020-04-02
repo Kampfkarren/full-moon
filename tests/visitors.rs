@@ -85,7 +85,7 @@ fn test_visit_token() {
     };
 
     impl Visitor<'_> for CommentVisitor {
-        fn visit_single_line_comment(&mut self, token: &TokenReference<'_>) {
+        fn visit_single_line_comment(&mut self, token: &Token<'_>) {
             self.comments.push(token.to_string());
         }
     }

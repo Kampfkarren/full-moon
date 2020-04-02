@@ -2189,7 +2189,7 @@ mod tests {
 
             struct SyntaxRewriter;
             impl<'ast> VisitorMut<'ast> for SyntaxRewriter {
-                fn visit_token(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+                fn visit_token(&mut self, token: Token<'ast>) -> Token<'ast> {
                     token
                 }
             }
