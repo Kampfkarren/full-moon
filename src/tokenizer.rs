@@ -155,6 +155,9 @@ pub enum TokenType<'a> {
 }
 
 impl<'a> TokenType<'a> {
+    /// Returns whether a token can be practically ignored in most cases
+    /// Comments and whitespace will return `true`, everything else will return `false`
+    /// Deprecated in favor of [`TokenType::is_trivia`], a name consistent with `leading_trivia` and `trailing_trivia`.
     #[deprecated(since = "0.5.0", note = "Please use is_trivia instead")]
     pub fn ignore(&self) -> bool {
         self.is_trivia()
@@ -364,7 +367,6 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`](struct.Token.html)
-// TODO: Change name
 #[derive(Clone, Debug, Owned)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenReference<'a> {

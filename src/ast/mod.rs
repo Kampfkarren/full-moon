@@ -62,6 +62,9 @@ impl<'a> Block<'a> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
+    /// The last statement of the block if one exists, such as `return foo`
+    /// Deprecated in favor of [`Block::last_stmt`](#method.last_stmt),
+    /// the plural in `last_stmts` was a typo
     #[deprecated(since = "0.5.0", note = "Use last_stmt instead")]
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
         self.last_stmt()

@@ -69,6 +69,8 @@ impl fmt::Debug for TokenItem<'_, '_> {
     }
 }
 
+/// An iterator that iterates over the tokens of a node
+/// Returned by [`Node::tokens`](trait.Node.html#method.tokens)
 #[derive(Default)]
 pub struct Tokens<'ast, 'b> {
     pub(crate) items: Vec<TokenItem<'ast, 'b>>,
