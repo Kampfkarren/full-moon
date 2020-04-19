@@ -65,7 +65,7 @@ impl<'a, T> Punctuated<'a, T> {
     /// let mut punctuated = Punctuated::new();
     /// assert_eq!(punctuated.len(), 0);
     /// punctuated.push(Pair::new((), None));
-    /// assert_eq!(!punctuated.len(), 1);
+    /// assert_eq!(punctuated.len(), 1);
     /// ```
     pub fn len(&self) -> usize {
         self.pairs.len()
@@ -116,7 +116,7 @@ impl<'a, T> Punctuated<'a, T> {
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
     /// punctuated.push(Pair::new(1, None));
-    /// assert_eq!(punctuated.last()?.value(), 1);
+    /// assert_eq!(punctuated.last(), Some(&Pair::new(1, None)));
     /// ```
     pub fn last(&self) -> Option<&Pair<'a, T>> {
         self.pairs.last()
