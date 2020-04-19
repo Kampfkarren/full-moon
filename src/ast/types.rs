@@ -5,7 +5,7 @@ use crate::util::display_option;
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeInfo<'a> {
     /// A standalone type, such as `string` or `Foo`.
@@ -120,12 +120,12 @@ pub enum TypeInfo<'a> {
         /// The left hand side: `string`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         left: Box<TypeInfo<'a>>,
-        /// The right hand side: `number`.
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        right: Box<TypeInfo<'a>>,
         /// The pipe (`|`) to separate the types.
         #[cfg_attr(feature = "serde", serde(borrow))]
         pipe: Cow<'a, TokenReference<'a>>,
+        /// The right hand side: `number`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        right: Box<TypeInfo<'a>>,
     },
 }
 
@@ -161,7 +161,7 @@ impl<'a> TypeField<'a> {
 }
 
 /// A key in a [`TypeField`](struct.TypeField.html). Can either be a name or an index signature.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeFieldKey<'a> {
     /// A name, such as `foo`.
@@ -261,6 +261,7 @@ impl<'a> TypeDeclaration<'a> {
 #[display(fmt = "{}{}{}", "arrows.tokens().0", "generics", "arrows.tokens().1")]
 pub struct GenericDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    #[visit(contains = "generics")]
     pub(crate) arrows: ContainedSpan<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) generics: Punctuated<'a, Cow<'a, TokenReference<'a>>>,

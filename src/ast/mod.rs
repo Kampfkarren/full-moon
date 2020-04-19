@@ -30,6 +30,9 @@ pub mod types;
 #[cfg(feature = "roblox")]
 use types::*;
 
+#[cfg(feature = "roblox")]
+mod type_visitors;
+
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -1193,11 +1196,10 @@ pub enum Call<'a> {
 }
 
 /// A function body, everything except `function x` in `function x(a, b, c) call() end`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[visit(contains = "parameters")]
     parameters_parentheses: ContainedSpan<'a>,
     parameters: Punctuated<'a, Parameter<'a>>,
 
@@ -1551,7 +1553,7 @@ impl<'a> LocalFunction<'a> {
 }
 
 /// An assignment to a local variable, such as `local x = 1`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]

@@ -253,3 +253,181 @@ impl<'a> VisitMut<'a> for FunctionArgs<'a> {
         self
     }
 }
+
+// The following contain type signatures, which are addendums to previous identities
+impl<'a> Visit<'a> for FunctionBody<'a> {
+    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+        visitor.visit_function_body(self);
+        self.parameters_parentheses.tokens.0.visit(visitor);
+
+        let mut type_specifiers;
+
+        #[cfg(feature = "roblox")]
+        {
+            type_specifiers = self.type_specifiers();
+        }
+
+        #[cfg(not(feature = "roblox"))]
+        {
+            // TODO: Option<!>, and implement Visit for !
+            type_specifiers = std::iter::repeat::<Option<Self>>(None);
+        }
+
+        for parameter in &self.parameters {
+            parameter.visit(visitor);
+            type_specifiers.next().visit(visitor);
+        }
+
+        self.parameters_parentheses.tokens.1.visit(visitor);
+
+        #[cfg(feature = "roblox")]
+        self.return_type.visit(visitor);
+
+        self.block.visit(visitor);
+        self.end_token.visit(visitor);
+        visitor.visit_function_body_end(self);
+    }
+}
+
+impl<'a> VisitMut<'a> for FunctionBody<'a> {
+    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_function_body(self);
+        self.parameters_parentheses.tokens.0 =
+            self.parameters_parentheses.tokens.0.visit_mut(visitor);
+
+        let mut type_specifiers;
+
+        #[cfg(feature = "roblox")]
+        {
+            type_specifiers = self.type_specifiers.into_iter();
+        }
+
+        #[cfg(not(feature = "roblox"))]
+        {
+            // TODO: Option<!>, and implement VisitMut for !
+            type_specifiers = std::iter::repeat::<Option<Self>>(None);
+        }
+
+        let mut new_type_specifiers = Vec::new();
+        let mut new_parameters = Punctuated::new();
+
+        for parameter_pair in self.parameters.into_pairs() {
+            let parameter_tuple = parameter_pair.into_tuple();
+            let was_ellipse = matches!(parameter_tuple.0, Parameter::Ellipse(..));
+            let parameter = parameter_tuple.0.visit_mut(visitor);
+            let type_specifier = if !was_ellipse {
+                type_specifiers
+                    .next()
+                    .and_then(|type_specifier| type_specifier)
+                    .map(|type_specifier| type_specifier.visit_mut(visitor))
+            } else {
+                None
+            };
+
+            let punctuation = parameter_tuple.1.visit_mut(visitor);
+
+            if !was_ellipse {
+                new_type_specifiers.push(type_specifier);
+            }
+
+            new_parameters.push(Pair::new(parameter, punctuation));
+        }
+
+        self.parameters = new_parameters;
+
+        #[cfg(feature = "roblox")]
+        {
+            self.type_specifiers = new_type_specifiers;
+        }
+
+        self.parameters_parentheses.tokens.1 =
+            self.parameters_parentheses.tokens.1.visit_mut(visitor);
+
+        #[cfg(feature = "roblox")]
+        {
+            self.return_type = self.return_type.visit_mut(visitor);
+        }
+
+        self.block = self.block.visit_mut(visitor);
+        self.end_token = self.end_token.visit_mut(visitor);
+        self = visitor.visit_function_body_end(self);
+        self
+    }
+}
+
+impl<'a> Visit<'a> for LocalAssignment<'a> {
+    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+        visitor.visit_local_assignment(self);
+        self.local_token.visit(visitor);
+
+        let mut type_specifiers;
+
+        #[cfg(feature = "roblox")]
+        {
+            type_specifiers = self.type_specifiers();
+        }
+
+        #[cfg(not(feature = "roblox"))]
+        {
+            // TODO: Option<!>, and implement Visit for !
+            type_specifiers = std::iter::repeat::<Option<Self>>(None);
+        }
+
+        for name in &self.name_list {
+            name.visit(visitor);
+            type_specifiers.next().visit(visitor);
+        }
+
+        self.equal_token.visit(visitor);
+        self.expr_list.visit(visitor);
+        visitor.visit_local_assignment_end(self);
+    }
+}
+
+impl<'a> VisitMut<'a> for LocalAssignment<'a> {
+    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_local_assignment(self);
+        self.local_token = self.local_token.visit_mut(visitor);
+
+        let mut type_specifiers;
+
+        #[cfg(feature = "roblox")]
+        {
+            type_specifiers = self.type_specifiers.into_iter();
+        }
+
+        #[cfg(not(feature = "roblox"))]
+        {
+            // TODO: Option<!>, and implement VisitMut for !
+            type_specifiers = std::iter::repeat::<Option<Self>>(None);
+        }
+
+        let mut new_type_specifiers = Vec::new();
+        let mut new_names = Punctuated::new();
+
+        for parameter_pair in self.name_list.into_pairs() {
+            let parameter_tuple = parameter_pair.into_tuple();
+            let parameter = parameter_tuple.0.visit_mut(visitor);
+            let type_specifier = type_specifiers
+                .next()
+                .and_then(|type_specifier| type_specifier)
+                .map(|type_specifier| type_specifier.visit_mut(visitor));
+
+            let punctuation = parameter_tuple.1.visit_mut(visitor);
+            new_type_specifiers.push(type_specifier);
+            new_names.push(Pair::new(parameter, punctuation));
+        }
+
+        self.name_list = new_names;
+
+        #[cfg(feature = "roblox")]
+        {
+            self.type_specifiers = new_type_specifiers;
+        }
+
+        self.equal_token = self.equal_token.visit_mut(visitor);
+        self.expr_list = self.expr_list.visit_mut(visitor);
+        self = visitor.visit_local_assignment_end(self);
+        self
+    }
+}

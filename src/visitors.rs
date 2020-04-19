@@ -146,6 +146,18 @@ where
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self;
 }
 
+impl<'ast, T: Visit<'ast>> Visit<'ast> for &T {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        (**self).visit(visitor);
+    }
+}
+
+impl<'ast, T: Visit<'ast>> Visit<'ast> for &mut T {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        (**self).visit(visitor);
+    }
+}
+
 impl<'ast, T: Visit<'ast>> Visit<'ast> for Vec<T> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         for item in self {

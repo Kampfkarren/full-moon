@@ -230,38 +230,6 @@
                               },
                               "args": {
                                 "Parentheses": {
-                                  "arguments": {
-                                    "pairs": [
-                                      {
-                                        "End": {
-                                          "value": {
-                                            "String": {
-                                              "leading_trivia": [],
-                                              "token": {
-                                                "start_position": {
-                                                  "bytes": 140,
-                                                  "character": 43,
-                                                  "line": 2
-                                                },
-                                                "end_position": {
-                                                  "bytes": 159,
-                                                  "character": 62,
-                                                  "line": 2
-                                                },
-                                                "token_type": {
-                                                  "type": "StringLiteral",
-                                                  "literal": "ReplicatedStorage",
-                                                  "quote_type": "Double"
-                                                }
-                                              },
-                                              "trailing_trivia": []
-                                            }
-                                          },
-                                          "binop": null
-                                        }
-                                      }
-                                    ]
-                                  },
                                   "parentheses": {
                                     "tokens": [
                                       {
@@ -303,6 +271,38 @@
                                           }
                                         },
                                         "trailing_trivia": []
+                                      }
+                                    ]
+                                  },
+                                  "arguments": {
+                                    "pairs": [
+                                      {
+                                        "End": {
+                                          "value": {
+                                            "String": {
+                                              "leading_trivia": [],
+                                              "token": {
+                                                "start_position": {
+                                                  "bytes": 140,
+                                                  "character": 43,
+                                                  "line": 2
+                                                },
+                                                "end_position": {
+                                                  "bytes": 159,
+                                                  "character": 62,
+                                                  "line": 2
+                                                },
+                                                "token_type": {
+                                                  "type": "StringLiteral",
+                                                  "literal": "ReplicatedStorage",
+                                                  "quote_type": "Double"
+                                                }
+                                              },
+                                              "trailing_trivia": []
+                                            }
+                                          },
+                                          "binop": null
+                                        }
                                       }
                                     ]
                                   }
@@ -537,38 +537,6 @@
                               },
                               "args": {
                                 "Parentheses": {
-                                  "arguments": {
-                                    "pairs": [
-                                      {
-                                        "End": {
-                                          "value": {
-                                            "String": {
-                                              "leading_trivia": [],
-                                              "token": {
-                                                "start_position": {
-                                                  "bytes": 196,
-                                                  "character": 36,
-                                                  "line": 3
-                                                },
-                                                "end_position": {
-                                                  "bytes": 208,
-                                                  "character": 48,
-                                                  "line": 3
-                                                },
-                                                "token_type": {
-                                                  "type": "StringLiteral",
-                                                  "literal": "RunService",
-                                                  "quote_type": "Double"
-                                                }
-                                              },
-                                              "trailing_trivia": []
-                                            }
-                                          },
-                                          "binop": null
-                                        }
-                                      }
-                                    ]
-                                  },
                                   "parentheses": {
                                     "tokens": [
                                       {
@@ -610,6 +578,38 @@
                                           }
                                         },
                                         "trailing_trivia": []
+                                      }
+                                    ]
+                                  },
+                                  "arguments": {
+                                    "pairs": [
+                                      {
+                                        "End": {
+                                          "value": {
+                                            "String": {
+                                              "leading_trivia": [],
+                                              "token": {
+                                                "start_position": {
+                                                  "bytes": 196,
+                                                  "character": 36,
+                                                  "line": 3
+                                                },
+                                                "end_position": {
+                                                  "bytes": 208,
+                                                  "character": 48,
+                                                  "line": 3
+                                                },
+                                                "token_type": {
+                                                  "type": "StringLiteral",
+                                                  "literal": "RunService",
+                                                  "quote_type": "Double"
+                                                }
+                                              },
+                                              "trailing_trivia": []
+                                            }
+                                          },
+                                          "binop": null
+                                        }
                                       }
                                     ]
                                   }
@@ -819,6 +819,50 @@
                           "Call": {
                             "AnonymousCall": {
                               "Parentheses": {
+                                "parentheses": {
+                                  "tokens": [
+                                    {
+                                      "leading_trivia": [],
+                                      "token": {
+                                        "start_position": {
+                                          "bytes": 234,
+                                          "character": 24,
+                                          "line": 5
+                                        },
+                                        "end_position": {
+                                          "bytes": 235,
+                                          "character": 25,
+                                          "line": 5
+                                        },
+                                        "token_type": {
+                                          "type": "Symbol",
+                                          "symbol": "("
+                                        }
+                                      },
+                                      "trailing_trivia": []
+                                    },
+                                    {
+                                      "leading_trivia": [],
+                                      "token": {
+                                        "start_position": {
+                                          "bytes": 268,
+                                          "character": 58,
+                                          "line": 5
+                                        },
+                                        "end_position": {
+                                          "bytes": 269,
+                                          "character": 59,
+                                          "line": 5
+                                        },
+                                        "token_type": {
+                                          "type": "Symbol",
+                                          "symbol": ")"
+                                        }
+                                      },
+                                      "trailing_trivia": []
+                                    }
+                                  ]
+                                },
                                 "arguments": {
                                   "pairs": [
                                     {
@@ -947,50 +991,6 @@
                                         },
                                         "binop": null
                                       }
-                                    }
-                                  ]
-                                },
-                                "parentheses": {
-                                  "tokens": [
-                                    {
-                                      "leading_trivia": [],
-                                      "token": {
-                                        "start_position": {
-                                          "bytes": 234,
-                                          "character": 24,
-                                          "line": 5
-                                        },
-                                        "end_position": {
-                                          "bytes": 235,
-                                          "character": 25,
-                                          "line": 5
-                                        },
-                                        "token_type": {
-                                          "type": "Symbol",
-                                          "symbol": "("
-                                        }
-                                      },
-                                      "trailing_trivia": []
-                                    },
-                                    {
-                                      "leading_trivia": [],
-                                      "token": {
-                                        "start_position": {
-                                          "bytes": 268,
-                                          "character": 58,
-                                          "line": 5
-                                        },
-                                        "end_position": {
-                                          "bytes": 269,
-                                          "character": 59,
-                                          "line": 5
-                                        },
-                                        "token_type": {
-                                          "type": "Symbol",
-                                          "symbol": ")"
-                                        }
-                                      },
-                                      "trailing_trivia": []
                                     }
                                   ]
                                 }
@@ -1459,9 +1459,6 @@
                                   },
                                   "args": {
                                     "Parentheses": {
-                                      "arguments": {
-                                        "pairs": []
-                                      },
                                       "parentheses": {
                                         "tokens": [
                                           {
@@ -1505,6 +1502,9 @@
                                             "trailing_trivia": []
                                           }
                                         ]
+                                      },
+                                      "arguments": {
+                                        "pairs": []
                                       }
                                     }
                                   }
@@ -1983,6 +1983,50 @@
                                     "Call": {
                                       "AnonymousCall": {
                                         "Parentheses": {
+                                          "parentheses": {
+                                            "tokens": [
+                                              {
+                                                "leading_trivia": [],
+                                                "token": {
+                                                  "start_position": {
+                                                    "bytes": 386,
+                                                    "character": 8,
+                                                    "line": 14
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 387,
+                                                    "character": 9,
+                                                    "line": 14
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": "("
+                                                  }
+                                                },
+                                                "trailing_trivia": []
+                                              },
+                                              {
+                                                "leading_trivia": [],
+                                                "token": {
+                                                  "start_position": {
+                                                    "bytes": 407,
+                                                    "character": 29,
+                                                    "line": 14
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 408,
+                                                    "character": 30,
+                                                    "line": 14
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": ")"
+                                                  }
+                                                },
+                                                "trailing_trivia": []
+                                              }
+                                            ]
+                                          },
                                           "arguments": {
                                             "pairs": [
                                               {
@@ -2078,50 +2122,6 @@
                                                   },
                                                   "binop": null
                                                 }
-                                              }
-                                            ]
-                                          },
-                                          "parentheses": {
-                                            "tokens": [
-                                              {
-                                                "leading_trivia": [],
-                                                "token": {
-                                                  "start_position": {
-                                                    "bytes": 386,
-                                                    "character": 8,
-                                                    "line": 14
-                                                  },
-                                                  "end_position": {
-                                                    "bytes": 387,
-                                                    "character": 9,
-                                                    "line": 14
-                                                  },
-                                                  "token_type": {
-                                                    "type": "Symbol",
-                                                    "symbol": "("
-                                                  }
-                                                },
-                                                "trailing_trivia": []
-                                              },
-                                              {
-                                                "leading_trivia": [],
-                                                "token": {
-                                                  "start_position": {
-                                                    "bytes": 407,
-                                                    "character": 29,
-                                                    "line": 14
-                                                  },
-                                                  "end_position": {
-                                                    "bytes": 408,
-                                                    "character": 30,
-                                                    "line": 14
-                                                  },
-                                                  "token_type": {
-                                                    "type": "Symbol",
-                                                    "symbol": ")"
-                                                  }
-                                                },
-                                                "trailing_trivia": []
                                               }
                                             ]
                                           }
@@ -2964,39 +2964,6 @@
                                           "Call": {
                                             "AnonymousCall": {
                                               "Parentheses": {
-                                                "arguments": {
-                                                  "pairs": [
-                                                    {
-                                                      "End": {
-                                                        "value": {
-                                                          "Var": {
-                                                            "Name": {
-                                                              "leading_trivia": [],
-                                                              "token": {
-                                                                "start_position": {
-                                                                  "bytes": 521,
-                                                                  "character": 12,
-                                                                  "line": 22
-                                                                },
-                                                                "end_position": {
-                                                                  "bytes": 527,
-                                                                  "character": 18,
-                                                                  "line": 22
-                                                                },
-                                                                "token_type": {
-                                                                  "type": "Identifier",
-                                                                  "identifier": "origin"
-                                                                }
-                                                              },
-                                                              "trailing_trivia": []
-                                                            }
-                                                          }
-                                                        },
-                                                        "binop": null
-                                                      }
-                                                    }
-                                                  ]
-                                                },
                                                 "parentheses": {
                                                   "tokens": [
                                                     {
@@ -3055,6 +3022,39 @@
                                                           }
                                                         }
                                                       ]
+                                                    }
+                                                  ]
+                                                },
+                                                "arguments": {
+                                                  "pairs": [
+                                                    {
+                                                      "End": {
+                                                        "value": {
+                                                          "Var": {
+                                                            "Name": {
+                                                              "leading_trivia": [],
+                                                              "token": {
+                                                                "start_position": {
+                                                                  "bytes": 521,
+                                                                  "character": 12,
+                                                                  "line": 22
+                                                                },
+                                                                "end_position": {
+                                                                  "bytes": 527,
+                                                                  "character": 18,
+                                                                  "line": 22
+                                                                },
+                                                                "token_type": {
+                                                                  "type": "Identifier",
+                                                                  "identifier": "origin"
+                                                                }
+                                                              },
+                                                              "trailing_trivia": []
+                                                            }
+                                                          }
+                                                        },
+                                                        "binop": null
+                                                      }
                                                     }
                                                   ]
                                                 }
@@ -3346,6 +3346,67 @@
                                                         },
                                                         "args": {
                                                           "Parentheses": {
+                                                            "parentheses": {
+                                                              "tokens": [
+                                                                {
+                                                                  "leading_trivia": [],
+                                                                  "token": {
+                                                                    "start_position": {
+                                                                      "bytes": 576,
+                                                                      "character": 29,
+                                                                      "line": 23
+                                                                    },
+                                                                    "end_position": {
+                                                                      "bytes": 577,
+                                                                      "character": 30,
+                                                                      "line": 23
+                                                                    },
+                                                                    "token_type": {
+                                                                      "type": "Symbol",
+                                                                      "symbol": "("
+                                                                    }
+                                                                  },
+                                                                  "trailing_trivia": []
+                                                                },
+                                                                {
+                                                                  "leading_trivia": [],
+                                                                  "token": {
+                                                                    "start_position": {
+                                                                      "bytes": 607,
+                                                                      "character": 60,
+                                                                      "line": 23
+                                                                    },
+                                                                    "end_position": {
+                                                                      "bytes": 608,
+                                                                      "character": 61,
+                                                                      "line": 23
+                                                                    },
+                                                                    "token_type": {
+                                                                      "type": "Symbol",
+                                                                      "symbol": ")"
+                                                                    }
+                                                                  },
+                                                                  "trailing_trivia": [
+                                                                    {
+                                                                      "start_position": {
+                                                                        "bytes": 608,
+                                                                        "character": 61,
+                                                                        "line": 23
+                                                                      },
+                                                                      "end_position": {
+                                                                        "bytes": 609,
+                                                                        "character": 62,
+                                                                        "line": 23
+                                                                      },
+                                                                      "token_type": {
+                                                                        "type": "Whitespace",
+                                                                        "characters": " "
+                                                                      }
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
                                                             "arguments": {
                                                               "pairs": [
                                                                 {
@@ -3476,67 +3537,6 @@
                                                                   }
                                                                 }
                                                               ]
-                                                            },
-                                                            "parentheses": {
-                                                              "tokens": [
-                                                                {
-                                                                  "leading_trivia": [],
-                                                                  "token": {
-                                                                    "start_position": {
-                                                                      "bytes": 576,
-                                                                      "character": 29,
-                                                                      "line": 23
-                                                                    },
-                                                                    "end_position": {
-                                                                      "bytes": 577,
-                                                                      "character": 30,
-                                                                      "line": 23
-                                                                    },
-                                                                    "token_type": {
-                                                                      "type": "Symbol",
-                                                                      "symbol": "("
-                                                                    }
-                                                                  },
-                                                                  "trailing_trivia": []
-                                                                },
-                                                                {
-                                                                  "leading_trivia": [],
-                                                                  "token": {
-                                                                    "start_position": {
-                                                                      "bytes": 607,
-                                                                      "character": 60,
-                                                                      "line": 23
-                                                                    },
-                                                                    "end_position": {
-                                                                      "bytes": 608,
-                                                                      "character": 61,
-                                                                      "line": 23
-                                                                    },
-                                                                    "token_type": {
-                                                                      "type": "Symbol",
-                                                                      "symbol": ")"
-                                                                    }
-                                                                  },
-                                                                  "trailing_trivia": [
-                                                                    {
-                                                                      "start_position": {
-                                                                        "bytes": 608,
-                                                                        "character": 61,
-                                                                        "line": 23
-                                                                      },
-                                                                      "end_position": {
-                                                                        "bytes": 609,
-                                                                        "character": 62,
-                                                                        "line": 23
-                                                                      },
-                                                                      "token_type": {
-                                                                        "type": "Whitespace",
-                                                                        "characters": " "
-                                                                      }
-                                                                    }
-                                                                  ]
-                                                                }
-                                                              ]
                                                             }
                                                           }
                                                         }
@@ -3617,38 +3617,6 @@
                                                         "Call": {
                                                           "AnonymousCall": {
                                                             "Parentheses": {
-                                                              "arguments": {
-                                                                "pairs": [
-                                                                  {
-                                                                    "End": {
-                                                                      "value": {
-                                                                        "String": {
-                                                                          "leading_trivia": [],
-                                                                          "token": {
-                                                                            "start_position": {
-                                                                              "bytes": 623,
-                                                                              "character": 10,
-                                                                              "line": 24
-                                                                            },
-                                                                            "end_position": {
-                                                                              "bytes": 645,
-                                                                              "character": 32,
-                                                                              "line": 24
-                                                                            },
-                                                                            "token_type": {
-                                                                              "type": "StringLiteral",
-                                                                              "literal": "ORIGIN WAS CHARACTER",
-                                                                              "quote_type": "Double"
-                                                                            }
-                                                                          },
-                                                                          "trailing_trivia": []
-                                                                        }
-                                                                      },
-                                                                      "binop": null
-                                                                    }
-                                                                  }
-                                                                ]
-                                                              },
                                                               "parentheses": {
                                                                 "tokens": [
                                                                   {
@@ -3690,6 +3658,38 @@
                                                                       }
                                                                     },
                                                                     "trailing_trivia": []
+                                                                  }
+                                                                ]
+                                                              },
+                                                              "arguments": {
+                                                                "pairs": [
+                                                                  {
+                                                                    "End": {
+                                                                      "value": {
+                                                                        "String": {
+                                                                          "leading_trivia": [],
+                                                                          "token": {
+                                                                            "start_position": {
+                                                                              "bytes": 623,
+                                                                              "character": 10,
+                                                                              "line": 24
+                                                                            },
+                                                                            "end_position": {
+                                                                              "bytes": 645,
+                                                                              "character": 32,
+                                                                              "line": 24
+                                                                            },
+                                                                            "token_type": {
+                                                                              "type": "StringLiteral",
+                                                                              "literal": "ORIGIN WAS CHARACTER",
+                                                                              "quote_type": "Double"
+                                                                            }
+                                                                          },
+                                                                          "trailing_trivia": []
+                                                                        }
+                                                                      },
+                                                                      "binop": null
+                                                                    }
                                                                   }
                                                                 ]
                                                               }
@@ -5012,6 +5012,50 @@
                                                                     "Call": {
                                                                       "AnonymousCall": {
                                                                         "Parentheses": {
+                                                                          "parentheses": {
+                                                                            "tokens": [
+                                                                              {
+                                                                                "leading_trivia": [],
+                                                                                "token": {
+                                                                                  "start_position": {
+                                                                                    "bytes": 811,
+                                                                                    "character": 24,
+                                                                                    "line": 35
+                                                                                  },
+                                                                                  "end_position": {
+                                                                                    "bytes": 812,
+                                                                                    "character": 25,
+                                                                                    "line": 35
+                                                                                  },
+                                                                                  "token_type": {
+                                                                                    "type": "Symbol",
+                                                                                    "symbol": "("
+                                                                                  }
+                                                                                },
+                                                                                "trailing_trivia": []
+                                                                              },
+                                                                              {
+                                                                                "leading_trivia": [],
+                                                                                "token": {
+                                                                                  "start_position": {
+                                                                                    "bytes": 895,
+                                                                                    "character": 108,
+                                                                                    "line": 35
+                                                                                  },
+                                                                                  "end_position": {
+                                                                                    "bytes": 896,
+                                                                                    "character": 109,
+                                                                                    "line": 35
+                                                                                  },
+                                                                                  "token_type": {
+                                                                                    "type": "Symbol",
+                                                                                    "symbol": ")"
+                                                                                  }
+                                                                                },
+                                                                                "trailing_trivia": []
+                                                                              }
+                                                                            ]
+                                                                          },
                                                                           "arguments": {
                                                                             "pairs": [
                                                                               {
@@ -5092,6 +5136,50 @@
                                                                                             "Call": {
                                                                                               "AnonymousCall": {
                                                                                                 "Parentheses": {
+                                                                                                  "parentheses": {
+                                                                                                    "tokens": [
+                                                                                                      {
+                                                                                                        "leading_trivia": [],
+                                                                                                        "token": {
+                                                                                                          "start_position": {
+                                                                                                            "bytes": 819,
+                                                                                                            "character": 32,
+                                                                                                            "line": 35
+                                                                                                          },
+                                                                                                          "end_position": {
+                                                                                                            "bytes": 820,
+                                                                                                            "character": 33,
+                                                                                                            "line": 35
+                                                                                                          },
+                                                                                                          "token_type": {
+                                                                                                            "type": "Symbol",
+                                                                                                            "symbol": "("
+                                                                                                          }
+                                                                                                        },
+                                                                                                        "trailing_trivia": []
+                                                                                                      },
+                                                                                                      {
+                                                                                                        "leading_trivia": [],
+                                                                                                        "token": {
+                                                                                                          "start_position": {
+                                                                                                            "bytes": 883,
+                                                                                                            "character": 96,
+                                                                                                            "line": 35
+                                                                                                          },
+                                                                                                          "end_position": {
+                                                                                                            "bytes": 884,
+                                                                                                            "character": 97,
+                                                                                                            "line": 35
+                                                                                                          },
+                                                                                                          "token_type": {
+                                                                                                            "type": "Symbol",
+                                                                                                            "symbol": ")"
+                                                                                                          }
+                                                                                                        },
+                                                                                                        "trailing_trivia": []
+                                                                                                      }
+                                                                                                    ]
+                                                                                                  },
                                                                                                   "arguments": {
                                                                                                     "pairs": [
                                                                                                       {
@@ -5587,50 +5675,6 @@
                                                                                                         }
                                                                                                       }
                                                                                                     ]
-                                                                                                  },
-                                                                                                  "parentheses": {
-                                                                                                    "tokens": [
-                                                                                                      {
-                                                                                                        "leading_trivia": [],
-                                                                                                        "token": {
-                                                                                                          "start_position": {
-                                                                                                            "bytes": 819,
-                                                                                                            "character": 32,
-                                                                                                            "line": 35
-                                                                                                          },
-                                                                                                          "end_position": {
-                                                                                                            "bytes": 820,
-                                                                                                            "character": 33,
-                                                                                                            "line": 35
-                                                                                                          },
-                                                                                                          "token_type": {
-                                                                                                            "type": "Symbol",
-                                                                                                            "symbol": "("
-                                                                                                          }
-                                                                                                        },
-                                                                                                        "trailing_trivia": []
-                                                                                                      },
-                                                                                                      {
-                                                                                                        "leading_trivia": [],
-                                                                                                        "token": {
-                                                                                                          "start_position": {
-                                                                                                            "bytes": 883,
-                                                                                                            "character": 96,
-                                                                                                            "line": 35
-                                                                                                          },
-                                                                                                          "end_position": {
-                                                                                                            "bytes": 884,
-                                                                                                            "character": 97,
-                                                                                                            "line": 35
-                                                                                                          },
-                                                                                                          "token_type": {
-                                                                                                            "type": "Symbol",
-                                                                                                            "symbol": ")"
-                                                                                                          }
-                                                                                                        },
-                                                                                                        "trailing_trivia": []
-                                                                                                      }
-                                                                                                    ]
                                                                                                   }
                                                                                                 }
                                                                                               }
@@ -5708,50 +5752,6 @@
                                                                                   },
                                                                                   "binop": null
                                                                                 }
-                                                                              }
-                                                                            ]
-                                                                          },
-                                                                          "parentheses": {
-                                                                            "tokens": [
-                                                                              {
-                                                                                "leading_trivia": [],
-                                                                                "token": {
-                                                                                  "start_position": {
-                                                                                    "bytes": 811,
-                                                                                    "character": 24,
-                                                                                    "line": 35
-                                                                                  },
-                                                                                  "end_position": {
-                                                                                    "bytes": 812,
-                                                                                    "character": 25,
-                                                                                    "line": 35
-                                                                                  },
-                                                                                  "token_type": {
-                                                                                    "type": "Symbol",
-                                                                                    "symbol": "("
-                                                                                  }
-                                                                                },
-                                                                                "trailing_trivia": []
-                                                                              },
-                                                                              {
-                                                                                "leading_trivia": [],
-                                                                                "token": {
-                                                                                  "start_position": {
-                                                                                    "bytes": 895,
-                                                                                    "character": 108,
-                                                                                    "line": 35
-                                                                                  },
-                                                                                  "end_position": {
-                                                                                    "bytes": 896,
-                                                                                    "character": 109,
-                                                                                    "line": 35
-                                                                                  },
-                                                                                  "token_type": {
-                                                                                    "type": "Symbol",
-                                                                                    "symbol": ")"
-                                                                                  }
-                                                                                },
-                                                                                "trailing_trivia": []
                                                                               }
                                                                             ]
                                                                           }
@@ -5997,39 +5997,6 @@
                                                                       },
                                                                       "args": {
                                                                         "Parentheses": {
-                                                                          "arguments": {
-                                                                            "pairs": [
-                                                                              {
-                                                                                "End": {
-                                                                                  "value": {
-                                                                                    "Var": {
-                                                                                      "Name": {
-                                                                                        "leading_trivia": [],
-                                                                                        "token": {
-                                                                                          "start_position": {
-                                                                                            "bytes": 931,
-                                                                                            "character": 34,
-                                                                                            "line": 37
-                                                                                          },
-                                                                                          "end_position": {
-                                                                                            "bytes": 940,
-                                                                                            "character": 43,
-                                                                                            "line": 37
-                                                                                          },
-                                                                                          "token_type": {
-                                                                                            "type": "Identifier",
-                                                                                            "identifier": "character"
-                                                                                          }
-                                                                                        },
-                                                                                        "trailing_trivia": []
-                                                                                      }
-                                                                                    }
-                                                                                  },
-                                                                                  "binop": null
-                                                                                }
-                                                                              }
-                                                                            ]
-                                                                          },
                                                                           "parentheses": {
                                                                             "tokens": [
                                                                               {
@@ -6088,6 +6055,39 @@
                                                                                     }
                                                                                   }
                                                                                 ]
+                                                                              }
+                                                                            ]
+                                                                          },
+                                                                          "arguments": {
+                                                                            "pairs": [
+                                                                              {
+                                                                                "End": {
+                                                                                  "value": {
+                                                                                    "Var": {
+                                                                                      "Name": {
+                                                                                        "leading_trivia": [],
+                                                                                        "token": {
+                                                                                          "start_position": {
+                                                                                            "bytes": 931,
+                                                                                            "character": 34,
+                                                                                            "line": 37
+                                                                                          },
+                                                                                          "end_position": {
+                                                                                            "bytes": 940,
+                                                                                            "character": 43,
+                                                                                            "line": 37
+                                                                                          },
+                                                                                          "token_type": {
+                                                                                            "type": "Identifier",
+                                                                                            "identifier": "character"
+                                                                                          }
+                                                                                        },
+                                                                                        "trailing_trivia": []
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  "binop": null
+                                                                                }
                                                                               }
                                                                             ]
                                                                           }
@@ -6336,39 +6336,6 @@
                                                                       "Call": {
                                                                         "AnonymousCall": {
                                                                           "Parentheses": {
-                                                                            "arguments": {
-                                                                              "pairs": [
-                                                                                {
-                                                                                  "End": {
-                                                                                    "value": {
-                                                                                      "Var": {
-                                                                                        "Name": {
-                                                                                          "leading_trivia": [],
-                                                                                          "token": {
-                                                                                            "start_position": {
-                                                                                              "bytes": 984,
-                                                                                              "character": 28,
-                                                                                              "line": 39
-                                                                                            },
-                                                                                            "end_position": {
-                                                                                              "bytes": 987,
-                                                                                              "character": 31,
-                                                                                              "line": 39
-                                                                                            },
-                                                                                            "token_type": {
-                                                                                              "type": "Identifier",
-                                                                                              "identifier": "hit"
-                                                                                            }
-                                                                                          },
-                                                                                          "trailing_trivia": []
-                                                                                        }
-                                                                                      }
-                                                                                    },
-                                                                                    "binop": null
-                                                                                  }
-                                                                                }
-                                                                              ]
-                                                                            },
                                                                             "parentheses": {
                                                                               "tokens": [
                                                                                 {
@@ -6427,6 +6394,39 @@
                                                                                       }
                                                                                     }
                                                                                   ]
+                                                                                }
+                                                                              ]
+                                                                            },
+                                                                            "arguments": {
+                                                                              "pairs": [
+                                                                                {
+                                                                                  "End": {
+                                                                                    "value": {
+                                                                                      "Var": {
+                                                                                        "Name": {
+                                                                                          "leading_trivia": [],
+                                                                                          "token": {
+                                                                                            "start_position": {
+                                                                                              "bytes": 984,
+                                                                                              "character": 28,
+                                                                                              "line": 39
+                                                                                            },
+                                                                                            "end_position": {
+                                                                                              "bytes": 987,
+                                                                                              "character": 31,
+                                                                                              "line": 39
+                                                                                            },
+                                                                                            "token_type": {
+                                                                                              "type": "Identifier",
+                                                                                              "identifier": "hit"
+                                                                                            }
+                                                                                          },
+                                                                                          "trailing_trivia": []
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "binop": null
+                                                                                  }
                                                                                 }
                                                                               ]
                                                                             }
@@ -6510,6 +6510,50 @@
                                                                       "Call": {
                                                                         "AnonymousCall": {
                                                                           "Parentheses": {
+                                                                            "parentheses": {
+                                                                              "tokens": [
+                                                                                {
+                                                                                  "leading_trivia": [],
+                                                                                  "token": {
+                                                                                    "start_position": {
+                                                                                      "bytes": 1003,
+                                                                                      "character": 10,
+                                                                                      "line": 40
+                                                                                    },
+                                                                                    "end_position": {
+                                                                                      "bytes": 1004,
+                                                                                      "character": 11,
+                                                                                      "line": 40
+                                                                                    },
+                                                                                    "token_type": {
+                                                                                      "type": "Symbol",
+                                                                                      "symbol": "("
+                                                                                    }
+                                                                                  },
+                                                                                  "trailing_trivia": []
+                                                                                },
+                                                                                {
+                                                                                  "leading_trivia": [],
+                                                                                  "token": {
+                                                                                    "start_position": {
+                                                                                      "bytes": 1040,
+                                                                                      "character": 47,
+                                                                                      "line": 40
+                                                                                    },
+                                                                                    "end_position": {
+                                                                                      "bytes": 1041,
+                                                                                      "character": 48,
+                                                                                      "line": 40
+                                                                                    },
+                                                                                    "token_type": {
+                                                                                      "type": "Symbol",
+                                                                                      "symbol": ")"
+                                                                                    }
+                                                                                  },
+                                                                                  "trailing_trivia": []
+                                                                                }
+                                                                              ]
+                                                                            },
                                                                             "arguments": {
                                                                               "pairs": [
                                                                                 {
@@ -6651,9 +6695,6 @@
                                                                                                 },
                                                                                                 "args": {
                                                                                                   "Parentheses": {
-                                                                                                    "arguments": {
-                                                                                                      "pairs": []
-                                                                                                    },
                                                                                                     "parentheses": {
                                                                                                       "tokens": [
                                                                                                         {
@@ -6697,6 +6738,9 @@
                                                                                                           "trailing_trivia": []
                                                                                                         }
                                                                                                       ]
+                                                                                                    },
+                                                                                                    "arguments": {
+                                                                                                      "pairs": []
                                                                                                     }
                                                                                                   }
                                                                                                 }
@@ -6708,50 +6752,6 @@
                                                                                     },
                                                                                     "binop": null
                                                                                   }
-                                                                                }
-                                                                              ]
-                                                                            },
-                                                                            "parentheses": {
-                                                                              "tokens": [
-                                                                                {
-                                                                                  "leading_trivia": [],
-                                                                                  "token": {
-                                                                                    "start_position": {
-                                                                                      "bytes": 1003,
-                                                                                      "character": 10,
-                                                                                      "line": 40
-                                                                                    },
-                                                                                    "end_position": {
-                                                                                      "bytes": 1004,
-                                                                                      "character": 11,
-                                                                                      "line": 40
-                                                                                    },
-                                                                                    "token_type": {
-                                                                                      "type": "Symbol",
-                                                                                      "symbol": "("
-                                                                                    }
-                                                                                  },
-                                                                                  "trailing_trivia": []
-                                                                                },
-                                                                                {
-                                                                                  "leading_trivia": [],
-                                                                                  "token": {
-                                                                                    "start_position": {
-                                                                                      "bytes": 1040,
-                                                                                      "character": 47,
-                                                                                      "line": 40
-                                                                                    },
-                                                                                    "end_position": {
-                                                                                      "bytes": 1041,
-                                                                                      "character": 48,
-                                                                                      "line": 40
-                                                                                    },
-                                                                                    "token_type": {
-                                                                                      "type": "Symbol",
-                                                                                      "symbol": ")"
-                                                                                    }
-                                                                                  },
-                                                                                  "trailing_trivia": []
                                                                                 }
                                                                               ]
                                                                             }
@@ -7368,6 +7368,50 @@
                                     "Call": {
                                       "AnonymousCall": {
                                         "Parentheses": {
+                                          "parentheses": {
+                                            "tokens": [
+                                              {
+                                                "leading_trivia": [],
+                                                "token": {
+                                                  "start_position": {
+                                                    "bytes": 1121,
+                                                    "character": 7,
+                                                    "line": 48
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 1122,
+                                                    "character": 8,
+                                                    "line": 48
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": "("
+                                                  }
+                                                },
+                                                "trailing_trivia": []
+                                              },
+                                              {
+                                                "leading_trivia": [],
+                                                "token": {
+                                                  "start_position": {
+                                                    "bytes": 1161,
+                                                    "character": 47,
+                                                    "line": 48
+                                                  },
+                                                  "end_position": {
+                                                    "bytes": 1162,
+                                                    "character": 48,
+                                                    "line": 48
+                                                  },
+                                                  "token_type": {
+                                                    "type": "Symbol",
+                                                    "symbol": ")"
+                                                  }
+                                                },
+                                                "trailing_trivia": []
+                                              }
+                                            ]
+                                          },
                                           "arguments": {
                                             "pairs": [
                                               {
@@ -7591,9 +7635,6 @@
                                                                   },
                                                                   "args": {
                                                                     "Parentheses": {
-                                                                      "arguments": {
-                                                                        "pairs": []
-                                                                      },
                                                                       "parentheses": {
                                                                         "tokens": [
                                                                           {
@@ -7637,6 +7678,9 @@
                                                                             "trailing_trivia": []
                                                                           }
                                                                         ]
+                                                                      },
+                                                                      "arguments": {
+                                                                        "pairs": []
                                                                       }
                                                                     }
                                                                   }
@@ -7650,50 +7694,6 @@
                                                     }
                                                   }
                                                 }
-                                              }
-                                            ]
-                                          },
-                                          "parentheses": {
-                                            "tokens": [
-                                              {
-                                                "leading_trivia": [],
-                                                "token": {
-                                                  "start_position": {
-                                                    "bytes": 1121,
-                                                    "character": 7,
-                                                    "line": 48
-                                                  },
-                                                  "end_position": {
-                                                    "bytes": 1122,
-                                                    "character": 8,
-                                                    "line": 48
-                                                  },
-                                                  "token_type": {
-                                                    "type": "Symbol",
-                                                    "symbol": "("
-                                                  }
-                                                },
-                                                "trailing_trivia": []
-                                              },
-                                              {
-                                                "leading_trivia": [],
-                                                "token": {
-                                                  "start_position": {
-                                                    "bytes": 1161,
-                                                    "character": 47,
-                                                    "line": 48
-                                                  },
-                                                  "end_position": {
-                                                    "bytes": 1162,
-                                                    "character": 48,
-                                                    "line": 48
-                                                  },
-                                                  "token_type": {
-                                                    "type": "Symbol",
-                                                    "symbol": ")"
-                                                  }
-                                                },
-                                                "trailing_trivia": []
                                               }
                                             ]
                                           }
@@ -7937,39 +7937,6 @@
                                                         },
                                                         "args": {
                                                           "Parentheses": {
-                                                            "arguments": {
-                                                              "pairs": [
-                                                                {
-                                                                  "End": {
-                                                                    "value": {
-                                                                      "Var": {
-                                                                        "Name": {
-                                                                          "leading_trivia": [],
-                                                                          "token": {
-                                                                            "start_position": {
-                                                                              "bytes": 1199,
-                                                                              "character": 36,
-                                                                              "line": 50
-                                                                            },
-                                                                            "end_position": {
-                                                                              "bytes": 1208,
-                                                                              "character": 45,
-                                                                              "line": 50
-                                                                            },
-                                                                            "token_type": {
-                                                                              "type": "Identifier",
-                                                                              "identifier": "character"
-                                                                            }
-                                                                          },
-                                                                          "trailing_trivia": []
-                                                                        }
-                                                                      }
-                                                                    },
-                                                                    "binop": null
-                                                                  }
-                                                                }
-                                                              ]
-                                                            },
                                                             "parentheses": {
                                                               "tokens": [
                                                                 {
@@ -8011,6 +7978,39 @@
                                                                     }
                                                                   },
                                                                   "trailing_trivia": []
+                                                                }
+                                                              ]
+                                                            },
+                                                            "arguments": {
+                                                              "pairs": [
+                                                                {
+                                                                  "End": {
+                                                                    "value": {
+                                                                      "Var": {
+                                                                        "Name": {
+                                                                          "leading_trivia": [],
+                                                                          "token": {
+                                                                            "start_position": {
+                                                                              "bytes": 1199,
+                                                                              "character": 36,
+                                                                              "line": 50
+                                                                            },
+                                                                            "end_position": {
+                                                                              "bytes": 1208,
+                                                                              "character": 45,
+                                                                              "line": 50
+                                                                            },
+                                                                            "token_type": {
+                                                                              "type": "Identifier",
+                                                                              "identifier": "character"
+                                                                            }
+                                                                          },
+                                                                          "trailing_trivia": []
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "binop": null
+                                                                  }
                                                                 }
                                                               ]
                                                             }
