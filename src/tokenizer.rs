@@ -3,7 +3,7 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_till, take_while, take_while1},
+    bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
     character::complete::{anychar, digit1, line_ending, space1},
     combinator::{opt, recognize},
     multi::many_till,
@@ -333,7 +333,7 @@ impl<'ast> Visit<'ast> for Token<'ast> {
         visitor.visit_token(self);
 
         match self.token_kind() {
-            TokenKind::Eof => {},
+            TokenKind::Eof => {}
             TokenKind::Identifier => visitor.visit_identifier(self),
             TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
             TokenKind::Number => visitor.visit_number(self),
@@ -675,13 +675,19 @@ fn advance_comment(code: &str) -> Advancement {
 }
 
 fn parse_hex_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("0x"), take_while1(|c: char| c.is_digit(16))))(code)
+    recognize(pair(
+        tag_no_case("0x"),
+        take_while1(|c: char| c.is_digit(16)),
+    ))(code)
 }
 
 fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         digit1,
-        pair(opt(pair(tag("."), digit1)), opt(pair(tag("e"), digit1))),
+        pair(
+            opt(pair(tag("."), digit1)),
+            opt(pair(tag_no_case("e"), digit1)),
+        ),
     ))(code)
 }
 
@@ -695,7 +701,10 @@ fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
 
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("0b"), take_while1(|x: char| x == '0' || x == '1')))(code)
+    recognize(pair(
+        tag_no_case("0b"),
+        take_while1(|x: char| x == '0' || x == '1'),
+    ))(code)
 }
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
