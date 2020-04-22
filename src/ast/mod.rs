@@ -34,7 +34,7 @@ use types::*;
 mod type_visitors;
 
 /// A block of statements, such as in if/do/etc block
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Default, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
     fmt = "{}{}",
@@ -143,6 +143,12 @@ impl<'a> Return<'a> {
     }
 }
 
+impl Default for Return<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Fields of a [`TableConstructor`](struct.TableConstructor.html)
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -238,6 +244,12 @@ impl<'a> TableConstructor<'a> {
     /// Returns a new TableConstructor with the given fields
     pub fn with_fields(self, fields: Vec<TableConstructorField<'a>>) -> Self {
         Self { fields, ..self }
+    }
+}
+
+impl Default for TableConstructor<'_> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1318,6 +1330,12 @@ impl<'a> FunctionBody<'a> {
     }
 }
 
+impl Default for FunctionBody<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl fmt::Display for FunctionBody<'_> {
     #[cfg(feature = "roblox")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -1725,6 +1743,12 @@ impl<'a> Do<'a> {
     /// Returns a new Do with the given `end` token
     pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
         Self { end_token, ..self }
+    }
+}
+
+impl Default for Do<'_> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
