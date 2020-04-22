@@ -785,14 +785,14 @@ define_roblox_parser!(
     TypeSpecifier<'a>,
     Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
-        let (state, fat_arrow) = ParseSymbol(Symbol::FatArrow).parse(state)?;
+        let (state, colon) = ParseSymbol(Symbol::Colon).parse(state)?;
         let (state, return_type) =
             expect!(state, ParseTypeInfo.parse(state), "expected return type");
 
         Ok((
             state,
             TypeSpecifier {
-                punctuation: fat_arrow,
+                punctuation: colon,
                 type_info: return_type,
             },
         ))
@@ -1226,11 +1226,11 @@ cfg_if::cfg_if! {
                     "expected `)` to match `(`"
                 );
 
-                if let Ok((state, arrow)) = ParseSymbol(Symbol::FatArrow).parse(state) {
+                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
                     let (state, return_value) = expect!(
                         state,
                         ParseTypeInfo.parse(state),
-                        "expected return type after `=>`"
+                        "expected return type after `->`"
                     );
 
                     (
