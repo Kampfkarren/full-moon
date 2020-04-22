@@ -19,6 +19,7 @@ pub mod tokenizer;
 pub mod visitors;
 
 mod private;
+mod util;
 
 use full_moon_derive::Owned;
 use std::fmt;
@@ -69,6 +70,5 @@ pub fn parse(code: &str) -> Result<ast::Ast, Error> {
 
 /// Prints back Lua code from an [Ast](ast/struct.Ast.html)
 pub fn print(ast: &ast::Ast) -> String {
-    ast.iter_tokens()
-        .fold(String::new(), |acc, token| acc + &token.to_string())
+    format!("{}{}", ast.nodes(), ast.eof())
 }

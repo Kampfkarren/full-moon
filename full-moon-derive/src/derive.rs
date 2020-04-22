@@ -27,7 +27,12 @@ pub trait StructGenerator {
 }
 
 pub trait MatchEnumGenerator {
+    const DEREF: bool = false;
     const SELF: &'static str = "self";
+
+    fn complete(input: TokenStream) -> TokenStream {
+        input
+    }
 
     fn case_named(
         _input: &syn::Ident,
@@ -71,16 +76,20 @@ impl<T: MatchEnumGenerator> EnumGenerator for T {
         }
 
         let self_ident = format_ident!("{}", T::SELF);
+        let deref = if T::DEREF { Some(quote! { * }) } else { None };
 
-        quote! {
-            match #self_ident {
+        T::complete(quote! {
+            match #deref#self_ident {
                 #(#cases)*
             }
-        }
+        })
     }
 }
 
-pub trait Hint where Self: Sized {
+pub trait Hint
+where
+    Self: Sized,
+{
     fn key_value(_key: String, _value: String) -> Option<Self> {
         None
     }
@@ -90,10 +99,7 @@ pub trait Hint where Self: Sized {
     }
 }
 
-pub fn search_hint<T: Hint>(
-    name: &str,
-    attrs: &[syn::Attribute],
-) -> Option<T> {
+pub fn search_hint<T: Hint>(name: &str, attrs: &[syn::Attribute]) -> Option<T> {
     macro_rules! path_ident {
         ($path:expr) => {
             match $path.get_ident() {
@@ -121,14 +127,17 @@ pub fn search_hint<T: Hint>(
                     }
 
                     syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
-                        return T::key_value(path_ident!(name_value.path).to_string(), match name_value.lit {
-                            syn::Lit::Str(lit_str) => lit_str.value(),
+                        return T::key_value(
+                            path_ident!(name_value.path).to_string(),
+                            match name_value.lit {
+                                syn::Lit::Str(lit_str) => lit_str.value(),
 
-                            other => unimplemented!("nested meta value: {:?}", other),
-                        });
+                                other => unimplemented!("nested meta value: {:#?}", other),
+                            },
+                        );
                     }
 
-                    _ => unimplemented!(),
+                    other => unimplemented!("unknown attribute: {:#?}", other),
                 }
             }
         }

@@ -1,10 +1,9 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
-use atomic_refcell::AtomicRefCell;
-use full_moon_derive::symbols;
-use generational_arena::{Arena, Index};
+
+use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_till, take_while, take_while1},
+    bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
     character::complete::{anychar, digit1, line_ending, space1},
     combinator::{opt, recognize},
     multi::many_till,
@@ -12,17 +11,8 @@ use nom::{
     IResult,
 };
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::{
-    borrow::Cow,
-    cmp::Ordering,
-    fmt,
-    str::FromStr,
-    sync::{
-        atomic::{AtomicUsize, Ordering as AtomicOrdering},
-        Arc,
-    },
-};
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
     And => "and",
@@ -82,7 +72,7 @@ symbols!(
 );
 
 /// The possible errors that can happen while tokenizing.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TokenizerErrorType {
     /// An unclosed multi-line comment was found
@@ -91,6 +81,9 @@ pub enum TokenizerErrorType {
     UnclosedString,
     /// An unexpected token was found
     UnexpectedToken(char),
+    /// Symbol passed is not valid
+    /// Returned from [`TokenReference::symbol`](struct.TokenReference.html#method.symbol)
+    InvalidSymbol(String),
 }
 
 /// The type of tokens in parsed code
@@ -164,7 +157,15 @@ pub enum TokenType<'a> {
 impl<'a> TokenType<'a> {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
+    /// Deprecated in favor of [`TokenType::is_trivia`], a name consistent with `leading_trivia` and `trailing_trivia`.
+    #[deprecated(since = "0.5.0", note = "Please use is_trivia instead")]
     pub fn ignore(&self) -> bool {
+        self.is_trivia()
+    }
+
+    /// Returns whether a token can be practically ignored in most cases
+    /// Comments and whitespace will return `true`, everything else will return `false`
+    pub fn is_trivia(&self) -> bool {
         match self {
             TokenType::SingleLineComment { .. }
             | TokenType::MultiLineComment { .. }
@@ -198,6 +199,20 @@ impl<'a> TokenType<'a> {
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
         }
     }
+
+    /// Returns a whitespace `TokenType` consisting of spaces
+    pub fn spaces(spaces: usize) -> Self {
+        TokenType::Whitespace {
+            characters: Cow::from(" ".repeat(spaces)),
+        }
+    }
+
+    /// Returns a whitespace `TokenType` consisting of tabs
+    pub fn tabs(tabs: usize) -> Self {
+        TokenType::Whitespace {
+            characters: Cow::from("\t".repeat(tabs)),
+        }
+    }
 }
 
 /// The kind of token. Contains no additional data.
@@ -225,28 +240,36 @@ pub enum TokenKind {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
-    pub(crate) start_position: Arc<AtomicPosition>,
-    pub(crate) end_position: Arc<AtomicPosition>,
+    pub(crate) start_position: Position,
+    pub(crate) end_position: Position,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[cfg_attr(feature = "serde", serde(with = "serde_arc_atomic_refcell"))]
-    pub(crate) token_type: Arc<AtomicRefCell<TokenType<'a>>>,
+    pub(crate) token_type: TokenType<'a>,
 }
 
 impl<'a> Token<'a> {
+    /// Creates a token with a zero position
+    pub fn new(token_type: TokenType<'a>) -> Token<'a> {
+        Token {
+            start_position: Position::default(),
+            end_position: Position::default(),
+            token_type,
+        }
+    }
+
     /// The position a token begins at
     pub fn start_position(&self) -> Position {
-        self.start_position.load()
+        self.start_position
     }
 
     /// The position a token ends at
     pub fn end_position(&self) -> Position {
-        self.end_position.load()
+        self.end_position
     }
 
     /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
-    pub fn token_type(&self) -> atomic_refcell::AtomicRef<TokenType<'a>> {
-        self.token_type.borrow()
+    pub fn token_type(&self) -> &TokenType<'a> {
+        &self.token_type
     }
 
     /// The [kind](enum.TokenKind.html) of token with no additional data.
@@ -308,27 +331,149 @@ impl<'a> PartialOrd for Token<'a> {
     }
 }
 
+impl<'ast> Visit<'ast> for Token<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        visitor.visit_token(self);
+
+        match self.token_kind() {
+            TokenKind::Eof => {}
+            TokenKind::Identifier => visitor.visit_identifier(self),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TokenKind::Number => visitor.visit_number(self),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TokenKind::StringLiteral => visitor.visit_string_literal(self),
+            TokenKind::Symbol => visitor.visit_symbol(self),
+            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for Token<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let token = visitor.visit_token(self);
+
+        match token.token_kind() {
+            TokenKind::Eof => token,
+            TokenKind::Identifier => visitor.visit_identifier(token),
+            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(token),
+            TokenKind::Number => visitor.visit_number(token),
+            TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
+            TokenKind::StringLiteral => visitor.visit_string_literal(token),
+            TokenKind::Symbol => visitor.visit_symbol(token),
+            TokenKind::Whitespace => visitor.visit_whitespace(token),
+        }
+    }
+}
+
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`](struct.Token.html)
-#[derive(Clone)]
-pub enum TokenReference<'a> {
-    /// Token is borrowed from an Ast's arena
-    #[doc(hidden)]
-    Borrowed {
-        arena: Arc<Arena<Token<'a>>>,
-        index: Index,
-    },
-
-    /// Token reference was manually created, likely through deserialization
-    #[doc(hidden)]
-    Owned(Token<'a>),
+#[derive(Clone, Debug, Owned)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct TokenReference<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) leading_trivia: Vec<Token<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) token: Token<'a>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) trailing_trivia: Vec<Token<'a>>,
 }
 
 impl<'a> TokenReference<'a> {
-    /// Sets the type of token. Note that positions will not update after using this function.
-    /// If you need them to, call [`Ast::update_positions`](../ast/struct.Ast.html#method.update_positions)
-    pub fn set_token_type(&mut self, new_token_type: TokenType<'a>) {
-        *self.token_type.borrow_mut() = new_token_type;
+    /// Creates a TokenReference from leading/trailing trivia as well as the leading token
+    pub fn new(
+        leading_trivia: Vec<Token<'a>>,
+        token: Token<'a>,
+        trailing_trivia: Vec<Token<'a>>,
+    ) -> Self {
+        Self {
+            leading_trivia,
+            token,
+            trailing_trivia,
+        }
+    }
+
+    /// Returns a symbol with the leading and trailing whitespace
+    /// Only whitespace is supported
+    /// ```rust
+    /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
+    /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
+    /// let symbol = TokenReference::symbol("\nreturn ")?;
+    /// assert_eq!(symbol.leading_trivia().next().unwrap().to_string(), "\n");
+    /// assert_eq!(symbol.token().token_type(), &TokenType::Symbol {
+    ///     symbol: Symbol::Return,
+    /// });
+    /// assert_eq!(symbol.trailing_trivia().next().unwrap().to_string(), " ");
+    /// assert!(TokenReference::symbol("isnt whitespace").is_err());
+    /// assert!(TokenReference::symbol(" notasymbol ").is_err());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
+        let mut chars = text.chars().peekable();
+
+        let mut leading_trivia = String::new();
+        while let Some(character) = chars.peek() {
+            if character.is_ascii_whitespace() {
+                leading_trivia.push(chars.next().unwrap());
+            } else {
+                break;
+            }
+        }
+
+        let mut symbol_text = String::new();
+        while let Some(character) = chars.peek() {
+            if !character.is_ascii_whitespace() {
+                symbol_text.push(chars.next().unwrap());
+            } else {
+                break;
+            }
+        }
+
+        let symbol = Symbol::from_str(&symbol_text)
+            .map_err(|_| TokenizerErrorType::InvalidSymbol(symbol_text))?;
+
+        let mut trailing_trivia = String::new();
+        while let Some(character) = chars.peek() {
+            if character.is_ascii_whitespace() {
+                trailing_trivia.push(chars.next().unwrap());
+            } else {
+                return Err(TokenizerErrorType::UnexpectedToken(*character));
+            }
+        }
+
+        Ok(Self {
+            leading_trivia: vec![Token::new(TokenType::Whitespace {
+                characters: Cow::Owned(leading_trivia),
+            })],
+            token: Token::new(TokenType::Symbol { symbol }),
+            trailing_trivia: vec![Token::new(TokenType::Whitespace {
+                characters: Cow::Owned(trailing_trivia),
+            })],
+        })
+    }
+
+    /// Returns the inner [`Token`](struct.Token.html)
+    pub fn token(&self) -> &Token<'a> {
+        &self.token
+    }
+
+    /// Returns the leading trivia
+    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.leading_trivia.iter()
+    }
+
+    /// Returns the trailing trivia
+    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+        self.trailing_trivia.iter()
+    }
+
+    /// Creates a clone of the current TokenReference with the new inner token, preserving trivia.
+    pub fn with_token(&self, token: Token<'a>) -> Self {
+        Self {
+            token,
+            leading_trivia: self.leading_trivia.clone(),
+            trailing_trivia: self.trailing_trivia.clone(),
+        }
     }
 }
 
@@ -342,25 +487,23 @@ impl<'a> std::ops::Deref for TokenReference<'a> {
     type Target = Token<'a>;
 
     fn deref(&self) -> &Self::Target {
-        match self {
-            TokenReference::Borrowed { arena, index } => {
-                arena.get(*index).expect("arena doesn't have index?")
-            }
-
-            TokenReference::Owned(token) => &token,
-        }
-    }
-}
-
-impl<'a> fmt::Debug for TokenReference<'a> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "TokenReference {{ {} }}", **self)
+        &self.token
     }
 }
 
 impl<'a> fmt::Display for TokenReference<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        (**self).fmt(formatter)
+        for trivia in &self.leading_trivia {
+            formatter.write_str(&trivia.to_string())?;
+        }
+
+        formatter.write_str(&self.token.to_string())?;
+
+        for trivia in &self.trailing_trivia {
+            formatter.write_str(&trivia.to_string())?;
+        }
+
+        Ok(())
     }
 }
 
@@ -384,51 +527,32 @@ impl<'a> PartialOrd for TokenReference<'a> {
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'a> Serialize for TokenReference<'a> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        (**self).serialize(serializer)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de: 'a, 'a> Deserialize<'de> for TokenReference<'a> {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(TokenReference::Owned(Token::deserialize(deserializer)?))
-    }
-}
-
 impl<'ast> Visit<'ast> for TokenReference<'ast> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
-        match self.token_kind() {
-            TokenKind::Eof => visitor.visit_eof(self),
-            TokenKind::Identifier => visitor.visit_identifier(self),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
-            TokenKind::Number => visitor.visit_number(self),
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
-            TokenKind::StringLiteral => visitor.visit_string_literal(self),
-            TokenKind::Symbol => visitor.visit_symbol(self),
-            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        if matches!(self.token().token_kind(), TokenKind::Eof) {
+            visitor.visit_eof(self);
         }
+
+        self.leading_trivia.visit(visitor);
+        self.token.visit(visitor);
+        self.trailing_trivia.visit(visitor);
     }
 }
 
 impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(&mut self, visitor: &mut V) {
-        visitor.visit_token(self);
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let mut token_reference = visitor.visit_token_reference(self);
 
-        match self.token_kind() {
-            TokenKind::Eof => visitor.visit_eof(self),
-            TokenKind::Identifier => visitor.visit_identifier(self),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
-            TokenKind::Number => visitor.visit_number(self),
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
-            TokenKind::StringLiteral => visitor.visit_string_literal(self),
-            TokenKind::Symbol => visitor.visit_symbol(self),
-            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        if matches!(token_reference.token().token_kind(), TokenKind::Eof) {
+            token_reference = visitor.visit_eof(token_reference);
         }
+
+        token_reference.leading_trivia = token_reference.leading_trivia.visit_mut(visitor);
+        token_reference.token = token_reference.token.visit_mut(visitor);
+        token_reference.trailing_trivia = token_reference.trailing_trivia.visit_mut(visitor);
+        token_reference
     }
 }
 
@@ -467,52 +591,6 @@ impl Ord for Position {
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct AtomicPosition {
-    bytes: AtomicUsize,
-    character: AtomicUsize,
-    line: AtomicUsize,
-}
-
-impl AtomicPosition {
-    fn new(position: Position) -> Self {
-        AtomicPosition {
-            bytes: AtomicUsize::new(position.bytes()),
-            character: AtomicUsize::new(position.character()),
-            line: AtomicUsize::new(position.line()),
-        }
-    }
-
-    fn load(&self) -> Position {
-        Position {
-            bytes: self.bytes.load(AtomicOrdering::Acquire),
-            character: self.character.load(AtomicOrdering::Acquire),
-            line: self.line.load(AtomicOrdering::Acquire),
-        }
-    }
-
-    pub fn store(&self, position: Position) {
-        self.bytes.store(position.bytes(), AtomicOrdering::Release);
-        self.character
-            .store(position.character(), AtomicOrdering::Release);
-        self.line.store(position.line(), AtomicOrdering::Release);
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for AtomicPosition {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(AtomicPosition::new(Position::deserialize(deserializer)?))
-    }
-}
-
-#[cfg(feature = "serde")]
-impl Serialize for AtomicPosition {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.load().serialize(serializer)
     }
 }
 
@@ -599,13 +677,19 @@ fn advance_comment(code: &str) -> Advancement {
 }
 
 fn parse_hex_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("0x"), take_while1(|c: char| c.is_digit(16))))(code)
+    recognize(pair(
+        tag_no_case("0x"),
+        take_while1(|c: char| c.is_digit(16)),
+    ))(code)
 }
 
 fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         digit1,
-        pair(opt(pair(tag("."), digit1)), opt(pair(tag("e"), digit1))),
+        pair(
+            opt(pair(tag("."), digit1)),
+            opt(pair(tag_no_case("e"), digit1)),
+        ),
     ))(code)
 }
 
@@ -619,7 +703,10 @@ fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
 
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("0b"), take_while1(|x: char| x == '0' || x == '1')))(code)
+    recognize(pair(
+        tag_no_case("0b"),
+        take_while1(|x: char| x == '0' || x == '1'),
+    ))(code)
 }
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
@@ -758,7 +845,7 @@ fn advance_symbol(code: &str) -> Advancement {
 #[inline]
 fn parse_whitespace(code: &str) -> IResult<&str, &str> {
     // From regex "^[^\S\n]+\n?|\n"
-    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
+    alt((recognize(pair(opt(line_ending), space1)), line_ending))(code)
 }
 
 // Keep finding whitespace until the line ends
@@ -789,11 +876,14 @@ impl fmt::Display for TokenizerError {
         write!(
             formatter,
             "{} at line {}, column {}",
-            match self.error {
+            match &self.error {
                 TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
                 TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
                 TokenizerErrorType::UnexpectedToken(character) => {
                     format!("unexpected character {}", character)
+                }
+                TokenizerErrorType::InvalidSymbol(symbol) => {
+                    format!("invalid symbol {}", symbol)
                 }
             },
             self.position.line,
@@ -851,9 +941,9 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position: Arc::new(AtomicPosition::new(start_position)),
-                        end_position: Arc::new(AtomicPosition::new(position)),
-                        token_type: Arc::new(AtomicRefCell::new(advancement.token_type)),
+                        start_position: start_position,
+                        end_position: position,
+                        token_type: advancement.token_type,
                     });
 
                     continue;
@@ -887,30 +977,12 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
     }
 
     tokens.push(Token {
-        start_position: Arc::new(AtomicPosition::new(position)),
-        end_position: Arc::new(AtomicPosition::new(position)),
-        token_type: Arc::new(AtomicRefCell::new(TokenType::Eof)),
+        start_position: position,
+        end_position: position,
+        token_type: TokenType::Eof,
     });
 
     Ok(tokens)
-}
-
-#[cfg(feature = "serde")]
-mod serde_arc_atomic_refcell {
-    use super::*;
-
-    pub fn serialize<S: Serializer, T: Serialize>(
-        this: &Arc<AtomicRefCell<T>>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
-        this.borrow().serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
-        deserializer: D,
-    ) -> Result<Arc<AtomicRefCell<T>>, D::Error> {
-        Ok(Arc::new(AtomicRefCell::new(T::deserialize(deserializer)?)))
-    }
 }
 
 #[cfg(test)]
@@ -1066,9 +1138,9 @@ mod tests {
         test_advancer!(
             advance_whitespace("\t  \n"),
             Ok(Some(TokenAdvancement {
-                advance: 4,
+                advance: 3,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t  \n"),
+                    characters: Cow::from("\t  "),
                 },
             }))
         );
@@ -1086,9 +1158,9 @@ mod tests {
         test_advancer!(
             advance_whitespace("\t\t\nhello"),
             Ok(Some(TokenAdvancement {
-                advance: 3,
+                advance: 2,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t\t\n"),
+                    characters: Cow::from("\t\t"),
                 },
             }))
         );
@@ -1136,21 +1208,21 @@ mod tests {
         assert_eq!(
             tokens("\n").unwrap()[0],
             Token {
-                start_position: Arc::new(AtomicPosition::new(Position {
+                start_position: Position {
                     bytes: 0,
                     character: 1,
                     line: 1,
-                })),
+                },
 
-                end_position: Arc::new(AtomicPosition::new(Position {
+                end_position: Position {
                     bytes: 1,
                     character: 1,
                     line: 1,
-                })),
+                },
 
-                token_type: Arc::new(AtomicRefCell::new(TokenType::Whitespace {
+                token_type: TokenType::Whitespace {
                     characters: Cow::from("\n")
-                })),
+                },
             }
         );
     }

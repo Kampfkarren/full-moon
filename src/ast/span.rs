@@ -6,12 +6,12 @@
 //! - Creating a table uses braces `{...}`
 //!
 //! Contained spans don't contain the inner data, just the start and end bounds.
-//! ```
 use crate::{
-    node::Node,
+    node::{Node, Tokens},
     private::Sealed,
     tokenizer::{Position, TokenReference},
 };
+use std::borrow::Cow;
 
 use full_moon_derive::{Owned, Visit};
 #[cfg(feature = "serde")]
@@ -23,13 +23,12 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[visit(skip)]
-    tokens: (TokenReference<'a>, TokenReference<'a>),
+    pub(crate) tokens: (Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>),
 }
 
 impl<'a> ContainedSpan<'a> {
     /// Creates a contained span from the start and end bounds
-    pub fn new(start: TokenReference<'a>, end: TokenReference<'a>) -> Self {
+    pub fn new(start: Cow<'a, TokenReference<'a>>, end: Cow<'a, TokenReference<'a>>) -> Self {
         Self {
             tokens: (start, end),
         }
@@ -39,14 +38,9 @@ impl<'a> ContainedSpan<'a> {
     pub fn tokens(&self) -> (&TokenReference<'a>, &TokenReference<'a>) {
         (&self.tokens.0, &self.tokens.1)
     }
-
-    /// Returns the start and end bounds in a tuple as mutable references
-    pub fn tokens_mut(&mut self) -> (&mut TokenReference<'a>, &mut TokenReference<'a>) {
-        (&mut self.tokens.0, &mut self.tokens.1)
-    }
 }
 
-impl<'a> Node for ContainedSpan<'a> {
+impl<'a> Node<'a> for ContainedSpan<'a> {
     fn start_position(&self) -> Option<Position> {
         self.tokens.0.start_position()
     }
@@ -57,6 +51,10 @@ impl<'a> Node for ContainedSpan<'a> {
 
     fn similar(&self, other: &Self) -> bool {
         self.tokens.0.similar(&other.tokens.0) && self.tokens.1.similar(&other.tokens.1)
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.tokens.tokens()
     }
 }
 

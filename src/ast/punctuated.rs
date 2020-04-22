@@ -15,18 +15,23 @@
 //! # }
 //! ```
 use crate::{
-    node::Node,
+    node::{Node, TokenItem, Tokens},
     private::Sealed,
     tokenizer::{Position, TokenReference},
+    util,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
 };
+use derive_more::Display;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, fmt::Display, iter::FromIterator};
 
 /// A punctuated sequence of node `T` separated by [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(bound = "T: Display")]
+#[display(fmt = "{}", "util::join_vec(pairs)")]
 pub struct Punctuated<'a, T> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     pairs: Vec<Pair<'a, T>>,
@@ -55,12 +60,12 @@ impl<'a, T> Punctuated<'a, T> {
     }
 
     /// Returns the number of pairs in the punctuated sequence
-    /// /// ```rust
+    /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
     /// assert_eq!(punctuated.len(), 0);
     /// punctuated.push(Pair::new((), None));
-    /// assert_eq!(!punctuated.len(), 1);
+    /// assert_eq!(punctuated.len(), 1);
     /// ```
     pub fn len(&self) -> usize {
         self.pairs.len()
@@ -104,6 +109,17 @@ impl<'a, T> Punctuated<'a, T> {
     /// ```
     pub fn into_pairs(self) -> impl Iterator<Item = Pair<'a, T>> {
         self.pairs.into_iter()
+    }
+
+    /// Returns the last [`Pair`](enum.Pair.html) in the sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.last(), Some(&Pair::new(1, None)));
+    /// ```
+    pub fn last(&self) -> Option<&Pair<'a, T>> {
+        self.pairs.last()
     }
 
     /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as references
@@ -158,7 +174,7 @@ impl<'a, T> Punctuated<'a, T> {
 
 impl<'a, T> Sealed for Punctuated<'a, T> {}
 
-impl<'a, T: Node> Node for Punctuated<'a, T> {
+impl<'a, T: Node<'a>> Node<'a> for Punctuated<'a, T> {
     fn start_position(&self) -> Option<Position> {
         self.pairs.first()?.start_position()
     }
@@ -172,6 +188,10 @@ impl<'a, T: Node> Node for Punctuated<'a, T> {
             .collect::<Vec<_>>()
             .similar(&other.into_iter().collect::<Vec<_>>())
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.pairs.tokens()
+    }
 }
 
 impl<'a, T: Visit<'a>> Visit<'a> for Punctuated<'a, T> {
@@ -181,8 +201,10 @@ impl<'a, T: Visit<'a>> Visit<'a> for Punctuated<'a, T> {
 }
 
 impl<'a, T: VisitMut<'a>> VisitMut<'a> for Punctuated<'a, T> {
-    fn visit_mut<V: VisitorMut<'a>>(&mut self, visitor: &mut V) {
-        self.pairs.visit_mut(visitor);
+    fn visit_mut<V: VisitorMut<'a>>(self, visitor: &mut V) -> Self {
+        Punctuated {
+            pairs: self.pairs.visit_mut(visitor),
+        }
     }
 }
 
@@ -199,6 +221,14 @@ impl<'a, T> IntoIterator for Punctuated<'a, T> {
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
             inner: self.pairs.into_iter(),
+        }
+    }
+}
+
+impl<'a, T> FromIterator<Pair<'a, T>> for Punctuated<'a, T> {
+    fn from_iter<I: IntoIterator<Item = Pair<'a, T>>>(iter: I) -> Self {
+        Punctuated {
+            pairs: iter.into_iter().collect(),
         }
     }
 }
@@ -269,16 +299,18 @@ impl<'a, 'b, T> Iterator for IterMut<'a, 'b, T> {
 
 /// A node `T` followed by the possible trailing [`TokenReference`](../tokenizer/enum.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Pair<'a, T> {
     /// A node `T` with no trailing punctuation
+    #[display(fmt = "{}", "_0")]
     End(T),
 
     /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../tokenizer/enum.TokenReference.html))
+    #[display(fmt = "{}{}", "_0", "_1")]
     Punctuated(
         T,
-        #[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>,
+        #[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>,
     ),
 }
 
@@ -288,7 +320,7 @@ impl<'a, T> Pair<'a, T> {
     /// # use full_moon::ast::punctuated::Pair;
     /// let pair = Pair::new(1, None);
     /// ```
-    pub fn new(value: T, punctuation: Option<TokenReference<'a>>) -> Self {
+    pub fn new(value: T, punctuation: Option<Cow<'a, TokenReference<'a>>>) -> Self {
         match punctuation {
             None => Pair::End(value),
             Some(punctuation) => Pair::Punctuated(value, punctuation),
@@ -301,7 +333,7 @@ impl<'a, T> Pair<'a, T> {
     /// let pair = Pair::new(1, None);
     /// assert_eq!(pair.into_tuple(), (1, None));
     /// ```
-    pub fn into_tuple(self) -> (T, Option<TokenReference<'a>>) {
+    pub fn into_tuple(self) -> (T, Option<Cow<'a, TokenReference<'a>>>) {
         match self {
             Pair::End(value) => (value, None),
             Pair::Punctuated(value, punctuation) => (value, Some(punctuation)),
@@ -375,7 +407,7 @@ impl<'a, T> Pair<'a, T> {
 
 impl<'a, T> Sealed for Pair<'a, T> {}
 
-impl<'a, T: Node> Node for Pair<'a, T> {
+impl<'a, T: Node<'a>> Node<'a> for Pair<'a, T> {
     fn start_position(&self) -> Option<Position> {
         self.value().start_position()
     }
@@ -388,6 +420,19 @@ impl<'a, T: Node> Node for Pair<'a, T> {
 
     fn similar(&self, other: &Self) -> bool {
         self.value().similar(other.value())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        match self {
+            Pair::Punctuated(node, separator) => {
+                let mut items = node.tokens().items;
+                items.push(TokenItem::TokenReference(Cow::Borrowed(separator)));
+
+                Tokens { items }
+            }
+
+            Pair::End(node) => node.tokens(),
+        }
     }
 }
 
@@ -404,12 +449,11 @@ impl<'a, T: Visit<'a>> Visit<'a> for Pair<'a, T> {
 }
 
 impl<'a, T: VisitMut<'a>> VisitMut<'a> for Pair<'a, T> {
-    fn visit_mut<V: VisitorMut<'a>>(&mut self, visitor: &mut V) {
+    fn visit_mut<V: VisitorMut<'a>>(self, visitor: &mut V) -> Self {
         match self {
-            Pair::End(value) => value.visit_mut(visitor),
+            Pair::End(value) => Pair::End(value.visit_mut(visitor)),
             Pair::Punctuated(value, punctuation) => {
-                value.visit_mut(visitor);
-                punctuation.visit_mut(visitor);
+                Pair::Punctuated(value.visit_mut(visitor), punctuation.visit_mut(visitor))
             }
         }
     }

@@ -4,58 +4,121 @@
       {
         "LocalAssignment": {
           "local_token": {
-            "start_position": {
-              "bytes": 0,
-              "character": 1,
-              "line": 1
+            "leading_trivia": [],
+            "token": {
+              "start_position": {
+                "bytes": 0,
+                "character": 1,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 5,
+                "character": 6,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "local"
+              }
             },
-            "end_position": {
-              "bytes": 5,
-              "character": 6,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "local"
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 5,
+                  "character": 6,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 6,
+                  "character": 7,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "name_list": {
             "pairs": [
               {
                 "End": {
-                  "start_position": {
-                    "bytes": 6,
-                    "character": 7,
-                    "line": 1
+                  "leading_trivia": [],
+                  "token": {
+                    "start_position": {
+                      "bytes": 6,
+                      "character": 7,
+                      "line": 1
+                    },
+                    "end_position": {
+                      "bytes": 7,
+                      "character": 8,
+                      "line": 1
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "x"
+                    }
                   },
-                  "end_position": {
-                    "bytes": 7,
-                    "character": 8,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "x"
-                  }
+                  "trailing_trivia": [
+                    {
+                      "start_position": {
+                        "bytes": 7,
+                        "character": 8,
+                        "line": 1
+                      },
+                      "end_position": {
+                        "bytes": 8,
+                        "character": 9,
+                        "line": 1
+                      },
+                      "token_type": {
+                        "type": "Whitespace",
+                        "characters": " "
+                      }
+                    }
+                  ]
                 }
               }
             ]
           },
           "equal_token": {
-            "start_position": {
-              "bytes": 8,
-              "character": 9,
-              "line": 1
+            "leading_trivia": [],
+            "token": {
+              "start_position": {
+                "bytes": 8,
+                "character": 9,
+                "line": 1
+              },
+              "end_position": {
+                "bytes": 9,
+                "character": 10,
+                "line": 1
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "="
+              }
             },
-            "end_position": {
-              "bytes": 9,
-              "character": 10,
-              "line": 1
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "="
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 9,
+                  "character": 10,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 10,
+                  "character": 11,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "expr_list": {
             "pairs": [
@@ -63,20 +126,24 @@
                 "End": {
                   "value": {
                     "Number": {
-                      "start_position": {
-                        "bytes": 10,
-                        "character": 11,
-                        "line": 1
+                      "leading_trivia": [],
+                      "token": {
+                        "start_position": {
+                          "bytes": 10,
+                          "character": 11,
+                          "line": 1
+                        },
+                        "end_position": {
+                          "bytes": 11,
+                          "character": 12,
+                          "line": 1
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
                       },
-                      "end_position": {
-                        "bytes": 11,
-                        "character": 12,
-                        "line": 1
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "1"
-                      }
+                      "trailing_trivia": []
                     }
                   },
                   "binop": null
@@ -92,58 +159,170 @@
       {
         "LocalAssignment": {
           "local_token": {
-            "start_position": {
-              "bytes": 30,
-              "character": 18,
-              "line": 2
+            "leading_trivia": [
+              {
+                "start_position": {
+                  "bytes": 11,
+                  "character": 12,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 12,
+                  "character": 12,
+                  "line": 1
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": "\n"
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 12,
+                  "character": 12,
+                  "line": 1
+                },
+                "end_position": {
+                  "bytes": 29,
+                  "character": 18,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "SingleLineComment",
+                  "comment": " Then a comment"
+                }
+              },
+              {
+                "start_position": {
+                  "bytes": 29,
+                  "character": 18,
+                  "line": 2
+                },
+                "end_position": {
+                  "bytes": 30,
+                  "character": 18,
+                  "line": 2
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": "\n"
+                }
+              }
+            ],
+            "token": {
+              "start_position": {
+                "bytes": 30,
+                "character": 18,
+                "line": 2
+              },
+              "end_position": {
+                "bytes": 35,
+                "character": 6,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "local"
+              }
             },
-            "end_position": {
-              "bytes": 35,
-              "character": 6,
-              "line": 3
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "local"
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 35,
+                  "character": 6,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 36,
+                  "character": 7,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "name_list": {
             "pairs": [
               {
                 "End": {
-                  "start_position": {
-                    "bytes": 36,
-                    "character": 7,
-                    "line": 3
+                  "leading_trivia": [],
+                  "token": {
+                    "start_position": {
+                      "bytes": 36,
+                      "character": 7,
+                      "line": 3
+                    },
+                    "end_position": {
+                      "bytes": 37,
+                      "character": 8,
+                      "line": 3
+                    },
+                    "token_type": {
+                      "type": "Identifier",
+                      "identifier": "y"
+                    }
                   },
-                  "end_position": {
-                    "bytes": 37,
-                    "character": 8,
-                    "line": 3
-                  },
-                  "token_type": {
-                    "type": "Identifier",
-                    "identifier": "y"
-                  }
+                  "trailing_trivia": [
+                    {
+                      "start_position": {
+                        "bytes": 37,
+                        "character": 8,
+                        "line": 3
+                      },
+                      "end_position": {
+                        "bytes": 38,
+                        "character": 9,
+                        "line": 3
+                      },
+                      "token_type": {
+                        "type": "Whitespace",
+                        "characters": " "
+                      }
+                    }
+                  ]
                 }
               }
             ]
           },
           "equal_token": {
-            "start_position": {
-              "bytes": 38,
-              "character": 9,
-              "line": 3
+            "leading_trivia": [],
+            "token": {
+              "start_position": {
+                "bytes": 38,
+                "character": 9,
+                "line": 3
+              },
+              "end_position": {
+                "bytes": 39,
+                "character": 10,
+                "line": 3
+              },
+              "token_type": {
+                "type": "Symbol",
+                "symbol": "="
+              }
             },
-            "end_position": {
-              "bytes": 39,
-              "character": 10,
-              "line": 3
-            },
-            "token_type": {
-              "type": "Symbol",
-              "symbol": "="
-            }
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 39,
+                  "character": 10,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 40,
+                  "character": 11,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": " "
+                }
+              }
+            ]
           },
           "expr_list": {
             "pairs": [
@@ -151,20 +330,24 @@
                 "End": {
                   "value": {
                     "Number": {
-                      "start_position": {
-                        "bytes": 40,
-                        "character": 11,
-                        "line": 3
+                      "leading_trivia": [],
+                      "token": {
+                        "start_position": {
+                          "bytes": 40,
+                          "character": 11,
+                          "line": 3
+                        },
+                        "end_position": {
+                          "bytes": 41,
+                          "character": 12,
+                          "line": 3
+                        },
+                        "token_type": {
+                          "type": "Number",
+                          "text": "1"
+                        }
                       },
-                      "end_position": {
-                        "bytes": 41,
-                        "character": 12,
-                        "line": 3
-                      },
-                      "token_type": {
-                        "type": "Number",
-                        "text": "1"
-                      }
+                      "trailing_trivia": []
                     }
                   },
                   "binop": null

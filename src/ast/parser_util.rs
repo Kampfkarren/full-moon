@@ -3,66 +3,59 @@
 use super::punctuated::{Pair, Punctuated};
 use crate::{
     node::Node,
-    tokenizer::{Token, TokenReference},
+    tokenizer::TokenReference,
     visitors::{Visit, VisitMut},
 };
-use generational_arena::Arena;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{fmt, sync::Arc};
+use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
-    pub tokens: Arc<Arena<Token<'a>>>,
+    pub tokens: *const TokenReference<'a>,
 }
 
 impl<'a> ParserState<'a> {
-    pub fn new(tokens: Arc<Arena<Token<'a>>>) -> ParserState<'a> {
+    pub fn new(tokens: &[TokenReference<'a>]) -> ParserState<'a> {
         ParserState {
             index: 0,
             len: tokens.len(),
-            tokens,
+            tokens: tokens.as_ptr(),
         }
     }
 
-    pub fn advance(&self) -> Option<ParserState<'a>> {
-        let mut state = self.clone();
-
-        loop {
-            state = ParserState {
-                index: state.index + 1,
-                len: self.len,
-                tokens: Arc::clone(&self.tokens),
-            };
-
-            if !state.peek().token_type().ignore() {
-                return Some(state);
-            }
+    pub fn advance(self) -> Option<ParserState<'a>> {
+        if self.index + 1 == self.len {
+            None
+        } else {
+            Some(ParserState {
+                index: self.index + 1,
+                ..self
+            })
         }
     }
 
-    pub fn peek(&self) -> TokenReference<'a> {
+    // TODO: This is super bad, containing both unsafe code and a mandatory clone
+    // on every call so that everything is backwards compatible, since it SHOULD
+    // just borrow. It is only like this because of a failure to tackle lifetimes.
+    pub fn peek(&self) -> Cow<'a, TokenReference<'a>> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
 
-        // sorted_by is commented out because it had a extremely high performance cost
-        // Uncommenting the line changes one large file from being parsed in ~0.1s to **14 seconds**!!!
-        // Iteration of self.tokens is explicitly undefined, but it happens to work out
-        // TODO: How can we guarantee order without the performance cost? Create our own arena?
-        TokenReference::Borrowed {
-            arena: Arc::clone(&self.tokens),
-            index: self
+        let result = unsafe {
+            &*self
                 .tokens
-                .iter()
-                // .sorted_by(|left, right| left.1.cmp(&right.1))
-                .nth(self.index)
+                .add(self.index)
+                .as_ref()
                 .expect("couldn't peek, no eof?")
-                .0,
-        }
+        };
+
+        Cow::Owned(result.to_owned())
     }
 }
 
@@ -109,7 +102,7 @@ macro_rules! parse_first_of {
     ($state:ident, {$($(@#[$meta:meta])? $parser:expr => $constructor:expr,)+}) => ({
         $(
             $(#[$meta])?
-            match $parser.parse($state.clone()) {
+            match $parser.parse($state) {
                 Ok((state, node)) => return Ok((state, $constructor(node.into()))),
                 Err(InternalAstError::NoMatch) => {},
                 Err(other) => return Err(other),
@@ -128,7 +121,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek(),
+                    token: $state.peek().into_owned(),
                     additional: None,
                 });
             }
@@ -141,7 +134,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek(),
+                    token: $state.peek().into_owned(),
                     additional: Some($error),
                 });
             }
@@ -205,7 +198,7 @@ where
     ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         loop {
-            match self.0.parse(state.clone()) {
+            match self.0.parse(state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(node);
@@ -231,7 +224,7 @@ macro_rules! test_pairs_logic {
                     );
                 } else if index + 1 != len && node.punctuation().is_none() {
                     panic!(
-                        "{} pairs illogical: non-last node ({}) has punctuation",
+                        "{} pairs illogical: non-last node ({}) has no punctuation",
                         $cause, index
                     );
                 }
@@ -253,8 +246,8 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
-    T: Node + Visit<'a> + VisitMut<'a>,
+    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
 
@@ -264,20 +257,20 @@ where
     ) -> Result<(ParserState<'a>, Punctuated<'a, T>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
 
-        if let Ok((new_state, node)) = keep_going!(self.0.parse(state.clone())) {
+        if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
             state = new_state;
             nodes.push(Pair::End(node));
         } else {
-            return Ok((state.clone(), Punctuated::new()));
+            return Ok((state, Punctuated::new()));
         }
 
-        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state.clone())) {
+        while let Ok((new_state, delimiter)) = keep_going!(self.1.parse(state)) {
             let last_value = nodes.pop().unwrap().into_value();
             nodes.push(Pair::Punctuated(last_value, delimiter));
 
             state = new_state;
 
-            match self.0.parse(state.clone()) {
+            match self.0.parse(state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(Pair::End(node));
@@ -288,7 +281,7 @@ where
                         break;
                     } else {
                         return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek(),
+                            token: state.peek().into_owned(),
                             additional: Some("trailing character"),
                         });
                     }
@@ -321,8 +314,8 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
-    T: Node + Visit<'a> + VisitMut<'a>,
+    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;
 
@@ -331,14 +324,14 @@ where
         state: ParserState<'a>,
     ) -> Result<(ParserState<'a>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
-        let (mut state, node) = self.0.parse(state.clone())?;
+        let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));
 
-        while let Ok((new_state, delimiter)) = self.1.parse(state.clone()) {
+        while let Ok((new_state, delimiter)) = self.1.parse(state) {
             let last_value = nodes.pop().unwrap().into_value();
             nodes.push(Pair::Punctuated(last_value, delimiter));
 
-            match self.0.parse(new_state.clone()) {
+            match self.0.parse(new_state) {
                 Ok((new_state, node)) => {
                     state = new_state;
                     nodes.push(Pair::End(node));

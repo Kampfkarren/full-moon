@@ -4,7 +4,6 @@
 use super::*;
 use crate::tokenizer::*;
 
-use atomic_refcell::AtomicRefCell;
 use std::borrow::Cow;
 
 /// A trait for getting an owned version of a node.
@@ -18,17 +17,6 @@ where
     type Owned;
     /// Returns an owned version of the object.
     fn owned(&self) -> Self::Owned;
-}
-
-impl Owned for Ast<'_> {
-    type Owned = Ast<'static>;
-
-    fn owned(&self) -> Self::Owned {
-        Ast {
-            nodes: self.nodes.owned(),
-            tokens: Arc::new(self.tokens.iter().map(|(_, token)| token.owned()).collect()),
-        }
-    }
 }
 
 impl Owned for AstError<'_> {
@@ -79,9 +67,9 @@ impl Owned for Token<'_> {
 
     fn owned(&self) -> Self::Owned {
         Token {
-            start_position: self.start_position.clone(),
-            end_position: self.end_position.clone(),
-            token_type: Arc::new(AtomicRefCell::new(self.token_type().owned())),
+            start_position: self.start_position,
+            end_position: self.end_position,
+            token_type: self.token_type().owned(),
         }
     }
 }
@@ -91,14 +79,6 @@ impl Owned for TokenizerError {
 
     fn owned(&self) -> Self::Owned {
         self.clone()
-    }
-}
-
-impl Owned for TokenReference<'_> {
-    type Owned = TokenReference<'static>;
-
-    fn owned(&self) -> TokenReference<'static> {
-        TokenReference::Owned((**self).owned())
     }
 }
 
@@ -180,5 +160,14 @@ where
 
     fn owned(&self) -> Self::Owned {
         (self.0.owned(), self.1.owned())
+    }
+}
+
+// TODO: Generic Cow impl
+impl<'a> Owned for Cow<'a, TokenReference<'a>> {
+    type Owned = Cow<'static, TokenReference<'static>>;
+
+    fn owned(&self) -> <Self as Owned>::Owned {
+        Cow::Owned((*self.to_owned()).owned())
     }
 }

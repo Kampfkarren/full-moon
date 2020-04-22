@@ -3,11 +3,12 @@ use crate::{
     private,
     tokenizer::{Position, Token, TokenReference},
 };
+use std::{borrow::Cow, fmt};
 
 /// Used to represent nodes such as tokens or function definitions
 ///
 /// This trait is sealed and cannot be implemented for types outside of `full-moon`
-pub trait Node: private::Sealed {
+pub trait Node<'ast>: private::Sealed {
     /// The start position of a node. None if can't be determined
     fn start_position(&self) -> Option<Position>;
 
@@ -15,7 +16,12 @@ pub trait Node: private::Sealed {
     fn end_position(&self) -> Option<Position>;
 
     /// Whether another node of the same type is the same as this one semantically, ignoring position
-    fn similar(&self, other: &Self) -> bool;
+    fn similar(&self, other: &Self) -> bool
+    where
+        Self: Sized;
+
+    /// The token references that comprise a node
+    fn tokens<'b>(&'b self) -> Tokens<'ast, 'b>;
 
     /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
@@ -24,53 +30,108 @@ pub trait Node: private::Sealed {
 
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
-    /// Return value is None if a token doesn't have both a start and end position. Otherwise, it is a tuple
-    /// of two token vectors, first being the preceding and the second being the following.
-    fn surrounding_ignore_tokens<'ast, 'b>(
-        &self,
-        ast: &'b Ast<'ast>,
-    ) -> Option<(Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>)> {
-        let (start, end) = self.range()?;
-        let (mut previous, mut following) = (Vec::new(), Vec::new());
+    /// Returns a tuple of the leading and trailing trivia.
+    fn surrounding_trivia<'b>(&'b self) -> (Vec<Cow<'b, Token<'ast>>>, Vec<Cow<'b, Token<'ast>>>) {
+        let mut tokens = self.tokens();
+        let leading = tokens.next();
+        let trailing = tokens.next_back();
 
-        let mut tokens = ast.iter_tokens();
-
-        while let Some(token) = tokens.next() {
-            let this_end = token.end_position();
-
-            if start < this_end {
-                break;
-            }
-
-            if token.token_type().ignore() {
-                previous.push(token);
-            } else {
-                previous = Vec::new();
-            }
-        }
-
-        // Skip all tokens within range
-        while let Some(token) = tokens.next() {
-            let (this_start, this_end) = token.range()?;
-
-            if start >= this_start || end <= this_end {
-                break;
-            }
-        }
-
-        for token in tokens {
-            if token.token_type().ignore() {
-                following.push(token);
-            } else {
-                break;
-            }
-        }
-
-        Some((previous, following))
+        (
+            match leading {
+                Some(Cow::Owned(token)) => {
+                    token.leading_trivia.into_iter().map(Cow::Owned).collect()
+                }
+                Some(Cow::Borrowed(token)) => token.leading_trivia().map(Cow::Borrowed).collect(),
+                None => Vec::new(),
+            },
+            match trailing {
+                Some(Cow::Owned(token)) => {
+                    token.trailing_trivia.into_iter().map(Cow::Owned).collect()
+                }
+                Some(Cow::Borrowed(token)) => token.trailing_trivia().map(Cow::Borrowed).collect(),
+                None => Vec::new(),
+            },
+        )
     }
 }
 
-impl<T: Node> Node for &T {
+pub(crate) enum TokenItem<'ast, 'b> {
+    MoreTokens(&'b dyn Node<'ast>),
+    TokenReference(Cow<'b, TokenReference<'ast>>),
+}
+
+impl fmt::Debug for TokenItem<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),
+            TokenItem::TokenReference(token) => write!(f, "TokenItem::TokenReference({})", token),
+        }
+    }
+}
+
+/// An iterator that iterates over the tokens of a node
+/// Returned by [`Node::tokens`](trait.Node.html#method.tokens)
+#[derive(Default)]
+pub struct Tokens<'ast, 'b> {
+    pub(crate) items: Vec<TokenItem<'ast, 'b>>,
+}
+
+impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
+    type Item = Cow<'b, TokenReference<'ast>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.items.is_empty() {
+            return None;
+        }
+
+        match self.items.remove(0) {
+            TokenItem::TokenReference(reference) => Some(reference),
+            TokenItem::MoreTokens(node) => {
+                let mut tokens = node.tokens();
+                tokens.items.extend(self.items.drain(..));
+                self.items = tokens.items;
+                self.next()
+            }
+        }
+    }
+}
+
+impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.items.is_empty() {
+            return None;
+        }
+
+        match self.items.pop()? {
+            TokenItem::TokenReference(reference) => Some(reference),
+            TokenItem::MoreTokens(node) => {
+                let mut tokens = node.tokens();
+                self.items.extend(tokens.items.drain(..));
+                self.next_back()
+            }
+        }
+    }
+}
+
+impl<'a> Node<'a> for Ast<'a> {
+    fn start_position(&self) -> Option<Position> {
+        self.nodes().start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        self.nodes().end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.nodes().similar(other.nodes())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        self.nodes().tokens()
+    }
+}
+
+impl<'a, T: Node<'a>> Node<'a> for Box<T> {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }
@@ -82,9 +143,13 @@ impl<T: Node> Node for &T {
     fn similar(&self, other: &Self) -> bool {
         (**self).similar(other)
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        (**self).tokens()
+    }
 }
 
-impl<T: Node> Node for &mut T {
+impl<'a, T: Node<'a>> Node<'a> for &T {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }
@@ -96,9 +161,49 @@ impl<T: Node> Node for &mut T {
     fn similar(&self, other: &Self) -> bool {
         (**self).similar(other)
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        (**self).tokens()
+    }
 }
 
-impl<'a> Node for Token<'a> {
+impl<'a, T: Node<'a>> Node<'a> for &mut T {
+    fn start_position(&self) -> Option<Position> {
+        (**self).start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        (**self).end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        (**self).tokens()
+    }
+}
+
+impl<'a, T: Node<'a> + ToOwned> Node<'a> for Cow<'_, T> {
+    fn start_position(&self) -> Option<Position> {
+        (**self).start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        (**self).end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        (**self).similar(other)
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        (**self).tokens()
+    }
+}
+
+impl<'a> Node<'a> for Token<'a> {
     fn start_position(&self) -> Option<Position> {
         Some(self.start_position())
     }
@@ -110,9 +215,19 @@ impl<'a> Node for Token<'a> {
     fn similar(&self, other: &Self) -> bool {
         *self.token_type() == *other.token_type()
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        Tokens {
+            items: vec![TokenItem::TokenReference(Cow::Owned(TokenReference::new(
+                Vec::new(),
+                self.to_owned(),
+                Vec::new(),
+            )))],
+        }
+    }
 }
 
-impl<'a> Node for TokenReference<'a> {
+impl<'a> Node<'a> for TokenReference<'a> {
     fn start_position(&self) -> Option<Position> {
         Some((**self).start_position())
     }
@@ -124,9 +239,15 @@ impl<'a> Node for TokenReference<'a> {
     fn similar(&self, other: &Self) -> bool {
         (**self).similar(other)
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        Tokens {
+            items: vec![TokenItem::TokenReference(Cow::Borrowed(self))],
+        }
+    }
 }
 
-impl<T: Node> Node for Option<T> {
+impl<'a, T: Node<'a>> Node<'a> for Option<T> {
     fn start_position(&self) -> Option<Position> {
         self.as_ref().and_then(Node::start_position)
     }
@@ -142,9 +263,16 @@ impl<T: Node> Node for Option<T> {
             _ => false,
         }
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        match self {
+            Some(node) => node.tokens(),
+            None => Tokens::default(),
+        }
+    }
 }
 
-impl<T: Node> Node for Vec<T> {
+impl<'a, T: Node<'a>> Node<'a> for Vec<T> {
     fn start_position(&self) -> Option<Position> {
         self.first()?.start_position()
     }
@@ -160,9 +288,19 @@ impl<T: Node> Node for Vec<T> {
             false
         }
     }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        Tokens {
+            items: self
+                .iter()
+                .map(|node| node.tokens().items)
+                .flatten()
+                .collect(),
+        }
+    }
 }
 
-impl<A: Node, B: Node> Node for (A, B) {
+impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
     fn start_position(&self) -> Option<Position> {
         match (self.0.start_position(), self.1.start_position()) {
             (Some(x), Some(y)) => Some(std::cmp::min(x, y)),
@@ -183,5 +321,12 @@ impl<A: Node, B: Node> Node for (A, B) {
 
     fn similar(&self, other: &Self) -> bool {
         self.0.similar(&other.0) && self.1.similar(&other.1)
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        let mut items = self.0.tokens().items;
+        items.extend(self.1.tokens().items.drain(..));
+
+        Tokens { items }
     }
 }
