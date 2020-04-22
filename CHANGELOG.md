@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.5.0] - 2020-04-21
+- TokenReference has been completely rewritten to now be a representation of an inner token and its leading/trailing trivia. It will eventually be renamed
+- Display is now implemented on all nodes (Closes #26)
+- `ignore` is now deprecated in favor of `is_trivia`
+- `last_stmts` is now deprecated in favor of `last_stmt
+- Added `Punctuated::last`
+- Fixed a bug where illogical punctuated sequences were created when function bodies had both named parameters and varargs
+- Added `TokenReference::with_token`
+- Added `Token::new`
+- Added `Puncutated::from_iter`
+- Added `TokenType::spaces` and `TokenType::tabs`
+
 ## [0.4.0-rc.14] - 2020-01-27
 ### Fixed
 - Fixed serde being used even when the `serde` feature flag was not active
