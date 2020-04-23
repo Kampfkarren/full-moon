@@ -28,7 +28,7 @@ pub enum TypeInfo<'a> {
         /// The argument types: `(string, number)`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         arguments: Punctuated<'a, TypeInfo<'a>>,
-        /// The "fat arrow" (`=>`) in between the arguments and the return type.
+        /// The "thin arrow" (`->`) in between the arguments and the return type.
         #[cfg_attr(feature = "serde", serde(borrow))]
         arrow: Cow<'a, TokenReference<'a>>,
         /// The return type: `boolean`.

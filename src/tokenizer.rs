@@ -38,7 +38,7 @@ symbols!(
     While => "while",
 
     // TODO: This only is valid in Roblox
-    FatArrow => "=>",
+    ThinArrow => "->",
     Caret => "^",
     Colon => ":",
     Comma => ",",

@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+- Updated function return type syntax under `roblox` feature flag
 
 ## [0.5.0] - 2020-04-21
 - TokenReference has been completely rewritten to now be a representation of an inner token and its leading/trailing trivia. It will eventually be renamed
