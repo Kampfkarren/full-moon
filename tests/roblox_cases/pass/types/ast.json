@@ -1777,7 +1777,7 @@
                   },
                   "token_type": {
                     "type": "Symbol",
-                    "symbol": "=>"
+                    "symbol": "->"
                   }
                 },
                 "trailing_trivia": [
@@ -2128,7 +2128,7 @@
                   },
                   "token_type": {
                     "type": "Symbol",
-                    "symbol": "=>"
+                    "symbol": "->"
                   }
                 },
                 "trailing_trivia": [
@@ -2479,7 +2479,7 @@
                   },
                   "token_type": {
                     "type": "Symbol",
-                    "symbol": "=>"
+                    "symbol": "->"
                   }
                 },
                 "trailing_trivia": [
@@ -2884,7 +2884,7 @@
                   },
                   "token_type": {
                     "type": "Symbol",
-                    "symbol": "=>"
+                    "symbol": "->"
                   }
                 },
                 "trailing_trivia": [
@@ -3012,7 +3012,7 @@
                       },
                       "token_type": {
                         "type": "Symbol",
-                        "symbol": "=>"
+                        "symbol": "->"
                       }
                     },
                     "trailing_trivia": [
@@ -6320,7 +6320,7 @@
                               },
                               "end_position": {
                                 "bytes": 650,
-                                "character": 26,
+                                "character": 25,
                                 "line": 28
                               },
                               "token_type": {
@@ -6332,12 +6332,12 @@
                               {
                                 "start_position": {
                                   "bytes": 650,
-                                  "character": 26,
+                                  "character": 25,
                                   "line": 28
                                 },
                                 "end_position": {
                                   "bytes": 651,
-                                  "character": 27,
+                                  "character": 26,
                                   "line": 28
                                 },
                                 "token_type": {
@@ -6355,12 +6355,12 @@
                                   "token": {
                                     "start_position": {
                                       "bytes": 651,
-                                      "character": 27,
+                                      "character": 26,
                                       "line": 28
                                     },
                                     "end_position": {
                                       "bytes": 657,
-                                      "character": 33,
+                                      "character": 32,
                                       "line": 28
                                     },
                                     "token_type": {
@@ -6372,12 +6372,12 @@
                                     {
                                       "start_position": {
                                         "bytes": 657,
-                                        "character": 33,
+                                        "character": 32,
                                         "line": 28
                                       },
                                       "end_position": {
                                         "bytes": 658,
-                                        "character": 34,
+                                        "character": 33,
                                         "line": 28
                                       },
                                       "token_type": {
@@ -6393,12 +6393,12 @@
                                 "token": {
                                   "start_position": {
                                     "bytes": 658,
-                                    "character": 34,
+                                    "character": 33,
                                     "line": 28
                                   },
                                   "end_position": {
                                     "bytes": 659,
-                                    "character": 35,
+                                    "character": 34,
                                     "line": 28
                                   },
                                   "token_type": {
@@ -6410,12 +6410,12 @@
                                   {
                                     "start_position": {
                                       "bytes": 659,
-                                      "character": 35,
+                                      "character": 34,
                                       "line": 28
                                     },
                                     "end_position": {
                                       "bytes": 660,
-                                      "character": 36,
+                                      "character": 35,
                                       "line": 28
                                     },
                                     "token_type": {
@@ -6431,12 +6431,12 @@
                                   "token": {
                                     "start_position": {
                                       "bytes": 660,
-                                      "character": 36,
+                                      "character": 35,
                                       "line": 28
                                     },
                                     "end_position": {
                                       "bytes": 663,
-                                      "character": 39,
+                                      "character": 38,
                                       "line": 28
                                     },
                                     "token_type": {
@@ -6460,7 +6460,7 @@
                                     {
                                       "start_position": {
                                         "bytes": 663,
-                                        "character": 39,
+                                        "character": 38,
                                         "line": 28
                                       },
                                       "end_position": {
