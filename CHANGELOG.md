@@ -5,19 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- Updated function return type syntax under `roblox` feature flag
+### Fixed
+- Fixed old function return type syntax under `roblox` feature flag
 
 ## [0.5.0] - 2020-04-21
-- TokenReference has been completely rewritten to now be a representation of an inner token and its leading/trailing trivia. It will eventually be renamed
-- Display is now implemented on all nodes (Closes #26)
-- `ignore` is now deprecated in favor of `is_trivia`
-- `last_stmts` is now deprecated in favor of `last_stmt
-- Added `Punctuated::last`
-- Fixed a bug where illogical punctuated sequences were created when function bodies had both named parameters and varargs
+### Added
 - Added `TokenReference::with_token`
 - Added `Token::new`
 - Added `Puncutated::from_iter`
 - Added `TokenType::spaces` and `TokenType::tabs`
+- Added `Punctuated::last`
+- Display is now implemented on all nodes (Closes #26)
+
+### Changed
+- TokenReference has been completely rewritten to now be a representation of an inner token and its leading/trailing trivia.
+- `ignore` is now deprecated in favor of `is_trivia`
+- `last_stmts` is now deprecated in favor of `last_stmt`
+
+### Fixed
+- Fixed a bug where illogical punctuated sequences were created when function bodies had both named parameters and varargs
 
 ## [0.4.0-rc.14] - 2020-01-27
 ### Fixed
