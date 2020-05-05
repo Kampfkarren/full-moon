@@ -73,8 +73,12 @@ macro_rules! userdata {
                 });
 
                 methods.add_method("visit", |_, this, mut visitor: LuaVisitor| {
-                    // TODO: error handling
                     LuaVisit::visit(this, &mut visitor);
+                    let error = visitor.error.take();
+                    if let Some(error) = error {
+                        return Err(error);
+                    }
+
                     Ok(())
                 });
             }
@@ -202,6 +206,8 @@ macro_rules! create_lua_visitor {
     }) => {
         #[derive(Default)]
         struct LuaVisitor<'lua> {
+            error: Option<rlua::Error>,
+
             $(
                 $visitor_name: Option<rlua::Function<'lua>>,
             )+
@@ -241,9 +247,14 @@ macro_rules! create_lua_visitor {
         impl Visitor<'static> for LuaVisitor<'_> {
             $(
                 fn $visitor_name(&mut self, node: &$full_name<'static>) {
+                    if self.error.is_some() {
+                        return
+                    }
+
                     if let Some(visitor) = &self.$visitor_name {
-                        // TODO: error handling
-                        visitor.call::<_, ()>(node.to_owned()).ok();
+                        if let Err(err) = visitor.call::<_, ()>(node.to_owned()) {
+                            self.error = Some(err);
+                        }
                     }
                 }
             )+

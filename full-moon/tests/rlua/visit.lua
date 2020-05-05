@@ -21,10 +21,22 @@ return function(fullMoon)
 
 	ast:visit({
 		Return = function(node)
-			table.insert(called, node:print())
+			table.insert(called, node:print():match("([0-9]+)"))
 		end,
 	})
 
 	assert(called[1] == "1", "called[1] == " .. tostring(called[1]))
 	assert(called[2] == "2", "called[2] == " .. tostring(called[2]))
+
+	local message
+	success, message = pcall(function()
+		ast:visit({
+			Return = function()
+				error("oh noooo")
+			end
+		})
+	end)
+
+	assert(not success, "visit didn't error")
+	assert(tostring(message):match("oh noooo"), "error didn't include the right info: " .. tostring(message))
 end
