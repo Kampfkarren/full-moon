@@ -25,4 +25,5 @@ macro_rules! lua_tests {
 lua_tests!({
 	print,
 	properties,
+	visit,
 });

@@ -1,6 +1,7 @@
 use crate::{
     ast::{owned::Owned, *},
     tokenizer::*,
+    visitors::{Visit, Visitor},
 };
 use rlua::ToLua;
 
@@ -57,10 +58,6 @@ macro_rules! userdata {
 					},
 				);
 
-				methods.add_method("print", |_, this, _: ()| {
-					Ok(this.print())
-				});
-
 				methods.add_meta_function(
 					rlua::MetaMethod::ToString,
 					|_, _: ()| -> rlua::Result<String> {
@@ -70,6 +67,16 @@ macro_rules! userdata {
 						)
 					}
 				);
+
+				methods.add_method("print", |_, this, _: ()| {
+					Ok(this.print())
+				});
+
+				methods.add_method("visit", |_, this, mut visitor: LuaVisitor| {
+					// TODO: error handling
+					LuaVisit::visit(this, &mut visitor);
+					Ok(())
+				});
 			}
 		}
     };
@@ -170,6 +177,83 @@ impl LuaPrint for Ast<'static> {
         self.nodes().to_string()
     }
 }
+
+trait LuaVisit<'lua> {
+    fn visit(&self, visitor: &mut LuaVisitor<'lua>);
+}
+
+impl<'lua, T: Visit<'static>> LuaVisit<'lua> for T {
+    fn visit(&self, visitor: &mut LuaVisitor<'lua>) {
+        self.visit(visitor);
+    }
+}
+
+impl<'lua> LuaVisit<'lua> for Ast<'static> {
+    fn visit(&self, visitor: &mut LuaVisitor<'lua>) {
+        visitor.visit_ast(self);
+    }
+}
+
+macro_rules! create_lua_visitor {
+    ({
+		$(
+			$full_name:ident: $visitor_name:ident,
+		)+
+	}) => {
+        #[derive(Default)]
+        struct LuaVisitor<'lua> {
+			$(
+				$visitor_name: Option<rlua::Function<'lua>>,
+			)+
+		}
+
+        impl<'lua> rlua::FromLua<'lua> for LuaVisitor<'lua> {
+			fn from_lua(value: rlua::Value<'lua>, _: rlua::Context<'lua>)
+				-> rlua::Result<Self>
+			{
+				if let rlua::Value::Table(table) = value {
+					let mut this = Self::default();
+
+					for pair in table.pairs::<String, rlua::Function>() {
+						let (key, value) = pair?;
+						$(
+							match key.as_str() {
+								stringify!($full_name) => {
+									this.$visitor_name = Some(value);
+								}
+
+								invalid => {
+									return Err(rlua::Error::external(
+										format!("unknown node type '{}'", invalid),
+									));
+								}
+							}
+						)+
+					}
+
+					Ok(this)
+				} else {
+					Err(rlua::Error::external("expected table of nodes to visit"))
+				}
+			}
+		}
+
+        impl Visitor<'static> for LuaVisitor<'_> {
+			$(
+				fn $visitor_name(&mut self, node: &$full_name<'static>) {
+					if let Some(visitor) = &self.$visitor_name {
+						// TODO: error handling
+						visitor.call::<_, ()>(node.to_owned()).ok();
+					}
+				}
+			)+
+		}
+    };
+}
+
+create_lua_visitor!({
+	Return: visit_return,
+});
 
 userdata!(Ast<'static>, {
     properties: {
