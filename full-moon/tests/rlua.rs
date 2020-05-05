@@ -13,7 +13,7 @@ macro_rules! lua_tests {
 				let lua = rlua::Lua::new();
 				lua.context(|context| {
 					let callback: rlua::Function = context.load(&source).eval().unwrap();
-					if let Err(err) = callback.call::<_, ()>(()) {
+					if let Err(err) = callback.call::<_, ()>(full_moon::rlua::LuaApi) {
 						panic!("{}", err);
 					}
 				});

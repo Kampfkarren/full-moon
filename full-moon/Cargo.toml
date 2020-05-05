@@ -11,15 +11,17 @@ keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
 [features]
-default = ["serde"]
-roblox = []
+default = ["serde", "lua-bindings"]
+lua-bindings = ["rlua"]
 no-source-tests = []
+roblox = []
 
 [dependencies]
 bytecount = "0.5"
 cfg-if = "0.1"
 derive_more = "0.99"
 full_moon_derive = { path = "../full-moon-derive", version = "=0.5.0" }
+rlua = { version = "0.17", optional = true }
 paste = "0.1"
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
 nom = "5.0"

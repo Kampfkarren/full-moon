@@ -18,6 +18,9 @@ pub mod tokenizer;
 /// Used to create visitors that recurse through [`Ast`](ast/struct.Ast.html) nodes.
 pub mod visitors;
 
+#[cfg(feature = "lua-bindings")]
+pub mod rlua;
+
 mod private;
 mod util;
 
