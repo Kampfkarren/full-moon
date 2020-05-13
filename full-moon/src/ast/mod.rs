@@ -2131,7 +2131,8 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
             while let Some(token) = tokens.peek() {
                 if token.token_type().is_trivia() {
                     if let TokenType::Whitespace { ref characters } = &*token.token_type() {
-                        if characters.starts_with('\n') {
+                        // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+                        if characters.contains('\n') {
                             break;
                         }
                     }
