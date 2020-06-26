@@ -420,13 +420,13 @@ pub enum Stmt<'a> {
     /// A while loop
     #[display(fmt = "{}", _0)]
     While(While<'a>),
+    /// A compound assignment, such as `+=`
+    #[cfg(feature = "roblox")]
+    CompoundAssignment(CompoundAssignment<'a>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     TypeDeclaration(TypeDeclaration<'a>),
-    /// A compound assignment, such as `+=`
-    #[cfg(feature = "roblox")]
-    CompoundAssignment(CompoundAssignment<'a>),
 }
 
 /// A node used before another in cases such as function calling
