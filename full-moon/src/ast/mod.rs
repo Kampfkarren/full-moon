@@ -2015,7 +2015,7 @@ pub struct Ast<'a> {
 }
 
 impl<'a> Ast<'a> {
-    /// Create an Ast ffrom the passed tokens. You probably want [`parse`](../fn.parse.html)
+    /// Create an Ast from the passed tokens. You probably want [`parse`](../fn.parse.html)
     ///
     /// # Errors
     ///
