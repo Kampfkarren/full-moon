@@ -302,3 +302,31 @@ impl<'a> TypeSpecifier<'a> {
         &self.type_info
     }
 }
+
+/// A compound assignment operator, such as `+=` or `-=`
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", lhs, rhs)]
+pub struct CompoundAssignment<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    lhs: Box<Expression<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    rhs: Box<Expression<'a>>,
+}
+
+impl<'a> CompoundAssignment<'a> {
+    /// Creates a new CompoundAssignment from the left and right hand side
+    pub fn new(lhs: Box<Expression<'a>>, rhs: Box<Expression<'a>>) -> Self {
+        Self { lhs, rhs }
+    }
+
+    /// The operation used, the `+` part of `+=`
+    pub fn lhs(&self) -> &Expression<'a> {
+        self.lhs.as_ref()
+    }
+
+    /// The right hand side of the compiund assignment, the `=` part of `+=`
+    pub fn rhs(&self) -> &Expression<'a> {
+        self.rhs.as_ref()
+    }
+}

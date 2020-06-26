@@ -424,6 +424,9 @@ pub enum Stmt<'a> {
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     TypeDeclaration(TypeDeclaration<'a>),
+    /// A compound assignment, such as `+=`
+    #[cfg(feature = "roblox")]
+    CompoundAssignment(CompoundAssignment<'a>),
 }
 
 /// A node used before another in cases such as function calling
@@ -2012,7 +2015,7 @@ pub struct Ast<'a> {
 }
 
 impl<'a> Ast<'a> {
-    /// Create an Ast from the passed tokens. You probably want [`parse`](../fn.parse.html)
+    /// Create an Ast ffrom the passed tokens. You probably want [`parse`](../fn.parse.html)
     ///
     /// # Errors
     ///

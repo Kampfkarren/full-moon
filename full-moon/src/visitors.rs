@@ -275,6 +275,7 @@ create_visitor!(ast: {
         visit_type_field_key => TypeFieldKey,
         visit_type_info => TypeInfo,
         visit_type_specifier => TypeSpecifier,
+        visit_compound_assignment => CompoundAssignment,
     }
 }, token: {
     visit_identifier,

@@ -38,6 +38,14 @@ symbols!(
     While => "while",
 
     // TODO: This only is valid in Roblox
+    PlusEquals => "+=",
+    MinusEquals => "-=",
+    StarEquals => "*=",
+    SlashEquals => "/=",
+    PercentEquals => "%=",
+    CaretEquals => "^=",
+    TwoDotsEquals => "..=",
+    // TODO: This only is valid in Roblox
     ThinArrow => "->",
     Caret => "^",
     Colon => ":",
