@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed old function return type syntax under `roblox` feature flag
 - Fixed `leading_trivia` not being populated correctly within `TokenReference`s inside `extract_token_references` due to CRLF line endings
+- Fixed parse error for numbers with negative exponents
+- Fixed parse error for fractional numbers with no integer part
 
 ## [0.5.0] - 2020-04-21
 ### Added
