@@ -688,14 +688,8 @@ fn parse_no_int_fractional_number(code: &str) -> IResult<&str, &str> {
         opt(digit1),
         pair(
             pair(tag("."), digit1),
-            opt(pair(
-                pair(
-                    tag_no_case("e"),
-                    opt(tag("-"))
-                ),
-                digit1
-            ))
-        )
+            opt(pair(pair(tag_no_case("e"), opt(tag("-"))), digit1)),
+        ),
     ))(code)
 }
 
@@ -704,13 +698,7 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
         digit1,
         pair(
             opt(pair(tag("."), digit1)),
-            opt(pair(
-                pair(
-                    tag_no_case("e"),
-                    opt(tag("-"))
-                ),
-                digit1
-            )),
+            opt(pair(pair(tag_no_case("e"), opt(tag("-"))), digit1)),
         ),
     ))(code)
 }
@@ -732,7 +720,12 @@ fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
 }
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
-    alt((parse_roblox_number, parse_hex_number, parse_basic_number, parse_no_int_fractional_number))(code)
+    alt((
+        parse_roblox_number,
+        parse_hex_number,
+        parse_basic_number,
+        parse_no_int_fractional_number,
+    ))(code)
 }
 
 fn advance_number(code: &str) -> Advancement {
