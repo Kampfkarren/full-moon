@@ -688,7 +688,13 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
         digit1,
         pair(
             opt(pair(tag("."), digit1)),
-            opt(pair(tag_no_case("e"), digit1)),
+            opt(pair(
+                pair(
+                    tag_no_case("e"),
+                    opt(tag("-"))
+                ),
+                digit1
+            )),
         ),
     ))(code)
 }
