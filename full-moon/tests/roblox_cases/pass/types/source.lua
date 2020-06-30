@@ -18,6 +18,9 @@ local foo: string, bar: string
 local union: number | string
 local multiUnion: number | string | nil
 
+local intersection: number & string
+local multiIntersection: number & string & nil
+
 function foo(param: string) : string
 	return param
 end
@@ -26,5 +29,9 @@ function foo(a: string, b: string, ...)
 end
 
 local foo = function() : number | nil
+	return 3
+end
+
+local foo = function() : number & nil
 	return 3
 end
