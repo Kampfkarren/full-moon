@@ -30,6 +30,50 @@
               "Call": {
                 "AnonymousCall": {
                   "Parentheses": {
+                    "parentheses": {
+                      "tokens": [
+                        {
+                          "leading_trivia": [],
+                          "token": {
+                            "start_position": {
+                              "bytes": 5,
+                              "character": 6,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 6,
+                              "character": 7,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": "("
+                            }
+                          },
+                          "trailing_trivia": []
+                        },
+                        {
+                          "leading_trivia": [],
+                          "token": {
+                            "start_position": {
+                              "bytes": 24,
+                              "character": 22,
+                              "line": 1
+                            },
+                            "end_position": {
+                              "bytes": 25,
+                              "character": 23,
+                              "line": 1
+                            },
+                            "token_type": {
+                              "type": "Symbol",
+                              "symbol": ")"
+                            }
+                          },
+                          "trailing_trivia": []
+                        }
+                      ]
+                    },
                     "arguments": {
                       "pairs": [
                         {
@@ -143,50 +187,6 @@
                               }
                             }
                           }
-                        }
-                      ]
-                    },
-                    "parentheses": {
-                      "tokens": [
-                        {
-                          "leading_trivia": [],
-                          "token": {
-                            "start_position": {
-                              "bytes": 5,
-                              "character": 6,
-                              "line": 1
-                            },
-                            "end_position": {
-                              "bytes": 6,
-                              "character": 7,
-                              "line": 1
-                            },
-                            "token_type": {
-                              "type": "Symbol",
-                              "symbol": "("
-                            }
-                          },
-                          "trailing_trivia": []
-                        },
-                        {
-                          "leading_trivia": [],
-                          "token": {
-                            "start_position": {
-                              "bytes": 24,
-                              "character": 22,
-                              "line": 1
-                            },
-                            "end_position": {
-                              "bytes": 25,
-                              "character": 23,
-                              "line": 1
-                            },
-                            "token_type": {
-                              "type": "Symbol",
-                              "symbol": ")"
-                            }
-                          },
-                          "trailing_trivia": []
                         }
                       ]
                     }

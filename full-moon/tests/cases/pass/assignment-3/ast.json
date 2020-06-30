@@ -625,9 +625,6 @@
                             },
                             "args": {
                               "Parentheses": {
-                                "arguments": {
-                                  "pairs": []
-                                },
                                 "parentheses": {
                                   "tokens": [
                                     {
@@ -671,6 +668,9 @@
                                       "trailing_trivia": []
                                     }
                                   ]
+                                },
+                                "arguments": {
+                                  "pairs": []
                                 }
                               }
                             }
@@ -845,9 +845,6 @@
                             },
                             "args": {
                               "Parentheses": {
-                                "arguments": {
-                                  "pairs": []
-                                },
                                 "parentheses": {
                                   "tokens": [
                                     {
@@ -891,6 +888,9 @@
                                       "trailing_trivia": []
                                     }
                                   ]
+                                },
+                                "arguments": {
+                                  "pairs": []
                                 }
                               }
                             }

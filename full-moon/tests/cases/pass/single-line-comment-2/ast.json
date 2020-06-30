@@ -30,9 +30,6 @@
               "Call": {
                 "AnonymousCall": {
                   "Parentheses": {
-                    "arguments": {
-                      "pairs": []
-                    },
                     "parentheses": {
                       "tokens": [
                         {
@@ -109,6 +106,9 @@
                           ]
                         }
                       ]
+                    },
+                    "arguments": {
+                      "pairs": []
                     }
                   }
                 }

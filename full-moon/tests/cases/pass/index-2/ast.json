@@ -154,38 +154,6 @@
                             "Call": {
                               "AnonymousCall": {
                                 "Parentheses": {
-                                  "arguments": {
-                                    "pairs": [
-                                      {
-                                        "End": {
-                                          "value": {
-                                            "String": {
-                                              "leading_trivia": [],
-                                              "token": {
-                                                "start_position": {
-                                                  "bytes": 15,
-                                                  "character": 16,
-                                                  "line": 1
-                                                },
-                                                "end_position": {
-                                                  "bytes": 18,
-                                                  "character": 19,
-                                                  "line": 1
-                                                },
-                                                "token_type": {
-                                                  "type": "StringLiteral",
-                                                  "literal": "a",
-                                                  "quote_type": "Double"
-                                                }
-                                              },
-                                              "trailing_trivia": []
-                                            }
-                                          },
-                                          "binop": null
-                                        }
-                                      }
-                                    ]
-                                  },
                                   "parentheses": {
                                     "tokens": [
                                       {
@@ -227,6 +195,38 @@
                                           }
                                         },
                                         "trailing_trivia": []
+                                      }
+                                    ]
+                                  },
+                                  "arguments": {
+                                    "pairs": [
+                                      {
+                                        "End": {
+                                          "value": {
+                                            "String": {
+                                              "leading_trivia": [],
+                                              "token": {
+                                                "start_position": {
+                                                  "bytes": 15,
+                                                  "character": 16,
+                                                  "line": 1
+                                                },
+                                                "end_position": {
+                                                  "bytes": 18,
+                                                  "character": 19,
+                                                  "line": 1
+                                                },
+                                                "token_type": {
+                                                  "type": "StringLiteral",
+                                                  "literal": "a",
+                                                  "quote_type": "Double"
+                                                }
+                                              },
+                                              "trailing_trivia": []
+                                            }
+                                          },
+                                          "binop": null
+                                        }
                                       }
                                     ]
                                   }
