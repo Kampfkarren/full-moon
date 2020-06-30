@@ -30,38 +30,6 @@
               "Call": {
                 "AnonymousCall": {
                   "Parentheses": {
-                    "arguments": {
-                      "pairs": [
-                        {
-                          "End": {
-                            "value": {
-                              "String": {
-                                "leading_trivia": [],
-                                "token": {
-                                  "start_position": {
-                                    "bytes": 6,
-                                    "character": 7,
-                                    "line": 1
-                                  },
-                                  "end_position": {
-                                    "bytes": 17,
-                                    "character": 6,
-                                    "line": 2
-                                  },
-                                  "token_type": {
-                                    "type": "StringLiteral",
-                                    "literal": "foo\\\n\tbar",
-                                    "quote_type": "Double"
-                                  }
-                                },
-                                "trailing_trivia": []
-                              }
-                            },
-                            "binop": null
-                          }
-                        }
-                      ]
-                    },
                     "parentheses": {
                       "tokens": [
                         {
@@ -103,6 +71,38 @@
                             }
                           },
                           "trailing_trivia": []
+                        }
+                      ]
+                    },
+                    "arguments": {
+                      "pairs": [
+                        {
+                          "End": {
+                            "value": {
+                              "String": {
+                                "leading_trivia": [],
+                                "token": {
+                                  "start_position": {
+                                    "bytes": 6,
+                                    "character": 7,
+                                    "line": 1
+                                  },
+                                  "end_position": {
+                                    "bytes": 17,
+                                    "character": 6,
+                                    "line": 2
+                                  },
+                                  "token_type": {
+                                    "type": "StringLiteral",
+                                    "literal": "foo\\\n\tbar",
+                                    "quote_type": "Double"
+                                  }
+                                },
+                                "trailing_trivia": []
+                              }
+                            },
+                            "binop": null
+                          }
                         }
                       ]
                     }

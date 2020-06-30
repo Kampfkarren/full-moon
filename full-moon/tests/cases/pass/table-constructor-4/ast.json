@@ -299,9 +299,6 @@
                                         "Call": {
                                           "AnonymousCall": {
                                             "Parentheses": {
-                                              "arguments": {
-                                                "pairs": []
-                                              },
                                               "parentheses": {
                                                 "tokens": [
                                                   {
@@ -345,6 +342,9 @@
                                                     "trailing_trivia": []
                                                   }
                                                 ]
+                                              },
+                                              "arguments": {
+                                                "pairs": []
                                               }
                                             }
                                           }
