@@ -309,24 +309,31 @@ impl<'a> TypeSpecifier<'a> {
 #[display(fmt = "{}{}", lhs, rhs)]
 pub struct CompoundAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    lhs: Box<Expression<'a>>,
+    lhs: Cow<'a, TokenReference<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    assignment: Cow<'a, TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     rhs: Box<Expression<'a>>,
 }
 
 impl<'a> CompoundAssignment<'a> {
     /// Creates a new CompoundAssignment from the left and right hand side
-    pub fn new(lhs: Box<Expression<'a>>, rhs: Box<Expression<'a>>) -> Self {
-        Self { lhs, rhs }
+    pub fn new(lhs: Cow<'a, TokenReference<'a>>, assignment: Cow<'a, TokenReference<'a>>, rhs: Box<Expression<'a>>) -> Self {
+        Self { lhs, assignment, rhs }
     }
 
-    /// The operation used, the `+` part of `+=`
-    pub fn lhs(&self) -> &Expression<'a> {
-        self.lhs.as_ref()
+    /// The variable assigned to, the `x` part of `x += 1`
+    pub fn lhs(&self) -> &TokenReference<'a> {
+        &self.lhs
     }
 
-    /// The right hand side of the compiund assignment, the `=` part of `+=`
-    pub fn rhs(&self) -> &Expression<'a> {
-        self.rhs.as_ref()
+    /// The operation used, the `+=` part of `x += 1`
+    pub fn assignment(&self) -> &TokenReference<'a> {
+        &self.lhs
+    }
+
+    /// The value being assigned, the `1` part of `x += 1`
+    pub fn rhs(&self) -> &Box<Expression<'a>> {
+        &self.rhs
     }
 }
