@@ -387,6 +387,10 @@ pub enum Value<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
+    /// A compound assignment, such as `+=`
+    #[cfg(feature = "roblox")]
+    #[display(fmt = "{}", _0)]
+    CompoundAssignment(CompoundAssignment<'a>),
     /// An assignment, such as `x = 1`
     #[display(fmt = "{}", _0)]
     Assignment(Assignment<'a>),

@@ -349,6 +349,8 @@ define_parser!(
     ParseStmt,
     Stmt<'a>,
     |_, state: ParserState<'a>| parse_first_of!(state, {
+        @#[cfg(feature = "roblox")]
+        ParseCompoundAssignment => Stmt::CompoundAssignment,
         ParseAssignment => Stmt::Assignment,
         ParseFunctionCall => Stmt::FunctionCall,
         ParseDo => Stmt::Do,
@@ -1400,6 +1402,32 @@ cfg_if::cfg_if! {
                 ))
             }
         );
+
+        // Roblox Compound Assignment
+        #[derive(Clone, Debug, Default, PartialEq)]
+        struct ParseCompoundAssignment;
+        define_parser!(
+            ParseCompoundAssignment,
+            CompoundAssignment<'a>,
+            |_, state: ParserState<'a>| {
+                let (state, lhs) = ParseVar.parse(state)?;
+                let (state, compoundop) = ParseCompoundOp.parse(state)?;
+                let (state, rhs) = expect!(
+                    state,
+                    ParseExpression.parse(state),
+                    "expected values"
+                );
+
+                Ok((
+                    state,
+                    CompoundAssignment {
+                        lhs,
+                        compoundop,
+                        rhs,
+                    },
+                ))
+            }
+        );
     }
 }
 
@@ -1454,6 +1482,18 @@ make_op_parser!(UnOp, ParseUnOp,
         Minus,
         Not,
         Hash,
+    }
+);
+
+make_op_parser!(CompoundOp, ParseCompoundOp,
+    {
+        PlusEqual,
+        MinusEqual,
+        StarEqual,
+        SlashEqual,
+        PercentEqual,
+        CaretEqual,
+        TwoDotsEqual,
     }
 );
 
