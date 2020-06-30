@@ -59,6 +59,8 @@ symbols!(
     Percent => "%",
     // TODO: This only is valid in Roblox
     Pipe => "|",
+    // TODO: This only is valid in Roblox
+    Ampersand => "&",
     Plus => "+",
     // TODO: This only is valid in Roblox
     QuestionMark => "?",

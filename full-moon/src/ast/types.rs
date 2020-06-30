@@ -127,6 +127,20 @@ pub enum TypeInfo<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,
     },
+
+    /// An intersection type: `string & number`, denoting both types.
+    #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
+    Intersection {
+        /// The left hand side: `string`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        left: Box<TypeInfo<'a>>,
+        /// The ampersand (`&`) to separate the types.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        ampersand: Cow<'a, TokenReference<'a>>,
+        /// The right hand side: `number`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        right: Box<TypeInfo<'a>>,
+    },
 }
 
 /// A type field used within table types.
