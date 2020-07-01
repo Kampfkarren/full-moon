@@ -420,6 +420,11 @@ pub enum Stmt<'a> {
     /// A while loop
     #[display(fmt = "{}", _0)]
     While(While<'a>),
+
+    /// A continue statement
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    Continue(Cow<'a, TokenReference<'a>>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
