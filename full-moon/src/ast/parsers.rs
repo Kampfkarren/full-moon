@@ -361,6 +361,8 @@ define_parser!(
         ParseLocalFunction => Stmt::LocalFunction,
         ParseLocalAssignment => Stmt::LocalAssignment,
         @#[cfg(feature = "roblox")]
+        ParseContinue => Stmt::Continue,
+        @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
     })
 );
@@ -1089,6 +1091,21 @@ define_roblox_parser!(
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "roblox")] {
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseContinue;
+        define_parser!(
+            ParseContinue,
+            Cow<'a, TokenReference<'a>>,
+            |_, state: ParserState<'a>| {
+                let (state, continue_token) = ParseIdentifier.parse(state)?;
+                if continue_token.token().to_string() == "continue" {
+                    Ok((state, continue_token))
+                } else {
+                    Err(InternalAstError::NoMatch)
+                }
+            }
+        );
+
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeDeclaration;
         define_parser!(
