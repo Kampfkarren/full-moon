@@ -1302,25 +1302,6 @@ cfg_if::cfg_if! {
                 state = new_state;
             }
 
-            // if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
-            //     let (state, right) = expect!(
-            //         state,
-            //         ParseTypeInfo.parse(state),
-            //         "expected type after `|` for union type"
-            //     );
-
-            //     Ok((
-            //         state,
-            //         TypeInfo::Union {
-            //             left: Box::new(base_type),
-            //             right: Box::new(right),
-            //             pipe,
-            //         },
-            //     ))
-            // } else {
-            //     Ok((state, base_type))
-            // }
-
             if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
                 let (state, right) = expect!(
                     state,

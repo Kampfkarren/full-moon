@@ -56,6 +56,20 @@ pub enum TypeInfo<'a> {
         generics: Punctuated<'a, TypeInfo<'a>>,
     },
 
+    /// An intersection type: `string & number`, denoting both types.
+    #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
+    Intersection {
+        /// The left hand side: `string`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        left: Box<TypeInfo<'a>>,
+        /// The ampersand (`&`) to separate the types.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        ampersand: Cow<'a, TokenReference<'a>>,
+        /// The right hand side: `number`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        right: Box<TypeInfo<'a>>,
+    },
+
     /// An optional type, such as `string?`.
     #[display(fmt = "{}{}", "base", "question_mark")]
     Optional {
@@ -123,20 +137,6 @@ pub enum TypeInfo<'a> {
         /// The pipe (`|`) to separate the types.
         #[cfg_attr(feature = "serde", serde(borrow))]
         pipe: Cow<'a, TokenReference<'a>>,
-        /// The right hand side: `number`.
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        right: Box<TypeInfo<'a>>,
-    },
-
-    /// An intersection type: `string & number`, denoting both types.
-    #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
-    Intersection {
-        /// The left hand side: `string`.
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        left: Box<TypeInfo<'a>>,
-        /// The ampersand (`&`) to separate the types.
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        ampersand: Cow<'a, TokenReference<'a>>,
         /// The right hand side: `number`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,

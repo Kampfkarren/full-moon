@@ -15,6 +15,8 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
+    // TODO: This only is valid in Roblox
+    Ampersand => "&",
     And => "and",
     Break => "break",
     Do => "do",
@@ -59,8 +61,6 @@ symbols!(
     Percent => "%",
     // TODO: This only is valid in Roblox
     Pipe => "|",
-    // TODO: This only is valid in Roblox
-    Ampersand => "&",
     Plus => "+",
     // TODO: This only is valid in Roblox
     QuestionMark => "?",
