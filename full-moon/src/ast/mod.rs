@@ -421,15 +421,15 @@ pub enum Stmt<'a> {
     #[display(fmt = "{}", _0)]
     While(While<'a>),
 
-    /// A continue statement
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
-    Continue(Cow<'a, TokenReference<'a>>),
     /// A compound assignment, such as `+=`
     /// Only available when the "roblox" feature flag is enabled
     #[cfg(feature = "roblox")]
     #[display(fmt = "{}", _0)]
     CompoundAssignment(CompoundAssignment<'a>),
+    /// A continue statement
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    Continue(Cow<'a, TokenReference<'a>>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]

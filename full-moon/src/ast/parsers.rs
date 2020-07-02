@@ -361,9 +361,9 @@ define_parser!(
         ParseLocalFunction => Stmt::LocalFunction,
         ParseLocalAssignment => Stmt::LocalAssignment,
         @#[cfg(feature = "roblox")]
-        ParseContinue => Stmt::Continue,
-        @#[cfg(feature = "roblox")]
         ParseCompoundAssignment => Stmt::CompoundAssignment,
+        @#[cfg(feature = "roblox")]
+        ParseContinue => Stmt::Continue,
         @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
     })
