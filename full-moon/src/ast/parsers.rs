@@ -361,6 +361,8 @@ define_parser!(
         ParseLocalFunction => Stmt::LocalFunction,
         ParseLocalAssignment => Stmt::LocalAssignment,
         @#[cfg(feature = "roblox")]
+        ParseCompoundAssignment => Stmt::CompoundAssignment,
+        @#[cfg(feature = "roblox")]
         ParseContinue => Stmt::Continue,
         @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
@@ -1091,6 +1093,32 @@ define_roblox_parser!(
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "roblox")] {
+        // Roblox Compound Assignment
+        #[derive(Clone, Debug, Default, PartialEq)]
+        struct ParseCompoundAssignment;
+        define_parser!(
+            ParseCompoundAssignment,
+            CompoundAssignment<'a>,
+            |_, state: ParserState<'a>| {
+                let (state, lhs) = ParseVar.parse(state)?;
+                let (state, compound_operator) = ParseCompoundOp.parse(state)?;
+                let (state, rhs) = expect!(
+                    state,
+                    ParseExpression.parse(state),
+                    "expected value"
+                );
+
+                Ok((
+                    state,
+                    CompoundAssignment {
+                        lhs,
+                        compound_operator,
+                        rhs,
+                    },
+                ))
+            }
+        );
+
         #[derive(Clone, Debug, PartialEq)]
         struct ParseContinue;
         define_parser!(
@@ -1454,6 +1482,19 @@ make_op_parser!(UnOp, ParseUnOp,
         Minus,
         Not,
         Hash,
+    }
+);
+
+#[cfg(feature = "roblox")]
+make_op_parser!(CompoundOp, ParseCompoundOp,
+    {
+        PlusEqual,
+        MinusEqual,
+        StarEqual,
+        SlashEqual,
+        PercentEqual,
+        CaretEqual,
+        TwoDotsEqual,
     }
 );
 

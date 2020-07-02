@@ -81,6 +81,25 @@ pub(crate) trait Parser<'a>: Sized {
 
 #[doc(hidden)]
 #[macro_export]
+macro_rules! make_op {
+    ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
+        #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        #[visit(skip_visit_self)]
+        $(#[$outer])*
+        #[display(fmt = "{}")]
+        pub enum $enum<'a> {
+            #[cfg_attr(feature = "serde", serde(borrow))]
+            $(
+                #[allow(missing_docs)]
+                $operator(Cow<'a, TokenReference<'a>>),
+            )+
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
 macro_rules! define_parser {
     ($parser:ident, $node:ty, $body:expr) => {
         impl<'a> Parser<'a> for $parser {

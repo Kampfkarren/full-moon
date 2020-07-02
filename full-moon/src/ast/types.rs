@@ -302,3 +302,53 @@ impl<'a> TypeSpecifier<'a> {
         &self.type_info
     }
 }
+
+make_op!(CompoundOp,
+    #[doc = "Compound operators, such as X += Y or X -= Y"]
+    {
+        PlusEqual,
+        MinusEqual,
+        StarEqual,
+        SlashEqual,
+        PercentEqual,
+        CaretEqual,
+        TwoDotsEqual,
+    }
+);
+
+/// A Compound Assignment statement, such as `x += 1` or `x -= 1`
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}{}", "lhs", "compound_operator", "rhs")]
+pub struct CompoundAssignment<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) lhs: Var<'a>,
+    pub(crate) compound_operator: CompoundOp<'a>,
+    pub(crate) rhs: Expression<'a>,
+}
+
+impl<'a> CompoundAssignment<'a> {
+    /// Creates a new CompoundAssignment from the left and right hand side
+    pub fn new(lhs: Var<'a>, compound_operator: CompoundOp<'a>, rhs: Expression<'a>) -> Self {
+        Self {
+            lhs,
+            compound_operator,
+            rhs,
+        }
+    }
+
+    /// The variable assigned to, the `x` part of `x += 1`
+    pub fn lhs(&self) -> &Var<'a> {
+        &self.lhs
+    }
+
+    /// The operator used, the `+=` part of `x += 1`
+    pub fn compound_operator(&self) -> &CompoundOp<'a> {
+        &self.compound_operator
+    }
+
+    /// The value being assigned, the `1` part of `x += 1`
+    pub fn rhs(&self) -> &Expression<'a> {
+        &self.rhs
+    }
+}
