@@ -15,8 +15,6 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
-    // TODO: This only is valid in Roblox
-    Ampersand => "&",
     And => "and",
     Break => "break",
     Do => "do",
@@ -39,6 +37,8 @@ symbols!(
     Until => "until",
     While => "while",
 
+    // TODO: This only is valid in Roblox
+    Ampersand => "&",
     // TODO: This only is valid in Roblox
     ThinArrow => "->",
     Caret => "^",
