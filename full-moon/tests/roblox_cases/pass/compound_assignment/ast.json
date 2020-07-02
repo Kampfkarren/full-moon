@@ -408,7 +408,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "PlusEqual": {
               "leading_trivia": [],
               "token": {
@@ -535,7 +535,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "MinusEqual": {
               "leading_trivia": [],
               "token": {
@@ -662,7 +662,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "StarEqual": {
               "leading_trivia": [],
               "token": {
@@ -789,7 +789,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "SlashEqual": {
               "leading_trivia": [],
               "token": {
@@ -916,7 +916,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "PercentEqual": {
               "leading_trivia": [],
               "token": {
@@ -1043,7 +1043,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "CaretEqual": {
               "leading_trivia": [],
               "token": {
@@ -1186,7 +1186,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "PlusEqual": {
               "leading_trivia": [],
               "token": {
@@ -1315,7 +1315,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "MinusEqual": {
               "leading_trivia": [],
               "token": {
@@ -1444,7 +1444,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "StarEqual": {
               "leading_trivia": [],
               "token": {
@@ -1573,7 +1573,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "SlashEqual": {
               "leading_trivia": [],
               "token": {
@@ -1702,7 +1702,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "PercentEqual": {
               "leading_trivia": [],
               "token": {
@@ -1831,7 +1831,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "CaretEqual": {
               "leading_trivia": [],
               "token": {
@@ -2344,7 +2344,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "TwoDotsEqual": {
               "leading_trivia": [],
               "token": {
@@ -2472,7 +2472,7 @@
               ]
             }
           },
-          "compoundop": {
+          "compound_operator": {
             "TwoDotsEqual": {
               "leading_trivia": [],
               "token": {

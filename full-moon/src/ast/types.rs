@@ -303,23 +303,6 @@ impl<'a> TypeSpecifier<'a> {
     }
 }
 
-macro_rules! make_op {
-    ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
-        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        #[visit(skip_visit_self)]
-        $(#[$outer])*
-        #[display(fmt = "{}")]
-        pub enum $enum<'a> {
-            #[cfg_attr(feature = "serde", serde(borrow))]
-            $(
-                #[allow(missing_docs)]
-                $operator(Cow<'a, TokenReference<'a>>),
-            )+
-        }
-    };
-}
-
 make_op!(CompoundOp,
     #[doc = "Compound operators, such as X += Y or X -= Y"]
     {
@@ -336,20 +319,20 @@ make_op!(CompoundOp,
 /// A Compound Assignment statement, such as `x += 1` or `x -= 1`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "lhs", "compoundop", "rhs")]
+#[display(fmt = "{}{}{}", "lhs", "compound_operator", "rhs")]
 pub struct CompoundAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) lhs: Var<'a>,
-    pub(crate) compoundop: CompoundOp<'a>,
+    pub(crate) compound_operator: CompoundOp<'a>,
     pub(crate) rhs: Expression<'a>,
 }
 
 impl<'a> CompoundAssignment<'a> {
     /// Creates a new CompoundAssignment from the left and right hand side
-    pub fn new(lhs: Var<'a>, compoundop: CompoundOp<'a>, rhs: Expression<'a>) -> Self {
+    pub fn new(lhs: Var<'a>, compound_operator: CompoundOp<'a>, rhs: Expression<'a>) -> Self {
         Self {
             lhs,
-            compoundop,
+            compound_operator,
             rhs,
         }
     }
@@ -360,8 +343,8 @@ impl<'a> CompoundAssignment<'a> {
     }
 
     /// The operator used, the `+=` part of `x += 1`
-    pub fn compoundop(&self) -> &CompoundOp<'a> {
-        &self.compoundop
+    pub fn compound_operator(&self) -> &CompoundOp<'a> {
+        &self.compound_operator
     }
 
     /// The value being assigned, the `1` part of `x += 1`

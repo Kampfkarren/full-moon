@@ -387,10 +387,6 @@ pub enum Value<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    /// A compound assignment, such as `+=`
-    #[cfg(feature = "roblox")]
-    #[display(fmt = "{}", _0)]
-    CompoundAssignment(CompoundAssignment<'a>),
     /// An assignment, such as `x = 1`
     #[display(fmt = "{}", _0)]
     Assignment(Assignment<'a>),
@@ -429,6 +425,11 @@ pub enum Stmt<'a> {
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     Continue(Cow<'a, TokenReference<'a>>),
+    /// A compound assignment, such as `+=`
+    /// Only available when the "roblox" feature flag is enabled
+    #[cfg(feature = "roblox")]
+    #[display(fmt = "{}", _0)]
+    CompoundAssignment(CompoundAssignment<'a>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
@@ -1922,23 +1923,6 @@ impl<'a> FunctionDeclaration<'a> {
     pub fn with_body(self, body: FunctionBody<'a>) -> Self {
         Self { body, ..self }
     }
-}
-
-macro_rules! make_op {
-    ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
-        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        #[visit(skip_visit_self)]
-        $(#[$outer])*
-        #[display(fmt = "{}")]
-        pub enum $enum<'a> {
-            #[cfg_attr(feature = "serde", serde(borrow))]
-            $(
-                #[allow(missing_docs)]
-                $operator(Cow<'a, TokenReference<'a>>),
-            )+
-        }
-    };
 }
 
 make_op!(BinOp,
