@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added support for `continue` under `roblox` feature flag
+- Added support for Compound Assignment (eg. `x += 1`) under the `roblox` feature flag
 - Added support for intersectional types (`string & number`) under the `roblox` feature flag
 
 ### Fixed

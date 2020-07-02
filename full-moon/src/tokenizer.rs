@@ -37,6 +37,13 @@ symbols!(
     Until => "until",
     While => "while",
 
+    PlusEqual => "+=",
+    MinusEqual => "-=",
+    StarEqual => "*=",
+    SlashEqual => "/=",
+    PercentEqual => "%=",
+    CaretEqual => "^=",
+    TwoDotsEqual => "..=",
     // TODO: This only is valid in Roblox
     Ampersand => "&",
     // TODO: This only is valid in Roblox
