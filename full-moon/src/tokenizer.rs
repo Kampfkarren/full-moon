@@ -46,6 +46,8 @@ symbols!(
     CaretEqual => "^=",
     TwoDotsEqual => "..=",
     // TODO: This only is valid in Roblox
+    Ampersand => "&",
+    // TODO: This only is valid in Roblox
     ThinArrow => "->",
     Caret => "^",
     Colon => ":",

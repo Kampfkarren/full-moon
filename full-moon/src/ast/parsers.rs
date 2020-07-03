@@ -1345,6 +1345,21 @@ cfg_if::cfg_if! {
                         pipe,
                     },
                 ))
+            } else if let Ok((state, ampersand)) = ParseSymbol(Symbol::Ampersand).parse(state) {
+                let (state, right) = expect!(
+                    state,
+                    ParseTypeInfo.parse(state),
+                    "expected type after `&` for intersection type"
+                );
+
+                Ok((
+                    state,
+                    TypeInfo::Intersection {
+                        left: Box::new(base_type),
+                        right: Box::new(right),
+                        ampersand,
+                    },
+                ))
             } else {
                 Ok((state, base_type))
             }

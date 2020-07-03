@@ -69,6 +69,15 @@ impl<'a> Visit<'a> for TypeInfo<'a> {
                 pipe.visit(visitor);
                 right.visit(visitor);
             }
+            TypeInfo::Intersection {
+                left,
+                ampersand,
+                right,
+            } => {
+                left.visit(visitor);
+                ampersand.visit(visitor);
+                right.visit(visitor);
+            }
         };
         visitor.visit_type_info_end(self);
     }
@@ -166,6 +175,16 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
             TypeInfo::Union { left, pipe, right } => TypeInfo::Union {
                 left: left.visit_mut(visitor),
                 pipe: pipe.visit_mut(visitor),
+                right: right.visit_mut(visitor),
+            },
+
+            TypeInfo::Intersection {
+                left,
+                ampersand,
+                right,
+            } => TypeInfo::Intersection {
+                left: left.visit_mut(visitor),
+                ampersand: ampersand.visit_mut(visitor),
                 right: right.visit_mut(visitor),
             },
         };
