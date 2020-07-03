@@ -689,26 +689,48 @@ fn advance_comment(code: &str) -> Advancement {
 fn parse_hex_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         tag_no_case("0x"),
+        #[cfg(not(feature = "roblox"))]
         take_while1(|c: char| c.is_digit(16)),
+        #[cfg(feature = "roblox")]
+        take_while1(|c: char| c.is_digit(16) || c == '_'),
+    ))(code)
+}
+
+#[cfg(not(feature = "roblox"))]
+fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
+    digit1(code)
+}
+
+#[cfg(feature = "roblox")]
+fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
+    recognize(pair(
+        digit1,
+        opt(take_while1(|c: char| c.is_digit(10) || c == '_')),
     ))(code)
 }
 
 fn parse_no_int_fractional_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
-        opt(digit1),
+        opt(parse_digit_with_seperator),
         pair(
-            pair(tag("."), digit1),
-            opt(pair(pair(tag_no_case("e"), opt(tag("-"))), digit1)),
+            pair(tag("."), parse_digit_with_seperator),
+            opt(pair(
+                pair(tag_no_case("e"), opt(tag("-"))),
+                parse_digit_with_seperator,
+            )),
         ),
     ))(code)
 }
 
 fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
-        digit1,
+        parse_digit_with_seperator,
         pair(
-            opt(pair(tag("."), digit1)),
-            opt(pair(pair(tag_no_case("e"), opt(tag("-"))), digit1)),
+            opt(pair(tag("."), parse_digit_with_seperator)),
+            opt(pair(
+                pair(tag_no_case("e"), opt(tag("-"))),
+                parse_digit_with_seperator,
+            )),
         ),
     ))(code)
 }
@@ -725,7 +747,7 @@ fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         tag_no_case("0b"),
-        take_while1(|x: char| x == '0' || x == '1'),
+        take_while1(|x: char| x == '0' || x == '1' || x == '_'),
     ))(code)
 }
 

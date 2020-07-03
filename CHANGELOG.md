@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for `continue` under `roblox` feature flag
 - Added support for compound assignments (eg. `x += 1`) under the `roblox` feature flag
 - Added support for intersectional types (`string & number`) under the `roblox` feature flag
+- Added support for underscores as numeric seperators (eg. `1_123_531`) under the `roblox` feature flag
 
 ### Fixed
 - Fixed old function return type syntax under `roblox` feature flag
