@@ -80,7 +80,6 @@ Mozilla Public License Version 2.0
     fifty percent (50%) of the outstanding shares or beneficial
     ownership of such entity.
 
-
 ### 2. License Grants and Conditions
 
 #### 2.1. Grants
@@ -148,7 +147,6 @@ equivalents.
 Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted
 in Section 2.1.
 
-
 ### 3. Responsibilities
 
 #### 3.1. Distribution of Source Form
@@ -210,7 +208,6 @@ indemnity or liability terms You offer. You may include additional
 disclaimers of warranty and limitations of liability specific to any
 jurisdiction.
 
-
 ### 4. Inability to Comply Due to Statute or Regulation
 
 If it is impossible for You to comply with any of the terms of this
@@ -222,7 +219,6 @@ be placed in a text file included with all distributions of the Covered
 Software under this License. Except to the extent prohibited by statute
 or regulation, such description must be sufficiently detailed for a
 recipient of ordinary skill to be able to understand it.
-
 
 ### 5. Termination
 
@@ -251,7 +247,6 @@ You by any and all Contributors for the Covered Software under Section
 end user license agreements (excluding distributors and resellers) which
 have been validly granted by You or Your distributors under this License
 prior to termination shall survive termination.
-
 
 ### 6. Disclaimer of Warranty
 
@@ -285,7 +280,6 @@ prior to termination shall survive termination.
 > incidental or consequential damages, so this exclusion and
 > limitation may not apply to You.
 
-
 ### 8. Litigation
 
 Any litigation relating to this License may be brought only in the
@@ -295,7 +289,6 @@ jurisdiction, without reference to its conflict-of-law provisions.
 Nothing in this Section shall prevent a party's ability to bring
 cross-claims or counter-claims.
 
-
 ### 9. Miscellaneous
 
 This License represents the complete agreement concerning the subject
@@ -304,7 +297,6 @@ unenforceable, such provision shall be reformed only to the extent
 necessary to make it enforceable. Any law or regulation which provides
 that the language of a contract shall be construed against the drafter
 shall not be used to construe this License against a Contributor.
-
 
 ### 10. Versions of the License
 
@@ -353,5 +345,3 @@ You may add additional accurate notices of copyright ownership.
 
     This Source Code Form is "Incompatible With Secondary Licenses", as
     defined by the Mozilla Public License, v. 2.0.
-
-
