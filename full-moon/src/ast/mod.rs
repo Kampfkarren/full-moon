@@ -1927,6 +1927,7 @@ impl<'a> FunctionDeclaration<'a> {
 
 make_op!(BinOp,
     #[doc = "Operators that require two operands, such as X + Y or X - Y"]
+    #[visit(skip_visit_self)]
     {
         And,
         Caret,
