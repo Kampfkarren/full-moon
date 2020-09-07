@@ -8,6 +8,11 @@ type Callback2 = (string, string) -> number
 type Callback3 = (string, string) -> (string, string)
 type Callback4 = (string) -> (string) -> ()
 
+type Foo = {
+	bar: number,
+	baz: number,
+}
+
 local foo: number = 3
 local foo: number?
 local foo: Array<T>
