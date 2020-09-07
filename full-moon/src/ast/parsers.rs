@@ -1325,7 +1325,7 @@ cfg_if::cfg_if! {
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 let (state, fields) = expect!(
                     state,
-                    ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), false)
+                    ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
                         .parse(state),
                     "expected fields in between braces"
                 );
