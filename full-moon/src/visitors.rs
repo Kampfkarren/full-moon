@@ -271,6 +271,7 @@ create_visitor!(ast: {
         visit_as_assertion => AsAssertion,
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
+        visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_generic_declaration => GenericDeclaration,
         visit_type_declaration => TypeDeclaration,
         visit_type_field => TypeField,

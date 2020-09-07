@@ -430,6 +430,10 @@ pub enum Stmt<'a> {
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     Continue(Cow<'a, TokenReference<'a>>),
+    /// An exported type declaration, such as `export type Meters = number`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    ExportedTypeDeclaration(ExportedTypeDeclaration<'a>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]

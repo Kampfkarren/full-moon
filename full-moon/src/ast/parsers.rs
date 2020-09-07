@@ -365,6 +365,8 @@ define_parser!(
         @#[cfg(feature = "roblox")]
         ParseContinue => Stmt::Continue,
         @#[cfg(feature = "roblox")]
+        ParseExportedTypeDeclaration => Stmt::ExportedTypeDeclaration,
+        @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
     })
 );
@@ -1190,6 +1192,30 @@ cfg_if::cfg_if! {
                         generics,
                         equal_token,
                         declare_as,
+                    },
+                ))
+            }
+        );
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseExportedTypeDeclaration;
+        define_parser!(
+            ParseExportedTypeDeclaration,
+            ExportedTypeDeclaration<'a>,
+            |_, state: ParserState<'a>| {
+                let (state, export_token) = ParseIdentifier.parse(state)?;
+                if export_token.token().to_string() != "export" {
+                    return Err(InternalAstError::NoMatch);
+                }
+
+                let (state, type_declaration) =
+                    expect!(state, ParseTypeDeclaration.parse(state), "expected type declaration");
+
+                Ok((
+                    state,
+                    ExportedTypeDeclaration {
+                        export_token,
+                        type_declaration
                     },
                 ))
             }

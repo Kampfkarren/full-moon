@@ -317,6 +317,29 @@ impl<'a> TypeSpecifier<'a> {
     }
 }
 
+/// An exported type declaration, such as `export type Meters = number`
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "export_token", "type_declaration")]
+pub struct ExportedTypeDeclaration<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) export_token: Cow<'a, TokenReference<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) type_declaration: TypeDeclaration<'a>,
+}
+
+impl<'a> ExportedTypeDeclaration<'a> {
+    /// The token `export`.
+    pub fn export_token(&self) -> &TokenReference<'a> {
+        &self.export_token
+    }
+
+    /// The type declaration, `type Meters = number`.
+    pub fn type_declaration(&self) -> &TypeDeclaration<'a> {
+        &self.type_declaration
+    }
+}
+
 make_op!(CompoundOp,
     #[doc = "Compound operators, such as X += Y or X -= Y"]
     {
