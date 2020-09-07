@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for exporting types (`export type Foo = { bar: number }`) under the `roblox` feature flag
 
+### Fixed
+- Fixed type declaration of objects not supporting trailing commas
+
 ## [0.6.2] - 2020-07-11
 ### Fixed
 - Fixed an error related with `visit_compound_op` and the `roblox` feature flag
