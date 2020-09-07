@@ -37,6 +37,15 @@ impl<'a> Visit<'a> for TypeInfo<'a> {
                 generics.visit(visitor);
                 arrows.tokens.1.visit(visitor);
             }
+            TypeInfo::Module {
+                module,
+                punctuation,
+                type_info,
+            } => {
+                module.visit(visitor);
+                punctuation.visit(visitor);
+                type_info.visit(visitor);
+            }
             TypeInfo::Optional {
                 base,
                 question_mark,
@@ -125,6 +134,22 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
                 }
             }
 
+            TypeInfo::Module {
+                mut module,
+                mut punctuation,
+                mut type_info,
+            } => {
+                module = module.visit_mut(visitor);
+                punctuation = punctuation.visit_mut(visitor);
+                type_info = type_info.visit_mut(visitor);
+
+                TypeInfo::Module {
+                    module,
+                    punctuation,
+                    type_info,
+                }
+            }
+
             TypeInfo::Optional {
                 base,
                 question_mark,
@@ -189,6 +214,56 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
             },
         };
         self = visitor.visit_type_info_end(self);
+        self
+    }
+}
+
+impl<'a> Visit<'a> for IndexedTypeInfo<'a> {
+    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+        visitor.visit_indexed_type_info(self);
+        match self {
+            IndexedTypeInfo::Basic(__self_0) => {
+                __self_0.visit(visitor);
+            }
+            IndexedTypeInfo::Generic {
+                base,
+                arrows,
+                generics,
+            } => {
+                base.visit(visitor);
+                arrows.tokens.0.visit(visitor);
+                generics.visit(visitor);
+                arrows.tokens.1.visit(visitor);
+            }
+        };
+        visitor.visit_indexed_type_info_end(self);
+    }
+}
+
+impl<'a> VisitMut<'a> for IndexedTypeInfo<'a> {
+    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_indexed_type_info(self);
+        self = match self {
+            IndexedTypeInfo::Basic(__self_0) => IndexedTypeInfo::Basic(__self_0.visit_mut(visitor)),
+
+            IndexedTypeInfo::Generic {
+                mut base,
+                mut arrows,
+                mut generics,
+            } => {
+                base = base.visit_mut(visitor);
+                arrows.tokens.0 = arrows.tokens.0.visit_mut(visitor);
+                generics = generics.visit_mut(visitor);
+                arrows.tokens.1 = arrows.tokens.1.visit_mut(visitor);
+
+                IndexedTypeInfo::Generic {
+                    arrows,
+                    base,
+                    generics,
+                }
+            }
+        };
+        self = visitor.visit_indexed_type_info_end(self);
         self
     }
 }

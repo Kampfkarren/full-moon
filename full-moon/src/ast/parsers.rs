@@ -1222,6 +1222,44 @@ cfg_if::cfg_if! {
         );
 
         #[derive(Clone, Debug, PartialEq)]
+        struct ParseIndexedTypeInfo;
+        define_parser!(ParseIndexedTypeInfo, IndexedTypeInfo<'a>, |_, state: ParserState<'a>| {
+            let (state, base_type) = if let Ok((state, identifier)) = {
+                ParseIdentifier.parse(state)
+            } {
+                if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
+                {
+                    let (state, generics) = expect!(
+                        state,
+                        OneOrMore(ParseTypeInfo, ParseSymbol(Symbol::Comma), false).parse(state),
+                        "expected type parameters"
+                    );
+
+                    let (state, end_arrow) = expect!(
+                        state,
+                        ParseSymbol(Symbol::GreaterThan).parse(state),
+                        "expected `>` to close `<`"
+                    );
+
+                    (
+                        state,
+                        IndexedTypeInfo::Generic {
+                            base: identifier,
+                            arrows: ContainedSpan::new(start_arrow, end_arrow),
+                            generics,
+                        },
+                    )
+                } else {
+                    (state, IndexedTypeInfo::Basic(identifier))
+                }
+            } else {
+                return Err(InternalAstError::NoMatch);
+            };
+
+            Ok((state, base_type))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeInfo;
         define_parser!(ParseTypeInfo, TypeInfo<'a>, |_, state: ParserState<'a>| {
             let (mut state, mut base_type) = if let Ok((state, identifier)) = {
@@ -1254,6 +1292,22 @@ cfg_if::cfg_if! {
                             typeof_token: identifier,
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             inner: Box::new(expression),
+                        },
+                    )
+                } else if let Ok((state, punctuation)) = ParseSymbol(Symbol::Dot).parse(state)
+                {
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseIndexedTypeInfo.parse(state),
+                        "expected type when parsing type index"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Module {
+                            module: identifier,
+                            punctuation,
+                            type_info: Box::new(type_info),
                         },
                     )
                 } else if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
