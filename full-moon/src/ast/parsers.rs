@@ -117,6 +117,13 @@ define_parser!(
         Ok((state, LastStmt::Return(Return { token, returns })))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break(token)))
+    } else if cfg!(feature = "roblox") {
+        let (state, continue_token) = ParseIdentifier.parse(state)?;
+        if continue_token.token().to_string() == "continue" {
+            Ok((state, LastStmt::Continue(continue_token)))
+        } else {
+            Err(InternalAstError::NoMatch)
+        }
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -362,8 +369,6 @@ define_parser!(
         ParseLocalAssignment => Stmt::LocalAssignment,
         @#[cfg(feature = "roblox")]
         ParseCompoundAssignment => Stmt::CompoundAssignment,
-        @#[cfg(feature = "roblox")]
-        ParseContinue => Stmt::Continue,
         @#[cfg(feature = "roblox")]
         ParseExportedTypeDeclaration => Stmt::ExportedTypeDeclaration,
         @#[cfg(feature = "roblox")]
@@ -1118,21 +1123,6 @@ cfg_if::cfg_if! {
                         rhs,
                     },
                 ))
-            }
-        );
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseContinue;
-        define_parser!(
-            ParseContinue,
-            Cow<'a, TokenReference<'a>>,
-            |_, state: ParserState<'a>| {
-                let (state, continue_token) = ParseIdentifier.parse(state)?;
-                if continue_token.token().to_string() == "continue" {
-                    Ok((state, continue_token))
-                } else {
-                    Err(InternalAstError::NoMatch)
-                }
             }
         );
 
