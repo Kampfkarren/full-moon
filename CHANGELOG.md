@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added support for exporting types (`export type Foo = { bar: number }`) under the `roblox` feature flag
+- Added support for using types from other modules (`local x: module.Foo`) under the `roblox` feature flag
+
+### Fixed
+- Fixed type declaration of objects not supporting trailing commas
+- Fixed an issue where `continue` was not treated similar to `return` or `break`. It is now moved to `LastStmt` instead of a `Stmt` 
+- Fixed long comments and long strings containing multi-byte characters.
+
+## [0.6.2] - 2020-07-11
+### Fixed
+- Fixed an error related with `visit_compound_op` and the `roblox` feature flag
+
+## [0.6.1] - 2020-07-05
+### Fixed
+- Fixed `visit_un_op` not being called correctly
+
 ## [0.6.0] - 2020-06-02
 ### Added
 - Added support for `continue` under `roblox` feature flag

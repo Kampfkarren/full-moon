@@ -98,6 +98,10 @@ pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
     Break(Cow<'a, TokenReference<'a>>),
+    /// A continue statement
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    Continue(Cow<'a, TokenReference<'a>>),
     /// A `return` statement
     Return(Return<'a>),
 }
@@ -426,10 +430,10 @@ pub enum Stmt<'a> {
     #[cfg(feature = "roblox")]
     #[display(fmt = "{}", _0)]
     CompoundAssignment(CompoundAssignment<'a>),
-    /// A continue statement
+    /// An exported type declaration, such as `export type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
-    Continue(Cow<'a, TokenReference<'a>>),
+    ExportedTypeDeclaration(ExportedTypeDeclaration<'a>),
     /// A type declaration, such as `type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
@@ -1927,6 +1931,7 @@ impl<'a> FunctionDeclaration<'a> {
 
 make_op!(BinOp,
     #[doc = "Operators that require two operands, such as X + Y or X - Y"]
+    #[visit(skip_visit_self)]
     {
         And,
         Caret,

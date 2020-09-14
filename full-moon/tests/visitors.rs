@@ -156,3 +156,18 @@ fn test_end_visit() {
     assert_eq!(visitor.called_at, 2);
     assert_eq!(visitor.if_end_at, 3);
 }
+
+#[test]
+fn test_unary_visitor_regression() {
+    struct TestVisitor(bool);
+
+    impl Visitor<'_> for TestVisitor {
+        fn visit_un_op(&mut self, _: &ast::UnOp<'_>) {
+            self.0 = true;
+        }
+    }
+
+    let mut visitor = TestVisitor(false);
+    visitor.visit_ast(&parse("local x = #{}").unwrap());
+    assert!(visitor.0, "Unary operation was not visited");
+}

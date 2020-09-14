@@ -3,7 +3,12 @@ use crate::derive::*;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-fn token_getter(ty: &syn::Type, ident: &syn::Ident, mut prefix: Option<TokenStream>, deref: bool) -> TokenStream {
+fn token_getter(
+    ty: &syn::Type,
+    ident: &syn::Ident,
+    mut prefix: Option<TokenStream>,
+    deref: bool,
+) -> TokenStream {
     if let syn::Type::Path(path) = ty {
         let cow = path.path.segments.first().expect("no first segment?");
         if cow.ident.to_string() == "Cow".to_owned() {
@@ -420,7 +425,12 @@ impl MatchEnumGenerator for EnumTokensGenerator {
 
         for field in named {
             fields.push(field.ident.as_ref().unwrap());
-            getters.push(token_getter(&field.ty, field.ident.as_ref().unwrap(), None, true));
+            getters.push(token_getter(
+                &field.ty,
+                field.ident.as_ref().unwrap(),
+                None,
+                true,
+            ));
         }
 
         quote! {

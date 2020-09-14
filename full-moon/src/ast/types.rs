@@ -70,6 +70,20 @@ pub enum TypeInfo<'a> {
         right: Box<TypeInfo<'a>>,
     },
 
+    /// A type coming from a module, such as `module.Foo`
+    #[display(fmt = "{}{}{}", "module", "punctuation", "type_info")]
+    Module {
+        /// The module the type is coming from: `module`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        module: Cow<'a, TokenReference<'a>>,
+        /// The punctuation (`.`) to index the module.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        punctuation: Cow<'a, TokenReference<'a>>,
+        /// The indexed type info: `Foo`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        type_info: Box<IndexedTypeInfo<'a>>,
+    },
+
     /// An optional type, such as `string?`.
     #[display(fmt = "{}{}", "base", "question_mark")]
     Optional {
@@ -140,6 +154,35 @@ pub enum TypeInfo<'a> {
         /// The right hand side: `number`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,
+    },
+}
+
+/// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum IndexedTypeInfo<'a> {
+    /// A standalone type, such as `string` or `Foo`.
+    #[display(fmt = "{}", "_0")]
+    Basic(#[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>),
+
+    /// A type using generics, such as `map<number, string>`.
+    #[display(
+        fmt = "{}{}{}{}",
+        "base",
+        "arrows.tokens().0",
+        "generics",
+        "arrows.tokens().1"
+    )]
+    Generic {
+        /// The type that has generics: `map`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        base: Cow<'a, TokenReference<'a>>,
+        /// The arrows (`<>`) containing the type parameters.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        arrows: ContainedSpan<'a>,
+        /// The type parameters: `number, string`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        generics: Punctuated<'a, TypeInfo<'a>>,
     },
 }
 
@@ -314,6 +357,29 @@ impl<'a> TypeSpecifier<'a> {
     /// The type being specified: `number` in `local foo: number`.
     pub fn type_info(&self) -> &TypeInfo<'a> {
         &self.type_info
+    }
+}
+
+/// An exported type declaration, such as `export type Meters = number`
+#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "export_token", "type_declaration")]
+pub struct ExportedTypeDeclaration<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) export_token: Cow<'a, TokenReference<'a>>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) type_declaration: TypeDeclaration<'a>,
+}
+
+impl<'a> ExportedTypeDeclaration<'a> {
+    /// The token `export`.
+    pub fn export_token(&self) -> &TokenReference<'a> {
+        &self.export_token
+    }
+
+    /// The type declaration, `type Meters = number`.
+    pub fn type_declaration(&self) -> &TypeDeclaration<'a> {
+        &self.type_declaration
     }
 }
 

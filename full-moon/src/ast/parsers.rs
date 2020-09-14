@@ -117,6 +117,13 @@ define_parser!(
         Ok((state, LastStmt::Return(Return { token, returns })))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break(token)))
+    } else if cfg!(feature = "roblox") {
+        let (state, continue_token) = ParseIdentifier.parse(state)?;
+        if continue_token.token().to_string() == "continue" {
+            Ok((state, LastStmt::Continue(continue_token)))
+        } else {
+            Err(InternalAstError::NoMatch)
+        }
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -363,7 +370,7 @@ define_parser!(
         @#[cfg(feature = "roblox")]
         ParseCompoundAssignment => Stmt::CompoundAssignment,
         @#[cfg(feature = "roblox")]
-        ParseContinue => Stmt::Continue,
+        ParseExportedTypeDeclaration => Stmt::ExportedTypeDeclaration,
         @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
     })
@@ -1120,21 +1127,6 @@ cfg_if::cfg_if! {
         );
 
         #[derive(Clone, Debug, PartialEq)]
-        struct ParseContinue;
-        define_parser!(
-            ParseContinue,
-            Cow<'a, TokenReference<'a>>,
-            |_, state: ParserState<'a>| {
-                let (state, continue_token) = ParseIdentifier.parse(state)?;
-                if continue_token.token().to_string() == "continue" {
-                    Ok((state, continue_token))
-                } else {
-                    Err(InternalAstError::NoMatch)
-                }
-            }
-        );
-
-        #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeDeclaration;
         define_parser!(
             ParseTypeDeclaration,
@@ -1196,6 +1188,68 @@ cfg_if::cfg_if! {
         );
 
         #[derive(Clone, Debug, PartialEq)]
+        struct ParseExportedTypeDeclaration;
+        define_parser!(
+            ParseExportedTypeDeclaration,
+            ExportedTypeDeclaration<'a>,
+            |_, state: ParserState<'a>| {
+                let (state, export_token) = ParseIdentifier.parse(state)?;
+                if export_token.token().to_string() != "export" {
+                    return Err(InternalAstError::NoMatch);
+                }
+
+                let (state, type_declaration) =
+                    expect!(state, ParseTypeDeclaration.parse(state), "expected type declaration");
+
+                Ok((
+                    state,
+                    ExportedTypeDeclaration {
+                        export_token,
+                        type_declaration
+                    },
+                ))
+            }
+        );
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseIndexedTypeInfo;
+        define_parser!(ParseIndexedTypeInfo, IndexedTypeInfo<'a>, |_, state: ParserState<'a>| {
+            let (state, base_type) = if let Ok((state, identifier)) = {
+                ParseIdentifier.parse(state)
+            } {
+                if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
+                {
+                    let (state, generics) = expect!(
+                        state,
+                        OneOrMore(ParseTypeInfo, ParseSymbol(Symbol::Comma), false).parse(state),
+                        "expected type parameters"
+                    );
+
+                    let (state, end_arrow) = expect!(
+                        state,
+                        ParseSymbol(Symbol::GreaterThan).parse(state),
+                        "expected `>` to close `<`"
+                    );
+
+                    (
+                        state,
+                        IndexedTypeInfo::Generic {
+                            base: identifier,
+                            arrows: ContainedSpan::new(start_arrow, end_arrow),
+                            generics,
+                        },
+                    )
+                } else {
+                    (state, IndexedTypeInfo::Basic(identifier))
+                }
+            } else {
+                return Err(InternalAstError::NoMatch);
+            };
+
+            Ok((state, base_type))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeInfo;
         define_parser!(ParseTypeInfo, TypeInfo<'a>, |_, state: ParserState<'a>| {
             let (mut state, mut base_type) = if let Ok((state, identifier)) = {
@@ -1228,6 +1282,22 @@ cfg_if::cfg_if! {
                             typeof_token: identifier,
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             inner: Box::new(expression),
+                        },
+                    )
+                } else if let Ok((state, punctuation)) = ParseSymbol(Symbol::Dot).parse(state)
+                {
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseIndexedTypeInfo.parse(state),
+                        "expected type when parsing type index"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Module {
+                            module: identifier,
+                            punctuation,
+                            type_info: Box::new(type_info),
                         },
                     )
                 } else if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
@@ -1299,7 +1369,7 @@ cfg_if::cfg_if! {
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 let (state, fields) = expect!(
                     state,
-                    ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), false)
+                    ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
                         .parse(state),
                     "expected fields in between braces"
                 );
