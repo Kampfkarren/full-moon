@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed type declaration of objects not supporting trailing commas
+- Fixed long comments and long strings containing multi-byte characters.
 
 ## [0.6.2] - 2020-07-11
 ### Fixed
