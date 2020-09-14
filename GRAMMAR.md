@@ -4,16 +4,16 @@ chunk ::= {stat [`;´]} [laststat [`;´]]
 block ::= chunk
 
 stat ::=  varlist `=´ explist |
-	functioncall |
-	do block end |
-	while exp do block end |
-	repeat block until exp |
-	if exp then block {elseif exp then block} [else block] end |
-	for Name `=´ exp `,´ exp [`,´ exp] do block end |
-	for namelist in explist do block end |
-	function funcname funcbody |
-	local function Name funcbody |
-	local namelist [`=´ explist]
+ functioncall |
+ do block end |
+ while exp do block end |
+ repeat block until exp |
+ if exp then block {elseif exp then block} [else block] end |
+ for Name `=´ exp `,´ exp [`,´ exp] do block end |
+ for namelist in explist do block end |
+ function funcname funcbody |
+ local function Name funcbody |
+ local namelist [`=´ explist]
 
 laststat ::= return [explist] | break
 
@@ -44,16 +44,17 @@ field ::= `[´ exp `]´ `=´ exp | Name `=´ exp | exp
 fieldsep ::= `,´ | `;´
 
 binop ::= `+´ | `-´ | `*´ | `/´ | `^´ | `%´ | `..´ |
-	 `<´ | `<=´ | `>´ | `>=´ | `==´ | `~=´ |
-	 and | or
+  `<´ | `<=´ | `>´ | `>=´ | `==´ | `~=´ |
+  and | or
 
 unop ::= `-´ | not | `#´
 ```
 
-Modified rules from http://lua-users.org/lists/lua-l/2010-12/msg00699.html
+Modified rules from <http://lua-users.org/lists/lua-l/2010-12/msg00699.html>
+
 ```
 value ::= nil | false | true | Number | String | '...' | function |
-	tableconstructor | functioncall | var | '(' exp ')'
+ tableconstructor | functioncall | var | '(' exp ')'
 exp ::= unop exp | value [binop exp]
 prefix ::= '(' exp ')' | Name
 index ::= '[' exp ']' | '.' Name
