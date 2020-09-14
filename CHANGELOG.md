@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed type declaration of objects not supporting trailing commas
 - Fixed an issue where `continue` was not treated similar to `return` or `break`. It is now moved to `LastStmt` instead of a `Stmt` 
+- Fixed long comments and long strings containing multi-byte characters.
 
 ## [0.6.2] - 2020-07-11
 ### Fixed

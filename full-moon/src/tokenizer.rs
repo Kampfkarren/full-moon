@@ -660,11 +660,11 @@ fn advance_comment(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
         return match parse_multi_line_comment_body(code, block_count) {
             Ok((_, comment)) => {
-                let blocks = block_count.len();
+                let blocks = block_count.chars().count();
                 // Get the comment without the ending "]]"
-                let comment = &comment[..(comment.len() - "]]".len() - blocks)];
+                let comment = &comment[..(comment.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
-                    advance: comment.len() + blocks * 2 + "--[[]]".len(),
+                    advance: comment.chars().count() + blocks * 2 + "--[[]]".chars().count(),
                     token_type: TokenType::MultiLineComment {
                         blocks,
                         comment: Cow::from(comment),
@@ -814,11 +814,11 @@ fn advance_quote(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
         return match parse_multi_line_string_body(code, block_count) {
             Ok((_, body)) => {
-                let blocks = block_count.len();
+                let blocks = block_count.chars().count();
                 // Get the body without the ending "]]"
-                let body = &body[..(body.len() - "]]".len() - blocks)];
+                let body = &body[..(body.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
-                    advance: body.len() + blocks * 2 + "[[]]".len(),
+                    advance: body.chars().count() + blocks * 2 + "[[]]".chars().count(),
                     token_type: TokenType::StringLiteral {
                         multi_line: Some(blocks),
                         literal: Cow::from(body),
