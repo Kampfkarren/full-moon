@@ -19,3 +19,7 @@ jobs:
       run: |
         cd full-moon
         cargo test --no-default-features --features serde
+    - name: Clippy
+      run: |
+        cd full-moon
+        cargo clippy
