@@ -22,3 +22,6 @@ jobs:
     - name: Clippy
       run: |
         cargo clippy
+    - name: Rustfmt
+      run: |
+        cargo fmt -- --check
