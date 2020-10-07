@@ -958,11 +958,9 @@ define_parser!(
             Ok((state, equal_token)) => (
                 OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
                     .parse(state)
-                    .or_else(|_| {
-                        Err(InternalAstError::UnexpectedToken {
-                            token: (*state.peek()).to_owned(),
-                            additional: Some("expected expression"),
-                        })
+                    .map_err(|_| InternalAstError::UnexpectedToken {
+                        token: (*state.peek()).to_owned(),
+                        additional: Some("expected expression"),
                     })?,
                 Some(equal_token),
             ),

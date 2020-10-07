@@ -259,7 +259,7 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 );
 
 // False positive clippy lints
-#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
@@ -327,7 +327,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 );
 
 // False positive clippy lints
-#[allow(clippy::block_in_if_condition_stmt)]
+#[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
 impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
 where
