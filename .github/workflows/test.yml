@@ -17,5 +17,5 @@ jobs:
         cargo test
     - name: Test (no default features)
       run: |
-      cd full-moon
-      cargo test --no-default-features --features serde
+        cd full-moon
+        cargo test --no-default-features --features serde
