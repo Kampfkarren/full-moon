@@ -117,15 +117,19 @@ define_parser!(
         Ok((state, LastStmt::Return(Return { token, returns })))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break(token)))
-    } else if cfg!(feature = "roblox") {
-        let (state, continue_token) = ParseIdentifier.parse(state)?;
-        if continue_token.token().to_string() == "continue" {
-            Ok((state, LastStmt::Continue(continue_token)))
-        } else {
-            Err(InternalAstError::NoMatch)
-        }
     } else {
-        Err(InternalAstError::NoMatch)
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "roblox")] {
+                let (state, continue_token) = ParseIdentifier.parse(state)?;
+                if continue_token.token().to_string() == "continue" {
+                    Ok((state, LastStmt::Continue(continue_token)))
+                } else {
+                    Err(InternalAstError::NoMatch)
+                }
+            } else {
+                Err(InternalAstError::NoMatch)
+            }
+        }
     }
 );
 
