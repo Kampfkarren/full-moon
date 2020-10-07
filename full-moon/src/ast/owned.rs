@@ -98,6 +98,9 @@ impl Owned for TokenType<'_> {
             TokenType::Number { text } => TokenType::Number {
                 text: Cow::Owned(text.clone().into_owned()),
             },
+            TokenType::Shebang { line } => TokenType::Shebang {
+                line: Cow::Owned(line.clone().into_owned()),
+            },
             TokenType::SingleLineComment { comment } => TokenType::SingleLineComment {
                 comment: Cow::Owned(comment.clone().into_owned()),
             },

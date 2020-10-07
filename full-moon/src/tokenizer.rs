@@ -128,6 +128,13 @@ pub enum TokenType<'a> {
         text: Cow<'a, str>,
     },
 
+    /// A shebang line
+    Shebang {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The shebang line itself
+        line: Cow<'a, str>,
+    },
+
     /// A single line comment, such as `-- comment`
     SingleLineComment {
         #[cfg_attr(feature = "serde", serde(borrow))]
@@ -177,7 +184,8 @@ impl<'a> TokenType<'a> {
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
         match self {
-            TokenType::SingleLineComment { .. }
+            TokenType::Shebang { .. }
+            | TokenType::SingleLineComment { .. }
             | TokenType::MultiLineComment { .. }
             | TokenType::Whitespace { .. } => true,
             _ => false,
@@ -203,6 +211,7 @@ impl<'a> TokenType<'a> {
             TokenType::Identifier { .. } => TokenKind::Identifier,
             TokenType::MultiLineComment { .. } => TokenKind::MultiLineComment,
             TokenType::Number { .. } => TokenKind::Number,
+            TokenType::Shebang { .. } => TokenKind::Shebang,
             TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
@@ -236,6 +245,8 @@ pub enum TokenKind {
     MultiLineComment,
     /// A literal number, such as `3.3`
     Number,
+    /// The shebang line
+    Shebang,
     /// A single line comment, such as `-- comment`
     SingleLineComment,
     /// A literal string, such as "Hello, world"
@@ -300,6 +311,7 @@ impl<'a> fmt::Display for Token<'a> {
             MultiLineComment { blocks, comment } => {
                 format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
             }
+            Shebang { line } => line.to_string(),
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
@@ -350,6 +362,7 @@ impl<'ast> Visit<'ast> for Token<'ast> {
             TokenKind::Identifier => visitor.visit_identifier(self),
             TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
             TokenKind::Number => visitor.visit_number(self),
+            TokenKind::Shebang => {}
             TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
@@ -367,6 +380,7 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
             TokenKind::Identifier => visitor.visit_identifier(token),
             TokenKind::MultiLineComment => visitor.visit_multi_line_comment(token),
             TokenKind::Number => visitor.visit_number(token),
+            TokenKind::Shebang => token,
             TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
@@ -795,6 +809,23 @@ fn advance_identifier(code: &str) -> Advancement {
 }
 
 #[inline]
+fn parse_shebang(code: &str) -> IResult<&str, &str> {
+    recognize(pair(tag("#!"), many_till(anychar, line_ending)))(code)
+}
+
+fn advance_shebang(code: &str) -> Advancement {
+    match parse_shebang(code) {
+        Ok((_, line)) => Ok(Some(TokenAdvancement {
+            advance: line.chars().count(),
+            token_type: TokenType::Shebang {
+                line: Cow::from(line),
+            },
+        })),
+        Err(_) => Ok(None),
+    }
+}
+
+#[inline]
 fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
 }
@@ -1003,6 +1034,11 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                 }
             };
         };
+    }
+
+    for _ in 0..1 {
+        // A hack, since `advance!` requires a loop to run.
+        advance!(advance_shebang);
     }
 
     while code.bytes().count() > position.bytes {
@@ -1248,6 +1284,21 @@ mod tests {
                 },
             }))
         );
+    }
+
+    #[test]
+    fn test_advance_shebang() {
+        test_advancer!(
+            advance_shebang("#!/usr/bin/env lua\n"),
+            Ok(Some(TokenAdvancement {
+                advance: 19,
+                token_type: TokenType::Shebang {
+                    line: "#!/usr/bin/env lua\n".into()
+                }
+            }))
+        );
+        // Don't recognize with a whitespace.
+        test_advancer!(advance_shebang(" #!/usr/bin/env lua\n"), Ok(None));
     }
 
     #[test]
