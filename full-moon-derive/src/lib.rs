@@ -29,5 +29,5 @@ pub fn derive_owned(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn symbols(input: TokenStream) -> TokenStream {
-    symbols::parse(input.into())
+    symbols::parse(input)
 }

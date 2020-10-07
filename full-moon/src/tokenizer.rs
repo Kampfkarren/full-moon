@@ -988,7 +988,7 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                     }
 
                     tokens.push(Token {
-                        start_position: start_position,
+                        start_position,
                         end_position: position,
                         token_type: advancement.token_type,
                     });
