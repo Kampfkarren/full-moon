@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for exporting types (`export type Foo = { bar: number }`) under the `roblox` feature flag
 - Added support for using types from other modules (`local x: module.Foo`) under the `roblox` feature flag
+- Added support for parsing a shebang
 
 ### Fixed
 - Fixed type declaration of objects not supporting trailing commas
