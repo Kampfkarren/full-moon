@@ -1264,6 +1264,18 @@ mod tests {
         );
 
         test_advancer!(
+            advance_quote("\"hello\\\nworld\""),
+            Ok(Some(TokenAdvancement {
+                advance: 14,
+                token_type: TokenType::StringLiteral {
+                    literal: Cow::from("hello\\\nworld"),
+                    multi_line: None,
+                    quote_type: StringLiteralQuoteType::Double,
+                },
+            }))
+        );
+
+        test_advancer!(
             advance_quote("\"hello"),
             Err(TokenizerErrorType::UnclosedString)
         );
