@@ -26,7 +26,8 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, iter::FromIterator};
 
-/// A punctuated sequence of node `T` separated by [`TokenReference`](../tokenizer/enum.TokenReference.html).
+/// A punctuated sequence of node `T` separated by
+/// [`TokenReference`](../../tokenizer/struct.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -297,7 +298,7 @@ impl<'a, 'b, T> Iterator for IterMut<'a, 'b, T> {
     }
 }
 
-/// A node `T` followed by the possible trailing [`TokenReference`](../tokenizer/enum.TokenReference.html).
+/// A node `T` followed by the possible trailing [`TokenReference`](../../tokenizer/struct.TokenReference.html).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -306,7 +307,7 @@ pub enum Pair<'a, T> {
     #[display(fmt = "{}", "_0")]
     End(T),
 
-    /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../tokenizer/enum.TokenReference.html))
+    /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../../tokenizer/struct.TokenReference.html))
     #[display(fmt = "{}{}", "_0", "_1")]
     Punctuated(
         T,
