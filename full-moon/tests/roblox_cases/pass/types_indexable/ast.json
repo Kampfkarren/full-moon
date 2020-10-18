@@ -647,56 +647,57 @@
                           }
                         ]
                       },
-                      "fields": [
-                        [
+                      "fields": {
+                        "pairs": [
                           {
-                            "NoKey": {
-                              "value": {
-                                "String": {
-                                  "leading_trivia": [],
-                                  "token": {
-                                    "start_position": {
-                                      "bytes": 60,
-                                      "character": 35,
-                                      "line": 2
-                                    },
-                                    "end_position": {
-                                      "bytes": 65,
-                                      "character": 40,
-                                      "line": 2
-                                    },
-                                    "token_type": {
-                                      "type": "StringLiteral",
-                                      "literal": "bar",
-                                      "quote_type": "Double"
-                                    }
-                                  },
-                                  "trailing_trivia": [
-                                    {
+                            "End": {
+                              "NoKey": {
+                                "value": {
+                                  "String": {
+                                    "leading_trivia": [],
+                                    "token": {
                                       "start_position": {
+                                        "bytes": 60,
+                                        "character": 35,
+                                        "line": 2
+                                      },
+                                      "end_position": {
                                         "bytes": 65,
                                         "character": 40,
                                         "line": 2
                                       },
-                                      "end_position": {
-                                        "bytes": 66,
-                                        "character": 41,
-                                        "line": 2
-                                      },
                                       "token_type": {
-                                        "type": "Whitespace",
-                                        "characters": " "
+                                        "type": "StringLiteral",
+                                        "literal": "bar",
+                                        "quote_type": "Double"
                                       }
-                                    }
-                                  ]
-                                }
-                              },
-                              "binop": null
+                                    },
+                                    "trailing_trivia": [
+                                      {
+                                        "start_position": {
+                                          "bytes": 65,
+                                          "character": 40,
+                                          "line": 2
+                                        },
+                                        "end_position": {
+                                          "bytes": 66,
+                                          "character": 41,
+                                          "line": 2
+                                        },
+                                        "token_type": {
+                                          "type": "Whitespace",
+                                          "characters": " "
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "binop": null
+                              }
                             }
-                          },
-                          null
+                          }
                         ]
-                      ]
+                      }
                     }
                   },
                   "binop": null

@@ -196,25 +196,16 @@ pub enum Field<'a> {
     NoKey(Expression<'a>),
 }
 
-/// A [`Field`](enum.Field.html) used when creating a table
-/// Second parameter is the separator used (`,` or `;`) if one exists
-pub type TableConstructorField<'a> = (Field<'a>, Option<Cow<'a, TokenReference<'a>>>);
-
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    fmt = "{}{}{}",
-    "braces.tokens().0",
-    "display_optional_punctuated_vec(fields)",
-    "braces.tokens().1"
-)]
+#[display(fmt = "{}{}{}", "braces.tokens().0", "fields", "braces.tokens().1")]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[node(full_range)]
     #[visit(contains = "fields")]
     braces: ContainedSpan<'a>,
-    fields: Vec<TableConstructorField<'a>>,
+    fields: Punctuated<'a, Field<'a>>,
 }
 
 impl<'a> TableConstructor<'a> {
@@ -226,7 +217,7 @@ impl<'a> TableConstructor<'a> {
                 Cow::Owned(TokenReference::symbol("{ ").unwrap()),
                 Cow::Owned(TokenReference::symbol(" }").unwrap()),
             ),
-            fields: Vec::new(),
+            fields: Punctuated::new(),
         }
     }
 
@@ -235,8 +226,8 @@ impl<'a> TableConstructor<'a> {
         &self.braces
     }
 
-    /// An iterator over the [fields](type.TableConstructorField.html) used to create the table
-    pub fn iter_fields(&self) -> impl Iterator<Item = &TableConstructorField<'a>> {
+    /// An iterator over the [fields](enum.Field.html) used to create the table
+    pub fn iter_fields(&self) -> impl Iterator<Item = &Field<'a>> {
         self.fields.iter()
     }
 
@@ -246,7 +237,7 @@ impl<'a> TableConstructor<'a> {
     }
 
     /// Returns a new TableConstructor with the given fields
-    pub fn with_fields(self, fields: Vec<TableConstructorField<'a>>) -> Self {
+    pub fn with_fields(self, fields: Punctuated<'a, Field<'a>>) -> Self {
         Self { fields, ..self }
     }
 }

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where `continue` was not treated similar to `return` or `break`. It is now moved to `LastStmt` instead of a `Stmt` 
 - Fixed long comments and long strings containing multi-byte characters.
 
+### Changed
+- `TableConstructor` now uses `Punctuated` internally; `TableConstructor::iter_fields` returns an iterarator over `Field`'s.
+
 ## [0.6.2] - 2020-07-11
 ### Fixed
 - Fixed an error related with `visit_compound_op` and the `roblox` feature flag

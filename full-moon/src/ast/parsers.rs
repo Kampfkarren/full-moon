@@ -180,7 +180,7 @@ define_parser!(
     TableConstructor<'a>,
     |_, state: ParserState<'a>| {
         let (mut state, start_brace) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
-        let mut fields = Vec::new();
+        let mut fields = Punctuated::new();
 
         while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
             let field_sep =
@@ -197,9 +197,9 @@ define_parser!(
                     None
                 };
 
-            let is_none = field_sep.is_none();
-            fields.push((field, field_sep));
-            if is_none {
+            let is_end = field_sep.is_none();
+            fields.push(Pair::new(field, field_sep));
+            if is_end {
                 break;
             }
         }
