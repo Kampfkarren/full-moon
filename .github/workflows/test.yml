@@ -15,6 +15,10 @@ jobs:
       run: |
         cd full-moon
         cargo test
+    - name: Test (roblox feature)
+      run: |
+        cd full-moon
+        cargo test --features roblox
     - name: Test (no default features)
       run: |
         cd full-moon
