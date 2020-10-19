@@ -4465,7 +4465,9 @@
                                                     }
                                                   ]
                                                 },
-                                                "fields": []
+                                                "fields": {
+                                                  "pairs": []
+                                                }
                                               }
                                             },
                                             "binop": null

@@ -187,57 +187,58 @@
                           }
                         ]
                       },
-                      "fields": [
-                        [
+                      "fields": {
+                        "pairs": [
                           {
-                            "NoKey": {
-                              "value": {
-                                "Var": {
-                                  "Name": {
-                                    "leading_trivia": [],
-                                    "token": {
-                                      "start_position": {
-                                        "bytes": 14,
-                                        "character": 15,
-                                        "line": 1
-                                      },
-                                      "end_position": {
-                                        "bytes": 17,
-                                        "character": 18,
-                                        "line": 1
-                                      },
-                                      "token_type": {
-                                        "type": "Identifier",
-                                        "identifier": "bar"
-                                      }
-                                    },
-                                    "trailing_trivia": [
-                                      {
+                            "End": {
+                              "NoKey": {
+                                "value": {
+                                  "Var": {
+                                    "Name": {
+                                      "leading_trivia": [],
+                                      "token": {
                                         "start_position": {
+                                          "bytes": 14,
+                                          "character": 15,
+                                          "line": 1
+                                        },
+                                        "end_position": {
                                           "bytes": 17,
                                           "character": 18,
                                           "line": 1
                                         },
-                                        "end_position": {
-                                          "bytes": 18,
-                                          "character": 19,
-                                          "line": 1
-                                        },
                                         "token_type": {
-                                          "type": "Whitespace",
-                                          "characters": " "
+                                          "type": "Identifier",
+                                          "identifier": "bar"
                                         }
-                                      }
-                                    ]
+                                      },
+                                      "trailing_trivia": [
+                                        {
+                                          "start_position": {
+                                            "bytes": 17,
+                                            "character": 18,
+                                            "line": 1
+                                          },
+                                          "end_position": {
+                                            "bytes": 18,
+                                            "character": 19,
+                                            "line": 1
+                                          },
+                                          "token_type": {
+                                            "type": "Whitespace",
+                                            "characters": " "
+                                          }
+                                        }
+                                      ]
+                                    }
                                   }
-                                }
-                              },
-                              "binop": null
+                                },
+                                "binop": null
+                              }
                             }
-                          },
-                          null
+                          }
                         ]
-                      ]
+                      }
                     }
                   },
                   "binop": null
