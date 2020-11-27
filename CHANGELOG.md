@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Use intra doc links, remove unnecessary linking for some items in docs.
+
 ## [0.7.0] - 2020-11-06
 ### Added
 - Added support for exporting types (`export type Foo = { bar: number }`) under the `roblox` feature flag

@@ -5,7 +5,7 @@
 //! - Names and definitions in a local assignment are `Punctuated<TokenReference>` and `Punctuated<Expression>` respectively
 //! - The values of a return statement are `Punctuated<Expression>`
 //!
-//! Everything with punctuation uses the [`Punctuated<T>`](struct.Punctuated.html) type with the following logic.
+//! Everything with punctuation uses the [`Punctuated<T>`](Punctuated) type with the following logic.
 //! ```rust
 //! # use full_moon::parse;
 //! # fn main() -> Result<(), Box<std::error::Error>> {
@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, iter::FromIterator};
 
 /// A punctuated sequence of node `T` separated by
-/// [`TokenReference`](../../tokenizer/struct.TokenReference.html).
+/// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -99,7 +99,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.into_iter()
     }
 
-    /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences
+    /// Returns an iterator over pairs
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -112,7 +112,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.into_iter()
     }
 
-    /// Returns the last [`Pair`](enum.Pair.html) in the sequence
+    /// Returns the last pair in the sequence
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -123,7 +123,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.last()
     }
 
-    /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as references
+    /// Returns an iterator over pairs as references
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -136,7 +136,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.iter()
     }
 
-    /// Returns an iterator over the [`Pair`](enum.Pair.html) sequences as mutable references
+    /// Returns an iterator over pairs as mutable references
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -150,7 +150,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.iter_mut()
     }
 
-    /// Pops off the last [`Pair`](enum.Pair.html), if it isn't empty
+    /// Pops off the last pair if it isn't empty
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -161,7 +161,7 @@ impl<'a, T> Punctuated<'a, T> {
         self.pairs.pop()
     }
 
-    /// Pushes a new [`Pair`](enum.Pair.html) onto the sequence
+    /// Pushes a new pair onto the sequence
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
     /// let mut punctuated = Punctuated::new();
@@ -298,7 +298,8 @@ impl<'a, 'b, T> Iterator for IterMut<'a, 'b, T> {
     }
 }
 
-/// A node `T` followed by the possible trailing [`TokenReference`](../../tokenizer/struct.TokenReference.html).
+/// A node `T` followed by the possible trailing
+/// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -307,7 +308,8 @@ pub enum Pair<'a, T> {
     #[display(fmt = "{}", "_0")]
     End(T),
 
-    /// A node `T` followed by punctuation (in the form of a [`TokenReference`](../../tokenizer/struct.TokenReference.html))
+    /// A node `T` followed by punctuation (in the form of a
+    /// [`TokenReference`](crate::tokenizer::TokenReference))
     #[display(fmt = "{}{}", "_0", "_1")]
     Punctuated(
         T,

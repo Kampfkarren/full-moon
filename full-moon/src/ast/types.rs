@@ -217,7 +217,7 @@ impl<'a> TypeField<'a> {
     }
 }
 
-/// A key in a [`TypeField`](struct.TypeField.html). Can either be a name or an index signature.
+/// A key in a [`TypeField`]. Can either be a name or an index signature.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeFieldKey<'a> {
@@ -312,7 +312,7 @@ impl<'a> TypeDeclaration<'a> {
     }
 }
 
-/// The generics used in a [type declaration](struct.TypeDeclaration.html).
+/// The generics used in a [`TypeDeclaration`].
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "arrows.tokens().0", "generics", "arrows.tokens().1")]
