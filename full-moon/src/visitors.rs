@@ -19,7 +19,7 @@ macro_rules! create_visitor {
         $($visit_token:ident,)+
     }) => {
         /// A trait that implements functions to listen for specific nodes/tokens.
-        /// Unlike [`VisitorMut`](trait.VisitorMut.html), nodes/tokens passed are immutable.
+        /// Unlike [`VisitorMut`], nodes/tokens passed are immutable.
         ///
         /// ```rust
         /// # use full_moon::ast;
@@ -44,7 +44,7 @@ macro_rules! create_visitor {
         /// # }
         /// ```
         pub trait Visitor<'ast> {
-            /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
+            /// Visit the nodes of an [`Ast`](crate::ast::Ast)
             fn visit_ast(&mut self, ast: &Ast<'ast>) where Self: Sized {
                 ast.nodes().visit(self);
                 ast.eof().visit(self);
@@ -77,9 +77,9 @@ macro_rules! create_visitor {
         }
 
         /// A trait that implements functions to listen for specific nodes/tokens.
-        /// Unlike [`Visitor`](trait.Visitor.html), nodes/tokens passed are mutable.
+        /// Unlike [`Visitor`], nodes/tokens passed are mutable.
         pub trait VisitorMut<'ast> {
-            /// Visit the nodes of an [`Ast`](../ast/struct.Ast.html)
+            /// Visit the nodes of an [`Ast`](crate::ast::Ast)
             fn visit_ast(&mut self, ast: Ast<'ast>) -> Ast<'ast> where Self: Sized {
                 // TODO: Visit tokens?
                 let eof = ast.eof().to_owned();

@@ -92,7 +92,7 @@ pub enum TokenizerErrorType {
     /// An unexpected token was found
     UnexpectedToken(char),
     /// Symbol passed is not valid
-    /// Returned from [`TokenReference::symbol`](struct.TokenReference.html#method.symbol)
+    /// Returned from [`TokenReference::symbol`]
     InvalidSymbol(String),
 }
 
@@ -111,7 +111,7 @@ pub enum TokenType<'a> {
         identifier: Cow<'a, str>,
     },
 
-    /// A multi line comment in the format of --[[ comment ]]
+    /// A multi line comment in the format of `--[[ comment ]]`
     MultiLineComment {
         /// Number of equals signs, if any, for the multi line comment
         /// For example, `--[=[` would have a `blocks` value of `1`
@@ -150,14 +150,14 @@ pub enum TokenType<'a> {
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
         /// Number of equals signs used for a multi line string, if it is one
         /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
-        /// [[string]] would have a `multi_line` value of Some(0)
+        /// `[[string]]` would have a `multi_line` value of Some(0)
         /// A string such as `"string"` would have a `multi_line` value of None
         multi_line: Option<usize>,
         /// The type of quotation mark used to make the string
         quote_type: StringLiteralQuoteType,
     },
 
-    /// A [`Symbol`](enum.Symbol.html), such as `local` or `+`
+    /// A [`Symbol`], such as `local` or `+`
     Symbol {
         /// The symbol itself
         symbol: Symbol,
@@ -192,7 +192,7 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    /// Returns the [`TokenKind`](enum.TokenKind.html) of the token type.
+    /// Returns the kind of the token type.
     ///
     /// ```rust
     /// use std::borrow::Cow;
@@ -241,7 +241,7 @@ pub enum TokenKind {
     Eof,
     /// An identifier, such as `foo`
     Identifier,
-    /// A multi line comment in the format of --[[ comment ]]
+    /// A multi line comment in the format of `--[[ comment ]]`
     MultiLineComment,
     /// A literal number, such as `3.3`
     Number,
@@ -251,13 +251,13 @@ pub enum TokenKind {
     SingleLineComment,
     /// A literal string, such as "Hello, world"
     StringLiteral,
-    /// A [`Symbol`](enum.Symbol.html), such as `local` or `+`
+    /// A [`Symbol`], such as `local` or `+`
     Symbol,
     /// Whitespace, such as tabs or new lines
     Whitespace,
 }
 
-/// A token such consisting of its [`Position`](struct.Position.html) and a [`TokenType`](enum.TokenType.html)
+/// A token such consisting of its [`Position`] and a [`TokenType`]
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
@@ -287,14 +287,14 @@ impl<'a> Token<'a> {
         self.end_position
     }
 
-    /// The [type](enum.TokenType.html) of token as well as the data needed to represent it
-    /// If you don't need any other information, use [`token_kind`](#method.token_kind) instead.
+    /// The type of token as well as the data needed to represent it
+    /// If you don't need any other information, use [`token_kind`](Token::token_kind) instead.
     pub fn token_type(&self) -> &TokenType<'a> {
         &self.token_type
     }
 
-    /// The [kind](enum.TokenKind.html) of token with no additional data.
-    /// If you need any information such as idenitfier names, use [`token_type`](#method.token_type) instead.
+    /// The kind of token with no additional data.
+    /// If you need any information such as idenitfier names, use [`token_type`](Token::token_type) instead.
     pub fn token_kind(&self) -> TokenKind {
         self.token_type().kind()
     }
@@ -390,7 +390,7 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 }
 
 /// A reference to a token used by Ast's.
-/// Dereferences to a [`Token`](struct.Token.html)
+/// Dereferences to a [`Token`]
 #[derive(Clone, Debug, Owned)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenReference<'a> {
@@ -476,7 +476,7 @@ impl<'a> TokenReference<'a> {
         })
     }
 
-    /// Returns the inner [`Token`](struct.Token.html)
+    /// Returns the inner token.
     pub fn token(&self) -> &Token<'a> {
         &self.token
     }
@@ -972,13 +972,13 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
-/// Returns a list of [`Token`](struct.Token.html) structs.
-/// You probably want [`parse`](../fn.parse.html) instead.
+/// Returns a list of tokens.
+/// You probably want [`parse`](crate::parse) instead.
 ///
 /// # Errors
 ///
 /// If the code passed is malformed from normal Lua expectations,
-/// a [`TokenizerError`](struct.TokenizerError.html) will be returned.
+/// a [`TokenizerError`] will be returned.
 ///
 /// ```rust
 /// # use full_moon::tokenizer::tokens;

@@ -57,13 +57,13 @@ impl<'a> Block<'a> {
         }
     }
 
-    /// An iterator over the [statements](enum.Stmt.html) in the block, such as `local foo = 1`
+    /// An iterator over the statements in the block, such as `local foo = 1`
     pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
     /// The last statement of the block if one exists, such as `return foo`
-    /// Deprecated in favor of [`Block::last_stmt`](#method.last_stmt),
+    /// Deprecated in favor of [`Block::last_stmt`],
     /// the plural in `last_stmts` was a typo
     #[deprecated(since = "0.5.0", note = "Use last_stmt instead")]
     pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
@@ -91,7 +91,7 @@ impl<'a> Block<'a> {
     }
 }
 
-/// The last statement of a [`Block`](struct.Block.html)
+/// The last statement of a [`Block`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum LastStmt<'a> {
@@ -153,7 +153,7 @@ impl Default for Return<'_> {
     }
 }
 
-/// Fields of a [`TableConstructor`](struct.TableConstructor.html)
+/// Fields of a [`TableConstructor`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Field<'a> {
@@ -226,7 +226,7 @@ impl<'a> TableConstructor<'a> {
         &self.braces
     }
 
-    /// An iterator over the [fields](enum.Field.html) used to create the table
+    /// An iterator over the fields used to create the table
     pub fn iter_fields(&self) -> impl Iterator<Item = &Field<'a>> {
         self.fields.iter()
     }
@@ -346,7 +346,7 @@ pub enum Expression<'a> {
     },
 }
 
-/// Values that cannot be used standalone, but as part of things such as [statements](enum.Stmt.html)
+/// Values that cannot be used standalone, but as part of things such as [`Stmt`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Value<'a> {
@@ -731,7 +731,7 @@ impl<'a> GenericFor<'a> {
         &self.for_token
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names
+    /// Returns the punctuated sequence of names
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
     pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.names
@@ -742,7 +742,7 @@ impl<'a> GenericFor<'a> {
         &self.in_token
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of the expressions looped over
+    /// Returns the punctuated sequence of the expressions looped over
     /// In `for index, value in pairs(list) do`, iterates over `pairs(list)`
     pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
@@ -924,7 +924,7 @@ impl<'a> If<'a> {
     }
 }
 
-/// An elseif block in a bigger [`If`](struct.If.html) statement
+/// An elseif block in a bigger [`If`] statement
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
@@ -1395,7 +1395,7 @@ pub enum Suffix<'a> {
     Index(Index<'a>),
 }
 
-/// A complex expression used by [`Var`](enum.Var.html), consisting of both a prefix and suffixes
+/// A complex expression used by [`Var`], consisting of both a prefix and suffixes
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
@@ -1435,7 +1435,7 @@ impl<'a> VarExpression<'a> {
     }
 }
 
-/// Used in [`Assignment`s](struct.Assignment.html) and [`Value`s](enum.Value.html)
+/// Used in [`Assignment`s](Assignment) and [`Value`s](Value)
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Var<'a> {
@@ -1448,7 +1448,7 @@ pub enum Var<'a> {
     Name(Cow<'a, TokenReference<'a>>),
 }
 
-/// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](struct.LocalAssignment.html)
+/// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](LocalAssignment)
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "var_list", "equal_token", "expr_list")]
@@ -1472,7 +1472,7 @@ impl<'a> Assignment<'a> {
         }
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the expressions being assigned.
+    /// Returns the punctuated sequence over the expressions being assigned.
     /// This is the the `1, 2` part of `x, y["a"] = 1, 2`
     pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
@@ -1483,7 +1483,7 @@ impl<'a> Assignment<'a> {
         &self.equal_token
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the variables being assigned to.
+    /// Returns the punctuated sequence over the variables being assigned to.
     /// This is the `x, y["a"]` part of `x, y["a"] = 1, 2`
     pub fn var_list(&self) -> &Punctuated<'a, Var<'a>> {
         &self.var_list
@@ -1615,13 +1615,13 @@ impl<'a> LocalAssignment<'a> {
         self.equal_token.as_deref()
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of the expressions being assigned.
+    /// Returns the punctuated sequence of the expressions being assigned.
     /// This is the `1, 2` part of `local x, y = 1, 2`
     pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence of names being assigned to.
+    /// Returns the punctuated sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
     pub fn name_list(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.name_list
@@ -1806,7 +1806,7 @@ impl<'a> FunctionCall<'a> {
     }
 }
 
-/// A function name when being [declared](struct.FunctionDeclaration.html)
+/// A function name when being declared as [`FunctionDeclaration`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
@@ -1840,7 +1840,7 @@ impl<'a> FunctionName<'a> {
         Some(&self.colon_name.as_ref()?.1)
     }
 
-    /// Returns the [`Punctuated`](punctuated/struct.Punctuated.html) sequence over the names used when defining the function.
+    /// Returns the punctuated sequence over the names used when defining the function.
     /// This is the `x.y.z` part of `function x.y.z() end`
     pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.names
@@ -2001,7 +2001,7 @@ pub struct Ast<'a> {
 }
 
 impl<'a> Ast<'a> {
-    /// Create an Ast from the passed tokens. You probably want [`parse`](../fn.parse.html)
+    /// Create an Ast from the passed tokens. You probably want [`parse`](crate::parse)
     ///
     /// # Errors
     ///

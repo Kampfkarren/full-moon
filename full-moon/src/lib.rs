@@ -15,7 +15,7 @@ pub mod node;
 /// Useful for getting symbols and manually tokenizing without going using an AST.
 pub mod tokenizer;
 
-/// Used to create visitors that recurse through [`Ast`](ast/struct.Ast.html) nodes.
+/// Used to create visitors that recurse through [`Ast`](ast::Ast) nodes.
 pub mod visitors;
 
 mod private;
@@ -27,8 +27,8 @@ use std::fmt;
 #[cfg(all(test, not(feature = "serde")))]
 compile_error!("Serde feature must be enabled for tests");
 
-/// An error type that consists of both [`AstError`](ast/enum.AstError.html) and [`TokenizerError`](tokenizer/enum.TokenizerError.html)
-/// Used by [`parse`](fn.parse)
+/// An error type that consists of both [`AstError`](ast::AstError) and [`TokenizerError`](tokenizer::TokenizerError)
+/// Used by [`parse`]
 #[derive(Clone, Debug, PartialEq, Owned)]
 pub enum Error<'a> {
     /// Triggered if there's an issue creating an AST, but tokenizing must have succeeded
@@ -52,7 +52,7 @@ impl<'a> fmt::Display for Error<'a> {
 
 impl<'a> std::error::Error for Error<'a> {}
 
-/// Creates an [`Ast`](ast/struct.Ast.html) from Lua code
+/// Creates an [`Ast`](ast::Ast) from Lua code
 ///
 /// # Errors
 /// If the code passed cannot be tokenized, a TokenizerError will be returned.
@@ -68,7 +68,7 @@ pub fn parse(code: &str) -> Result<ast::Ast, Error> {
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)
 }
 
-/// Prints back Lua code from an [Ast](ast/struct.Ast.html)
+/// Prints back Lua code from an [`Ast`](ast::Ast)
 pub fn print(ast: &ast::Ast) -> String {
     format!("{}{}", ast.nodes(), ast.eof())
 }

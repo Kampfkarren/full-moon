@@ -1,6 +1,6 @@
-//! Exposes the [`Owned`](trait.Owned.html) that nodes implement to produce an owned version of themselves.
+//! Exposes the [`Owned`] that nodes implement to produce an owned version of themselves.
 //! Owned versions are represented as the node with a lifetime of `'static`. For example, if you have
-//! an [`Ast<'a>`](../struct.Ast.html), calling `ast.owned()` on it will produce an owned `Ast<'static>`.
+//! an [`Ast<'a>`](crate::ast::Ast), calling `ast.owned()` on it will produce an owned `Ast<'static>`.
 use super::*;
 use crate::tokenizer::*;
 
