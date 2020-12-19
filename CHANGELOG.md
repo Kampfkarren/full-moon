@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fixed parse error for exponents with an explicit positive sign (eg. `1e+5`)
 
 ### Changed
 - Use intra doc links, remove unnecessary linking for some items in docs.
