@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added `with_XXX` methods to Roblox-related structs under the `roblox` feature flag
+- Added support for retrieving the `Punctuated` sequence of parameters in a `FunctionBody`
 
 ### Changed
 - Use intra doc links, remove unnecessary linking for some items in docs.
-- Added support for retrieving the `Punctuated` sequence of parameters in a `FunctionBody`
 - `FunctionBody::iter_parameters` is now deprecated in favour of `punctuated().iter` 
 
 ## [0.7.0] - 2020-11-06
