@@ -8,6 +8,17 @@ use derive_more::Display;
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TypeInfo<'a> {
+    /// A shorthand type annotating the structure of an array: { number }
+    #[display(fmt = "{}{}{}", "braces.tokens().0", "type_info", "braces.tokens().1")]
+    Array {
+        /// The braces (`{}`) containing the type info.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        braces: ContainedSpan<'a>,
+        /// The type info for the values in the Array
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        type_info: Box<TypeInfo<'a>>,
+    },
+
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
     Basic(#[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>),
