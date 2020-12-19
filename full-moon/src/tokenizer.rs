@@ -729,7 +729,7 @@ fn parse_no_int_fractional_number(code: &str) -> IResult<&str, &str> {
         pair(
             pair(tag("."), parse_digit_with_seperator),
             opt(pair(
-                pair(tag_no_case("e"), opt(tag("-"))),
+                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
                 parse_digit_with_seperator,
             )),
         ),
@@ -742,7 +742,7 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
         pair(
             opt(pair(tag("."), parse_digit_with_seperator)),
             opt(pair(
-                pair(tag_no_case("e"), opt(tag("-"))),
+                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
                 parse_digit_with_seperator,
             )),
         ),
