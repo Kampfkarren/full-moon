@@ -1360,8 +1360,15 @@ impl<'a> FunctionBody<'a> {
     }
 
     /// An iterator over the parameters for the function declaration
+    /// Deprecated in favor of [`Punctuated::iter`], which supports retrieving punctuation too
+    #[deprecated(note = "Please use parameters().iter instead")]
     pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
         self.parameters.iter()
+    }
+
+    /// Returns the [`Punctuated`] sequence of the parameters for the function declaration
+    pub fn parameters(&self) -> &Punctuated<'a, Parameter<'a>> {
+        &self.parameters
     }
 
     /// The code of a function body
