@@ -226,6 +226,24 @@ impl<'a> TypeField<'a> {
     pub fn value(&self) -> &TypeInfo<'a> {
         &self.value
     }
+
+    /// Returns a new TypeField with the given key
+    pub fn with_key(self, key: TypeFieldKey<'a>) -> Self {
+        Self { key, ..self }
+    }
+
+    /// Returns a new TypeField with the `:` token
+    pub fn with_colon_token(self, colon_token: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            colon: colon_token,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeField with the `:` token
+    pub fn with_value(self, value: TypeInfo<'a>) -> Self {
+        Self { value, ..self }
+    }
 }
 
 /// A key in a [`TypeField`]. Can either be a name or an index signature.
@@ -269,6 +287,16 @@ impl<'a> AsAssertion<'a> {
     /// The type to cast the expression into, `number` in `as number`.
     pub fn cast_to(&self) -> &TypeInfo<'a> {
         &self.cast_to
+    }
+
+    /// Returns a new AsAssertion with the given `as` token
+    pub fn with_as_token(self, as_token: Cow<'a, TokenReference<'a>>) -> Self {
+        Self { as_token, ..self }
+    }
+
+    /// Returns a new AsAssertion with the given TypeInfo to cast to
+    pub fn with_cast_to(self, cast_to: TypeInfo<'a>) -> Self {
+        Self { cast_to, ..self }
     }
 }
 
@@ -321,6 +349,40 @@ impl<'a> TypeDeclaration<'a> {
     pub fn type_definition(&self) -> &TypeInfo<'a> {
         &self.declare_as
     }
+
+    /// Returns a new TypeDeclaration with the given `type` token
+    pub fn with_type_token(self, type_token: Cow<'a, TokenReference<'a>>) -> Self {
+        Self { type_token, ..self }
+    }
+
+    /// Returns a new TypeDeclaration with the given type name
+    pub fn with_type_name(self, type_name: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            base: type_name,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeDeclaration with the given generics of the type
+    pub fn with_generics(self, generics: Option<GenericDeclaration<'a>>) -> Self {
+        Self { generics, ..self }
+    }
+
+    /// Returns a new TypeDeclaration with the given generics of the type
+    pub fn with_equal_token(self, equal_token: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            equal_token,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeDeclaration with the given generics of the type
+    pub fn with_type_definition(self, type_definition: TypeInfo<'a>) -> Self {
+        Self {
+            declare_as: type_definition,
+            ..self
+        }
+    }
 }
 
 /// The generics used in a [`TypeDeclaration`].
@@ -344,6 +406,16 @@ impl<'a> GenericDeclaration<'a> {
     /// The names of the generics: `T, U` in `<T, U>`.
     pub fn generics(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.generics
+    }
+
+    /// Returns a new GenericDeclaration with the given arrows containing the types
+    pub fn with_arrows(self, arrows: ContainedSpan<'a>) -> Self {
+        Self { arrows, ..self }
+    }
+
+    /// Returns a new TypeDeclaration with the given names of the generics
+    pub fn with_generics(self, generics: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+        Self { generics, ..self }
     }
 }
 
@@ -369,6 +441,19 @@ impl<'a> TypeSpecifier<'a> {
     pub fn type_info(&self) -> &TypeInfo<'a> {
         &self.type_info
     }
+
+    /// Returns a new TypeSpecifier with the given punctuation
+    pub fn with_punctuation(self, punctuation: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            punctuation,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeSpecifier with the given type being specified
+    pub fn with_type_info(self, type_info: TypeInfo<'a>) -> Self {
+        Self { type_info, ..self }
+    }
 }
 
 /// An exported type declaration, such as `export type Meters = number`
@@ -391,6 +476,22 @@ impl<'a> ExportedTypeDeclaration<'a> {
     /// The type declaration, `type Meters = number`.
     pub fn type_declaration(&self) -> &TypeDeclaration<'a> {
         &self.type_declaration
+    }
+
+    /// Returns a new ExportedTypeDeclaration with the `export` token
+    pub fn with_export_token(self, export_token: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            export_token,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeDeclaration with the given type declaration
+    pub fn with_type_declaration(self, type_declaration: TypeDeclaration<'a>) -> Self {
+        Self {
+            type_declaration,
+            ..self
+        }
     }
 }
 
@@ -441,5 +542,23 @@ impl<'a> CompoundAssignment<'a> {
     /// The value being assigned, the `1` part of `x += 1`
     pub fn rhs(&self) -> &Expression<'a> {
         &self.rhs
+    }
+
+    /// Returns a new CompoundAssignment with the given variable being assigned to
+    pub fn with_lhs(self, lhs: Var<'a>) -> Self {
+        Self { lhs, ..self }
+    }
+
+    /// Returns a new CompoundAssignment with the given operator used
+    pub fn with_compound_operator(self, compound_operator: CompoundOp<'a>) -> Self {
+        Self {
+            compound_operator,
+            ..self
+        }
+    }
+
+    /// Returns a new CompoundAssignment with the given value being assigned
+    pub fn with_rhs(self, rhs: Expression<'a>) -> Self {
+        Self { rhs, ..self }
     }
 }

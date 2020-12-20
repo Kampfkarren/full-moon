@@ -459,9 +459,26 @@ define_parser!(
     ParseNumericFor,
     NumericFor<'a>,
     |_, state: ParserState<'a>| {
-        let (state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
-        let (state, index_variable) =
-            expect!(state, ParseIdentifier.parse(state), "expected names");
+        let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
+
+        let index_variable;
+        let mut type_specifier = None;
+
+        if cfg!(feature = "roblox") {
+            let (new_state, (new_index_variable, new_type_specifier)) =
+                expect!(state, ParseNameWithType.parse(state), "expected names");
+
+            state = new_state;
+            index_variable = new_index_variable;
+            type_specifier = new_type_specifier;
+        } else {
+            let (new_state, new_index_variable) =
+                expect!(state, ParseIdentifier.parse(state), "expected names");
+
+            state = new_state;
+            index_variable = new_index_variable;
+        }
+
         let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state)?; // Numeric fors run before generic fors, so we can't guarantee this
         let (state, start) = expect!(
             state,
@@ -512,6 +529,8 @@ define_parser!(
                 do_token,
                 block,
                 end_token,
+                #[cfg(feature = "roblox")]
+                type_specifier,
             },
         ))
     }
@@ -523,12 +542,37 @@ define_parser!(
     ParseGenericFor,
     GenericFor<'a>,
     |_, state: ParserState<'a>| {
-        let (state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
-        let (state, names) = expect!(
-            state,
-            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected names"
-        );
+        let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
+
+        let mut names;
+        let mut type_specifiers = Vec::new();
+
+        if cfg!(feature = "roblox") {
+            names = Punctuated::new();
+
+            let (new_state, full_name_list) = expect!(
+                state,
+                OneOrMore(ParseNameWithType, ParseSymbol(Symbol::Comma), false).parse(state),
+                "expected names"
+            );
+
+            for mut pair in full_name_list.into_pairs() {
+                type_specifiers.push(pair.value_mut().1.take());
+                names.push(pair.map(|(name, _)| name));
+            }
+
+            state = new_state;
+        } else {
+            let (new_state, new_names) = expect!(
+                state,
+                OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
+                "expected names"
+            );
+
+            state = new_state;
+            names = new_names;
+        }
+
         let (state, in_token) =
             expect!(state, ParseSymbol(Symbol::In).parse(state), "expected 'in'"); // Numeric fors run before here, so there has to be an in
         let (state, expr_list) = expect!(
@@ -554,6 +598,8 @@ define_parser!(
                 do_token,
                 block,
                 end_token,
+                #[cfg(feature = "roblox")]
+                type_specifiers,
             },
         ))
     }

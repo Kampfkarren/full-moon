@@ -505,22 +505,8 @@ pub enum FunctionArgs<'a> {
 }
 
 /// A numeric for loop, such as `for index = 1, 10 do end`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    fmt = "{}{}{}{}{}{}{}{}{}{}{}",
-    "for_token",
-    "index_variable",
-    "equal_token",
-    "start",
-    "start_end_comma",
-    "end",
-    "display_option(end_step_comma)",
-    "display_option(step)",
-    "do_token",
-    "block",
-    "end_token"
-)]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: Cow<'a, TokenReference<'a>>,
@@ -534,6 +520,9 @@ pub struct NumericFor<'a> {
     do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
     end_token: Cow<'a, TokenReference<'a>>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifier: Option<TypeSpecifier<'a>>,
 }
 
 impl<'a> NumericFor<'a> {
@@ -555,6 +544,8 @@ impl<'a> NumericFor<'a> {
             do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
             block: Block::new(),
             end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            #[cfg(feature = "roblox")]
+            type_specifier: None,
         }
     }
 
@@ -615,6 +606,15 @@ impl<'a> NumericFor<'a> {
     /// The `end` token
     pub fn end_token(&self) -> &TokenReference<'a> {
         &self.end_token
+    }
+
+    /// The type specifiers of the index variable
+    /// `for i: number = 1, 10 do` returns:
+    /// `Some(TypeSpecifier(number))`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn type_specifier(&self) -> Option<&TypeSpecifier<'a>> {
+        self.type_specifier.as_ref()
     }
 
     /// Returns a new NumericFor with the given for token
@@ -683,21 +683,62 @@ impl<'a> NumericFor<'a> {
     pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
         Self { end_token, ..self }
     }
+
+    /// Returns a new NumericFor with the given type specifiers
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn with_type_specifier(self, type_specifier: Option<TypeSpecifier<'a>>) -> Self {
+        Self {
+            type_specifier,
+            ..self
+        }
+    }
+}
+
+impl fmt::Display for NumericFor<'_> {
+    #[cfg(feature = "roblox")]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}{}{}{}{}{}",
+            self.for_token,
+            self.index_variable,
+            display_option(self.type_specifier()),
+            self.equal_token,
+            self.start,
+            self.start_end_comma,
+            self.end,
+            display_option(self.end_step_comma()),
+            display_option(self.step()),
+            self.do_token,
+            self.block,
+            self.end_token,
+        )
+    }
+
+    #[cfg(not(feature = "roblox"))]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}{}{}{}{}",
+            self.for_token,
+            self.index_variable,
+            self.equal_token,
+            self.start,
+            self.start_end_comma,
+            self.end,
+            display_option(self.end_step_comma()),
+            display_option(self.step()),
+            self.do_token,
+            self.block,
+            self.end_token,
+        )
+    }
 }
 
 /// A generic for loop, such as `for index, value in pairs(list) do end`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    fmt = "{}{}{}{}{}{}{}",
-    "for_token",
-    "names",
-    "in_token",
-    "expr_list",
-    "do_token",
-    "block",
-    "end_token"
-)]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: Cow<'a, TokenReference<'a>>,
@@ -707,6 +748,9 @@ pub struct GenericFor<'a> {
     do_token: Cow<'a, TokenReference<'a>>,
     block: Block<'a>,
     end_token: Cow<'a, TokenReference<'a>>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
 }
 
 impl<'a> GenericFor<'a> {
@@ -723,6 +767,8 @@ impl<'a> GenericFor<'a> {
             do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
             block: Block::new(),
             end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            #[cfg(feature = "roblox")]
+            type_specifiers: Vec::new(),
         }
     }
 
@@ -763,6 +809,15 @@ impl<'a> GenericFor<'a> {
         &self.end_token
     }
 
+    /// The type specifiers of the named variables, in the order that they were assigned.
+    /// `for i, v: string in pairs() do` returns an iterator containing:
+    /// `None, Some(TypeSpecifier(string))`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier<'a>>> {
+        self.type_specifiers.iter().map(Option::as_ref)
+    }
+
     /// Returns a new GenericFor with the given `for` token
     pub fn with_for_token(self, for_token: Cow<'a, TokenReference<'a>>) -> Self {
         Self { for_token, ..self }
@@ -796,6 +851,48 @@ impl<'a> GenericFor<'a> {
     /// Returns a new GenericFor with the given `end` token
     pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
         Self { end_token, ..self }
+    }
+
+    /// Returns a new GenericFor with the given type specifiers
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier<'a>>>) -> Self {
+        Self {
+            type_specifiers,
+            ..self
+        }
+    }
+}
+
+impl fmt::Display for GenericFor<'_> {
+    #[cfg(feature = "roblox")]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}",
+            self.for_token,
+            join_type_specifiers(&self.names, self.type_specifiers()),
+            self.in_token,
+            self.expr_list,
+            self.do_token,
+            self.block,
+            self.end_token
+        )
+    }
+
+    #[cfg(not(feature = "roblox"))]
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}",
+            self.for_token,
+            self.names,
+            self.in_token,
+            self.expr_list,
+            self.do_token,
+            self.block,
+            self.end_token
+        )
     }
 }
 
@@ -1263,8 +1360,15 @@ impl<'a> FunctionBody<'a> {
     }
 
     /// An iterator over the parameters for the function declaration
+    /// Deprecated in favor of [`Punctuated::iter`], which supports retrieving punctuation too
+    #[deprecated(note = "Please use parameters().iter instead")]
     pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
         self.parameters.iter()
+    }
+
+    /// Returns the [`Punctuated`] sequence of the parameters for the function declaration
+    pub fn parameters(&self) -> &Punctuated<'a, Parameter<'a>> {
+        &self.parameters
     }
 
     /// The code of a function body
