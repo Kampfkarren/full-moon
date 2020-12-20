@@ -1415,26 +1415,43 @@ cfg_if::cfg_if! {
                     )
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
-                let (state, fields) = expect!(
-                    state,
-                    ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
-                        .parse(state),
-                    "expected fields in between braces"
-                );
+                if let Ok((state, fields)) = ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
+                        .parse(state)
+                {
+                    let (state, end_brace) = expect!(
+                        state,
+                        ParseSymbol(Symbol::RightBrace).parse(state),
+                        "expected `}` to match `{`"
+                    );
 
-                let (state, end_brace) = expect!(
-                    state,
-                    ParseSymbol(Symbol::RightBrace).parse(state),
-                    "expected `}` to match `{`"
-                );
+                    (
+                        state,
+                        TypeInfo::Table {
+                            braces: ContainedSpan::new(start_brace, end_brace),
+                            fields,
+                        },
+                    )
+                } else {
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseTypeInfo.parse(state),
+                        "expected type in array"
+                    );
 
-                (
-                    state,
-                    TypeInfo::Table {
-                        braces: ContainedSpan::new(start_brace, end_brace),
-                        fields,
-                    },
-                )
+                    let (state, end_brace) = expect!(
+                        state,
+                        ParseSymbol(Symbol::RightBrace).parse(state),
+                        "expected `}` to match `{`"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Array {
+                            braces: ContainedSpan::new(start_brace, end_brace),
+                            type_info: Box::new(type_info)
+                        },
+                    )
+                }
             } else {
                 return Err(InternalAstError::NoMatch);
             };

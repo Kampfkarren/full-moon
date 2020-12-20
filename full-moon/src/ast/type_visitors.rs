@@ -12,6 +12,11 @@ impl<'a> Visit<'a> for TypeInfo<'a> {
     fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
         visitor.visit_type_info(self);
         match self {
+            TypeInfo::Array { braces, type_info } => {
+                braces.tokens.0.visit(visitor);
+                type_info.visit(visitor);
+                braces.tokens.1.visit(visitor);
+            }
             TypeInfo::Basic(__self_0) => {
                 __self_0.visit(visitor);
             }
@@ -96,6 +101,16 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
     fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_type_info(self);
         self = match self {
+            TypeInfo::Array {
+                mut braces,
+                mut type_info,
+            } => {
+                braces.tokens.0 = braces.tokens.0.visit_mut(visitor);
+                type_info = type_info.visit_mut(visitor);
+                braces.tokens.1 = braces.tokens.1.visit_mut(visitor);
+
+                TypeInfo::Array { braces, type_info }
+            }
             TypeInfo::Basic(__self_0) => TypeInfo::Basic(__self_0.visit_mut(visitor)),
             TypeInfo::Callback {
                 mut parentheses,
