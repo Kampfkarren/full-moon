@@ -227,8 +227,14 @@ impl<'a> TableConstructor<'a> {
     }
 
     /// An iterator over the fields used to create the table
+    #[deprecated(note = "Please use fields().iter instead")]
     pub fn iter_fields(&self) -> impl Iterator<Item = &Field<'a>> {
         self.fields.iter()
+    }
+
+    /// Returns the [`Punctuated`] sequence of the fields used to create the table
+    pub fn fields(&self) -> &Punctuated<'a, Field<'a>> {
+        &self.fields
     }
 
     /// Returns a new TableConstructor with the given braces
