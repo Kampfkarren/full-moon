@@ -536,7 +536,7 @@ impl<'a> Visit<'a> for NumericFor<'a> {
         self.block.visit(visitor);
         self.end_token.visit(visitor);
 
-        visitor.visit_numeric_for(self);
+        visitor.visit_numeric_for_end(self);
     }
 }
 
