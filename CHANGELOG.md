@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `TableConstructor::iter_fields` is now deprecated in favour of `parameters().iter`
 
+### Fixed
+- Fixed visit_numeric_for running twice.
+
 ## [0.8.0] - 2020-12-21
 ### Added
 - Added `with_XXX` methods to Roblox-related structs under the `roblox` feature flag
