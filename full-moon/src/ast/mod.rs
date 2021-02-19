@@ -62,6 +62,14 @@ impl<'a> Block<'a> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
+    /// An iterator over the statements in the block, including any optional
+    /// semicolon token reference present
+    pub fn iter_stmts_with_semicolon(
+        &self,
+    ) -> impl Iterator<Item = &(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)> {
+        self.stmts.iter()
+    }
+
     /// The last statement of the block if one exists, such as `return foo`
     /// Deprecated in favor of [`Block::last_stmt`],
     /// the plural in `last_stmts` was a typo
