@@ -10,6 +10,9 @@ categories = ["parsing"]
 keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
+[package.metadata.docs.rs]
+features = ["roblox"]
+
 [features]
 default = ["serde"]
 roblox = []
