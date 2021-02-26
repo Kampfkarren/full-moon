@@ -2227,13 +2227,28 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
         if token.token_type().is_trivia() {
             leading_trivia.push(token);
         } else {
+            // Variable indicating whether we have extracted a newline so far for our trailing trivia
+            // If so, and we then reach a comment, we should stop taking any more trivia
+            let mut extracted_newline = false;
+
             while let Some(token) = tokens.peek() {
                 if token.token_type().is_trivia() {
-                    if let TokenType::Whitespace { ref characters } = &*token.token_type() {
-                        // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                        if characters.contains('\n') {
-                            break;
+                    match &*token.token_type() {
+                        TokenType::Whitespace { ref characters } => {
+                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+                            if characters.contains('\n') {
+                                extracted_newline = true;
+                            }
                         }
+                        TokenType::SingleLineComment { .. }
+                        | TokenType::MultiLineComment { .. } => {
+                            // Stop taking any more trivia if we reach a comment, and we have already taken a newline
+                            // This is so that the comment is parsed as leading trivia for the next token instead
+                            if extracted_newline {
+                                break;
+                            }
+                        }
+                        _ => panic!("unexpected token trivia that wasn't a whitespace/comment"),
                     }
 
                     trailing_trivia.push(tokens.next().unwrap());
@@ -2277,14 +2292,16 @@ mod tests {
         assert_eq!(references[2].token.to_string(), "1");
         assert!(references[2].leading_trivia.is_empty());
 
-        assert_eq!(references[4].leading_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].token.to_string(), ")");
+        assert!(references[3].leading_trivia.is_empty());
 
         assert_eq!(
-            references[4].leading_trivia[1].to_string(),
+            references[4].leading_trivia[0].to_string(),
             "-- hello world",
         );
 
-        assert_eq!(references[4].leading_trivia[2].to_string(), "\n");
+        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
         assert_eq!(references[4].token.to_string(), "local");
         assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
     }
