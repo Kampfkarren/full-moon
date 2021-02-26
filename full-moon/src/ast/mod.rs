@@ -2218,7 +2218,7 @@ impl<'a> Ast<'a> {
 }
 
 /// Extracts leading and trailing trivia from tokens
-pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<TokenReference<'a>> {
+pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenReference> {
     let mut references = Vec::new();
     let (mut leading_trivia, mut trailing_trivia) = (Vec::new(), Vec::new());
     let mut tokens = tokens.drain(..).peekable();
@@ -2248,7 +2248,10 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
                                 break;
                             }
                         }
-                        _ => panic!("unexpected token trivia that wasn't a whitespace/comment"),
+                        other => unreachable!(
+                            "unexpected token trivia that wasn't a whitespace/comment: {:?}",
+                            other
+                        ),
                     }
 
                     trailing_trivia.push(tokens.next().unwrap());
