@@ -749,14 +749,6 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     ))(code)
 }
 
-#[cfg(not(feature = "roblox"))]
-fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
-    Err(nom::Err::Error((
-        "roblox feature not enabled",
-        nom::error::ErrorKind::Alt,
-    )))
-}
-
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
@@ -767,6 +759,7 @@ fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
     alt((
+        #[cfg(feature = "roblox")]
         parse_roblox_number,
         parse_hex_number,
         parse_basic_number,
