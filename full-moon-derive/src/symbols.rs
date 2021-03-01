@@ -62,16 +62,36 @@ impl Parse for SymbolsInput {
 pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let symbols = parse_macro_input!(input as SymbolsInput).symbols;
 
-    let string = symbols.values().collect::<Vec<_>>();
-    let splits = string.chunks(ALT_LIMIT).map(|string| {
+    let string: Vec<_> = symbols.values().collect();
+    let ident: Vec<_> = symbols.keys().collect();
+    let symbols: Vec<_> = symbols.iter().collect();
+    let splits = symbols.chunks(ALT_LIMIT).map(|symbols| {
+        let parsers = symbols.iter().map(|(symbol, string)| {
+            // Note this doesn't handle the case of keywords with digits
+            // which doesn't currently occur.
+            let matcher = if string
+                .value()
+                .chars()
+                .all(|char| char.is_ascii_alphabetic() || char == '_')
+            {
+                quote! {
+                    terminated(
+                        tag(#string),
+                        not(alt((alphanumeric1, tag("_")))),
+                    )
+                }
+            } else {
+                quote! {tag(#string)}
+            };
+            quote! {value(Symbol::#symbol, #matcher)}
+        });
+
         quote! {
             alt((#(
-                tag(#string),
+                #parsers,
             )*))
         }
     });
-
-    let ident: Vec<_> = symbols.keys().collect();
 
     let output = quote! {
         /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
@@ -105,33 +125,20 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         }
 
-        fn parse_symbol(code: &str) -> IResult<&str, &str> {
+        fn parse_symbol(code: &str) -> IResult<&str, Symbol> {
+            use ::nom::{
+                branch::alt,
+                bytes::complete::{tag},
+                character::complete::{alphanumeric1},
+                combinator::{not, value},
+                sequence::terminated,
+            };
             let mut combinator = alt((
                 #(
                     #splits,
                 )*
             ));
-
-            if code.chars().next().unwrap().is_ascii_alphanumeric() {
-                let identifier = match parse_identifier(code) {
-                    Ok((_, identifier)) => identifier,
-                    Err(_) => panic!("Parsing identifier failed"),
-                };
-
-                let expected_len = identifier.len();
-                let (input, find) = combinator(code)?;
-
-                if find.len() == expected_len {
-                    Ok((input, find))
-                } else {
-                    use nom::error::make_error;
-
-                    // TODO: How does nom produce errors?
-                    Err(nom::Err::Error(make_error(code, nom::error::ErrorKind::Alt)))
-                }
-            } else {
-                combinator(code)
-            }
+            combinator(code)
         }
     };
 

@@ -5,7 +5,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
     character::complete::{anychar, digit1, line_ending, space1},
-    combinator::{opt, recognize},
+    combinator::{consumed, opt, recognize},
     multi::many_till,
     sequence::{delimited, pair, preceded, tuple},
     IResult,
@@ -901,12 +901,10 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    match parse_symbol(code) {
-        Ok((_, string)) => Ok(Some(TokenAdvancement {
+    match consumed(parse_symbol)(code) {
+        Ok((_, (string, symbol))) => Ok(Some(TokenAdvancement {
             advance: string.chars().count(),
-            token_type: TokenType::Symbol {
-                symbol: Symbol::from_str(string).unwrap(),
-            },
+            token_type: TokenType::Symbol { symbol },
         })),
 
         Err(_) => Ok(None),
