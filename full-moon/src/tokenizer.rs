@@ -4,9 +4,9 @@ use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
-    character::complete::{anychar, digit1, line_ending, space1},
+    character::complete::{alpha1, alphanumeric1, anychar, digit1, line_ending, space1},
     combinator::{consumed, opt, recognize},
-    multi::many_till,
+    multi::{many0, many_till},
     sequence::{delimited, pair, preceded, tuple},
     IResult,
 };
@@ -782,10 +782,8 @@ fn advance_number(code: &str) -> Advancement {
 #[inline]
 fn parse_identifier(code: &str) -> IResult<&str, &str> {
     recognize(pair(
-        // Identifiers must start with at least 1 alphabetic character
-        take_while1(|x: char| x.is_ascii_alphabetic() || x == '_'),
-        // And then they must be followed by 0 or more alphanumeric (or '_') characters
-        take_while(|x: char| x.is_ascii_alphanumeric() || x == '_'),
+        alt((alpha1, tag("_"))),
+        many0(alt((alphanumeric1, tag("_")))),
     ))(code)
 }
 
