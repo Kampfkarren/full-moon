@@ -106,7 +106,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         }
 
         fn parse_symbol(code: &str) -> IResult<&str, &str> {
-            let combinator = alt((
+            let mut combinator = alt((
                 #(
                     #splits,
                 )*
@@ -124,10 +124,10 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 if find.len() == expected_len {
                     Ok((input, find))
                 } else {
-                    use nom::error::ParseError;
+                    use nom::error::make_error;
 
                     // TODO: How does nom produce errors?
-                    Err(nom::Err::Error(("symbol not found", nom::error::ErrorKind::Alt)))
+                    Err(nom::Err::Error(make_error(code, nom::error::ErrorKind::Alt)))
                 }
             } else {
                 combinator(code)

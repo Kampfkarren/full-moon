@@ -25,7 +25,7 @@ derive_more = "0.99"
 full_moon_derive = { path = "../full-moon-derive", version = "=0.5.0" }
 paste = "0.1"
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
-nom = "5.0"
+nom = "6.1.2"
 
 [dev-dependencies]
 criterion = "0.2"
