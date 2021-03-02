@@ -3,9 +3,11 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take_till, take_until, take_while, take_while1},
-    character::complete::{alpha1, alphanumeric1, anychar, digit1, line_ending, space1},
-    combinator::{consumed, opt, recognize},
+    bytes::complete::{escaped, tag, tag_no_case, take_till, take_until, take_while, take_while1},
+    character::complete::{
+        alpha1, alphanumeric1, anychar, digit1, line_ending, none_of, one_of, space1,
+    },
+    combinator::{consumed, map, opt, recognize, success, value},
     multi::{many0, many_till},
     sequence::{delimited, pair, preceded, terminated},
     IResult,
@@ -815,6 +817,27 @@ fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
 }
 
+#[inline]
+fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQuoteType, &str)>> {
+    macro_rules! quoted {
+        ($quote:literal, $quote_type:path) => {
+            pair(
+                success($quote_type),
+                delimited(
+                    tag($quote),
+                    escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                    tag($quote),
+                ),
+            )
+        };
+    };
+    alt((
+        map(quoted!("\"", StringLiteralQuoteType::Double), Some),
+        map(quoted!("\'", StringLiteralQuoteType::Single), Some),
+        value(None, one_of("\"\'")),
+    ))(code)
+}
+
 fn advance_quote(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
         return match parse_multi_line_body(code, block_count) {
@@ -833,49 +856,17 @@ fn advance_quote(code: &str) -> Advancement {
         };
     }
 
-    let quote = if code.starts_with('"') {
-        '"'
-    } else if code.starts_with('\'') {
-        '\''
-    } else {
-        return Ok(None);
-    };
-
-    let mut end = None;
-    let mut escape = false;
-
-    for (char_index, (byte_index, character)) in code.char_indices().enumerate().skip(1) {
-        if character == '\\' {
-            escape = !escape;
-        } else if character == quote {
-            if escape {
-                escape = false;
-            } else {
-                end = Some((char_index, byte_index));
-                break;
-            }
-        } else if (character == '\r' || character == '\n') && !escape {
-            return Err(TokenizerErrorType::UnclosedString);
-        } else {
-            escape = false;
-        }
-    }
-
-    if let Some((char_index, byte_index)) = end {
-        Ok(Some(TokenAdvancement {
-            advance: char_index + 1,
+    match parse_single_line_string(code) {
+        Ok((_, Some((quote, string)))) => Ok(Some(TokenAdvancement {
+            advance: 2 + string.chars().count(),
             token_type: TokenType::StringLiteral {
-                literal: Cow::from(&code[1..byte_index]),
+                literal: Cow::from(string),
                 multi_line: None,
-                quote_type: match quote {
-                    '"' => StringLiteralQuoteType::Double,
-                    '\'' => StringLiteralQuoteType::Single,
-                    _ => unreachable!(),
-                },
+                quote_type: quote,
             },
-        }))
-    } else {
-        Err(TokenizerErrorType::UnclosedString)
+        })),
+        Ok((_, None)) => Err(TokenizerErrorType::UnclosedString),
+        Err(_) => Ok(None),
     }
 }
 
