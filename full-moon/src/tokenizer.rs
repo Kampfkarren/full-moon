@@ -5,7 +5,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
     character::complete::{anychar, digit1, line_ending, space1},
-    combinator::{opt, recognize},
+    combinator::{consumed, opt, recognize},
     multi::many_till,
     sequence::{delimited, pair, preceded, tuple},
     IResult,
@@ -749,14 +749,6 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     ))(code)
 }
 
-#[cfg(not(feature = "roblox"))]
-fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
-    Err(nom::Err::Error((
-        "roblox feature not enabled",
-        nom::error::ErrorKind::Alt,
-    )))
-}
-
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
@@ -767,6 +759,7 @@ fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
     alt((
+        #[cfg(feature = "roblox")]
         parse_roblox_number,
         parse_hex_number,
         parse_basic_number,
@@ -908,12 +901,10 @@ fn advance_quote(code: &str) -> Advancement {
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    match parse_symbol(code) {
-        Ok((_, string)) => Ok(Some(TokenAdvancement {
+    match consumed(parse_symbol)(code) {
+        Ok((_, (string, symbol))) => Ok(Some(TokenAdvancement {
             advance: string.chars().count(),
-            token_type: TokenType::Symbol {
-                symbol: Symbol::from_str(string).unwrap(),
-            },
+            token_type: TokenType::Symbol { symbol },
         })),
 
         Err(_) => Ok(None),
