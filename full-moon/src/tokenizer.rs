@@ -3,11 +3,11 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
+    bytes::complete::{tag, tag_no_case, take_till, take_until, take_while, take_while1},
     character::complete::{alpha1, alphanumeric1, anychar, digit1, line_ending, space1},
     combinator::{consumed, opt, recognize},
     multi::{many0, many_till},
-    sequence::{delimited, pair, preceded, tuple},
+    sequence::{delimited, pair, preceded, terminated},
     IResult,
 };
 #[cfg(feature = "serde")]
@@ -660,23 +660,17 @@ fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
 }
 
 #[inline]
-fn parse_multi_line_comment_body<'a>(
-    code: &'a str,
-    block_count: &'a str,
-) -> IResult<&'a str, &'a str> {
-    recognize(many_till(
-        anychar,
-        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
-    ))(code)
+fn parse_multi_line_body<'a>(code: &'a str, block_count: &'a str) -> IResult<&'a str, &'a str> {
+    let terminator = format!("]{}]", block_count);
+    let res = terminated(take_until(terminator.as_str()), tag(terminator.as_str()))(code);
+    res
 }
 
 fn advance_comment(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
-        return match parse_multi_line_comment_body(code, block_count) {
+        return match parse_multi_line_body(code, block_count) {
             Ok((_, comment)) => {
                 let blocks = block_count.chars().count();
-                // Get the comment without the ending "]]"
-                let comment = &comment[..(comment.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
                     advance: comment.chars().count() + blocks * 2 + "--[[]]".chars().count(),
                     token_type: TokenType::MultiLineComment {
@@ -821,24 +815,11 @@ fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
 }
 
-#[inline]
-fn parse_multi_line_string_body<'a>(
-    code: &'a str,
-    block_count: &'a str,
-) -> IResult<&'a str, &'a str> {
-    recognize(many_till(
-        anychar,
-        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
-    ))(code)
-}
-
 fn advance_quote(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
-        return match parse_multi_line_string_body(code, block_count) {
+        return match parse_multi_line_body(code, block_count) {
             Ok((_, body)) => {
                 let blocks = block_count.chars().count();
-                // Get the body without the ending "]]"
-                let body = &body[..(body.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
                     advance: body.chars().count() + blocks * 2 + "[[]]".chars().count(),
                     token_type: TokenType::StringLiteral {
