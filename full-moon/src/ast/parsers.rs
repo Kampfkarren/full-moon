@@ -76,7 +76,7 @@ macro_rules! from_nom {
 }
 
 fn from_parser<'a, 'b, R>(
-    parser: impl Parser<'a, Item = R>,
+    parser: impl Parser<'a, 'b, Item = R>,
 ) -> impl FnMut(ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, R, InternalAstError<'a>>
 where
     'a: 'b,

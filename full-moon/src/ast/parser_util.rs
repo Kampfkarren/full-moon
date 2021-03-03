@@ -86,10 +86,10 @@ impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
     }
 }
 
-pub(crate) trait Parser<'a>: Sized {
+pub(crate) trait Parser<'a, 'b>{
     type Item;
 
-    fn parse<'b>(
+    fn parse(
         &self,
         state: ParserState<'a, 'b>,
     ) -> Result<(ParserState<'a, 'b>, Self::Item), InternalAstError<'a>>;
@@ -117,10 +117,10 @@ macro_rules! make_op {
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ident, $node:ty, $body:expr) => {
-        impl<'a> Parser<'a> for $parser {
+        impl<'a, 'b> Parser<'a, 'b> for $parser {
             type Item = $node;
 
-            fn parse<'b>(
+            fn parse(
                 &self,
                 state: ParserState<'a, 'b>,
             ) -> Result<(ParserState<'a, 'b>, $node), InternalAstError<'a>> {
@@ -220,13 +220,13 @@ pub enum InternalAstError<'a> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMore<P>(pub P);
 
-impl<'a, P, T> Parser<'a> for ZeroOrMore<P>
+impl<'a, 'b, P, T> Parser<'a, 'b> for ZeroOrMore<P>
 where
-    P: Parser<'a, Item = T>,
+    P: Parser<'a, 'b, Item = T>,
 {
     type Item = Vec<T>;
 
-    fn parse<'b>(
+    fn parse(
         &self,
         mut state: ParserState<'a, 'b>,
     ) -> Result<(ParserState<'a, 'b>, Vec<T>), InternalAstError<'a>> {
@@ -277,15 +277,15 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
+impl<'a, 'b, ItemParser, Delimiter, T> Parser<'a, 'b> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
-    ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    ItemParser: Parser<'a, 'b, Item = T>,
+    Delimiter: Parser<'a, 'b, Item = Cow<'a, TokenReference<'a>>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
 
-    fn parse<'b>(
+    fn parse(
         &self,
         mut state: ParserState<'a, 'b>,
     ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, T>), InternalAstError<'a>> {
@@ -345,15 +345,15 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
+impl<'a, 'b, ItemParser, Delimiter: Parser<'a, 'b>, T> Parser<'a, 'b> for OneOrMore<ItemParser, Delimiter>
 where
-    ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    ItemParser: Parser<'a, 'b, Item = T>,
+    Delimiter: Parser<'a, 'b, Item = Cow<'a, TokenReference<'a>>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;
 
-    fn parse<'b>(
+    fn parse(
         &self,
         state: ParserState<'a, 'b>,
     ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
