@@ -2157,7 +2157,8 @@ impl<'a> Ast<'a> {
                 state = state.advance().unwrap();
             }
 
-            match parsers::ParseBlock.parse(state) {
+            use nom::Parser as _;
+            match parsers::block.parse(state) {
                 Ok((state, block)) => {
                     if state.index == tokens.len() - 1 {
                         Ok(Ast {
@@ -2171,13 +2172,17 @@ impl<'a> Ast<'a> {
                         })
                     }
                 }
+                Err(nom::Err::Incomplete(_)) => todo!(),
+                Err(nom::Err::Error(InternalAstError::NoMatch))
+                | Err(nom::Err::Failure(InternalAstError::NoMatch)) => {
+                    Err(AstError::UnexpectedToken {
+                        token: (*state.peek()).to_owned().token,
+                        additional: None,
+                    })
+                }
 
-                Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                    token: (*state.peek()).to_owned().token,
-                    additional: None,
-                }),
-
-                Err(InternalAstError::UnexpectedToken { token, additional }) => {
+                Err(nom::Err::Error(InternalAstError::UnexpectedToken { token, additional }))
+                | Err(nom::Err::Failure(InternalAstError::UnexpectedToken { token, additional })) => {
                     Err(AstError::UnexpectedToken {
                         token: (*token).to_owned(),
                         additional: additional.map(Cow::Borrowed),
