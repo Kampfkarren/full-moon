@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated dependency cfg_if to v1.0
 
 ### Fixed
-- Fixed the start position of tokens at the beginnig of a line to not be at the end of the previous line.
+- Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
 
 ## [0.9.0] - 2020-12-21
 ### Added
