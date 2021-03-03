@@ -303,8 +303,8 @@
             "token": {
               "start_position": {
                 "bytes": 29,
-                "character": 29,
-                "line": 1
+                "character": 1,
+                "line": 2
               },
               "end_position": {
                 "bytes": 34,
@@ -535,8 +535,8 @@
             "token": {
               "start_position": {
                 "bytes": 57,
-                "character": 28,
-                "line": 2
+                "character": 1,
+                "line": 3
               },
               "end_position": {
                 "bytes": 62,

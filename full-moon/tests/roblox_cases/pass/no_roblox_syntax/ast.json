@@ -41,8 +41,8 @@
             "token": {
               "start_position": {
                 "bytes": 98,
-                "character": 98,
-                "line": 1
+                "character": 1,
+                "line": 2
               },
               "end_position": {
                 "bytes": 103,
@@ -348,8 +348,8 @@
             "token": {
               "start_position": {
                 "bytes": 161,
-                "character": 63,
-                "line": 2
+                "character": 1,
+                "line": 3
               },
               "end_position": {
                 "bytes": 166,
@@ -654,8 +654,8 @@
               {
                 "start_position": {
                   "bytes": 210,
-                  "character": 49,
-                  "line": 3
+                  "character": 1,
+                  "line": 4
                 },
                 "end_position": {
                   "bytes": 211,
@@ -672,7 +672,7 @@
               "start_position": {
                 "bytes": 211,
                 "character": 1,
-                "line": 4
+                "line": 5
               },
               "end_position": {
                 "bytes": 216,
@@ -1034,8 +1034,8 @@
               {
                 "start_position": {
                   "bytes": 270,
-                  "character": 59,
-                  "line": 5
+                  "character": 1,
+                  "line": 6
                 },
                 "end_position": {
                   "bytes": 271,
@@ -1052,7 +1052,7 @@
               "start_position": {
                 "bytes": 271,
                 "character": 1,
-                "line": 6
+                "line": 7
               },
               "end_position": {
                 "bytes": 276,
@@ -1230,8 +1230,8 @@
                     "token": {
                       "start_position": {
                         "bytes": 290,
-                        "character": 19,
-                        "line": 7
+                        "character": 1,
+                        "line": 8
                       },
                       "end_position": {
                         "bytes": 295,
@@ -1549,8 +1549,8 @@
               {
                 "start_position": {
                   "bytes": 330,
-                  "character": 40,
-                  "line": 8
+                  "character": 1,
+                  "line": 9
                 },
                 "end_position": {
                   "bytes": 331,
@@ -1567,7 +1567,7 @@
               "start_position": {
                 "bytes": 331,
                 "character": 1,
-                "line": 9
+                "line": 10
               },
               "end_position": {
                 "bytes": 336,
@@ -1659,8 +1659,8 @@
               {
                 "start_position": {
                   "bytes": 343,
-                  "character": 12,
-                  "line": 10
+                  "character": 1,
+                  "line": 11
                 },
                 "end_position": {
                   "bytes": 344,
@@ -1677,7 +1677,7 @@
               "start_position": {
                 "bytes": 344,
                 "character": 1,
-                "line": 11
+                "line": 12
               },
               "end_position": {
                 "bytes": 346,
@@ -2203,8 +2203,8 @@
             "token": {
               "start_position": {
                 "bytes": 414,
-                "character": 5,
-                "line": 15
+                "character": 1,
+                "line": 16
               },
               "end_position": {
                 "bytes": 418,
@@ -2424,8 +2424,8 @@
             "token": {
               "start_position": {
                 "bytes": 442,
-                "character": 5,
-                "line": 18
+                "character": 1,
+                "line": 19
               },
               "end_position": {
                 "bytes": 445,
@@ -2468,8 +2468,8 @@
             {
               "start_position": {
                 "bytes": 446,
-                "character": 4,
-                "line": 19
+                "character": 1,
+                "line": 20
               },
               "end_position": {
                 "bytes": 447,
@@ -2486,7 +2486,7 @@
             "start_position": {
               "bytes": 447,
               "character": 1,
-              "line": 20
+              "line": 21
             },
             "end_position": {
               "bytes": 453,
@@ -3990,8 +3990,8 @@
                                                       {
                                                         "start_position": {
                                                           "bytes": 687,
-                                                          "character": 6,
-                                                          "line": 26
+                                                          "character": 1,
+                                                          "line": 27
                                                         },
                                                         "end_position": {
                                                           "bytes": 690,
@@ -4243,8 +4243,8 @@
                                             {
                                               "start_position": {
                                                 "bytes": 720,
-                                                "character": 5,
-                                                "line": 29
+                                                "character": 1,
+                                                "line": 30
                                               },
                                               "end_position": {
                                                 "bytes": 722,
@@ -4505,8 +4505,8 @@
                                     {
                                       "start_position": {
                                         "bytes": 750,
-                                        "character": 29,
-                                        "line": 31
+                                        "character": 1,
+                                        "line": 32
                                       },
                                       "end_position": {
                                         "bytes": 752,
@@ -5797,8 +5797,8 @@
                                                         {
                                                           "start_position": {
                                                             "bytes": 897,
-                                                            "character": 109,
-                                                            "line": 35
+                                                            "character": 1,
+                                                            "line": 36
                                                           },
                                                           "end_position": {
                                                             "bytes": 901,
@@ -7332,8 +7332,8 @@
                                       {
                                         "start_position": {
                                           "bytes": 1114,
-                                          "character": 5,
-                                          "line": 46
+                                          "character": 1,
+                                          "line": 47
                                         },
                                         "end_position": {
                                           "bytes": 1116,
@@ -7733,8 +7733,8 @@
                                   {
                                     "start_position": {
                                       "bytes": 1163,
-                                      "character": 48,
-                                      "line": 48
+                                      "character": 1,
+                                      "line": 49
                                     },
                                     "end_position": {
                                       "bytes": 1165,
@@ -8125,8 +8125,8 @@
                         "token": {
                           "start_position": {
                             "bytes": 1217,
-                            "character": 53,
-                            "line": 50
+                            "character": 1,
+                            "line": 51
                           },
                           "end_position": {
                             "bytes": 1220,

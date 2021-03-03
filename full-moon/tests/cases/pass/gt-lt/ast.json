@@ -222,8 +222,8 @@
               "token": {
                 "start_position": {
                   "bytes": 12,
-                  "character": 12,
-                  "line": 1
+                  "character": 1,
+                  "line": 2
                 },
                 "end_position": {
                   "bytes": 16,
@@ -435,8 +435,8 @@
               "token": {
                 "start_position": {
                   "bytes": 25,
-                  "character": 13,
-                  "line": 2
+                  "character": 1,
+                  "line": 3
                 },
                 "end_position": {
                   "bytes": 29,
@@ -648,8 +648,8 @@
               "token": {
                 "start_position": {
                   "bytes": 37,
-                  "character": 12,
-                  "line": 3
+                  "character": 1,
+                  "line": 4
                 },
                 "end_position": {
                   "bytes": 41,
@@ -861,8 +861,8 @@
               "token": {
                 "start_position": {
                   "bytes": 50,
-                  "character": 13,
-                  "line": 4
+                  "character": 1,
+                  "line": 5
                 },
                 "end_position": {
                   "bytes": 54,
