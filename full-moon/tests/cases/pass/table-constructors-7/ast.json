@@ -170,8 +170,8 @@
                             "token": {
                               "start_position": {
                                 "bytes": 215,
-                                "character": 74,
-                                "line": 4
+                                "character": 1,
+                                "line": 5
                               },
                               "end_position": {
                                 "bytes": 216,

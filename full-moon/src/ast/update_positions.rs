@@ -40,6 +40,12 @@ impl UpdatePositionsRewriter {
             token_type: token.token_type.to_owned(),
         };
 
+        if self.next_is_new_line {
+            self.next_is_new_line = false;
+            end_position.line += 1;
+            end_position.character = 1;
+        }
+
         self.start_position = end_position;
 
         result

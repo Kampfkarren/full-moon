@@ -1014,6 +1014,11 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                         end_position: position,
                         token_type: advancement.token_type,
                     });
+                    if next_is_new_line {
+                        next_is_new_line = false;
+                        position.line += 1;
+                        position.character = 1;
+                    }
 
                     continue;
                 }
