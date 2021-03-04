@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated dependency cfg_if to v1.0
+- Changed the assertion operator from `as` to `::` under the roblox feature flag. `AsAssertion` has been renamed to `TypeAssertion`, with `as_token` renamed to `assertion_op`.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.

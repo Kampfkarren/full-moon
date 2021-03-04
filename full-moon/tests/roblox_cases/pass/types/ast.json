@@ -4696,8 +4696,8 @@
                     }
                   },
                   "binop": null,
-                  "as_assertion": {
-                    "as_token": {
+                  "type_assertion": {
+                    "assertion_op": {
                       "leading_trivia": [],
                       "token": {
                         "start_position": {
@@ -4711,8 +4711,8 @@
                           "line": 20
                         },
                         "token_type": {
-                          "type": "Identifier",
-                          "identifier": "as"
+                          "type": "Symbol",
+                          "symbol": "::"
                         }
                       },
                       "trailing_trivia": [

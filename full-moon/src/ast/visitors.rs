@@ -98,12 +98,12 @@ impl<'a> Visit<'a> for Expression<'a> {
                 value,
                 binop,
                 #[cfg(feature = "roblox")]
-                as_assertion,
+                type_assertion,
             } => {
                 value.visit(visitor);
                 binop.visit(visitor);
                 #[cfg(feature = "roblox")]
-                as_assertion.visit(visitor);
+                type_assertion.visit(visitor);
             }
         };
 
@@ -138,12 +138,12 @@ impl<'a> VisitMut<'a> for Expression<'a> {
                 value,
                 binop,
                 #[cfg(feature = "roblox")]
-                as_assertion,
+                type_assertion,
             } => Expression::Value {
                 value: value.visit_mut(visitor),
                 binop: binop.visit_mut(visitor),
                 #[cfg(feature = "roblox")]
-                as_assertion: as_assertion.visit_mut(visitor),
+                type_assertion: type_assertion.visit_mut(visitor),
             },
         };
 

@@ -342,7 +342,7 @@ pub enum Expression<'a> {
             fmt = "{}{}{}",
             value,
             "display_option(binop)",
-            "display_option(as_assertion)"
+            "display_option(type_assertion)"
         )
     )]
     Value {
@@ -351,12 +351,12 @@ pub enum Expression<'a> {
         value: Box<Value<'a>>,
         /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
         binop: Option<BinOpRhs<'a>>,
-        /// What the value is being asserted as using `as`.
+        /// What the value is being asserted as using `::`.
         /// Only available when the "roblox" feature flag is enabled.
         #[cfg(feature = "roblox")]
         #[cfg_attr(feature = "serde", serde(borrow))]
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-        as_assertion: Option<AsAssertion<'a>>,
+        type_assertion: Option<TypeAssertion<'a>>,
     },
 }
 
@@ -2352,7 +2352,7 @@ mod tests {
             value: Box::new(Value::Var(Var::Name(token.clone()))),
             binop: None,
             #[cfg(feature = "roblox")]
-            as_assertion: None,
+            type_assertion: None,
         };
 
         Assignment::new(Punctuated::new(), Punctuated::new());

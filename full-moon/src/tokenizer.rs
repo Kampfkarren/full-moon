@@ -51,6 +51,8 @@ symbols!(
     Ampersand => "&",
     // TODO: This only is valid in Roblox
     ThinArrow => "->",
+    // TODO: This only is valid in Roblox
+    TwoColons => "::",
     Caret => "^",
     Colon => ":",
     Comma => ",",

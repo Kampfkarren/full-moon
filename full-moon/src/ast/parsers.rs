@@ -226,14 +226,14 @@ define_parser!(
     ParseExpression,
     Expression<'a>,
     |_, state: ParserState<'a>| if let Ok((state, value)) = keep_going!(ParseValue.parse(state)) {
-        let (state, as_assertion) =
-            if let Ok((state, as_assertion)) = keep_going!(ParseAsAssertion.parse(state)) {
-                (state, Some(as_assertion))
+        let (state, type_assertion) =
+            if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
+                (state, Some(type_assertion))
             } else {
                 (state, None)
             };
 
-        let (state, binop) = if as_assertion.is_none() {
+        let (state, binop) = if type_assertion.is_none() {
             if let Ok((state, bin_op)) = ParseBinOp.parse(state) {
                 let (state, rhs) =
                     expect!(state, ParseExpression.parse(state), "expected expression");
@@ -260,7 +260,7 @@ define_parser!(
                 value,
                 binop,
                 #[cfg(feature = "roblox")]
-                as_assertion,
+                type_assertion,
             },
         ))
     } else if let Ok((state, unop)) = keep_going!(ParseUnOp.parse(state)) {
@@ -276,32 +276,22 @@ define_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseAsAssertion;
+struct ParseTypeAssertion;
 
 #[rustfmt::skip]
 define_roblox_parser!(
-    ParseAsAssertion,
-    AsAssertion<'a>,
+    ParseTypeAssertion,
+    TypeAssertion<'a>,
     Cow<'a, TokenReference<'a>>,
     |_, state: ParserState<'a>| {
-        let (state, as_token) = ParseIdentifier.parse(state)?;
-        if as_token.token().to_string() == "as" {
-            let (state, cast_to) = expect!(
-                state,
-                ParseTypeInfo.parse(state),
-                "expected type in `as` expression"
-            );
+        let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+        let (state, cast_to) = expect!(
+            state,
+            ParseTypeInfo.parse(state),
+            "expected type in `as` expression"
+        );
 
-            Ok((
-                state,
-                AsAssertion {
-                    as_token,
-                    cast_to,
-                },
-            ))
-        } else {
-            Err(InternalAstError::NoMatch)
-        }
+        Ok((state, TypeAssertion { assertion_op, cast_to }))
     }
 );
 

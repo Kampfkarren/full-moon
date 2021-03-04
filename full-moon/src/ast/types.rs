@@ -270,31 +270,34 @@ pub enum TypeFieldKey<'a> {
 /// A type assertion using `as`, such as `as number`.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "as_token", "cast_to")]
-pub struct AsAssertion<'a> {
+#[display(fmt = "{}{}", "assertion_op", "cast_to")]
+pub struct TypeAssertion<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) as_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) assertion_op: Cow<'a, TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) cast_to: TypeInfo<'a>,
 }
 
-impl<'a> AsAssertion<'a> {
-    /// The token `as`.
-    pub fn as_token(&self) -> &TokenReference<'a> {
-        &self.as_token
+impl<'a> TypeAssertion<'a> {
+    /// The token `::`.
+    pub fn assertion_op(&self) -> &TokenReference<'a> {
+        &self.assertion_op
     }
 
-    /// The type to cast the expression into, `number` in `as number`.
+    /// The type to cast the expression into, `number` in `:: number`.
     pub fn cast_to(&self) -> &TypeInfo<'a> {
         &self.cast_to
     }
 
-    /// Returns a new AsAssertion with the given `as` token
-    pub fn with_as_token(self, as_token: Cow<'a, TokenReference<'a>>) -> Self {
-        Self { as_token, ..self }
+    /// Returns a new TypeAssertion with the given `::` token
+    pub fn with_assertion_op(self, assertion_op: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            assertion_op,
+            ..self
+        }
     }
 
-    /// Returns a new AsAssertion with the given TypeInfo to cast to
+    /// Returns a new TypeAssertion with the given TypeInfo to cast to
     pub fn with_cast_to(self, cast_to: TypeInfo<'a>) -> Self {
         Self { cast_to, ..self }
     }
