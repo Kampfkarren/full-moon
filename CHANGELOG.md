@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated dependency cfg_if to v1.0
+- **[BREAKING CHANGE]** Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
