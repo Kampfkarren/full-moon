@@ -75,7 +75,7 @@ macro_rules! from_nom {
     };
 }
 
-fn from_parser<'a, 'b, R>(
+fn to_nom<'a, 'b, R>(
     parser: impl Parser<'a, 'b, Item = R>,
 ) -> impl FnMut(ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, R, InternalAstError<'a>>
 where
@@ -166,8 +166,8 @@ pub(crate) fn block<'a, 'b>(
 where
     'a: 'b,
 {
-    let stmt = from_parser(ParseStmt);
-    let last_stmt = from_parser(ParseLastStmt);
+    let stmt = to_nom(ParseStmt);
+    let last_stmt = to_nom(ParseLastStmt);
 
     use nom::Parser;
     let semi = |I| opt(symbol(Symbol::Semicolon))(I);
@@ -187,6 +187,39 @@ where
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseBlock;
 define_parser!(ParseBlock, Block<'a>, from_nom!(block));
+
+pub(crate) fn last_stmt<'a, 'b>(
+    input: ParserState<'a, 'b>,
+) -> IResult<ParserState<'a, 'b>, LastStmt<'a>, InternalAstError<'a>>
+where
+    'a: 'b,
+{
+    let expression = to_nom(ParseExpression);
+    let comma = |I| opt(symbol(Symbol::Comma))(I);
+    
+    /*
+    let comb = alt((
+        map( tuple((symbol(Symbol::Return), 
+               opt(expression),
+               many0(pair(comma, expression)))),
+               |(ret, first}
+    */
+    todo!()
+}
+
+trait NomParser<'a, 'b, O> : nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>> where 'a : 'b {}
+impl<'b, 'a : 'b, O, T: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>> NomParser<'a, 'b, O> for T {}
+
+fn delimited0<'b,'a :'b, I>(item: impl NomParser<'a, 'b, I>, delim: impl NomParser<'a, 'b, TokenReference<'a>>, trailing: bool) -> impl NomParser<'a, 'b, Punctuated<'a, I>> {
+    use nom::Parser as _;
+    let comb = pair(opt(item), many0(pair(delim, item)));
+    comb.map(
+        |(first, rest)| {
+
+         Punctuated::new()
+        }
+    )
+}
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseLastStmt;
