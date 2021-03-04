@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added `block.iter_stmts_with_semicolon()` which returns an iterator over tuples containing the statement and an optional semicolon.
+- Added `Expression::BinaryOperator{ lhs, binop, rhs }` which now handles binary operation expressions, with support for precedence.
+- Added `operator.precedence()` to `BinOp` and `UnOp`. This returns the precedence value from a scale of 1-8 for the operator, where 8 is highest precedence.
+- Added `binop.is_right_associative()` to `BinOp`. This returns whether the binary operator is right associative.
 
 ### Changed
 - Updated dependency cfg_if to v1.0
+- **[BREAKING CHANGE]** Moved binary operations to `Expression::BinaryOperator`. `binop` has been removed from `Expression::Value`
+- Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
+- Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
+- Removed `Value::ParseExpression`. This should now be handled by the `lhs` of `Expression::BinaryOperator`
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
