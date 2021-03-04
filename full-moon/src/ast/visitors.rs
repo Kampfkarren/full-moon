@@ -82,6 +82,12 @@ impl<'a> Visit<'a> for Expression<'a> {
     fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
         visitor.visit_expression(self);
         match self {
+            Expression::BinaryOperator { lhs, binop, rhs } => {
+                lhs.visit(visitor);
+                binop.visit(visitor);
+                rhs.visit(visitor);
+            }
+
             Expression::Parentheses {
                 contained,
                 expression,
@@ -96,12 +102,10 @@ impl<'a> Visit<'a> for Expression<'a> {
             }
             Expression::Value {
                 value,
-                binop,
                 #[cfg(feature = "roblox")]
                 as_assertion,
             } => {
                 value.visit(visitor);
-                binop.visit(visitor);
                 #[cfg(feature = "roblox")]
                 as_assertion.visit(visitor);
             }
@@ -115,6 +119,12 @@ impl<'a> VisitMut<'a> for Expression<'a> {
     fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_expression(self);
         self = match self {
+            Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
+                lhs: lhs.visit_mut(visitor),
+                binop: binop.visit_mut(visitor),
+                rhs: rhs.visit_mut(visitor),
+            },
+
             Expression::Parentheses {
                 mut contained,
                 mut expression,
@@ -136,12 +146,10 @@ impl<'a> VisitMut<'a> for Expression<'a> {
 
             Expression::Value {
                 value,
-                binop,
                 #[cfg(feature = "roblox")]
                 as_assertion,
             } => Expression::Value {
                 value: value.visit_mut(visitor),
-                binop: binop.visit_mut(visitor),
                 #[cfg(feature = "roblox")]
                 as_assertion: as_assertion.visit_mut(visitor),
             },
