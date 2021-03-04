@@ -300,8 +300,6 @@ define_parser!(ParsePartExpression, Expression<'a>, |_,
 >| {
     if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
         Ok((state, expression))
-    } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
-        Ok((state, expression))
     } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
         Ok((state, expression))
     } else {
@@ -401,6 +399,7 @@ define_parser!(
         ParseTableConstructor => Value::TableConstructor,
         ParseFunctionCall => Value::FunctionCall,
         ParseVar => Value::Var,
+        ParseParenExpression => Value::ParenthesesExpression,
     })
 );
 
