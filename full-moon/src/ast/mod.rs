@@ -2044,7 +2044,7 @@ impl BinOp<'_> {
         }
     }
 
-    /// Whether the operator is right associative. If not, it is left associative
+    /// Whether the operator is right associative. If not, it is left associative.
     /// See more at https://www.lua.org/pil/3.5.html
     pub fn is_right_associative(&self) -> bool {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
