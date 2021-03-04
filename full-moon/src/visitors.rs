@@ -230,7 +230,6 @@ impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Box<T> {
 create_visitor!(ast: {
     visit_anonymous_call => FunctionArgs,
     visit_assignment => Assignment,
-    visit_bin_op => BinOpRhs,
     visit_block => Block,
     visit_call => Call,
     visit_contained_span => ContainedSpan,

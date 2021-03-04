@@ -221,11 +221,57 @@ define_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseExpression;
+struct ParseUnaryExpression;
 define_parser!(
-    ParseExpression,
+    ParseUnaryExpression,
     Expression<'a>,
-    |_, state: ParserState<'a>| if let Ok((state, value)) = keep_going!(ParseValue.parse(state)) {
+    |_, state: ParserState<'a>| {
+        let (state, unop) = keep_going!(ParseUnOp.parse(state))?;
+        let (state, expression) = expect!(
+            state,
+            ParseExpressionAtPrecedence(unop.precedence()).parse(state),
+            "expected expression"
+        );
+        let expression = Box::new(expression);
+
+        Ok((state, Expression::UnaryOperator { unop, expression }))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseParenExpression;
+define_parser!(
+    ParseParenExpression,
+    Expression<'a>,
+    |_, state: ParserState<'a>| {
+        let (state, left_paren) = ParseSymbol(Symbol::LeftParen).parse(state)?;
+        let (state, expression) =
+            expect!(state, ParseExpression.parse(state), "expected expression");
+
+        let (state, right_paren) = expect!(
+            state,
+            ParseSymbol(Symbol::RightParen).parse(state),
+            "expected ')'"
+        );
+
+        Ok((
+            state,
+            Expression::Parentheses {
+                contained: ContainedSpan::new(left_paren, right_paren),
+                expression: Box::new(expression),
+            },
+        ))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseValueExpression;
+define_parser!(
+    ParseValueExpression,
+    Expression<'a>,
+    |_, state: ParserState<'a>| {
+        let (state, value) = keep_going!(ParseValue.parse(state))?;
+        #[cfg(feature = "roblox")]
         let (state, type_assertion) =
             if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
                 (state, Some(type_assertion))
@@ -233,46 +279,78 @@ define_parser!(
                 (state, None)
             };
 
-        let (state, binop) = if type_assertion.is_none() {
-            if let Ok((state, bin_op)) = ParseBinOp.parse(state) {
-                let (state, rhs) =
-                    expect!(state, ParseExpression.parse(state), "expected expression");
-
-                (
-                    state,
-                    Some(BinOpRhs {
-                        bin_op,
-                        rhs: Box::new(rhs),
-                    }),
-                )
-            } else {
-                (state, None)
-            }
-        } else {
-            (state, None)
-        };
-
         let value = Box::new(value);
 
         Ok((
             state,
             Expression::Value {
                 value,
-                binop,
                 #[cfg(feature = "roblox")]
                 type_assertion,
             },
         ))
-    } else if let Ok((state, unop)) = keep_going!(ParseUnOp.parse(state)) {
-        let (state, expression) =
-            expect!(state, ParseExpression.parse(state), "expected expression");
+    }
+);
 
-        let expression = Box::new(expression);
-
-        Ok((state, Expression::UnaryOperator { unop, expression }))
+#[derive(Clone, Debug, PartialEq)]
+struct ParsePartExpression;
+define_parser!(ParsePartExpression, Expression<'a>, |_,
+                                                     state: ParserState<
+    'a,
+>| {
+    if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
+        Ok((state, expression))
+    } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
+        Ok((state, expression))
     } else {
         Err(InternalAstError::NoMatch)
     }
+});
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseExpressionAtPrecedence(u8);
+define_parser!(
+    ParseExpressionAtPrecedence,
+    Expression<'a>,
+    |this: &ParseExpressionAtPrecedence, state: ParserState<'a>| {
+        let min_precedence = this.0;
+        let (mut state, mut current_expr) = ParsePartExpression.parse(state)?;
+
+        // See if we can find a Binary Operator
+        while let Ok((next_state, operator)) = ParseBinOp.parse(state) {
+            if operator.precedence() < min_precedence {
+                break;
+            }
+
+            let next_min_precedence = if operator.is_right_associative() {
+                operator.precedence()
+            } else {
+                operator.precedence() + 1
+            };
+
+            let (next_state, rhs) = expect!(
+                next_state,
+                ParseExpressionAtPrecedence(next_min_precedence).parse(next_state),
+                "expected expression"
+            );
+            state = next_state;
+            current_expr = Expression::BinaryOperator {
+                lhs: Box::new(current_expr),
+                binop: operator,
+                rhs: Box::new(rhs),
+            };
+        }
+
+        Ok((state, current_expr))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseExpression;
+define_parser!(
+    ParseExpression,
+    Expression<'a>,
+    |_, state: ParserState<'a>| { ParseExpressionAtPrecedence(1).parse(state) }
 );
 
 #[derive(Clone, Debug, PartialEq)]
@@ -292,35 +370,6 @@ define_roblox_parser!(
         );
 
         Ok((state, TypeAssertion { assertion_op, cast_to }))
-    }
-);
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseParenExpression;
-define_parser!(
-    ParseParenExpression,
-    Expression<'a>,
-    |_, state: ParserState<'a>| if let Ok((state, left_paren)) =
-        ParseSymbol(Symbol::LeftParen).parse(state)
-    {
-        let (state, expression) =
-            expect!(state, ParseExpression.parse(state), "expected expression");
-
-        let (state, right_paren) = expect!(
-            state,
-            ParseSymbol(Symbol::RightParen).parse(state),
-            "expected ')'"
-        );
-
-        Ok((
-            state,
-            Expression::Parentheses {
-                contained: ContainedSpan::new(left_paren, right_paren),
-                expression: Box::new(expression),
-            },
-        ))
-    } else {
-        Err(InternalAstError::NoMatch)
     }
 );
 

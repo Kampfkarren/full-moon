@@ -78,36 +78,77 @@
                       "pairs": [
                         {
                           "End": {
-                            "value": {
-                              "String": {
+                            "lhs": {
+                              "value": {
+                                "String": {
+                                  "leading_trivia": [],
+                                  "token": {
+                                    "start_position": {
+                                      "bytes": 6,
+                                      "character": 7,
+                                      "line": 1
+                                    },
+                                    "end_position": {
+                                      "bytes": 13,
+                                      "character": 11,
+                                      "line": 1
+                                    },
+                                    "token_type": {
+                                      "type": "StringLiteral",
+                                      "literal": "👚 ",
+                                      "quote_type": "Double"
+                                    }
+                                  },
+                                  "trailing_trivia": [
+                                    {
+                                      "start_position": {
+                                        "bytes": 13,
+                                        "character": 11,
+                                        "line": 1
+                                      },
+                                      "end_position": {
+                                        "bytes": 14,
+                                        "character": 12,
+                                        "line": 1
+                                      },
+                                      "token_type": {
+                                        "type": "Whitespace",
+                                        "characters": " "
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "binop": {
+                              "TwoDots": {
                                 "leading_trivia": [],
                                 "token": {
                                   "start_position": {
-                                    "bytes": 6,
-                                    "character": 7,
+                                    "bytes": 14,
+                                    "character": 12,
                                     "line": 1
                                   },
                                   "end_position": {
-                                    "bytes": 13,
-                                    "character": 11,
+                                    "bytes": 16,
+                                    "character": 14,
                                     "line": 1
                                   },
                                   "token_type": {
-                                    "type": "StringLiteral",
-                                    "literal": "👚 ",
-                                    "quote_type": "Double"
+                                    "type": "Symbol",
+                                    "symbol": ".."
                                   }
                                 },
                                 "trailing_trivia": [
                                   {
                                     "start_position": {
-                                      "bytes": 13,
-                                      "character": 11,
+                                      "bytes": 16,
+                                      "character": 14,
                                       "line": 1
                                     },
                                     "end_position": {
-                                      "bytes": 14,
-                                      "character": 12,
+                                      "bytes": 17,
+                                      "character": 15,
                                       "line": 1
                                     },
                                     "token_type": {
@@ -118,72 +159,30 @@
                                 ]
                               }
                             },
-                            "binop": {
-                              "bin_op": {
-                                "TwoDots": {
-                                  "leading_trivia": [],
-                                  "token": {
-                                    "start_position": {
-                                      "bytes": 14,
-                                      "character": 12,
-                                      "line": 1
-                                    },
-                                    "end_position": {
-                                      "bytes": 16,
-                                      "character": 14,
-                                      "line": 1
-                                    },
-                                    "token_type": {
-                                      "type": "Symbol",
-                                      "symbol": ".."
-                                    }
-                                  },
-                                  "trailing_trivia": [
-                                    {
+                            "rhs": {
+                              "value": {
+                                "Var": {
+                                  "Name": {
+                                    "leading_trivia": [],
+                                    "token": {
                                       "start_position": {
-                                        "bytes": 16,
-                                        "character": 14,
-                                        "line": 1
-                                      },
-                                      "end_position": {
                                         "bytes": 17,
                                         "character": 15,
                                         "line": 1
                                       },
-                                      "token_type": {
-                                        "type": "Whitespace",
-                                        "characters": " "
-                                      }
-                                    }
-                                  ]
-                                }
-                              },
-                              "rhs": {
-                                "value": {
-                                  "Var": {
-                                    "Name": {
-                                      "leading_trivia": [],
-                                      "token": {
-                                        "start_position": {
-                                          "bytes": 17,
-                                          "character": 15,
-                                          "line": 1
-                                        },
-                                        "end_position": {
-                                          "bytes": 24,
-                                          "character": 22,
-                                          "line": 1
-                                        },
-                                        "token_type": {
-                                          "type": "Identifier",
-                                          "identifier": "message"
-                                        }
+                                      "end_position": {
+                                        "bytes": 24,
+                                        "character": 22,
+                                        "line": 1
                                       },
-                                      "trailing_trivia": []
-                                    }
+                                      "token_type": {
+                                        "type": "Identifier",
+                                        "identifier": "message"
+                                      }
+                                    },
+                                    "trailing_trivia": []
                                   }
-                                },
-                                "binop": null
+                                }
                               }
                             }
                           }
