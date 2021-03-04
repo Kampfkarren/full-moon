@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
+- TokenReference equality now checks for leading and trailing trivia to be the same.
 
 ## [0.9.0] - 2020-12-21
 ### Added
