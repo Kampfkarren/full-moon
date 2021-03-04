@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Moved binary operations to `Expression::BinaryOperator`. `binop` has been removed from `Expression::Value`
 - Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
 - Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
-- Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.

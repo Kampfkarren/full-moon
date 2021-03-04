@@ -206,7 +206,7 @@
                   },
                   "rhs": {
                     "value": {
-                      "ParenthesesExpression": {
+                      "ParseExpression": {
                         "contained": {
                           "tokens": [
                             {
