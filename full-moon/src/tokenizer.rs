@@ -1218,11 +1218,11 @@ mod tests {
     #[test]
     fn test_advance_whitespace() {
         test_advancer!(
-            advance_whitespace("\t  \n"),
+            advance_whitespace("\t  \n\t"),
             Ok(Some(TokenAdvancement {
-                advance: 3,
+                advance: 4,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t  "),
+                    characters: Cow::from("\t  \n"),
                 },
             }))
         );
@@ -1240,9 +1240,19 @@ mod tests {
         test_advancer!(
             advance_whitespace("\t\t\nhello"),
             Ok(Some(TokenAdvancement {
-                advance: 2,
+                advance: 3,
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t\t"),
+                    characters: Cow::from("\t\t\n"),
+                },
+            }))
+        );
+
+        test_advancer!(
+            advance_whitespace("\n\thello"),
+            Ok(Some(TokenAdvancement {
+                advance: 1,
+                token_type: TokenType::Whitespace {
+                    characters: Cow::from("\n"),
                 },
             }))
         );
