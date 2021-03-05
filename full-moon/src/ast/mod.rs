@@ -2227,34 +2227,23 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
         if token.token_type().is_trivia() {
             leading_trivia.push(token);
         } else {
-            // Variable indicating whether we have extracted a newline so far for our trailing trivia
-            // If so, and we then reach a comment, we should stop taking any more trivia
-            let mut extracted_newline = false;
-
             while let Some(token) = tokens.peek() {
                 if token.token_type().is_trivia() {
-                    match &*token.token_type() {
-                        TokenType::Whitespace { ref characters } => {
+                    // Take all trivia up to and including the newline character. If we see a newline character
+                    // we should break once we have taken it in.
+                    let should_break =
+                        if let TokenType::Whitespace { ref characters } = &*token.token_type() {
                             // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                            if characters.contains('\n') {
-                                extracted_newline = true;
-                            }
-                        }
-                        TokenType::SingleLineComment { .. }
-                        | TokenType::MultiLineComment { .. } => {
-                            // Stop taking any more trivia if we reach a comment, and we have already taken a newline
-                            // This is so that the comment is parsed as leading trivia for the next token instead
-                            if extracted_newline {
-                                break;
-                            }
-                        }
-                        other => unreachable!(
-                            "unexpected token trivia that wasn't a whitespace/comment: {:?}",
-                            other
-                        ),
-                    }
+                            characters.contains('\n')
+                        } else {
+                            false
+                        };
 
                     trailing_trivia.push(tokens.next().unwrap());
+
+                    if should_break {
+                        break;
+                    }
                 } else {
                     break;
                 }

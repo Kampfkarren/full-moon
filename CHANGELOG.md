@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Updated dependency cfg_if to v1.0
-- **[BREAKING CHANGE]** Changed how newline trivia is bound to tokens. See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
+- **[BREAKING CHANGE]** Changed how newline trailing trivia is bound to tokens. A token now owns any trailing trivia on the same line up to and including the newline character.
+See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 
 ## [0.9.0] - 2020-12-21
 ### Added
