@@ -212,6 +212,15 @@ pub struct TypeField<'a> {
 }
 
 impl<'a> TypeField<'a> {
+    /// Creates a new TypeField from the given key and value
+    pub fn new(key: TypeFieldKey<'a>, value: TypeInfo<'a>) -> Self {
+        Self {
+            key,
+            colon: Cow::Owned(TokenReference::symbol(": ").unwrap()),
+            value,
+        }
+    }
+
     /// The key of the field, `foo` in `foo: number`.
     pub fn key(&self) -> &TypeFieldKey<'a> {
         &self.key
@@ -325,6 +334,17 @@ pub struct TypeDeclaration<'a> {
 }
 
 impl<'a> TypeDeclaration<'a> {
+    /// Creates a new TypeDeclaration from the given type name and type declaration
+    pub fn new(type_name: Cow<'a, TokenReference<'a>>, type_definition: TypeInfo<'a>) -> Self {
+        Self {
+            type_token: Cow::Owned(TokenReference::symbol("type ").unwrap()),
+            base: type_name,
+            generics: None,
+            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            declare_as: type_definition,
+        }
+    }
+
     /// The token `type`.
     pub fn type_token(&self) -> &TokenReference<'a> {
         &self.type_token
@@ -398,6 +418,17 @@ pub struct GenericDeclaration<'a> {
 }
 
 impl<'a> GenericDeclaration<'a> {
+    /// Creates a new GenericDeclaration
+    pub fn new() -> Self {
+        Self {
+            arrows: ContainedSpan::new(
+                Cow::Owned(TokenReference::symbol("<").unwrap()),
+                Cow::Owned(TokenReference::symbol(">").unwrap()),
+            ),
+            generics: Punctuated::new(),
+        }
+    }
+
     /// The arrows (`<>`) containing the types.
     pub fn arrows(&self) -> &ContainedSpan<'a> {
         &self.arrows
@@ -431,6 +462,14 @@ pub struct TypeSpecifier<'a> {
 }
 
 impl<'a> TypeSpecifier<'a> {
+    /// Creates a new TypeSpecifier with the given type info
+    pub fn new(type_info: TypeInfo<'a>) -> Self {
+        Self {
+            punctuation: Cow::Owned(TokenReference::symbol(": ").unwrap()),
+            type_info,
+        }
+    }
+
     /// The punctuation being used.
     /// `:` for `local foo: number`.
     pub fn punctuation(&self) -> &TokenReference<'a> {
@@ -468,6 +507,20 @@ pub struct ExportedTypeDeclaration<'a> {
 }
 
 impl<'a> ExportedTypeDeclaration<'a> {
+    /// Creates a new ExportedTypeDeclaration with the given type declaration
+    pub fn new(type_declaration: TypeDeclaration<'a>) -> Self {
+        Self {
+            export_token: Cow::Owned(TokenReference::new(
+                vec![],
+                Token::new(TokenType::Identifier {
+                    identifier: Cow::Owned(String::from("export")),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            )),
+            type_declaration,
+        }
+    }
+
     /// The token `export`.
     pub fn export_token(&self) -> &TokenReference<'a> {
         &self.export_token
