@@ -585,8 +585,8 @@ impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Position {
     pub(crate) bytes: usize,
-    pub(crate) character: usize,
     pub(crate) line: usize,
+    pub(crate) character: usize,
 }
 
 impl Position {

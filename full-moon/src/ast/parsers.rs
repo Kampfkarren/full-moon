@@ -1,5 +1,5 @@
 use super::{
-    parser_util::{InternalAstError, Parser, ParserState},
+    parser_util::{InternalAstError, ParserState},
     span::ContainedSpan,
     *,
 };
@@ -11,11 +11,11 @@ use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 use crate::tokenizer::*;
 use nom::branch::alt;
-use nom::combinator::{map, opt};
-use nom::multi::many0;
-use nom::sequence::pair;
+use nom::combinator::{cond, opt};
+use nom::multi::{fold_many0, many0};
+use nom::sequence::{pair, tuple};
 use nom::IResult;
-use nom::Parser as _;
+use nom::Parser;
 
 /*
 impl<'a> InputLength for Token<'a> {
@@ -67,7 +67,7 @@ macro_rules! from_nom {
     (|$self:ident| $body:expr) => {
         |$self: &Self, state| {
             Ok({
-                let (state, result) = $body(state)?;
+                let (state, result) = $body.parse(state)?;
                 (state, result)
             })
         }
@@ -78,7 +78,7 @@ macro_rules! from_nom {
 }
 
 fn to_nom<'a, 'b, R>(
-    parser: impl Parser<'a, 'b, Item = R> + Copy,
+    parser: impl super::parser_util::Parser<'a, 'b, Item = R> + Copy,
 ) -> impl FnMut(ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, R, InternalAstError<'a>> + Copy
 where
     'a: 'b,
@@ -86,20 +86,22 @@ where
     move |input: ParserState<'a, 'b>| parser.parse(input).map_err(nom::Err::Error)
 }
 
-
-impl<'a, 'b>  
-nom::Parser<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
-for Symbol {
-    fn parse(&mut self, input: ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>> {
-        /*
-fn symbol<'a, 'b>(
-    symbol: Symbol,
-) -> impl 
-where
-    'a: 'b,
+impl<'a, 'b> Parser<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>>
+    for Symbol
 {
-    move |input: ParserState<'a, 'b>| {*/
-        let expecting = TokenType::Symbol { symbol:*self };
+    fn parse(
+        &mut self,
+        input: ParserState<'a, 'b>,
+    ) -> IResult<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>> {
+        /*
+        fn symbol<'a, 'b>(
+            symbol: Symbol,
+        ) -> impl
+        where
+            'a: 'b,
+        {
+            move |input: ParserState<'a, 'b>| {*/
+        let expecting = TokenType::Symbol { symbol: *self };
         input
             .take_if(|token| token.token_type() == &expecting)
             .map_err(nom::Err::Error)
@@ -112,49 +114,43 @@ struct ParseSymbol(Symbol);
 define_parser!(
     ParseSymbol,
     Cow<'a, TokenReference<'a>>,
-    from_nom!(|this| map(this.0, Cow::Owned))
+    from_nom!(|this| this.0.clone())
 );
 
-fn token_kind<'a, 'b>(
-    token_kind: TokenKind,
-) -> impl FnMut(
-    ParserState<'a, 'b>,
-) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
-where
-    'a: 'b,
+impl<'a, 'b> Parser<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>>
+    for TokenKind
 {
-    move |input: ParserState<'a, 'b>| {
+    fn parse(
+        &mut self,
+        input: ParserState<'a, 'b>,
+    ) -> IResult<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>> {
         input
-            .take_if(|token| token.token_kind() == token_kind)
+            .take_if(|token| token.token_kind() == *self)
             .map_err(nom::Err::Error)
     }
 }
 
 fn number<'a, 'b>(
     input: ParserState<'a, 'b>,
-) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
+) -> IResult<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>>
 where
     'a: 'b,
 {
-    token_kind(TokenKind::Number)(input)
+    TokenKind::Number.parse(input)
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseNumber;
 
-define_parser!(
-    ParseNumber,
-    Cow<'a, TokenReference<'a>>,
-    from_nom!(map(number, Cow::Owned))
-);
+define_parser!(ParseNumber, Cow<'a, TokenReference<'a>>, from_nom!(number));
 
 fn string_literal<'a, 'b>(
     input: ParserState<'a, 'b>,
-) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
+) -> IResult<ParserState<'a, 'b>, Cow<'a, TokenReference<'a>>, InternalAstError<'a>>
 where
     'a: 'b,
 {
-    token_kind(TokenKind::StringLiteral)(input)
+    TokenKind::StringLiteral.parse(input)
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -163,7 +159,7 @@ struct ParseStringLiteral;
 define_parser!(
     ParseStringLiteral,
     Cow<'a, TokenReference<'a>>,
-    from_nom!(map(string_literal, Cow::Owned))
+    from_nom!(string_literal)
 );
 
 pub(crate) fn block<'a, 'b>(
@@ -179,11 +175,8 @@ where
         opt(pair(last_stmt, opt(semi))),
     )
     .map(|(stmts, last_stmt)| {
-        let stmts = stmts
-            .into_iter()
-            .map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)))
-            .collect();
-        let last_stmt = last_stmt.map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)));
+        let stmts = stmts.into_iter().map(|(stmt, semi)| (stmt, semi)).collect();
+        let last_stmt = last_stmt.map(|(stmt, semi)| (stmt, semi));
         Block { stmts, last_stmt }
     })
     .parse(input)
@@ -202,139 +195,111 @@ where
     let expression = to_nom(ParseExpression);
     let comma = Symbol::Comma;
     alt((
-        pair(Symbol::Return, delimited0(expression, comma, false)).map(
-            |(token, returns)| {
-                LastStmt::Return(Return {
-                    token: Cow::Owned(token),
-                    returns,
-                })
-            },
-        ),
-        Symbol::Break.map(|token| LastStmt::Break(Cow::Owned(token))),
+        pair(Symbol::Return, delimited0(expression, comma, false))
+            .map(|(token, returns)| LastStmt::Return(Return { token, returns })),
+        Symbol::Break.map(|token| LastStmt::Break(token)),
         #[cfg(feature = "roblox")]
         Symbol::Continue.map(|token| LastStmt::Continue(token)),
     ))
     .parse(input)
 }
 
-trait NomParser<'a, 'b, O>: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>
+trait NomParser<'a, 'b, O>: Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>
 where
     'a: 'b,
 {
 }
-impl<'b, 'a: 'b, O, T: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>>
-    NomParser<'a, 'b, O> for T
+impl<'b, 'a: 'b, O, T: Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>> NomParser<'a, 'b, O>
+    for T
 {
 }
 
-fn delimited0<'a, Item, I, E>(
-    item: impl nom::Parser<I, Item, E> + Clone,
-    delim: impl nom::Parser<I, TokenReference<'a>, E> + Clone,
+fn delimited0<'a, Item: Clone , I, E>(
+    item: impl Parser<I, Item, E> + Copy,
+    delim: impl Parser<I, Cow<'a, TokenReference<'a>>, E> + Copy,
     trailing: bool,
-) -> impl nom::Parser<I, Punctuated<'a, Item>, E>
+) -> impl Parser<I, Punctuated<'a, Item>, E>
 where
     E: nom::error::ParseError<I>,
     I: Clone + PartialEq,
 {
-    let comb = opt(pair(item.clone(), many0(pair(delim, item))));
-    comb.map(|val| -> Punctuated<'a, Item> {
-        let mut res = Punctuated::new();
-        if let Some((mut prev, rest)) = val {
-            for (delim, next) in rest.into_iter() {
-                res.push(Pair::Punctuated(prev, Cow::Owned(delim)));
-                prev = next;
-            }
-            res.push(Pair::End(prev));
-        }
-        res
-    })
+    opt(item
+        .flat_map(move |first| {
+            fold_many0(
+                pair(delim, item),
+                (Punctuated::new(), first),
+                |(mut acc, prev), (delim, next)| {
+                    acc.push(Pair::Punctuated(prev, delim));
+                    (acc, next)
+                },
+            )
+        })
+        .and(cond(trailing, opt(delim)).map(Option::flatten))
+        .map(|((mut acc, last), tail)| {
+            acc.push(Pair::new(last, tail));
+            acc
+        }))
+    .map(|res| res.unwrap_or_else(Punctuated::new))
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseField;
-define_parser!(ParseField, Field<'a>, |_, state: ParserState<'a, 'b>| {
-    if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
-        let (state, key) = expect!(state, ParseExpression.parse(state), "expected key");
-        let (state, end_bracket) = expect!(
-            state,
-            ParseSymbol(Symbol::RightBracket).parse(state),
-            "expected ']'"
-        );
-        let (state, equal) = expect!(
-            state,
-            ParseSymbol(Symbol::Equal).parse(state),
-            "expected '='"
-        );
-        let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
-
-        return Ok((
-            state,
-            Field::ExpressionKey {
+pub(crate) fn field<'a, 'b>(
+    input: ParserState<'a, 'b>,
+) -> IResult<ParserState<'a, 'b>, Field<'a>, InternalAstError<'a>>
+where
+    'a: 'b,
+{
+    let expression = to_nom(ParseExpression);
+    let identifier = to_nom(ParseIdentifier);
+    alt((
+        tuple((
+            Symbol::LeftBracket,
+            expression,
+            Symbol::RightBracket,
+            Symbol::Equal,
+            expression,
+        ))
+        .map(
+            |(start_bracket, key, end_bracket, equal, value)| Field::ExpressionKey {
                 brackets: ContainedSpan::new(start_bracket, end_bracket),
                 key,
                 equal,
                 value,
             },
-        ));
-    } else if let Ok((state, key)) = keep_going!(ParseIdentifier.parse(state)) {
-        if let Ok((state, equal)) = ParseSymbol(Symbol::Equal).parse(state) {
-            let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
+        ),
+        tuple((identifier, Symbol::Equal, expression)).map(|(key, equal, value)| Field::NameKey {
+            key,
+            equal,
+            value,
+        }),
+        expression.map(Field::NoKey),
+    ))
+    .parse(input)
+}
 
-            return Ok((state, Field::NameKey { key, equal, value }));
-        }
-    }
-
-    if let Ok((state, expr)) = keep_going!(ParseExpression.parse(state)) {
-        return Ok((state, Field::NoKey(expr)));
-    }
-
-    Err(InternalAstError::NoMatch)
-});
+pub(crate) fn table_constructor<'a, 'b>(
+    input: ParserState<'a, 'b>,
+) -> IResult<ParserState<'a, 'b>, TableConstructor<'a>, InternalAstError<'a>>
+where
+    'a: 'b,
+{
+    let field_sep = |input| alt((Symbol::Comma, Symbol::Semicolon))(input);
+    tuple((
+        Symbol::LeftBrace,
+        delimited0(field, field_sep, true),
+        Symbol::RightBrace,
+    ))
+    .map(|(start_brace, fields, end_brace)| TableConstructor {
+        braces: ContainedSpan::new(start_brace, end_brace),
+        fields,
+    })
+    .parse(input)
+}
 
 struct ParseTableConstructor;
 define_parser!(
     ParseTableConstructor,
     TableConstructor<'a>,
-    |_, state: ParserState<'a, 'b>| {
-        let (mut state, start_brace) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
-        let mut fields = Punctuated::new();
-
-        while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
-            let field_sep =
-                if let Ok((new_state, separator)) = ParseSymbol(Symbol::Comma).parse(new_state) {
-                    state = new_state;
-                    Some(separator)
-                } else if let Ok((new_state, separator)) =
-                    ParseSymbol(Symbol::Semicolon).parse(new_state)
-                {
-                    state = new_state;
-                    Some(separator)
-                } else {
-                    state = new_state;
-                    None
-                };
-
-            let is_end = field_sep.is_none();
-            fields.push(Pair::new(field, field_sep));
-            if is_end {
-                break;
-            }
-        }
-
-        let (state, end_brace) = expect!(
-            state,
-            ParseSymbol(Symbol::RightBrace).parse(state),
-            "expected '}'"
-        );
-
-        Ok((
-            state,
-            TableConstructor {
-                braces: ContainedSpan::new(start_brace, end_brace),
-                fields,
-            },
-        ))
-    }
+    from_nom! {table_constructor}
 );
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -1232,7 +1197,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 #[rustfmt::skip]
 define_parser!(ParseIdentifier, Cow<'a, TokenReference<'a>>, |_, state: ParserState<'a, 'b>| {
@@ -1702,32 +1667,31 @@ cfg_if::cfg_if! {
 }
 
 macro_rules! make_op_parser {
-	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
-		#[derive(Clone, Debug, PartialEq)]
-        struct $parser;
-        define_parser!($parser, $enum<'a>, |_, state: ParserState<'a, 'b>| {
+    ($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
+        pub(crate) fn $parser<'a, 'b>(
+            input: ParserState<'a, 'b>
+        ) -> IResult<ParserState<'a, 'b>, $enum<'a>, InternalAstError<'a>>
+            where 'a: 'b
+        {
+            // This is to ensure the operators ALWAYS match those in the actual operator
+            // It won't compile if they don't match up
+            if let Some(x) = None {
+                    match x {
+                            $(
+                                    $enum::$operator(_) => {},
+                            )+
+                    }
+            }
+            alt((
             $(
-                if let Ok((state, operator)) = ParseSymbol(Symbol::$operator).parse(state) {
-                    return Ok((state, $enum::$operator(operator)));
-                }
+                    Symbol::$operator.map($enum::$operator),
             )+
-
-			// This is to ensure the operators ALWAYS match those in the actual operator
-			// It won't compile if they don't match up
-			if let Some(x) = None {
-				match x {
-					$(
-						$enum::$operator(_) => {},
-					)+
-				}
-			}
-
-            Err(InternalAstError::NoMatch)
-        });
-	};
+            )).parse(input)
+        }
+    };
 }
 
-make_op_parser!(BinOp, ParseBinOp,
+make_op_parser!(BinOp, bin_op,
     {
         And,
         Caret,
@@ -1746,17 +1710,23 @@ make_op_parser!(BinOp, ParseBinOp,
         TwoEqual,
     }
 );
+struct ParseBinOp;
+define_parser!{ParseBinOp, BinOp<'a>, from_nom!(bin_op)}
 
-make_op_parser!(UnOp, ParseUnOp,
+struct ParseUnOp;
+make_op_parser!(UnOp, un_op,
     {
         Minus,
         Not,
         Hash,
     }
 );
+define_parser!{ParseUnOp, UnOp<'a>, from_nom!(un_op)}
 
 #[cfg(feature = "roblox")]
-make_op_parser!(CompoundOp, ParseCompoundOp,
+struct ParseCompoundOp;
+#[cfg(feature = "roblox")]
+make_op_parser!(CompoundOp, compound_op,
     {
         PlusEqual,
         MinusEqual,
@@ -1767,6 +1737,8 @@ make_op_parser!(CompoundOp, ParseCompoundOp,
         TwoDotsEqual,
     }
 );
+#[cfg(feature = "roblox")]
+define_parser!{ParseCompoundOp, CompoundOp<'a>, from_nom!(compound_op)}
 
 // TODO
 

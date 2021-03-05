@@ -55,7 +55,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
     pub(crate) fn take_if(
         self,
         pred: impl FnOnce(&TokenReference<'a>) -> bool,
-    ) -> Result<(Self, TokenReference<'a>), InternalAstError<'a>> {
+    ) -> Result<(Self, Cow<'a, TokenReference<'a>>), InternalAstError<'a>> {
         if self.index + 1 == self.len {
             Err(InternalAstError::NoMatch)
         } else {
@@ -66,7 +66,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
                         index: self.index + 1,
                         ..self
                     },
-                    token.to_owned(),
+                    Cow::Owned(token.to_owned()),
                 ))
             } else {
                 Err(InternalAstError::NoMatch)
@@ -117,7 +117,7 @@ macro_rules! make_op {
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ident, $node:ty, $body:expr) => {
-        impl<'a, 'b> Parser<'a, 'b> for $parser {
+        impl<'a, 'b> $crate::ast::parser_util::Parser<'a, 'b> for $parser {
             type Item = $node;
 
             fn parse(
