@@ -343,7 +343,7 @@ pub enum Value<'a> {
     Number(Cow<'a, TokenReference<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
     #[display(fmt = "{}", "_0")]
-    ParseExpression(Expression<'a>),
+    ParenthesesExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     #[display(fmt = "{}", "_0")]
     String(Cow<'a, TokenReference<'a>>),
