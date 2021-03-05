@@ -6,6 +6,7 @@ use pretty_assertions::assert_eq;
 use std::fs::{self, File};
 use std::io::Write;
 
+#[ignore]
 #[test]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_parser_fail_cases() {

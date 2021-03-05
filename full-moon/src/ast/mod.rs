@@ -8,7 +8,7 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt};
 
 use parser_util::{
-    InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
+    InternalAstError, OneOrMore,  ParserState, ZeroOrMore, ZeroOrMoreDelimited,
 };
 
 use punctuated::{Pair, Punctuated};

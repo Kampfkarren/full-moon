@@ -10,10 +10,12 @@ use super::types::*;
 use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 use crate::tokenizer::*;
+use nom::branch::alt;
 use nom::combinator::{map, opt};
 use nom::multi::many0;
 use nom::sequence::pair;
 use nom::IResult;
+use nom::Parser as _;
 
 /*
 impl<'a> InputLength for Token<'a> {
@@ -76,8 +78,8 @@ macro_rules! from_nom {
 }
 
 fn to_nom<'a, 'b, R>(
-    parser: impl Parser<'a, 'b, Item = R>,
-) -> impl FnMut(ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, R, InternalAstError<'a>>
+    parser: impl Parser<'a, 'b, Item = R> + Copy,
+) -> impl FnMut(ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, R, InternalAstError<'a>> + Copy
 where
     'a: 'b,
 {
@@ -86,9 +88,7 @@ where
 
 fn symbol<'a, 'b>(
     symbol: Symbol,
-) -> impl FnMut(
-    ParserState<'a, 'b>,
-) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
+) -> impl nom::Parser<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>> + Copy
 where
     'a: 'b,
 {
@@ -167,21 +167,20 @@ where
     'a: 'b,
 {
     let stmt = to_nom(ParseStmt);
-    let last_stmt = to_nom(ParseLastStmt);
-
-    use nom::Parser;
-    let semi = |I| opt(symbol(Symbol::Semicolon))(I);
-    let mut comb =
-        pair(many0(pair(stmt, semi)), opt(pair(last_stmt, semi))).map(|(stmts, last_stmt)| {
-            let stmts = stmts
-                .into_iter()
-                .map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)))
-                .collect();
-            let last_stmt = last_stmt.map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)));
-            Block { stmts, last_stmt }
-        });
-
-    comb.parse(input)
+    let semi = symbol(Symbol::Semicolon);
+    pair(
+        many0(pair(stmt, opt(semi))),
+        opt(pair(last_stmt, opt(semi))),
+    )
+    .map(|(stmts, last_stmt)| {
+        let stmts = stmts
+            .into_iter()
+            .map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)))
+            .collect();
+        let last_stmt = last_stmt.map(|(stmt, semi)| (stmt, semi.map(Cow::Owned)));
+        Block { stmts, last_stmt }
+    })
+    .parse(input)
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -195,64 +194,53 @@ where
     'a: 'b,
 {
     let expression = to_nom(ParseExpression);
-    let comma = |I| opt(symbol(Symbol::Comma))(I);
-    
-    /*
-    let comb = alt((
-        map( tuple((symbol(Symbol::Return), 
-               opt(expression),
-               many0(pair(comma, expression)))),
-               |(ret, first}
-    */
-    todo!()
+    let comma = symbol(Symbol::Comma);
+    alt((
+        pair(symbol(Symbol::Return), delimited0(expression, comma, false)).map(
+            |(token, returns)| {
+                LastStmt::Return(Return {
+                    token: Cow::Owned(token),
+                    returns,
+                })
+            },
+        ),
+        symbol(Symbol::Break).map(|token| LastStmt::Break(Cow::Owned(token))),
+        #[cfg(feature = "roblox")]
+        symbol(Symbol::Continue).map(|token| LastStmt::Continue(token)),
+    ))
+    .parse(input)
 }
 
-trait NomParser<'a, 'b, O> : nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>> where 'a : 'b {}
-impl<'b, 'a : 'b, O, T: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>> NomParser<'a, 'b, O> for T {}
-
-fn delimited0<'b,'a :'b, I>(item: impl NomParser<'a, 'b, I>, delim: impl NomParser<'a, 'b, TokenReference<'a>>, trailing: bool) -> impl NomParser<'a, 'b, Punctuated<'a, I>> {
-    use nom::Parser as _;
-    let comb = pair(opt(item), many0(pair(delim, item)));
-    comb.map(
-        |(first, rest)| {
-
-         Punctuated::new()
-        }
-    )
+trait NomParser<'a, 'b, O>: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>
+where
+    'a: 'b,
+{
+}
+impl<'b, 'a: 'b, O, T: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>>
+    NomParser<'a, 'b, O> for T
+{
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseLastStmt;
-define_parser!(
-    ParseLastStmt,
-    LastStmt<'a>,
-    |_, state: ParserState<'a, 'b>| if let Ok((state, token)) =
-        ParseSymbol(Symbol::Return).parse(state)
-    {
-        let (state, returns) = expect!(
-            state,
-            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
-            "return values"
-        );
-
-        Ok((state, LastStmt::Return(Return { token, returns })))
-    } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
-        Ok((state, LastStmt::Break(token)))
-    } else {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "roblox")] {
-                let (state, continue_token) = ParseIdentifier.parse(state)?;
-                if continue_token.token().to_string() == "continue" {
-                    Ok((state, LastStmt::Continue(continue_token)))
-                } else {
-                    Err(InternalAstError::NoMatch)
-                }
-            } else {
-                Err(InternalAstError::NoMatch)
+fn delimited0<'b, 'a: 'b, I: 'b>(
+    item: impl NomParser<'a, 'b, I> + Clone,
+    delim: impl NomParser<'a, 'b, TokenReference<'a>> + Clone,
+    trailing: bool,
+) -> impl NomParser<'a, 'b, Punctuated<'a, I>> {
+    let comb = opt(pair(item.clone(), many0(pair(delim, item))));
+    comb.map(|val| -> Punctuated<'a, I> {
+        let mut res = Punctuated::new();
+        if let Some((mut prev, rest)) = val {
+            for (delim, next) in rest.into_iter() {
+                res.push(Pair::Punctuated(prev, Cow::Owned(delim)));
+                prev = next;
             }
+            res.push(Pair::End(prev));
         }
-    }
-);
+        res
+    })
+}
+
+
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
@@ -341,7 +329,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct ParseExpression;
 define_parser!(ParseExpression, Expression<'a>, |_,
                                                  state: ParserState<
@@ -475,7 +463,7 @@ define_parser!(
     })
 );
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 struct ParseStmt;
 define_parser!(
     ParseStmt,
