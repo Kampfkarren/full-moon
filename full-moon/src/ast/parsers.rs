@@ -11,7 +11,7 @@ use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 use crate::tokenizer::*;
 use nom::branch::alt;
-use nom::combinator::{cond, opt};
+use nom::combinator::{cond, opt, success};
 use nom::multi::{fold_many0, many0};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
@@ -162,6 +162,15 @@ define_parser!(
     from_nom!(string_literal)
 );
 
+#[allow(non_upper_case_globals)]
+const identifier: TokenKind = TokenKind::Identifier;
+struct ParseIdentifier;
+#[allow(const_item_mutation)]
+mod imp {
+    use super::*;
+    define_parser! {ParseIdentifier, Cow<'a, TokenReference<'a>>, from_nom!(identifier)}
+}
+
 pub(crate) fn block<'a, 'b>(
     input: ParserState<'a, 'b>,
 ) -> IResult<ParserState<'a, 'b>, Block<'a>, InternalAstError<'a>>
@@ -214,7 +223,7 @@ impl<'b, 'a: 'b, O, T: Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>> Nom
 {
 }
 
-fn delimited0<'a, Item: Clone , I, E>(
+fn delimited0<'a, Item: Clone, I, E>(
     item: impl Parser<I, Item, E> + Copy,
     delim: impl Parser<I, Cow<'a, TokenReference<'a>>, E> + Copy,
     trailing: bool,
@@ -249,7 +258,6 @@ where
     'a: 'b,
 {
     let expression = to_nom(ParseExpression);
-    let identifier = to_nom(ParseIdentifier);
     alt((
         tuple((
             Symbol::LeftBracket,
@@ -301,6 +309,47 @@ define_parser!(
     TableConstructor<'a>,
     from_nom! {table_constructor}
 );
+
+pub(crate) fn expression<'a, 'b>(
+    input: ParserState<'a, 'b>,
+) -> IResult<ParserState<'a, 'b>, Expression<'a>, InternalAstError<'a>>
+where
+    'a: 'b,
+{
+    let value = to_nom(ParseValue);
+    let as_assertion = to_nom(ParseAsAssertion);
+    alt((
+        value.flat_map(move |value| {
+            alt((
+                #[cfg(feature = "roblox")]
+                as_assertion.map(|as_assertion| Expression::Value {
+                    value: Box::new(value),
+                    as_assertion: Some(as_assertion),
+                    binop: None,
+                }),
+                pair(bin_op, expression).map(|(binop, rhs)| Expression::Value {
+                    value: Box::new(value),
+                    #[cfg(feature = "roblox")]
+                    as_assertion: None,
+                    binop: Some(BinOpRhs {
+                        bin_op: binop,
+                        rhs: Box::new(rhs),
+                    }),
+                }),
+                success(()).map(|_| Expression::Value{
+                    value: Box::new(value),
+                    as_assertion: None,
+                    binop: None,
+                ),
+            ))
+        }),
+        pair(un_op, expression).map(|(unop, expr)| Expression::UnaryOperator {
+            unop,
+            expression: Box::new(expr),
+        }),
+    ))
+    .parse(input)
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct ParseExpression;
@@ -357,7 +406,7 @@ define_parser!(ParseExpression, Expression<'a>, |_,
     Err(InternalAstError::NoMatch)
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct ParseAsAssertion;
 
 #[rustfmt::skip]
@@ -416,7 +465,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct ParseValue;
 define_parser!(
     ParseValue,
@@ -1197,20 +1246,6 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-struct ParseIdentifier;
-#[rustfmt::skip]
-define_parser!(ParseIdentifier, Cow<'a, TokenReference<'a>>, |_, state: ParserState<'a, 'b>| {
-    let next_token = state.peek();
-    match next_token.token_kind() {
-        TokenKind::Identifier => Ok((
-            state.advance().ok_or(InternalAstError::NoMatch)?,
-            next_token,
-        )),
-        _ => Err(InternalAstError::NoMatch),
-    }
-});
-
 // Roblox Types
 #[derive(Clone, Debug, PartialEq)]
 struct ParseNameWithType;
@@ -1711,7 +1746,7 @@ make_op_parser!(BinOp, bin_op,
     }
 );
 struct ParseBinOp;
-define_parser!{ParseBinOp, BinOp<'a>, from_nom!(bin_op)}
+define_parser! {ParseBinOp, BinOp<'a>, from_nom!(bin_op)}
 
 struct ParseUnOp;
 make_op_parser!(UnOp, un_op,
@@ -1721,7 +1756,7 @@ make_op_parser!(UnOp, un_op,
         Hash,
     }
 );
-define_parser!{ParseUnOp, UnOp<'a>, from_nom!(un_op)}
+define_parser! {ParseUnOp, UnOp<'a>, from_nom!(un_op)}
 
 #[cfg(feature = "roblox")]
 struct ParseCompoundOp;
@@ -1738,7 +1773,7 @@ make_op_parser!(CompoundOp, compound_op,
     }
 );
 #[cfg(feature = "roblox")]
-define_parser!{ParseCompoundOp, CompoundOp<'a>, from_nom!(compound_op)}
+define_parser! {ParseCompoundOp, CompoundOp<'a>, from_nom!(compound_op)}
 
 // TODO
 
