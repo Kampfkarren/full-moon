@@ -536,6 +536,8 @@ impl<'a> fmt::Display for TokenReference<'a> {
 impl<'a> PartialEq<Self> for TokenReference<'a> {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
+            && self.leading_trivia == other.leading_trivia
+            && self.trailing_trivia == other.trailing_trivia
     }
 }
 
