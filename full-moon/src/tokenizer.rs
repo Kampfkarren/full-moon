@@ -922,8 +922,7 @@ fn advance_symbol(code: &str) -> Advancement {
 
 #[inline]
 fn parse_whitespace(code: &str) -> IResult<&str, &str> {
-    // From regex "^[^\S\n]+\n?|\n"
-    alt((recognize(pair(opt(line_ending), space1)), line_ending))(code)
+    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
 }
 
 // Keep finding whitespace until the line ends
