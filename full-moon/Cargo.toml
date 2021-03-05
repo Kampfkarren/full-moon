@@ -16,6 +16,7 @@ features = ["roblox"]
 [features]
 default = ["serde"]
 roblox = []
+lua52 = []
 no-source-tests = []
 
 [dependencies]
