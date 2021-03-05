@@ -86,14 +86,20 @@ where
     move |input: ParserState<'a, 'b>| parser.parse(input).map_err(nom::Err::Error)
 }
 
+
+impl<'a, 'b>  
+nom::Parser<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>>
+for Symbol {
+    fn parse(&mut self, input: ParserState<'a, 'b>) -> IResult<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>> {
+        /*
 fn symbol<'a, 'b>(
     symbol: Symbol,
-) -> impl nom::Parser<ParserState<'a, 'b>, TokenReference<'a>, InternalAstError<'a>> + Copy
+) -> impl 
 where
     'a: 'b,
 {
-    move |input: ParserState<'a, 'b>| {
-        let expecting = TokenType::Symbol { symbol };
+    move |input: ParserState<'a, 'b>| {*/
+        let expecting = TokenType::Symbol { symbol:*self };
         input
             .take_if(|token| token.token_type() == &expecting)
             .map_err(nom::Err::Error)
@@ -106,7 +112,7 @@ struct ParseSymbol(Symbol);
 define_parser!(
     ParseSymbol,
     Cow<'a, TokenReference<'a>>,
-    from_nom!(|this| map(symbol(this.0), Cow::Owned))
+    from_nom!(|this| map(this.0, Cow::Owned))
 );
 
 fn token_kind<'a, 'b>(
@@ -167,7 +173,7 @@ where
     'a: 'b,
 {
     let stmt = to_nom(ParseStmt);
-    let semi = symbol(Symbol::Semicolon);
+    let semi = Symbol::Semicolon;
     pair(
         many0(pair(stmt, opt(semi))),
         opt(pair(last_stmt, opt(semi))),
@@ -194,9 +200,9 @@ where
     'a: 'b,
 {
     let expression = to_nom(ParseExpression);
-    let comma = symbol(Symbol::Comma);
+    let comma = Symbol::Comma;
     alt((
-        pair(symbol(Symbol::Return), delimited0(expression, comma, false)).map(
+        pair(Symbol::Return, delimited0(expression, comma, false)).map(
             |(token, returns)| {
                 LastStmt::Return(Return {
                     token: Cow::Owned(token),
@@ -204,9 +210,9 @@ where
                 })
             },
         ),
-        symbol(Symbol::Break).map(|token| LastStmt::Break(Cow::Owned(token))),
+        Symbol::Break.map(|token| LastStmt::Break(Cow::Owned(token))),
         #[cfg(feature = "roblox")]
-        symbol(Symbol::Continue).map(|token| LastStmt::Continue(token)),
+        Symbol::Continue.map(|token| LastStmt::Continue(token)),
     ))
     .parse(input)
 }
@@ -221,13 +227,17 @@ impl<'b, 'a: 'b, O, T: nom::Parser<ParserState<'a, 'b>, O, InternalAstError<'a>>
 {
 }
 
-fn delimited0<'b, 'a: 'b, I: 'b>(
-    item: impl NomParser<'a, 'b, I> + Clone,
-    delim: impl NomParser<'a, 'b, TokenReference<'a>> + Clone,
+fn delimited0<'a, Item, I, E>(
+    item: impl nom::Parser<I, Item, E> + Clone,
+    delim: impl nom::Parser<I, TokenReference<'a>, E> + Clone,
     trailing: bool,
-) -> impl NomParser<'a, 'b, Punctuated<'a, I>> {
+) -> impl nom::Parser<I, Punctuated<'a, Item>, E>
+where
+    E: nom::error::ParseError<I>,
+    I: Clone + PartialEq,
+{
     let comb = opt(pair(item.clone(), many0(pair(delim, item))));
-    comb.map(|val| -> Punctuated<'a, I> {
+    comb.map(|val| -> Punctuated<'a, Item> {
         let mut res = Punctuated::new();
         if let Some((mut prev, rest)) = val {
             for (delim, next) in rest.into_iter() {
@@ -239,8 +249,6 @@ fn delimited0<'b, 'a: 'b, I: 'b>(
         res
     })
 }
-
-
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
