@@ -15,8 +15,8 @@ use std::borrow::Cow;
 #[display(fmt = "{}{}", "goto_token", "label_name")]
 pub struct Goto<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    goto_token: Cow<'a, TokenReference<'a>>,
-    label_name: Cow<'a, TokenReference<'a>>,
+    pub(crate) goto_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) label_name: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> Goto<'a> {
@@ -55,9 +55,9 @@ impl<'a> Goto<'a> {
 #[display(fmt = "{}{}{}", "left_colons", "name", "right_colons")]
 pub struct Label<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    left_colons: Cow<'a, TokenReference<'a>>,
-    name: Cow<'a, TokenReference<'a>>,
-    right_colons: Cow<'a, TokenReference<'a>>,
+    pub(crate) left_colons: Cow<'a, TokenReference<'a>>,
+    pub(crate) name: Cow<'a, TokenReference<'a>>,
+    pub(crate) right_colons: Cow<'a, TokenReference<'a>>,
 }
 
 impl<'a> Label<'a> {

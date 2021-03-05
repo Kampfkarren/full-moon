@@ -7,6 +7,9 @@ use super::{
 #[cfg(feature = "roblox")]
 use super::types::*;
 
+#[cfg(feature = "lua52")]
+use super::lua52::*;
+
 use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -426,6 +429,10 @@ define_parser!(
         ParseExportedTypeDeclaration => Stmt::ExportedTypeDeclaration,
         @#[cfg(feature = "roblox")]
         ParseTypeDeclaration => Stmt::TypeDeclaration,
+        @#[cfg(feature = "lua52")]
+        ParseGoto => Stmt::Goto,
+        @#[cfg(feature = "lua52")]
+        ParseLabel => Stmt::Label,
     })
 );
 
@@ -1633,6 +1640,61 @@ cfg_if::cfg_if! {
         );
     }
 }
+
+// Lua 5.2 related syntax
+#[derive(Clone, Debug, PartialEq)]
+struct ParseGoto;
+define_lua52_parser!(
+    ParseGoto,
+    Goto<'a>,
+    Cow<'a, TokenReference<'a>>,
+    |_, state: ParserState<'a>| {
+        let (state, goto_token) = ParseSymbol(Symbol::Goto).parse(state)?;
+        let (state, label_name) = expect!(
+            state,
+            ParseIdentifier.parse(state),
+            "expected identifier after `goto`"
+        );
+
+        Ok((
+            state,
+            Goto {
+                goto_token,
+                label_name,
+            },
+        ))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseLabel;
+define_lua52_parser!(
+    ParseLabel,
+    Label<'a>,
+    Cow<'a, TokenReference<'a>>,
+    |_, state: ParserState<'a>| {
+        let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+        let (state, name) = expect!(
+            state,
+            ParseIdentifier.parse(state),
+            "expected identifier after `::`"
+        );
+        let (state, right_colons) = expect!(
+            state,
+            ParseSymbol(Symbol::TwoColons).parse(state),
+            "expected `::`"
+        );
+
+        Ok((
+            state,
+            Label {
+                left_colons,
+                name,
+                right_colons,
+            },
+        ))
+    }
+);
 
 macro_rules! make_op_parser {
 	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
