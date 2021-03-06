@@ -85,6 +85,7 @@ macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
         #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        #[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
         $(#[$outer])*
         #[display(fmt = "{}")]
         pub enum $enum<'a> {
