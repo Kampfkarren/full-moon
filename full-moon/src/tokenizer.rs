@@ -838,7 +838,10 @@ fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQu
                 success($quote_type),
                 delimited(
                     tag($quote),
-                    escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                    alt((
+                        escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                        success(""),
+                    )),
                     tag($quote),
                 ),
             )
