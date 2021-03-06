@@ -270,7 +270,7 @@ pub enum TypeFieldKey<'a> {
     },
 }
 
-/// A type assertion using `as`, such as `as number`.
+/// A type assertion using `::`, such as `:: number`.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "assertion_op", "cast_to")]
