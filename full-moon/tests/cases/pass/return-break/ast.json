@@ -140,8 +140,8 @@
             "token": {
               "start_position": {
                 "bytes": 13,
-                "character": 10,
-                "line": 2
+                "character": 1,
+                "line": 3
               },
               "end_position": {
                 "bytes": 16,
@@ -183,8 +183,8 @@
               {
                 "start_position": {
                   "bytes": 17,
-                  "character": 4,
-                  "line": 3
+                  "character": 1,
+                  "line": 4
                 },
                 "end_position": {
                   "bytes": 18,
@@ -201,7 +201,7 @@
               "start_position": {
                 "bytes": 18,
                 "character": 1,
-                "line": 4
+                "line": 5
               },
               "end_position": {
                 "bytes": 20,
@@ -282,8 +282,8 @@
             "token": {
               "start_position": {
                 "bytes": 28,
-                "character": 7,
-                "line": 6
+                "character": 1,
+                "line": 7
               },
               "end_position": {
                 "bytes": 31,
@@ -326,8 +326,8 @@
             {
               "start_position": {
                 "bytes": 32,
-                "character": 4,
-                "line": 7
+                "character": 1,
+                "line": 8
               },
               "end_position": {
                 "bytes": 33,
@@ -344,7 +344,7 @@
             "start_position": {
               "bytes": 33,
               "character": 1,
-              "line": 8
+              "line": 9
             },
             "end_position": {
               "bytes": 39,

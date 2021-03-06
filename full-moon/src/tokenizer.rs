@@ -3,11 +3,13 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use full_moon_derive::{symbols, Owned};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take_till, take_while, take_while1},
-    character::complete::{anychar, digit1, line_ending, space1},
-    combinator::{opt, recognize},
-    multi::many_till,
-    sequence::{delimited, pair, preceded, tuple},
+    bytes::complete::{escaped, tag, tag_no_case, take_till, take_until, take_while, take_while1},
+    character::complete::{
+        alpha1, alphanumeric1, anychar, digit1, line_ending, none_of, one_of, space1,
+    },
+    combinator::{consumed, map, opt, recognize, success, value},
+    multi::{many0, many_till},
+    sequence::{delimited, pair, preceded, terminated},
     IResult,
 };
 #[cfg(feature = "serde")]
@@ -534,6 +536,8 @@ impl<'a> fmt::Display for TokenReference<'a> {
 impl<'a> PartialEq<Self> for TokenReference<'a> {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
+            && self.leading_trivia == other.leading_trivia
+            && self.trailing_trivia == other.trailing_trivia
     }
 }
 
@@ -660,23 +664,17 @@ fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
 }
 
 #[inline]
-fn parse_multi_line_comment_body<'a>(
-    code: &'a str,
-    block_count: &'a str,
-) -> IResult<&'a str, &'a str> {
-    recognize(many_till(
-        anychar,
-        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
-    ))(code)
+fn parse_multi_line_body<'a>(code: &'a str, block_count: &'a str) -> IResult<&'a str, &'a str> {
+    let terminator = format!("]{}]", block_count);
+    let res = terminated(take_until(terminator.as_str()), tag(terminator.as_str()))(code);
+    res
 }
 
 fn advance_comment(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
-        return match parse_multi_line_comment_body(code, block_count) {
+        return match parse_multi_line_body(code, block_count) {
             Ok((_, comment)) => {
                 let blocks = block_count.chars().count();
-                // Get the comment without the ending "]]"
-                let comment = &comment[..(comment.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
                     advance: comment.chars().count() + blocks * 2 + "--[[]]".chars().count(),
                     token_type: TokenType::MultiLineComment {
@@ -749,14 +747,6 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     ))(code)
 }
 
-#[cfg(not(feature = "roblox"))]
-fn parse_roblox_number(_: &str) -> IResult<&str, &str> {
-    Err(nom::Err::Error((
-        "roblox feature not enabled",
-        nom::error::ErrorKind::Alt,
-    )))
-}
-
 #[cfg(feature = "roblox")]
 fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
@@ -767,6 +757,7 @@ fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
 
 fn parse_number(code: &str) -> IResult<&str, &str> {
     alt((
+        #[cfg(feature = "roblox")]
         parse_roblox_number,
         parse_hex_number,
         parse_basic_number,
@@ -789,10 +780,8 @@ fn advance_number(code: &str) -> Advancement {
 #[inline]
 fn parse_identifier(code: &str) -> IResult<&str, &str> {
     recognize(pair(
-        // Identifiers must start with at least 1 alphabetic character
-        take_while1(|x: char| x.is_ascii_alphabetic() || x == '_'),
-        // And then they must be followed by 0 or more alphanumeric (or '_') characters
-        take_while(|x: char| x.is_ascii_alphanumeric() || x == '_'),
+        alt((alpha1, tag("_"))),
+        many0(alt((alphanumeric1, tag("_")))),
     ))(code)
 }
 
@@ -831,23 +820,31 @@ fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
 }
 
 #[inline]
-fn parse_multi_line_string_body<'a>(
-    code: &'a str,
-    block_count: &'a str,
-) -> IResult<&'a str, &'a str> {
-    recognize(many_till(
-        anychar,
-        recognize(tuple((tag("]"), tag(block_count), tag("]")))),
+fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQuoteType, &str)>> {
+    macro_rules! quoted {
+        ($quote:literal, $quote_type:path) => {
+            pair(
+                success($quote_type),
+                delimited(
+                    tag($quote),
+                    escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                    tag($quote),
+                ),
+            )
+        };
+    };
+    alt((
+        map(quoted!("\"", StringLiteralQuoteType::Double), Some),
+        map(quoted!("\'", StringLiteralQuoteType::Single), Some),
+        value(None, one_of("\"\'")),
     ))(code)
 }
 
 fn advance_quote(code: &str) -> Advancement {
     if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
-        return match parse_multi_line_string_body(code, block_count) {
+        return match parse_multi_line_body(code, block_count) {
             Ok((_, body)) => {
                 let blocks = block_count.chars().count();
-                // Get the body without the ending "]]"
-                let body = &body[..(body.len() - "]]".len() - block_count.len())];
                 Ok(Some(TokenAdvancement {
                     advance: body.chars().count() + blocks * 2 + "[[]]".chars().count(),
                     token_type: TokenType::StringLiteral {
@@ -861,59 +858,25 @@ fn advance_quote(code: &str) -> Advancement {
         };
     }
 
-    let quote = if code.starts_with('"') {
-        '"'
-    } else if code.starts_with('\'') {
-        '\''
-    } else {
-        return Ok(None);
-    };
-
-    let mut end = None;
-    let mut escape = false;
-
-    for (char_index, (byte_index, character)) in code.char_indices().enumerate().skip(1) {
-        if character == '\\' {
-            escape = !escape;
-        } else if character == quote {
-            if escape {
-                escape = false;
-            } else {
-                end = Some((char_index, byte_index));
-                break;
-            }
-        } else if (character == '\r' || character == '\n') && !escape {
-            return Err(TokenizerErrorType::UnclosedString);
-        } else {
-            escape = false;
-        }
-    }
-
-    if let Some((char_index, byte_index)) = end {
-        Ok(Some(TokenAdvancement {
-            advance: char_index + 1,
+    match parse_single_line_string(code) {
+        Ok((_, Some((quote, string)))) => Ok(Some(TokenAdvancement {
+            advance: 2 + string.chars().count(),
             token_type: TokenType::StringLiteral {
-                literal: Cow::from(&code[1..byte_index]),
+                literal: Cow::from(string),
                 multi_line: None,
-                quote_type: match quote {
-                    '"' => StringLiteralQuoteType::Double,
-                    '\'' => StringLiteralQuoteType::Single,
-                    _ => unreachable!(),
-                },
+                quote_type: quote,
             },
-        }))
-    } else {
-        Err(TokenizerErrorType::UnclosedString)
+        })),
+        Ok((_, None)) => Err(TokenizerErrorType::UnclosedString),
+        Err(_) => Ok(None),
     }
 }
 
 fn advance_symbol(code: &str) -> Advancement {
-    match parse_symbol(code) {
-        Ok((_, string)) => Ok(Some(TokenAdvancement {
+    match consumed(parse_symbol)(code) {
+        Ok((_, (string, symbol))) => Ok(Some(TokenAdvancement {
             advance: string.chars().count(),
-            token_type: TokenType::Symbol {
-                symbol: Symbol::from_str(string).unwrap(),
-            },
+            token_type: TokenType::Symbol { symbol },
         })),
 
         Err(_) => Ok(None),
@@ -1022,6 +985,11 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
                         end_position: position,
                         token_type: advancement.token_type,
                     });
+                    if next_is_new_line {
+                        next_is_new_line = false;
+                        position.line += 1;
+                        position.character = 1;
+                    }
 
                     continue;
                 }

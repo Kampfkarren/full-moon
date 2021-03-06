@@ -62,6 +62,14 @@ impl<'a> Block<'a> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
+    /// An iterator over the statements in the block, including any optional
+    /// semicolon token reference present
+    pub fn iter_stmts_with_semicolon(
+        &self,
+    ) -> impl Iterator<Item = &(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)> {
+        self.stmts.iter()
+    }
+
     /// The last statement of the block if one exists, such as `return foo`
     /// Deprecated in favor of [`Block::last_stmt`],
     /// the plural in `last_stmts` was a typo
@@ -254,49 +262,23 @@ impl Default for TableConstructor<'_> {
     }
 }
 
-/// A binary operation, such as (`+ 3`)
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", bin_op, rhs)]
-#[visit(visit_as = "bin_op")]
-pub struct BinOpRhs<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    bin_op: BinOp<'a>,
-    rhs: Box<Expression<'a>>,
-}
-
-impl<'a> BinOpRhs<'a> {
-    /// Creates a new BinOpRhs from the given binary operator and right hand side
-    pub fn new(bin_op: BinOp<'a>, rhs: Box<Expression<'a>>) -> Self {
-        Self { bin_op, rhs }
-    }
-
-    /// The binary operation used, the `+` part of `+ 3`
-    pub fn bin_op(&self) -> &BinOp<'a> {
-        &self.bin_op
-    }
-
-    /// The right hand side of the binary operation, the `3` part of `+ 3`
-    pub fn rhs(&self) -> &Expression<'a> {
-        self.rhs.as_ref()
-    }
-
-    /// Returns a new BinOpRhs with the given binary operator token
-    pub fn with_bin_op(self, bin_op: BinOp<'a>) -> Self {
-        Self { bin_op, ..self }
-    }
-
-    /// Returns a new BinOpRhs with the given right hand side
-    pub fn with_rhs(self, rhs: Box<Expression<'a>>) -> Self {
-        Self { rhs, ..self }
-    }
-}
-
 /// An expression, mostly useful for getting values
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Expression<'a> {
+    /// A binary operation, such as `1 + 3`
+    #[display(fmt = "{}{}{}", "lhs", "binop", "rhs")]
+    BinaryOperator {
+        /// The left hand side of the binary operation, the `1` part of `1 + 3`
+        lhs: Box<Expression<'a>>,
+        /// The binary operation used, the `+` part of `1 + 3`
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        binop: BinOp<'a>,
+        /// The right hand side of the binary operation, the `3` part of `1 + 3`
+        rhs: Box<Expression<'a>>,
+    },
+
     /// A statement in parentheses, such as `(#list)`
     #[display(
         fmt = "{}{}{}",
@@ -324,25 +306,15 @@ pub enum Expression<'a> {
     },
 
     /// A value, such as "strings"
-    #[cfg_attr(
-        not(feature = "roblox"),
-        display(fmt = "{}{}", value, "display_option(binop)")
-    )]
+    #[cfg_attr(not(feature = "roblox"), display(fmt = "{}", value))]
     #[cfg_attr(
         feature = "roblox",
-        display(
-            fmt = "{}{}{}",
-            value,
-            "display_option(binop)",
-            "display_option(as_assertion)"
-        )
+        display(fmt = "{}{}", value, "display_option(as_assertion)")
     )]
     Value {
         /// The value itself
         #[cfg_attr(feature = "serde", serde(borrow))]
         value: Box<Value<'a>>,
-        /// The binary operation being done, if one exists (the `+ 3` part of `2 + 3`)
-        binop: Option<BinOpRhs<'a>>,
         /// What the value is being asserted as using `as`.
         /// Only available when the "roblox" feature flag is enabled.
         #[cfg(feature = "roblox")]
@@ -371,7 +343,7 @@ pub enum Value<'a> {
     Number(Cow<'a, TokenReference<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
     #[display(fmt = "{}", "_0")]
-    ParseExpression(Expression<'a>),
+    ParenthesesExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     #[display(fmt = "{}", "_0")]
     String(Cow<'a, TokenReference<'a>>),
@@ -2052,6 +2024,33 @@ make_op!(BinOp,
     }
 );
 
+impl BinOp<'_> {
+    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
+    /// See more at http://www.lua.org/manual/5.1/manual.html#2.5.6
+    pub fn precedence(&self) -> u8 {
+        match *self {
+            BinOp::Caret(_) => 8,
+            BinOp::Star(_) | BinOp::Slash(_) | BinOp::Percent(_) => 6,
+            BinOp::Plus(_) | BinOp::Minus(_) => 5,
+            BinOp::TwoDots(_) => 4,
+            BinOp::GreaterThan(_)
+            | BinOp::LessThan(_)
+            | BinOp::GreaterThanEqual(_)
+            | BinOp::LessThanEqual(_)
+            | BinOp::TildeEqual(_)
+            | BinOp::TwoEqual(_) => 3,
+            BinOp::And(_) => 2,
+            BinOp::Or(_) => 1,
+        }
+    }
+
+    /// Whether the operator is right associative. If not, it is left associative.
+    /// See more at https://www.lua.org/pil/3.5.html
+    pub fn is_right_associative(&self) -> bool {
+        matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
+    }
+}
+
 make_op!(UnOp,
     #[doc = "Operators that require just one operand, such as #X"]
     {
@@ -2060,6 +2059,14 @@ make_op!(UnOp,
         Hash,
     }
 );
+
+impl UnOp<'_> {
+    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
+    /// See more at http://www.lua.org/manual/5.1/manual.html#2.5.6
+    pub fn precedence(&self) -> u8 {
+        7
+    }
+}
 
 /// An error that occurs when creating the ast *after* tokenizing
 #[derive(Clone, Debug, PartialEq)]
@@ -2351,7 +2358,6 @@ mod tests {
 
         let expression = Expression::Value {
             value: Box::new(Value::Var(Var::Name(token.clone()))),
-            binop: None,
             #[cfg(feature = "roblox")]
             as_assertion: None,
         };

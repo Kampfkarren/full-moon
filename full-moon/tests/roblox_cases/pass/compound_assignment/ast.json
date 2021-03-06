@@ -183,8 +183,8 @@
             "token": {
               "start_position": {
                 "bytes": 12,
-                "character": 12,
-                "line": 1
+                "character": 1,
+                "line": 2
               },
               "end_position": {
                 "bytes": 17,
@@ -358,8 +358,8 @@
                 {
                   "start_position": {
                     "bytes": 24,
-                    "character": 12,
-                    "line": 2
+                    "character": 1,
+                    "line": 3
                   },
                   "end_position": {
                     "bytes": 25,
@@ -376,7 +376,7 @@
                 "start_position": {
                   "bytes": 25,
                   "character": 1,
-                  "line": 3
+                  "line": 4
                 },
                 "end_position": {
                   "bytes": 26,
@@ -502,8 +502,8 @@
               "token": {
                 "start_position": {
                   "bytes": 32,
-                  "character": 7,
-                  "line": 4
+                  "character": 1,
+                  "line": 5
                 },
                 "end_position": {
                   "bytes": 33,
@@ -629,8 +629,8 @@
               "token": {
                 "start_position": {
                   "bytes": 39,
-                  "character": 7,
-                  "line": 5
+                  "character": 1,
+                  "line": 6
                 },
                 "end_position": {
                   "bytes": 40,
@@ -756,8 +756,8 @@
               "token": {
                 "start_position": {
                   "bytes": 46,
-                  "character": 7,
-                  "line": 6
+                  "character": 1,
+                  "line": 7
                 },
                 "end_position": {
                   "bytes": 47,
@@ -883,8 +883,8 @@
               "token": {
                 "start_position": {
                   "bytes": 53,
-                  "character": 7,
-                  "line": 7
+                  "character": 1,
+                  "line": 8
                 },
                 "end_position": {
                   "bytes": 54,
@@ -1010,8 +1010,8 @@
               "token": {
                 "start_position": {
                   "bytes": 60,
-                  "character": 7,
-                  "line": 8
+                  "character": 1,
+                  "line": 9
                 },
                 "end_position": {
                   "bytes": 61,
@@ -1136,8 +1136,8 @@
                 {
                   "start_position": {
                     "bytes": 67,
-                    "character": 7,
-                    "line": 9
+                    "character": 1,
+                    "line": 10
                   },
                   "end_position": {
                     "bytes": 68,
@@ -1154,7 +1154,7 @@
                 "start_position": {
                   "bytes": 68,
                   "character": 1,
-                  "line": 10
+                  "line": 11
                 },
                 "end_position": {
                   "bytes": 69,
@@ -1282,8 +1282,8 @@
               "token": {
                 "start_position": {
                   "bytes": 75,
-                  "character": 7,
-                  "line": 11
+                  "character": 1,
+                  "line": 12
                 },
                 "end_position": {
                   "bytes": 76,
@@ -1411,8 +1411,8 @@
               "token": {
                 "start_position": {
                   "bytes": 82,
-                  "character": 7,
-                  "line": 12
+                  "character": 1,
+                  "line": 13
                 },
                 "end_position": {
                   "bytes": 83,
@@ -1540,8 +1540,8 @@
               "token": {
                 "start_position": {
                   "bytes": 89,
-                  "character": 7,
-                  "line": 13
+                  "character": 1,
+                  "line": 14
                 },
                 "end_position": {
                   "bytes": 90,
@@ -1669,8 +1669,8 @@
               "token": {
                 "start_position": {
                   "bytes": 96,
-                  "character": 7,
-                  "line": 14
+                  "character": 1,
+                  "line": 15
                 },
                 "end_position": {
                   "bytes": 97,
@@ -1798,8 +1798,8 @@
               "token": {
                 "start_position": {
                   "bytes": 103,
-                  "character": 7,
-                  "line": 15
+                  "character": 1,
+                  "line": 16
                 },
                 "end_position": {
                   "bytes": 104,
@@ -1925,8 +1925,8 @@
               {
                 "start_position": {
                   "bytes": 110,
-                  "character": 7,
-                  "line": 16
+                  "character": 1,
+                  "line": 17
                 },
                 "end_position": {
                   "bytes": 111,
@@ -1943,7 +1943,7 @@
               "start_position": {
                 "bytes": 111,
                 "character": 1,
-                "line": 17
+                "line": 18
               },
               "end_position": {
                 "bytes": 116,
@@ -2118,8 +2118,8 @@
             "token": {
               "start_position": {
                 "bytes": 134,
-                "character": 23,
-                "line": 18
+                "character": 1,
+                "line": 19
               },
               "end_position": {
                 "bytes": 139,
@@ -2294,8 +2294,8 @@
                 {
                   "start_position": {
                     "bytes": 156,
-                    "character": 22,
-                    "line": 19
+                    "character": 1,
+                    "line": 20
                   },
                   "end_position": {
                     "bytes": 157,
@@ -2312,7 +2312,7 @@
                 "start_position": {
                   "bytes": 157,
                   "character": 1,
-                  "line": 20
+                  "line": 21
                 },
                 "end_position": {
                   "bytes": 161,
@@ -2439,8 +2439,8 @@
               "token": {
                 "start_position": {
                   "bytes": 175,
-                  "character": 18,
-                  "line": 21
+                  "character": 1,
+                  "line": 22
                 },
                 "end_position": {
                   "bytes": 179,
