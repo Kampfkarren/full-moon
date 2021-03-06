@@ -101,10 +101,17 @@ macro_rules! make_op {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! define_parser {
+    ($parser:ident, $node:ty, |_, $state:ident| $body:expr) => {
+        define_parser! {$parser, $node, |_, mut $state: ParserState<'a>| $body}
+    };
+    ($parser:ident, $node:ty, |$self:ident, $state:ident| $body:expr) => {
+        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a>| $body}
+    };
     ($parser:ident, $node:ty, $body:expr) => {
         impl<'a> Parser<'a> for $parser {
             type Item = $node;
 
+            #[allow(unused_mut)]
             fn parse(
                 &self,
                 state: ParserState<'a>,
@@ -400,4 +407,4 @@ where
 #[derive(Clone, Debug, PartialEq)]
 pub struct NoDelimiter;
 
-define_parser!(NoDelimiter, (), |_, state: ParserState<'a>| Ok((state, ())));
+define_parser!(NoDelimiter, (), |_, state| Ok((state, ())));
