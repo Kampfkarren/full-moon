@@ -102,6 +102,7 @@ impl<'a> Block<'a> {
 /// The last statement of a [`Block`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
@@ -164,6 +165,7 @@ impl Default for Return<'_> {
 /// Fields of a [`TableConstructor`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Field<'a> {
     /// A key in the format of `[expression] = value`
     #[display(
@@ -266,6 +268,7 @@ impl Default for TableConstructor<'_> {
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Expression<'a> {
     /// A binary operation, such as `1 + 3`
     #[display(fmt = "{}{}{}", "lhs", "binop", "rhs")]
@@ -327,6 +330,7 @@ pub enum Expression<'a> {
 /// Values that cannot be used standalone, but as part of things such as [`Stmt`]
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
@@ -343,7 +347,7 @@ pub enum Value<'a> {
     Number(Cow<'a, TokenReference<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
     #[display(fmt = "{}", "_0")]
-    ParseExpression(Expression<'a>),
+    ParenthesesExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     #[display(fmt = "{}", "_0")]
     String(Cow<'a, TokenReference<'a>>),
@@ -358,6 +362,7 @@ pub enum Value<'a> {
 /// A statement that stands alone
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Stmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An assignment, such as `x = 1`
@@ -413,6 +418,7 @@ pub enum Stmt<'a> {
 /// The `("foo")` part of `("foo"):upper()`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Prefix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[display(fmt = "{}", _0)]
@@ -427,6 +433,7 @@ pub enum Prefix<'a> {
 /// Values of variants are the keys, such as `"y"`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Index<'a> {
     /// Indexing in the form of `x["y"]`
     #[display(
@@ -457,6 +464,7 @@ pub enum Index<'a> {
 /// Arguments used for a function
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call(1, 2, 3)`
     #[display(
@@ -1280,6 +1288,7 @@ impl<'a> MethodCall<'a> {
 /// Something being called
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Call<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[display(fmt = "{}", "_0")]
@@ -1455,6 +1464,7 @@ impl fmt::Display for FunctionBody<'_> {
 /// A parameter in a function declaration
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// The `...` vararg syntax, such as `function x(...)`
@@ -1467,6 +1477,7 @@ pub enum Parameter<'a> {
 /// Can be stacked on top of each other, such as in `x()()()`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Suffix<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[display(fmt = "{}", "_0")]
@@ -1520,6 +1531,7 @@ impl<'a> VarExpression<'a> {
 /// Used in [`Assignment`s](Assignment) and [`Value`s](Value)
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum Var<'a> {
     /// An expression, such as `x.y.z` or `x()`
     #[cfg_attr(feature = "serde", serde(borrow))]

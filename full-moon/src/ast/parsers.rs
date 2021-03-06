@@ -389,7 +389,7 @@ define_parser!(
         ParseTableConstructor => Value::TableConstructor,
         ParseFunctionCall => Value::FunctionCall,
         ParseVar => Value::Var,
-        ParseParenExpression => Value::ParseExpression,
+        ParseParenExpression => Value::ParenthesesExpression,
     })
 );
 

@@ -7,6 +7,7 @@ use derive_more::Display;
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TypeInfo<'a> {
     /// A shorthand type annotating the structure of an array: { number }
     #[display(fmt = "{}{}{}", "braces.tokens().0", "type_info", "braces.tokens().1")]
@@ -171,6 +172,7 @@ pub enum TypeInfo<'a> {
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum IndexedTypeInfo<'a> {
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
@@ -249,6 +251,7 @@ impl<'a> TypeField<'a> {
 /// A key in a [`TypeField`]. Can either be a name or an index signature.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TypeFieldKey<'a> {
     /// A name, such as `foo`.
     #[display(fmt = "{}", "_0")]
