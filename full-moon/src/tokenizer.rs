@@ -38,6 +38,8 @@ symbols!(
     True => "true",
     Until => "until",
     While => "while",
+    // TODO: This only is valid in Lua 5.2
+    Goto => "goto",
 
     // TODO: This only is valid in Roblox
     PlusEqual => "+=",
@@ -51,7 +53,7 @@ symbols!(
     Ampersand => "&",
     // TODO: This only is valid in Roblox
     ThinArrow => "->",
-    // TODO: This only is valid in Roblox
+    // TODO: This only is valid in Roblox and Lua 5.2
     TwoColons => "::",
     Caret => "^",
     Colon => ":",
