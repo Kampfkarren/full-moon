@@ -11,7 +11,7 @@ keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
 [package.metadata.docs.rs]
-features = ["roblox"]
+features = ["roblox", "lua52]
 
 [features]
 default = ["serde"]
