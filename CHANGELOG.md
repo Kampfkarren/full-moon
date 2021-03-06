@@ -14,15 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated dependency cfg_if to v1.0
 - **[BREAKING CHANGE]** Moved binary operations to `Expression::BinaryOperator`. `binop` has been removed from `Expression::Value`
-- Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
-- Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
 - **[BREAKING CHANGE]** Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
+- **[BREAKING CHANGE (for `roblox` users)]** When using the `non-exhaustive` feature flag (on by default when using the `roblox` feature flag), enums will now be marked as `non_exhaustive`, meaning matches on them must factor in the `_` case.
 - **[BREAKING CHANGE]** Changed how newline trailing trivia is bound to tokens. A token now owns any trailing trivia on the same line up to and including the newline character.
 See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
 - TokenReference equality now checks for leading and trailing trivia to be the same.
+
+### Removed
+- Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
+- Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
 
 ## [0.9.0] - 2020-12-21
 ### Added
