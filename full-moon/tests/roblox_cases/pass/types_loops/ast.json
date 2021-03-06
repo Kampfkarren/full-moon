@@ -267,8 +267,7 @@
                         }
                       ]
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]
@@ -291,13 +290,7 @@
                 "symbol": "do"
               }
             },
-            "trailing_trivia": []
-          },
-          "block": {
-            "stmts": []
-          },
-          "end_token": {
-            "leading_trivia": [
+            "trailing_trivia": [
               {
                 "start_position": {
                   "bytes": 30,
@@ -313,7 +306,14 @@
                   "type": "Whitespace",
                   "characters": "\n"
                 }
-              },
+              }
+            ]
+          },
+          "block": {
+            "stmts": []
+          },
+          "end_token": {
+            "leading_trivia": [
               {
                 "start_position": {
                   "bytes": 31,
@@ -347,7 +347,24 @@
                 "symbol": "end"
               }
             },
-            "trailing_trivia": []
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 35,
+                  "character": 4,
+                  "line": 3
+                },
+                "end_position": {
+                  "bytes": 36,
+                  "character": 4,
+                  "line": 3
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": "\n"
+                }
+              }
+            ]
           },
           "type_specifiers": [
             null,
@@ -439,22 +456,6 @@
         "NumericFor": {
           "for_token": {
             "leading_trivia": [
-              {
-                "start_position": {
-                  "bytes": 35,
-                  "character": 4,
-                  "line": 3
-                },
-                "end_position": {
-                  "bytes": 36,
-                  "character": 4,
-                  "line": 3
-                },
-                "token_type": {
-                  "type": "Whitespace",
-                  "characters": "\n"
-                }
-              },
               {
                 "start_position": {
                   "bytes": 36,
@@ -586,8 +587,7 @@
                 },
                 "trailing_trivia": []
               }
-            },
-            "binop": null
+            }
           },
           "start_end_comma": {
             "leading_trivia": [],
@@ -648,8 +648,7 @@
                 },
                 "trailing_trivia": []
               }
-            },
-            "binop": null
+            }
           },
           "end_step_comma": {
             "leading_trivia": [],
@@ -727,8 +726,7 @@
                   }
                 ]
               }
-            },
-            "binop": null
+            }
           },
           "do_token": {
             "leading_trivia": [],
@@ -748,7 +746,24 @@
                 "symbol": "do"
               }
             },
-            "trailing_trivia": []
+            "trailing_trivia": [
+              {
+                "start_position": {
+                  "bytes": 64,
+                  "character": 28,
+                  "line": 5
+                },
+                "end_position": {
+                  "bytes": 65,
+                  "character": 28,
+                  "line": 5
+                },
+                "token_type": {
+                  "type": "Whitespace",
+                  "characters": "\n"
+                }
+              }
+            ]
           },
           "block": {
             "stmts": []
@@ -757,24 +772,8 @@
             "leading_trivia": [
               {
                 "start_position": {
-                  "bytes": 64,
-                  "character": 28,
-                  "line": 5
-                },
-                "end_position": {
-                  "bytes": 69,
-                  "character": 5,
-                  "line": 6
-                },
-                "token_type": {
-                  "type": "Whitespace",
-                  "characters": "\n    "
-                }
-              },
-              {
-                "start_position": {
-                  "bytes": 69,
-                  "character": 5,
+                  "bytes": 65,
+                  "character": 1,
                   "line": 6
                 },
                 "end_position": {
@@ -784,7 +783,7 @@
                 },
                 "token_type": {
                   "type": "Whitespace",
-                  "characters": "\n"
+                  "characters": "    \n"
                 }
               }
             ],
