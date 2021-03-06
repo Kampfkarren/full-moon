@@ -13,22 +13,22 @@ use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy)]
-pub struct ParserState<'a> {
+pub struct ParserState<'a, 'b> {
     pub index: usize,
     pub len: usize,
-    pub tokens: *const TokenReference<'a>,
+    pub tokens: &'b [TokenReference<'a>],
 }
 
-impl<'a> ParserState<'a> {
-    pub fn new(tokens: &[TokenReference<'a>]) -> ParserState<'a> {
+impl<'a, 'b> ParserState<'a, 'b> {
+    pub fn new(tokens: &'b [TokenReference<'a>]) -> ParserState<'a, 'b> {
         ParserState {
             index: 0,
             len: tokens.len(),
-            tokens: tokens.as_ptr(),
+            tokens: tokens,
         }
     }
 
-    pub fn advance(self) -> Option<ParserState<'a>> {
+    pub fn advance(self) -> Option<ParserState<'a, 'b>> {
         if self.index + 1 == self.len {
             None
         } else {
@@ -39,27 +39,21 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    // TODO: This is super bad, containing both unsafe code and a mandatory clone
-    // on every call so that everything is backwards compatible, since it SHOULD
-    // just borrow. It is only like this because of a failure to tackle lifetimes.
+    // TODO: This is bad, containing a mandatory clone on every call so that everything is
+    // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
+    // to tackle lifetimes.
     pub fn peek(&self) -> Cow<'a, TokenReference<'a>> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
 
-        let result = unsafe {
-            &*self
-                .tokens
-                .add(self.index)
-                .as_ref()
-                .expect("couldn't peek, no eof?")
-        };
+        let result = self.tokens.get(self.index).expect("couldn't peek, no eof?");
 
         Cow::Owned(result.to_owned())
     }
 }
 
-impl<'a> fmt::Debug for ParserState<'a> {
+impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -73,10 +67,10 @@ impl<'a> fmt::Debug for ParserState<'a> {
 pub(crate) trait Parser<'a>: Sized {
     type Item;
 
-    fn parse(
+    fn parse<'b>(
         &self,
-        state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Self::Item), InternalAstError<'a>>;
+        state: ParserState<'a, 'b>,
+    ) -> Result<(ParserState<'a, 'b>, Self::Item), InternalAstError<'a>>;
 }
 
 #[doc(hidden)]
@@ -101,14 +95,21 @@ macro_rules! make_op {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! define_parser {
+    ($parser:ident, $node:ty, |_, $state:ident| $body:expr) => {
+        define_parser! {$parser, $node, |_, mut $state: ParserState<'a, 'b>| $body}
+    };
+    ($parser:ident, $node:ty, |$self:ident, $state:ident| $body:expr) => {
+        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body}
+    };
     ($parser:ident, $node:ty, $body:expr) => {
         impl<'a> Parser<'a> for $parser {
             type Item = $node;
 
-            fn parse(
+            #[allow(unused_mut)]
+            fn parse<'b>(
                 &self,
-                state: ParserState<'a>,
-            ) -> Result<(ParserState<'a>, $node), InternalAstError<'a>> {
+                state: ParserState<'a, 'b>,
+            ) -> Result<(ParserState<'a, 'b>, $node), InternalAstError<'a>> {
                 $body(self, state)
             }
         }
@@ -191,6 +192,22 @@ macro_rules! define_roblox_parser {
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! define_lua52_parser {
+    ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "lua52")] {
+                define_parser!($parser, $node, $body);
+            } else {
+                define_parser!($parser, $mock_ty, |_, _| {
+                    Err(InternalAstError::NoMatch)
+                });
+            }
+        }
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum InternalAstError<'a> {
@@ -211,10 +228,10 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse(
+    fn parse<'b>(
         &self,
-        mut state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError<'a>> {
+        mut state: ParserState<'a, 'b>,
+    ) -> Result<(ParserState<'a, 'b>, Vec<T>), InternalAstError<'a>> {
         let mut nodes = Vec::new();
         loop {
             match self.0.parse(state) {
@@ -270,10 +287,10 @@ where
 {
     type Item = Punctuated<'a, T>;
 
-    fn parse(
+    fn parse<'b>(
         &self,
-        mut state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Punctuated<'a, T>), InternalAstError<'a>> {
+        mut state: ParserState<'a, 'b>,
+    ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, T>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
@@ -338,10 +355,10 @@ where
 {
     type Item = Punctuated<'a, ItemParser::Item>;
 
-    fn parse(
+    fn parse<'b>(
         &self,
-        state: ParserState<'a>,
-    ) -> Result<(ParserState<'a>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
+        state: ParserState<'a, 'b>,
+    ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
         let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));
@@ -384,4 +401,4 @@ where
 #[derive(Clone, Debug, PartialEq)]
 pub struct NoDelimiter;
 
-define_parser!(NoDelimiter, (), |_, state: ParserState<'a>| Ok((state, ())));
+define_parser!(NoDelimiter, (), |_, state| Ok((state, ())));

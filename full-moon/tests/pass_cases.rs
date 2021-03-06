@@ -103,3 +103,10 @@ fn test_pass_cases() {
 fn test_roblox_pass_cases() {
     test_pass_cases_folder("./tests/roblox_cases/pass");
 }
+
+#[test]
+#[cfg(feature = "lua52")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua52_pass_cases() {
+    test_pass_cases_folder("./tests/lua52_cases/pass");
+}
