@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Expression::BinaryOperator{ lhs, binop, rhs }` which now handles binary operation expressions, with support for precedence.
 - Added `operator.precedence()` to `BinOp` and `UnOp`. This returns the precedence value from a scale of 1-8 for the operator, where 8 is highest precedence.
 - Added `binop.is_right_associative()` to `BinOp`. This returns whether the binary operator is right associative.
+- Added a `lua52` feature flag for Lua 5.2 specific syntax
+- Added support for `goto` and labels when using the `lua52` feature flag
 
 ### Changed
 - Updated dependency cfg_if to v1.0

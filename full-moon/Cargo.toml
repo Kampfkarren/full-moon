@@ -11,11 +11,12 @@ keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
 [package.metadata.docs.rs]
-features = ["roblox"]
+features = ["roblox", "lua52"]
 
 [features]
 default = ["serde"]
 roblox = ["non-exhaustive"] # Luau is always changing, and therefore is non-exhaustive.
+lua52 = []
 no-source-tests = []
 
 # non-exhaustive is its own feature, as Lua 5.1 isn't going to update to add more.
