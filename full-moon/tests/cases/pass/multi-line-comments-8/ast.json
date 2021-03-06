@@ -178,11 +178,27 @@
                             "identifier": "here"
                           }
                         },
-                        "trailing_trivia": []
+                        "trailing_trivia": [
+                          {
+                            "start_position": {
+                              "bytes": 44,
+                              "character": 23,
+                              "line": 2
+                            },
+                            "end_position": {
+                              "bytes": 45,
+                              "character": 23,
+                              "line": 2
+                            },
+                            "token_type": {
+                              "type": "Whitespace",
+                              "characters": "\n"
+                            }
+                          }
+                        ]
                       }
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

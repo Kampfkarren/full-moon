@@ -146,27 +146,27 @@
                                 "symbol": "{"
                               }
                             },
-                            "trailing_trivia": []
-                          },
-                          {
-                            "leading_trivia": [
+                            "trailing_trivia": [
                               {
                                 "start_position": {
-                                  "bytes": 26,
-                                  "character": 15,
-                                  "line": 2
+                                  "bytes": 11,
+                                  "character": 12,
+                                  "line": 1
                                 },
                                 "end_position": {
-                                  "bytes": 27,
-                                  "character": 15,
-                                  "line": 2
+                                  "bytes": 12,
+                                  "character": 12,
+                                  "line": 1
                                 },
                                 "token_type": {
                                   "type": "Whitespace",
                                   "characters": "\n"
                                 }
                               }
-                            ],
+                            ]
+                          },
+                          {
+                            "leading_trivia": [],
                             "token": {
                               "start_position": {
                                 "bytes": 27,
@@ -199,9 +199,9 @@
                                         "leading_trivia": [
                                           {
                                             "start_position": {
-                                              "bytes": 11,
-                                              "character": 12,
-                                              "line": 1
+                                              "bytes": 12,
+                                              "character": 1,
+                                              "line": 2
                                             },
                                             "end_position": {
                                               "bytes": 13,
@@ -210,7 +210,7 @@
                                             },
                                             "token_type": {
                                               "type": "Whitespace",
-                                              "characters": "\n\t"
+                                              "characters": "\t"
                                             }
                                           }
                                         ],
@@ -354,8 +354,7 @@
                                           }
                                         ]
                                       }
-                                    },
-                                    "binop": null
+                                    }
                                   },
                                   "equal": {
                                     "leading_trivia": [],
@@ -416,8 +415,7 @@
                                         },
                                         "trailing_trivia": []
                                       }
-                                    },
-                                    "binop": null
+                                    }
                                   }
                                 }
                               },
@@ -439,15 +437,31 @@
                                     "symbol": ","
                                   }
                                 },
-                                "trailing_trivia": []
+                                "trailing_trivia": [
+                                  {
+                                    "start_position": {
+                                      "bytes": 26,
+                                      "character": 15,
+                                      "line": 2
+                                    },
+                                    "end_position": {
+                                      "bytes": 27,
+                                      "character": 15,
+                                      "line": 2
+                                    },
+                                    "token_type": {
+                                      "type": "Whitespace",
+                                      "characters": "\n"
+                                    }
+                                  }
+                                ]
                               }
                             ]
                           }
                         ]
                       }
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

@@ -144,10 +144,26 @@
                           "quote_type": "Double"
                         }
                       },
-                      "trailing_trivia": []
+                      "trailing_trivia": [
+                        {
+                          "start_position": {
+                            "bytes": 22,
+                            "character": 5,
+                            "line": 2
+                          },
+                          "end_position": {
+                            "bytes": 23,
+                            "character": 5,
+                            "line": 2
+                          },
+                          "token_type": {
+                            "type": "Whitespace",
+                            "characters": "\n"
+                          }
+                        }
+                      ]
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

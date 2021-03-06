@@ -136,8 +136,7 @@
                 },
                 "trailing_trivia": []
               }
-            },
-            "binop": null
+            }
           },
           "start_end_comma": {
             "leading_trivia": [],
@@ -215,8 +214,7 @@
                   }
                 ]
               }
-            },
-            "binop": null
+            }
           },
           "end_step_comma": null,
           "step": null,
@@ -377,8 +375,7 @@
                                             "trailing_trivia": []
                                           }
                                         }
-                                      },
-                                      "binop": null
+                                      }
                                     }
                                   }
                                 ]
@@ -412,17 +409,7 @@
                 "symbol": "end"
               }
             },
-            "trailing_trivia": []
-          }
-        }
-      },
-      null
-    ],
-    [
-      {
-        "NumericFor": {
-          "for_token": {
-            "leading_trivia": [
+            "trailing_trivia": [
               {
                 "start_position": {
                   "bytes": 36,
@@ -439,7 +426,17 @@
                   "characters": "\n"
                 }
               }
-            ],
+            ]
+          }
+        }
+      },
+      null
+    ],
+    [
+      {
+        "NumericFor": {
+          "for_token": {
+            "leading_trivia": [],
             "token": {
               "start_position": {
                 "bytes": 37,
@@ -573,8 +570,7 @@
                   "trailing_trivia": []
                 }
               }
-            },
-            "binop": null
+            }
           },
           "start_end_comma": {
             "leading_trivia": [],
@@ -654,8 +650,7 @@
                   ]
                 }
               }
-            },
-            "binop": null
+            }
           },
           "end_step_comma": null,
           "step": null,
@@ -717,17 +712,7 @@
                 "symbol": "end"
               }
             },
-            "trailing_trivia": []
-          }
-        }
-      },
-      null
-    ],
-    [
-      {
-        "NumericFor": {
-          "for_token": {
-            "leading_trivia": [
+            "trailing_trivia": [
               {
                 "start_position": {
                   "bytes": 64,
@@ -744,7 +729,17 @@
                   "characters": "\n"
                 }
               }
-            ],
+            ]
+          }
+        }
+      },
+      null
+    ],
+    [
+      {
+        "NumericFor": {
+          "for_token": {
+            "leading_trivia": [],
             "token": {
               "start_position": {
                 "bytes": 65,
@@ -876,8 +871,7 @@
                 },
                 "trailing_trivia": []
               }
-            },
-            "binop": null
+            }
           },
           "start_end_comma": {
             "leading_trivia": [],
@@ -938,8 +932,7 @@
                 },
                 "trailing_trivia": []
               }
-            },
-            "binop": null
+            }
           },
           "end_step_comma": {
             "leading_trivia": [],
@@ -1017,8 +1010,7 @@
                   }
                 ]
               }
-            },
-            "binop": null
+            }
           },
           "do_token": {
             "leading_trivia": [],

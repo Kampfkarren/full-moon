@@ -70,7 +70,24 @@
                               "symbol": ")"
                             }
                           },
-                          "trailing_trivia": []
+                          "trailing_trivia": [
+                            {
+                              "start_position": {
+                                "bytes": 11,
+                                "character": 12,
+                                "line": 1
+                              },
+                              "end_position": {
+                                "bytes": 12,
+                                "character": 12,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "Whitespace",
+                                "characters": "\n"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -200,24 +217,7 @@
         "FunctionCall": {
           "prefix": {
             "Name": {
-              "leading_trivia": [
-                {
-                  "start_position": {
-                    "bytes": 11,
-                    "character": 12,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 12,
-                    "character": 12,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Whitespace",
-                    "characters": "\n"
-                  }
-                }
-              ],
+              "leading_trivia": [],
               "token": {
                 "start_position": {
                   "bytes": 12,
@@ -282,7 +282,24 @@
                               "symbol": ")"
                             }
                           },
-                          "trailing_trivia": []
+                          "trailing_trivia": [
+                            {
+                              "start_position": {
+                                "bytes": 24,
+                                "character": 13,
+                                "line": 2
+                              },
+                              "end_position": {
+                                "bytes": 25,
+                                "character": 13,
+                                "line": 2
+                              },
+                              "token_type": {
+                                "type": "Whitespace",
+                                "characters": "\n"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -412,24 +429,7 @@
         "FunctionCall": {
           "prefix": {
             "Name": {
-              "leading_trivia": [
-                {
-                  "start_position": {
-                    "bytes": 24,
-                    "character": 13,
-                    "line": 2
-                  },
-                  "end_position": {
-                    "bytes": 25,
-                    "character": 13,
-                    "line": 2
-                  },
-                  "token_type": {
-                    "type": "Whitespace",
-                    "characters": "\n"
-                  }
-                }
-              ],
+              "leading_trivia": [],
               "token": {
                 "start_position": {
                   "bytes": 25,
@@ -494,7 +494,24 @@
                               "symbol": ")"
                             }
                           },
-                          "trailing_trivia": []
+                          "trailing_trivia": [
+                            {
+                              "start_position": {
+                                "bytes": 36,
+                                "character": 12,
+                                "line": 3
+                              },
+                              "end_position": {
+                                "bytes": 37,
+                                "character": 12,
+                                "line": 3
+                              },
+                              "token_type": {
+                                "type": "Whitespace",
+                                "characters": "\n"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -624,24 +641,7 @@
         "FunctionCall": {
           "prefix": {
             "Name": {
-              "leading_trivia": [
-                {
-                  "start_position": {
-                    "bytes": 36,
-                    "character": 12,
-                    "line": 3
-                  },
-                  "end_position": {
-                    "bytes": 37,
-                    "character": 12,
-                    "line": 3
-                  },
-                  "token_type": {
-                    "type": "Whitespace",
-                    "characters": "\n"
-                  }
-                }
-              ],
+              "leading_trivia": [],
               "token": {
                 "start_position": {
                   "bytes": 37,
@@ -706,7 +706,24 @@
                               "symbol": ")"
                             }
                           },
-                          "trailing_trivia": []
+                          "trailing_trivia": [
+                            {
+                              "start_position": {
+                                "bytes": 49,
+                                "character": 13,
+                                "line": 4
+                              },
+                              "end_position": {
+                                "bytes": 50,
+                                "character": 13,
+                                "line": 4
+                              },
+                              "token_type": {
+                                "type": "Whitespace",
+                                "characters": "\n"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -836,24 +853,7 @@
         "FunctionCall": {
           "prefix": {
             "Name": {
-              "leading_trivia": [
-                {
-                  "start_position": {
-                    "bytes": 49,
-                    "character": 13,
-                    "line": 4
-                  },
-                  "end_position": {
-                    "bytes": 50,
-                    "character": 13,
-                    "line": 4
-                  },
-                  "token_type": {
-                    "type": "Whitespace",
-                    "characters": "\n"
-                  }
-                }
-              ],
+              "leading_trivia": [],
               "token": {
                 "start_position": {
                   "bytes": 50,

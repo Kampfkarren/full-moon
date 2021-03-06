@@ -116,7 +116,24 @@
                               "symbol": ")"
                             }
                           },
-                          "trailing_trivia": []
+                          "trailing_trivia": [
+                            {
+                              "start_position": {
+                                "bytes": 8,
+                                "character": 9,
+                                "line": 1
+                              },
+                              "end_position": {
+                                "bytes": 9,
+                                "character": 9,
+                                "line": 1
+                              },
+                              "token_type": {
+                                "type": "Whitespace",
+                                "characters": "\n"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -146,8 +163,7 @@
                                 },
                                 "trailing_trivia": []
                               }
-                            },
-                            "binop": null
+                            }
                           }
                         }
                       ]
@@ -166,24 +182,7 @@
         "FunctionCall": {
           "prefix": {
             "Name": {
-              "leading_trivia": [
-                {
-                  "start_position": {
-                    "bytes": 8,
-                    "character": 9,
-                    "line": 1
-                  },
-                  "end_position": {
-                    "bytes": 9,
-                    "character": 9,
-                    "line": 1
-                  },
-                  "token_type": {
-                    "type": "Whitespace",
-                    "characters": "\n"
-                  }
-                }
-              ],
+              "leading_trivia": [],
               "token": {
                 "start_position": {
                   "bytes": 9,
@@ -319,8 +318,7 @@
                                   },
                                   "trailing_trivia": []
                                 }
-                              },
-                              "binop": null
+                              }
                             }
                           }
                         ]

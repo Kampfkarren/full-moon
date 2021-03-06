@@ -133,8 +133,7 @@
                                 },
                                 "trailing_trivia": []
                               }
-                            },
-                            "binop": null
+                            }
                           }
                         }
                       ]
@@ -164,7 +163,24 @@
             "symbol": ";"
           }
         },
-        "trailing_trivia": []
+        "trailing_trivia": [
+          {
+            "start_position": {
+              "bytes": 41,
+              "character": 22,
+              "line": 3
+            },
+            "end_position": {
+              "bytes": 42,
+              "character": 22,
+              "line": 3
+            },
+            "token_type": {
+              "type": "Whitespace",
+              "characters": "\n"
+            }
+          }
+        ]
       }
     ]
   ]
