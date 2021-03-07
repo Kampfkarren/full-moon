@@ -224,8 +224,7 @@
                                               },
                                               "trailing_trivia": []
                                             }
-                                          },
-                                          "binop": null
+                                          }
                                         }
                                       }
                                     ]
@@ -283,8 +282,7 @@
                         ]
                       }
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

@@ -143,10 +143,26 @@
                           "text": "1"
                         }
                       },
-                      "trailing_trivia": []
+                      "trailing_trivia": [
+                        {
+                          "start_position": {
+                            "bytes": 11,
+                            "character": 12,
+                            "line": 1
+                          },
+                          "end_position": {
+                            "bytes": 12,
+                            "character": 12,
+                            "line": 1
+                          },
+                          "token_type": {
+                            "type": "Whitespace",
+                            "characters": "\n"
+                          }
+                        }
+                      ]
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]
@@ -160,22 +176,6 @@
         "LocalAssignment": {
           "local_token": {
             "leading_trivia": [
-              {
-                "start_position": {
-                  "bytes": 11,
-                  "character": 12,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 12,
-                  "character": 12,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Whitespace",
-                  "characters": "\n"
-                }
-              },
               {
                 "start_position": {
                   "bytes": 12,
@@ -347,10 +347,26 @@
                           "text": "1"
                         }
                       },
-                      "trailing_trivia": []
+                      "trailing_trivia": [
+                        {
+                          "start_position": {
+                            "bytes": 41,
+                            "character": 12,
+                            "line": 3
+                          },
+                          "end_position": {
+                            "bytes": 42,
+                            "character": 12,
+                            "line": 3
+                          },
+                          "token_type": {
+                            "type": "Whitespace",
+                            "characters": "\n"
+                          }
+                        }
+                      ]
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

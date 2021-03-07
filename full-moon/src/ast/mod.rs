@@ -2251,7 +2251,7 @@ impl<'a> Ast<'a> {
 }
 
 /// Extracts leading and trailing trivia from tokens
-pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<TokenReference<'a>> {
+pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenReference> {
     let mut references = Vec::new();
     let (mut leading_trivia, mut trailing_trivia) = (Vec::new(), Vec::new());
     let mut tokens = tokens.drain(..).peekable();
@@ -2262,14 +2262,21 @@ pub(crate) fn extract_token_references<'a>(mut tokens: Vec<Token<'a>>) -> Vec<To
         } else {
             while let Some(token) = tokens.peek() {
                 if token.token_type().is_trivia() {
-                    if let TokenType::Whitespace { ref characters } = &*token.token_type() {
-                        // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                        if characters.contains('\n') {
-                            break;
-                        }
-                    }
+                    // Take all trivia up to and including the newline character. If we see a newline character
+                    // we should break once we have taken it in.
+                    let should_break =
+                        if let TokenType::Whitespace { ref characters } = &*token.token_type() {
+                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+                            characters.contains('\n')
+                        } else {
+                            false
+                        };
 
                     trailing_trivia.push(tokens.next().unwrap());
+
+                    if should_break {
+                        break;
+                    }
                 } else {
                     break;
                 }
@@ -2310,14 +2317,16 @@ mod tests {
         assert_eq!(references[2].token.to_string(), "1");
         assert!(references[2].leading_trivia.is_empty());
 
-        assert_eq!(references[4].leading_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].token.to_string(), ")");
+        assert!(references[3].leading_trivia.is_empty());
 
         assert_eq!(
-            references[4].leading_trivia[1].to_string(),
+            references[4].leading_trivia[0].to_string(),
             "-- hello world",
         );
 
-        assert_eq!(references[4].leading_trivia[2].to_string(), "\n");
+        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
         assert_eq!(references[4].token.to_string(), "local");
         assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
     }

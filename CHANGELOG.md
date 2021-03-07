@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
 - **[BREAKING CHANGE (for `roblox` users)]** When using the `non-exhaustive` feature flag (on by default when using the `roblox` feature flag), enums will now be marked as `non_exhaustive`, meaning matches on them must factor in the `_` case.
 - Changed the assertion operator from `as` to `::` under the roblox feature flag. `AsAssertion` has been renamed to `TypeAssertion`, with `as_token` renamed to `assertion_op`.
+- **[BREAKING CHANGE]** Changed how newline trailing trivia is bound to tokens. A token now owns any trailing trivia on the same line up to and including the newline character.
+See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.

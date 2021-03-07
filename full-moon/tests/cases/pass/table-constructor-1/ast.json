@@ -146,10 +146,7 @@
                                 "symbol": "{"
                               }
                             },
-                            "trailing_trivia": []
-                          },
-                          {
-                            "leading_trivia": [
+                            "trailing_trivia": [
                               {
                                 "start_position": {
                                   "bytes": 11,
@@ -166,7 +163,10 @@
                                   "characters": "\n"
                                 }
                               }
-                            ],
+                            ]
+                          },
+                          {
+                            "leading_trivia": [],
                             "token": {
                               "start_position": {
                                 "bytes": 12,
@@ -191,8 +191,7 @@
                         "pairs": []
                       }
                     }
-                  },
-                  "binop": null
+                  }
                 }
               }
             ]

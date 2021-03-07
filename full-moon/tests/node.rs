@@ -8,7 +8,6 @@ fn surrounding_trivia() {
     let (prev, _) = stmt.surrounding_trivia();
 
     let mut prev = prev.into_iter();
-    assert_eq!(prev.next().unwrap().to_string(), "\n");
     assert_eq!(prev.next().unwrap().to_string(), "-- Then a comment");
     assert_eq!(prev.next().unwrap().to_string(), "\n");
     assert_eq!(prev.next(), None);

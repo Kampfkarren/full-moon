@@ -271,7 +271,24 @@
                   "symbol": "end"
                 }
               },
-              "trailing_trivia": []
+              "trailing_trivia": [
+                {
+                  "start_position": {
+                    "bytes": 28,
+                    "character": 29,
+                    "line": 1
+                  },
+                  "end_position": {
+                    "bytes": 29,
+                    "character": 29,
+                    "line": 1
+                  },
+                  "token_type": {
+                    "type": "Whitespace",
+                    "characters": "\n"
+                  }
+                }
+              ]
             }
           }
         }
@@ -282,24 +299,7 @@
       {
         "LocalFunction": {
           "local_token": {
-            "leading_trivia": [
-              {
-                "start_position": {
-                  "bytes": 28,
-                  "character": 29,
-                  "line": 1
-                },
-                "end_position": {
-                  "bytes": 29,
-                  "character": 29,
-                  "line": 1
-                },
-                "token_type": {
-                  "type": "Whitespace",
-                  "characters": "\n"
-                }
-              }
-            ],
+            "leading_trivia": [],
             "token": {
               "start_position": {
                 "bytes": 29,
@@ -503,7 +503,24 @@
                   "symbol": "end"
                 }
               },
-              "trailing_trivia": []
+              "trailing_trivia": [
+                {
+                  "start_position": {
+                    "bytes": 56,
+                    "character": 28,
+                    "line": 2
+                  },
+                  "end_position": {
+                    "bytes": 57,
+                    "character": 28,
+                    "line": 2
+                  },
+                  "token_type": {
+                    "type": "Whitespace",
+                    "characters": "\n"
+                  }
+                }
+              ]
             }
           }
         }
@@ -514,24 +531,7 @@
       {
         "LocalFunction": {
           "local_token": {
-            "leading_trivia": [
-              {
-                "start_position": {
-                  "bytes": 56,
-                  "character": 28,
-                  "line": 2
-                },
-                "end_position": {
-                  "bytes": 57,
-                  "character": 28,
-                  "line": 2
-                },
-                "token_type": {
-                  "type": "Whitespace",
-                  "characters": "\n"
-                }
-              }
-            ],
+            "leading_trivia": [],
             "token": {
               "start_position": {
                 "bytes": 57,
