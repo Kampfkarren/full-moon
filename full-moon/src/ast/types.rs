@@ -291,6 +291,14 @@ pub struct TypeAssertion<'a> {
 }
 
 impl<'a> TypeAssertion<'a> {
+    /// Creates a new TypeAssertion from the given cast to TypeInfo
+    pub fn new(cast_to: TypeInfo<'a>) -> Self {
+        Self {
+            assertion_op: Cow::Owned(TokenReference::symbol("::").unwrap()),
+            cast_to,
+        }
+    }
+
     /// The token `::`.
     pub fn assertion_op(&self) -> &TokenReference<'a> {
         &self.assertion_op
