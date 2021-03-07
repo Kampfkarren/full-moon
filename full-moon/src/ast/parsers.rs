@@ -249,9 +249,9 @@ struct ParseValueExpression;
 define_parser!(ParseValueExpression, Expression<'a>, |_, state| {
     let (state, value) = keep_going!(ParseValue.parse(state))?;
     #[cfg(feature = "roblox")]
-    let (state, as_assertion) =
-        if let Ok((state, as_assertion)) = keep_going!(ParseAsAssertion.parse(state)) {
-            (state, Some(as_assertion))
+    let (state, type_assertion) =
+        if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
+            (state, Some(type_assertion))
         } else {
             (state, None)
         };
@@ -263,7 +263,7 @@ define_parser!(ParseValueExpression, Expression<'a>, |_, state| {
         Expression::Value {
             value,
             #[cfg(feature = "roblox")]
-            as_assertion,
+            type_assertion,
         },
     ))
 });
@@ -325,32 +325,22 @@ define_parser!(ParseExpression, Expression<'a>, |_, state| {
 });
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseAsAssertion;
+struct ParseTypeAssertion;
 
 #[rustfmt::skip]
 define_roblox_parser!(
-    ParseAsAssertion,
-    AsAssertion<'a>,
+    ParseTypeAssertion,
+    TypeAssertion<'a>,
     Cow<'a, TokenReference<'a>>,
     |_, state| {
-        let (state, as_token) = ParseIdentifier.parse(state)?;
-        if as_token.token().to_string() == "as" {
-            let (state, cast_to) = expect!(
-                state,
-                ParseTypeInfo.parse(state),
-                "expected type in `as` expression"
-            );
+        let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+        let (state, cast_to) = expect!(
+            state,
+            ParseTypeInfo.parse(state),
+            "expected type in type assertion"
+        );
 
-            Ok((
-                state,
-                AsAssertion {
-                    as_token,
-                    cast_to,
-                },
-            ))
-        } else {
-            Err(InternalAstError::NoMatch)
-        }
+        Ok((state, TypeAssertion { assertion_op, cast_to }))
     }
 );
 

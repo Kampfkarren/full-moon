@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Moved binary operations to `Expression::BinaryOperator`. `binop` has been removed from `Expression::Value`
 - **[BREAKING CHANGE]** Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
 - **[BREAKING CHANGE (for `roblox` users)]** When using the `non-exhaustive` feature flag (on by default when using the `roblox` feature flag), enums will now be marked as `non_exhaustive`, meaning matches on them must factor in the `_` case.
+- Changed the assertion operator from `as` to `::` under the roblox feature flag. `AsAssertion` has been renamed to `TypeAssertion`, with `as_token` renamed to `assertion_op`.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.

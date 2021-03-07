@@ -269,12 +269,12 @@ create_visitor!(ast: {
 
     // Types
     #[cfg(feature = "roblox")] {
-        visit_as_assertion => AsAssertion,
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_generic_declaration => GenericDeclaration,
         visit_indexed_type_info => IndexedTypeInfo,
+        visit_type_assertion => TypeAssertion,
         visit_type_declaration => TypeDeclaration,
         visit_type_field => TypeField,
         visit_type_field_key => TypeFieldKey,

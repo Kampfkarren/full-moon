@@ -53,7 +53,7 @@ symbols!(
     Ampersand => "&",
     // TODO: This only is valid in Roblox
     ThinArrow => "->",
-    // TODO: This only is valid in Lua 5.2
+    // TODO: This only is valid in Roblox and Lua 5.2
     TwoColons => "::",
     Caret => "^",
     Colon => ":",
