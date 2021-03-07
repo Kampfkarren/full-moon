@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `binop.is_right_associative()` to `BinOp`. This returns whether the binary operator is right associative.
 - Added a `lua52` feature flag for Lua 5.2 specific syntax
 - Added support for `goto` and labels when using the `lua52` feature flag
+- Added initialiser methods for all Luau-related structs available under the roblox feature flag.
 
 ### Changed
 - Updated dependency cfg_if to v1.0
