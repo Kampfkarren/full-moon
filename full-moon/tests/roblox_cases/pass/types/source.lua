@@ -17,7 +17,7 @@ local foo: number = 3
 local foo: number?
 local foo: Array<T>
 local foo: Array<T, U>
-local bar = foo as number
+local bar = foo :: number
 local foo: string, bar: string
 
 local union: number | string

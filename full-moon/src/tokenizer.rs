@@ -38,6 +38,8 @@ symbols!(
     True => "true",
     Until => "until",
     While => "while",
+    // TODO: This only is valid in Lua 5.2
+    Goto => "goto",
 
     // TODO: This only is valid in Roblox
     PlusEqual => "+=",
@@ -51,6 +53,8 @@ symbols!(
     Ampersand => "&",
     // TODO: This only is valid in Roblox
     ThinArrow => "->",
+    // TODO: This only is valid in Roblox and Lua 5.2
+    TwoColons => "::",
     Caret => "^",
     Colon => ":",
     Comma => ",",
@@ -102,6 +106,7 @@ pub enum TokenizerErrorType {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TokenType<'a> {
     /// End of file, should always be the very last token
     Eof,
@@ -238,6 +243,7 @@ impl<'a> TokenType<'a> {
 
 /// The kind of token. Contains no additional data.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TokenKind {
     /// End of file, should always be the very last token
     Eof,
@@ -536,6 +542,8 @@ impl<'a> fmt::Display for TokenReference<'a> {
 impl<'a> PartialEq<Self> for TokenReference<'a> {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
+            && self.leading_trivia == other.leading_trivia
+            && self.trailing_trivia == other.trailing_trivia
     }
 }
 
@@ -629,6 +637,7 @@ struct TokenAdvancement<'a> {
 /// The types of quotes used in a Lua string
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum StringLiteralQuoteType {
     /// Strings formatted \[\[with brackets\]\]
     Brackets,
@@ -697,13 +706,17 @@ fn advance_comment(code: &str) -> Advancement {
 }
 
 fn parse_hex_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        tag_no_case("0x"),
-        #[cfg(not(feature = "roblox"))]
-        take_while1(|c: char| c.is_digit(16)),
-        #[cfg(feature = "roblox")]
-        take_while1(|c: char| c.is_digit(16) || c == '_'),
-    ))(code)
+    let digits_to_find;
+
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "roblox")] {
+            digits_to_find = take_while1(|c: char| c.is_digit(16) || c == '_');
+        } else {
+            digits_to_find = take_while1(|c: char| c.is_digit(16));
+        }
+    };
+
+    recognize(pair(tag_no_case("0x"), digits_to_find))(code)
 }
 
 #[cfg(not(feature = "roblox"))]
@@ -825,7 +838,10 @@ fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQu
                 success($quote_type),
                 delimited(
                     tag($quote),
-                    escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                    alt((
+                        escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
+                        success(""),
+                    )),
                     tag($quote),
                 ),
             )

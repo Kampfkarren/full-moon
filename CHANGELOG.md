@@ -10,16 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Expression::BinaryOperator{ lhs, binop, rhs }` which now handles binary operation expressions, with support for precedence.
 - Added `operator.precedence()` to `BinOp` and `UnOp`. This returns the precedence value from a scale of 1-8 for the operator, where 8 is highest precedence.
 - Added `binop.is_right_associative()` to `BinOp`. This returns whether the binary operator is right associative.
+- Added a `lua52` feature flag for Lua 5.2 specific syntax
+- Added support for `goto` and labels when using the `lua52` feature flag
 - Added initialiser methods for all Luau-related structs available under the roblox feature flag.
 
 ### Changed
 - Updated dependency cfg_if to v1.0
 - **[BREAKING CHANGE]** Moved binary operations to `Expression::BinaryOperator`. `binop` has been removed from `Expression::Value`
-- Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
-- Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
+- **[BREAKING CHANGE]** Renamed `Value::ParseExpression` to `Value::ParenthesesExpression`
+- **[BREAKING CHANGE (for `roblox` users)]** When using the `non-exhaustive` feature flag (on by default when using the `roblox` feature flag), enums will now be marked as `non_exhaustive`, meaning matches on them must factor in the `_` case.
+- Changed the assertion operator from `as` to `::` under the roblox feature flag. `AsAssertion` has been renamed to `TypeAssertion`, with `as_token` renamed to `assertion_op`.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
+- TokenReference equality now checks for leading and trailing trivia to be the same.
+
+### Removed
+- Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
+- Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
 
 ## [0.9.0] - 2020-12-21
 ### Added

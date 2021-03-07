@@ -7,6 +7,7 @@ use derive_more::Display;
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TypeInfo<'a> {
     /// A shorthand type annotating the structure of an array: { number }
     #[display(fmt = "{}{}{}", "braces.tokens().0", "type_info", "braces.tokens().1")]
@@ -171,6 +172,7 @@ pub enum TypeInfo<'a> {
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum IndexedTypeInfo<'a> {
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
@@ -258,6 +260,7 @@ impl<'a> TypeField<'a> {
 /// A key in a [`TypeField`]. Can either be a name or an index signature.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
 pub enum TypeFieldKey<'a> {
     /// A name, such as `foo`.
     #[display(fmt = "{}", "_0")]
@@ -276,34 +279,37 @@ pub enum TypeFieldKey<'a> {
     },
 }
 
-/// A type assertion using `as`, such as `as number`.
+/// A type assertion using `::`, such as `:: number`.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "as_token", "cast_to")]
-pub struct AsAssertion<'a> {
+#[display(fmt = "{}{}", "assertion_op", "cast_to")]
+pub struct TypeAssertion<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) as_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) assertion_op: Cow<'a, TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) cast_to: TypeInfo<'a>,
 }
 
-impl<'a> AsAssertion<'a> {
-    /// The token `as`.
-    pub fn as_token(&self) -> &TokenReference<'a> {
-        &self.as_token
+impl<'a> TypeAssertion<'a> {
+    /// The token `::`.
+    pub fn assertion_op(&self) -> &TokenReference<'a> {
+        &self.assertion_op
     }
 
-    /// The type to cast the expression into, `number` in `as number`.
+    /// The type to cast the expression into, `number` in `:: number`.
     pub fn cast_to(&self) -> &TypeInfo<'a> {
         &self.cast_to
     }
 
-    /// Returns a new AsAssertion with the given `as` token
-    pub fn with_as_token(self, as_token: Cow<'a, TokenReference<'a>>) -> Self {
-        Self { as_token, ..self }
+    /// Returns a new TypeAssertion with the given `::` token
+    pub fn with_assertion_op(self, assertion_op: Cow<'a, TokenReference<'a>>) -> Self {
+        Self {
+            assertion_op,
+            ..self
+        }
     }
 
-    /// Returns a new AsAssertion with the given TypeInfo to cast to
+    /// Returns a new TypeAssertion with the given TypeInfo to cast to
     pub fn with_cast_to(self, cast_to: TypeInfo<'a>) -> Self {
         Self { cast_to, ..self }
     }

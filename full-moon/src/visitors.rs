@@ -5,6 +5,8 @@ use crate::{
 };
 use std::borrow::Cow;
 
+#[cfg(feature = "lua52")]
+use crate::ast::lua52::*;
 #[cfg(feature = "roblox")]
 use crate::ast::types::*;
 
@@ -267,17 +269,23 @@ create_visitor!(ast: {
 
     // Types
     #[cfg(feature = "roblox")] {
-        visit_as_assertion => AsAssertion,
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_generic_declaration => GenericDeclaration,
         visit_indexed_type_info => IndexedTypeInfo,
+        visit_type_assertion => TypeAssertion,
         visit_type_declaration => TypeDeclaration,
         visit_type_field => TypeField,
         visit_type_field_key => TypeFieldKey,
         visit_type_info => TypeInfo,
         visit_type_specifier => TypeSpecifier,
+    }
+
+    // Lua 5.2
+    #[cfg(feature = "lua52")] {
+        visit_goto => Goto,
+        visit_label => Label,
     }
 }, token: {
     visit_identifier,
