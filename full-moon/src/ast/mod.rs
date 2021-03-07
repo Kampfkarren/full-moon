@@ -317,18 +317,18 @@ pub enum Expression<'a> {
     #[cfg_attr(not(feature = "roblox"), display(fmt = "{}", value))]
     #[cfg_attr(
         feature = "roblox",
-        display(fmt = "{}{}", value, "display_option(as_assertion)")
+        display(fmt = "{}{}", value, "display_option(type_assertion)")
     )]
     Value {
         /// The value itself
         #[cfg_attr(feature = "serde", serde(borrow))]
         value: Box<Value<'a>>,
-        /// What the value is being asserted as using `as`.
+        /// What the value is being asserted as using `::`.
         /// Only available when the "roblox" feature flag is enabled.
         #[cfg(feature = "roblox")]
         #[cfg_attr(feature = "serde", serde(borrow))]
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-        as_assertion: Option<AsAssertion<'a>>,
+        type_assertion: Option<TypeAssertion<'a>>,
     },
 }
 
@@ -2385,7 +2385,7 @@ mod tests {
         let expression = Expression::Value {
             value: Box::new(Value::Var(Var::Name(token.clone()))),
             #[cfg(feature = "roblox")]
-            as_assertion: None,
+            type_assertion: None,
         };
 
         Assignment::new(Punctuated::new(), Punctuated::new());
