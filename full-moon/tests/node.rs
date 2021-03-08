@@ -3,7 +3,7 @@ use full_moon::{node::Node, parse};
 #[test]
 fn surrounding_trivia() {
     let ast = parse(include_str!("cases/pass/local-assignment-5/source.lua")).unwrap();
-    let stmt = ast.nodes().iter_stmts().nth(1);
+    let stmt = ast.nodes().stmts().nth(1);
 
     let (prev, _) = stmt.surrounding_trivia();
 
@@ -16,7 +16,7 @@ fn surrounding_trivia() {
 #[test]
 fn test_similar() {
     let ast = parse("local x = 1; --[[ uh oh, filler ]] local x = 1; local x = 2;").unwrap();
-    let stmts = ast.nodes().iter_stmts().collect::<Vec<_>>();
+    let stmts = ast.nodes().stmts().collect::<Vec<_>>();
 
     assert!(stmts[0].similar(stmts[1]));
     assert!(stmts[1].similar(stmts[0]));

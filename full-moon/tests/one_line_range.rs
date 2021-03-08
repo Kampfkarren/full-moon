@@ -19,7 +19,7 @@ fn test_one_line_range() {
     )
     .unwrap();
 
-    for stmt in ast.nodes().iter_stmts() {
+    for stmt in ast.nodes().stmts() {
         let (start, end) = stmt.range().unwrap();
         assert_eq!(
             end.line() - start.line(),

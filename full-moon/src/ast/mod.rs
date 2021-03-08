@@ -2231,7 +2231,7 @@ impl<'a> Ast<'a> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().iter_stmts().count(), 2);
+    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().stmts().count(), 2);
     /// # Ok(())
     /// # }
     /// ```
