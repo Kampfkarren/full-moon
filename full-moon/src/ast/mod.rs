@@ -63,13 +63,13 @@ impl<'a> Block<'a> {
     }
 
     /// An iterator over the statements in the block, such as `local foo = 1`
-    pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
+    pub fn stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
     /// An iterator over the statements in the block, including any optional
     /// semicolon token reference present
-    pub fn iter_stmts_with_semicolon(
+    pub fn stmts_with_semicolon(
         &self,
     ) -> impl Iterator<Item = &(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)> {
         self.stmts.iter()
@@ -1527,7 +1527,7 @@ impl<'a> VarExpression<'a> {
     }
 
     /// An iter over the suffixes, such as indexing or calling
-    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+    pub fn suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
 
@@ -1899,7 +1899,7 @@ impl<'a> FunctionCall<'a> {
     }
 
     /// The suffix of a function call, the `()` part of `call()`
-    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+    pub fn suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
 

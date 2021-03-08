@@ -33,6 +33,10 @@ See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 	- `LocalAssignment::with_expr_list` -> `LocalAssignment::with_expressions`
 	- `LocalAssignment::name_list` -> `LocalAssignment::names`
 	- `LocalAssignment::with_name_list` -> `LocalAssignment::with_names`
+	- `Block::iter_stmts` -> `Block::stmts`
+	- `Block::iter_stmts_with_semicolon` -> `stmts_with_semicolon`
+	- `VarExpression::iter_suffixes` -> `VarExpression::suffixes`
+	- `FunctionCall::iter_suffixes` -> `FunctionCall::suffixes`
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
