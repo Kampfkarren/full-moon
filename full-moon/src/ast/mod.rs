@@ -790,7 +790,7 @@ impl<'a> GenericFor<'a> {
 
     /// Returns the punctuated sequence of the expressions looped over
     /// In `for index, value in pairs(list) do`, iterates over `pairs(list)`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
@@ -834,7 +834,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given expression list
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 
@@ -1582,7 +1582,7 @@ impl<'a> Assignment<'a> {
 
     /// Returns the punctuated sequence over the expressions being assigned.
     /// This is the the `1, 2` part of `x, y["a"] = 1, 2`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
@@ -1593,12 +1593,12 @@ impl<'a> Assignment<'a> {
 
     /// Returns the punctuated sequence over the variables being assigned to.
     /// This is the `x, y["a"]` part of `x, y["a"] = 1, 2`
-    pub fn var_list(&self) -> &Punctuated<'a, Var<'a>> {
+    pub fn variables(&self) -> &Punctuated<'a, Var<'a>> {
         &self.var_list
     }
 
-    /// Returns a new Assignment with the given var list
-    pub fn with_var_list(self, var_list: Punctuated<'a, Var<'a>>) -> Self {
+    /// Returns a new Assignment with the given variables
+    pub fn with_variables(self, var_list: Punctuated<'a, Var<'a>>) -> Self {
         Self { var_list, ..self }
     }
 
@@ -1611,7 +1611,7 @@ impl<'a> Assignment<'a> {
     }
 
     /// Returns a new Assignment with the given expressions
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 }
@@ -1725,13 +1725,13 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns the punctuated sequence of the expressions being assigned.
     /// This is the `1, 2` part of `local x, y = 1, 2`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
     /// Returns the punctuated sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.name_list
     }
 
@@ -1762,7 +1762,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given name list
-    pub fn with_name_list(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_names(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
         Self { name_list, ..self }
     }
 
@@ -1775,7 +1775,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given expression list
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 }
