@@ -181,14 +181,6 @@ pub enum TokenType<'a> {
 impl<'a> TokenType<'a> {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
-    /// Deprecated in favor of [`TokenType::is_trivia`], a name consistent with `leading_trivia` and `trailing_trivia`.
-    #[deprecated(since = "0.5.0", note = "Please use is_trivia instead")]
-    pub fn ignore(&self) -> bool {
-        self.is_trivia()
-    }
-
-    /// Returns whether a token can be practically ignored in most cases
-    /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
         match self {
             TokenType::Shebang { .. }

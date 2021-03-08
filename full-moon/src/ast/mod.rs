@@ -76,14 +76,6 @@ impl<'a> Block<'a> {
     }
 
     /// The last statement of the block if one exists, such as `return foo`
-    /// Deprecated in favor of [`Block::last_stmt`],
-    /// the plural in `last_stmts` was a typo
-    #[deprecated(since = "0.5.0", note = "Use last_stmt instead")]
-    pub fn last_stmts(&self) -> Option<&LastStmt<'a>> {
-        self.last_stmt()
-    }
-
-    /// The last statement of the block if one exists, such as `return foo`
     pub fn last_stmt(&self) -> Option<&LastStmt<'a>> {
         Some(&self.last_stmt.as_ref()?.0)
     }
@@ -239,12 +231,6 @@ impl<'a> TableConstructor<'a> {
     /// The braces of the constructor
     pub fn braces(&self) -> &ContainedSpan<'a> {
         &self.braces
-    }
-
-    /// An iterator over the fields used to create the table
-    #[deprecated(note = "Please use fields().iter instead")]
-    pub fn iter_fields(&self) -> impl Iterator<Item = &Field<'a>> {
-        self.fields.iter()
     }
 
     /// Returns the [`Punctuated`] sequence of the fields used to create the table
@@ -1358,13 +1344,6 @@ impl<'a> FunctionBody<'a> {
     /// The parentheses of the parameters
     pub fn parameters_parentheses(&self) -> &ContainedSpan<'a> {
         &self.parameters_parentheses
-    }
-
-    /// An iterator over the parameters for the function declaration
-    /// Deprecated in favor of [`Punctuated::iter`], which supports retrieving punctuation too
-    #[deprecated(note = "Please use parameters().iter instead")]
-    pub fn iter_parameters(&self) -> impl Iterator<Item = &Parameter<'a>> {
-        self.parameters.iter()
     }
 
     /// Returns the [`Punctuated`] sequence of the parameters for the function declaration
