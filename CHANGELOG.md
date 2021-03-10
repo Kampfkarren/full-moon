@@ -30,6 +30,7 @@ See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 ### Removed
 - Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.
 - Removed `visit_bin_op` and related visitors. Binary operations should be handled in the expression visitor
+- Removed all deprecated members.
 
 ## [0.9.0] - 2020-12-21
 ### Added
