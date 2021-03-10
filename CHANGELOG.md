@@ -22,6 +22,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the assertion operator from `as` to `::` under the roblox feature flag. `AsAssertion` has been renamed to `TypeAssertion`, with `as_token` renamed to `assertion_op`.
 - **[BREAKING CHANGE]** Changed how newline trailing trivia is bound to tokens. A token now owns any trailing trivia on the same line up to and including the newline character.
 See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
+- **[BREAKING CHANGE]** The following names have been changed for consistency.
+	- `GenericFor::expr_list` -> `GenericFor::expressions`
+	- `GenericFor::with_expr_list` -> `GenericFor::with_expressions`
+	- `Assignment::expr_list` -> `Assignment::expressions`
+	- `Assignment::with_expr_list` -> `Assignment::with_expressions`
+	- `Assignment::var_list` -> `Assignment::variables`
+	- `Assignment::with_var_list` -> `Assignment::with_variables`
+	- `LocalAssignment::expr_list` -> `LocalAssignment::expressions`
+	- `LocalAssignment::with_expr_list` -> `LocalAssignment::with_expressions`
+	- `LocalAssignment::name_list` -> `LocalAssignment::names`
+	- `LocalAssignment::with_name_list` -> `LocalAssignment::with_names`
+	- `Block::iter_stmts` -> `Block::stmts`
+	- `Block::iter_stmts_with_semicolon` -> `stmts_with_semicolon`
+	- `VarExpression::iter_suffixes` -> `VarExpression::suffixes`
+	- `FunctionCall::iter_suffixes` -> `FunctionCall::suffixes`
+	- `FunctionBody::func_body` -> `FunctionBody::body`
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.

@@ -41,7 +41,7 @@ fn test_visitor_mut() {
             assignment: ast::LocalAssignment<'ast>,
         ) -> ast::LocalAssignment<'ast> {
             let name_list = assignment
-                .name_list()
+                .names()
                 .pairs()
                 .map(|name| {
                     name.to_owned().map(|value| {
@@ -52,7 +52,7 @@ fn test_visitor_mut() {
                 })
                 .collect();
 
-            assignment.with_name_list(name_list)
+            assignment.with_names(name_list)
         }
     }
 
@@ -64,7 +64,7 @@ fn test_visitor_mut() {
 
     impl<'ast> Visitor<'ast> for PositionValidator {
         fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
-            for name in assignment.name_list() {
+            for name in assignment.names() {
                 assert_eq!(
                     name.end_position().bytes() - name.start_position().bytes(),
                     name.token().to_string().len()

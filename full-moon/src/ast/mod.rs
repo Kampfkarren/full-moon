@@ -63,13 +63,13 @@ impl<'a> Block<'a> {
     }
 
     /// An iterator over the statements in the block, such as `local foo = 1`
-    pub fn iter_stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
+    pub fn stmts(&self) -> impl Iterator<Item = &Stmt<'a>> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
 
     /// An iterator over the statements in the block, including any optional
     /// semicolon token reference present
-    pub fn iter_stmts_with_semicolon(
+    pub fn stmts_with_semicolon(
         &self,
     ) -> impl Iterator<Item = &(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)> {
         self.stmts.iter()
@@ -776,7 +776,7 @@ impl<'a> GenericFor<'a> {
 
     /// Returns the punctuated sequence of the expressions looped over
     /// In `for index, value in pairs(list) do`, iterates over `pairs(list)`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
@@ -820,7 +820,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given expression list
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 
@@ -1506,7 +1506,7 @@ impl<'a> VarExpression<'a> {
     }
 
     /// An iter over the suffixes, such as indexing or calling
-    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+    pub fn suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
 
@@ -1561,7 +1561,7 @@ impl<'a> Assignment<'a> {
 
     /// Returns the punctuated sequence over the expressions being assigned.
     /// This is the the `1, 2` part of `x, y["a"] = 1, 2`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
@@ -1572,12 +1572,12 @@ impl<'a> Assignment<'a> {
 
     /// Returns the punctuated sequence over the variables being assigned to.
     /// This is the `x, y["a"]` part of `x, y["a"] = 1, 2`
-    pub fn var_list(&self) -> &Punctuated<'a, Var<'a>> {
+    pub fn variables(&self) -> &Punctuated<'a, Var<'a>> {
         &self.var_list
     }
 
-    /// Returns a new Assignment with the given var list
-    pub fn with_var_list(self, var_list: Punctuated<'a, Var<'a>>) -> Self {
+    /// Returns a new Assignment with the given variables
+    pub fn with_variables(self, var_list: Punctuated<'a, Var<'a>>) -> Self {
         Self { var_list, ..self }
     }
 
@@ -1590,7 +1590,7 @@ impl<'a> Assignment<'a> {
     }
 
     /// Returns a new Assignment with the given expressions
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 }
@@ -1629,7 +1629,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// The function body, everything except `local function x` in `local function x(a, b, c) call() end`
-    pub fn func_body(&self) -> &FunctionBody<'a> {
+    pub fn body(&self) -> &FunctionBody<'a> {
         &self.func_body
     }
 
@@ -1704,13 +1704,13 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns the punctuated sequence of the expressions being assigned.
     /// This is the `1, 2` part of `local x, y = 1, 2`
-    pub fn expr_list(&self) -> &Punctuated<'a, Expression<'a>> {
+    pub fn expressions(&self) -> &Punctuated<'a, Expression<'a>> {
         &self.expr_list
     }
 
     /// Returns the punctuated sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn name_list(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
         &self.name_list
     }
 
@@ -1741,7 +1741,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given name list
-    pub fn with_name_list(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_names(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
         Self { name_list, ..self }
     }
 
@@ -1754,7 +1754,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given expression list
-    pub fn with_expr_list(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
+    pub fn with_expressions(self, expr_list: Punctuated<'a, Expression<'a>>) -> Self {
         Self { expr_list, ..self }
     }
 }
@@ -1878,7 +1878,7 @@ impl<'a> FunctionCall<'a> {
     }
 
     /// The suffix of a function call, the `()` part of `call()`
-    pub fn iter_suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
+    pub fn suffixes(&self) -> impl Iterator<Item = &Suffix<'a>> {
         self.suffixes.iter()
     }
 
@@ -2210,7 +2210,7 @@ impl<'a> Ast<'a> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().iter_stmts().count(), 2);
+    /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().stmts().count(), 2);
     /// # Ok(())
     /// # }
     /// ```
