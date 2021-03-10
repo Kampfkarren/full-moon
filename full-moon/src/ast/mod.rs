@@ -1650,7 +1650,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// The function body, everything except `local function x` in `local function x(a, b, c) call() end`
-    pub fn func_body(&self) -> &FunctionBody<'a> {
+    pub fn body(&self) -> &FunctionBody<'a> {
         &self.func_body
     }
 
