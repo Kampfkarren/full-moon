@@ -90,7 +90,7 @@ macro_rules! create_visitor {
                 Ast {
                     nodes,
                     // Everything gets cloned with this visitor, so there's no original tokens
-                    tokens: vec![self.visit_eof(eof)],
+                    eof: self.visit_eof(eof),
                 }
             }
 
