@@ -106,7 +106,7 @@ pub enum TokenizerErrorType {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
-#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
+#[non_exhaustive]
 pub enum TokenType<'a> {
     /// End of file, should always be the very last token
     Eof,
@@ -235,7 +235,7 @@ impl<'a> TokenType<'a> {
 
 /// The kind of token. Contains no additional data.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
+#[non_exhaustive]
 pub enum TokenKind {
     /// End of file, should always be the very last token
     Eof,
@@ -629,7 +629,7 @@ struct TokenAdvancement<'a> {
 /// The types of quotes used in a Lua string
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
+#[non_exhaustive]
 pub enum StringLiteralQuoteType {
     /// Strings formatted \[\[with brackets\]\]
     Brackets,
