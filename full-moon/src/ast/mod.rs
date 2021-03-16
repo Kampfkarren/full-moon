@@ -2119,7 +2119,7 @@ impl<'a> std::error::Error for AstError<'a> {}
 #[derive(Clone, Debug, Owned)]
 pub struct Ast<'a> {
     pub(crate) nodes: Block<'a>,
-    pub(crate) tokens: Vec<TokenReference<'a>>,
+    pub(crate) eof: TokenReference<'a>,
 }
 
 impl<'a> Ast<'a> {
@@ -2137,7 +2137,7 @@ impl<'a> Ast<'a> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {
-            let tokens = extract_token_references(tokens);
+            let mut tokens = extract_token_references(tokens);
             let mut state = ParserState::new(&tokens);
 
             if tokens
@@ -2152,7 +2152,9 @@ impl<'a> Ast<'a> {
                         stmts: Vec::new(),
                         last_stmt: None,
                     },
-                    tokens,
+                    eof: tokens.pop().expect(
+                        "(internal full-moon error) No EOF in tokens after checking for EOF.",
+                    ),
                 });
             }
 
@@ -2166,7 +2168,9 @@ impl<'a> Ast<'a> {
                     if state.index == tokens.len() - 1 {
                         Ok(Ast {
                             nodes: block,
-                            tokens,
+                            eof: tokens.pop().expect(
+                                "(internal full-moon error) No EOF in tokens after checking for EOF."
+                            ),
                         })
                     } else {
                         Err(AstError::UnexpectedToken {
@@ -2197,13 +2201,8 @@ impl<'a> Ast<'a> {
     }
 
     /// Returns a new Ast with the given EOF token
-    pub fn with_eof(mut self, eof: TokenReference<'a>) -> Self {
-        self.tokens.pop();
-        self.tokens.push(eof);
-        Self {
-            tokens: self.tokens,
-            ..self
-        }
+    pub fn with_eof(self, eof: TokenReference<'a>) -> Self {
+        Self { eof, ..self }
     }
 
     /// The entire code of the function
@@ -2225,7 +2224,7 @@ impl<'a> Ast<'a> {
 
     /// The EOF token at the end of every Ast
     pub fn eof(&self) -> &TokenReference<'a> {
-        self.tokens.last().expect("no eof token, somehow?")
+        &self.eof
     }
 }
 
