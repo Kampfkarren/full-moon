@@ -4,6 +4,7 @@ use full_moon::{
     print,
     tokenizer::{self, Token, TokenReference},
 };
+use insta::assert_yaml_snapshot;
 use pretty_assertions::assert_eq;
 use std::{
     borrow::Cow,
@@ -47,6 +48,10 @@ fn test_pass_case(path: &Path) {
         tokens_contents = tokens_contents_tmp;
         let expected_tokens: Vec<Token> =
             serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
+        {
+            let tokens = &expected_tokens;
+            assert_yaml_snapshot!("tokens", tokens);
+        }
         assert_eq!(tokens, expected_tokens);
     } else {
         let mut file = File::create(&tokens_path).expect("couldn't write tokens file");
@@ -74,6 +79,16 @@ fn test_pass_case(path: &Path) {
 
     if let Ok(ast_file) = fs::read_to_string(&ast_path) {
         let expected_ast = serde_json::from_str(&ast_file).expect("couldn't deserialize ast file");
+        {
+            struct Ast<T>(T);
+            impl<T> Ast<T> {
+                fn nodes(self) -> T {
+                    self.0
+                }
+            }
+            let ast = Ast(&expected_ast);
+            assert_yaml_snapshot!("ast", ast.nodes());
+        }
         assert_eq!(ast.nodes(), &expected_ast);
         assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
     } else {

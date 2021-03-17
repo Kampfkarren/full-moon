@@ -2,6 +2,7 @@ use full_moon::{
     ast,
     tokenizer::{self, Token},
 };
+use insta::assert_yaml_snapshot;
 use pretty_assertions::assert_eq;
 use std::fs::{self, File};
 use std::io::Write;
@@ -24,6 +25,10 @@ fn test_parser_fail_cases() {
             tokens_contents = tokens_contents_tmp;
             let expected_tokens: Vec<Token> =
                 serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
+            {
+                let tokens = &expected_tokens;
+                assert_yaml_snapshot!("tokens", tokens);
+            }
             assert_eq!(tokens, expected_tokens);
         } else {
             let mut file = File::create(&tokens_path).expect("couldn't write tokens file");
@@ -43,6 +48,10 @@ fn test_parser_fail_cases() {
                 if let Ok(error_contents) = fs::read_to_string(&error_path) {
                     let expected_error = serde_json::from_str(&error_contents)
                         .expect("couldn't deserialize existing error file");
+                    {
+                        let error = &expected_error;
+                        assert_yaml_snapshot!("error", error);
+                    }
                     assert_eq!(error, expected_error);
                 } else {
                     let mut file = File::create(&error_path).expect("couldn't write error file");
@@ -71,6 +80,10 @@ fn test_tokenizer_fail_cases() {
                 if let Ok(error_contents) = fs::read_to_string(&error_path) {
                     let expected_error = serde_json::from_str(&error_contents)
                         .expect("couldn't deserialize existing error file");
+                    {
+                        let error = &expected_error;
+                        assert_yaml_snapshot!("error", error);
+                    }
                     assert_eq!(error, expected_error);
                 } else {
                     let mut file = File::create(&error_path).expect("couldn't write error file");
@@ -102,6 +115,10 @@ fn test_lua52_parser_fail_cases() {
             tokens_contents = tokens_contents_tmp;
             let expected_tokens: Vec<Token> =
                 serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
+            {
+                let tokens = &expected_tokens;
+                assert_yaml_snapshot!("tokens", tokens);
+            }
             assert_eq!(tokens, expected_tokens);
         } else {
             let mut file = File::create(&tokens_path).expect("couldn't write tokens file");
@@ -121,6 +138,10 @@ fn test_lua52_parser_fail_cases() {
                 if let Ok(error_contents) = fs::read_to_string(&error_path) {
                     let expected_error = serde_json::from_str(&error_contents)
                         .expect("couldn't deserialize existing error file");
+                    {
+                        let error = &expected_error;
+                        assert_yaml_snapshot!("error", error);
+                    }
                     assert_eq!(error, expected_error);
                 } else {
                     let mut file = File::create(&error_path).expect("couldn't write error file");
