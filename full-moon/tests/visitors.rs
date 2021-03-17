@@ -3,7 +3,6 @@ use full_moon::{
     tokenizer::*,
     visitors::{Visitor, VisitorMut},
 };
-use std::borrow::Cow;
 
 #[test]
 fn test_visitor() {
@@ -45,9 +44,9 @@ fn test_visitor_mut() {
                 .pairs()
                 .map(|name| {
                     name.to_owned().map(|value| {
-                        Cow::Owned(value.with_token(Token::new(TokenType::Identifier {
+                        value.with_token(Token::new(TokenType::Identifier {
                             identifier: value.token().to_string().replace("s", "sss").into(),
-                        })))
+                        }))
                     })
                 })
                 .collect();
