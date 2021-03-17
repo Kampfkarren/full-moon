@@ -6,12 +6,13 @@ use pretty_assertions::assert_eq;
 use std::fs::{self, File};
 use std::io::Write;
 
+mod common;
+use common::run_test_folder;
+
 #[test]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_parser_fail_cases() {
-    for entry in fs::read_dir("./tests/cases/fail/parser").expect("couldn't read directory") {
-        let entry = entry.unwrap();
-        let path = entry.path();
+    run_test_folder("./tests/cases/fail/parser", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
@@ -54,15 +55,13 @@ fn test_parser_fail_cases() {
                 }
             }
         }
-    }
+    })
 }
 
 #[test]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_tokenizer_fail_cases() {
-    for entry in fs::read_dir("./tests/cases/fail/tokenizer").expect("couldn't read directory") {
-        let entry = entry.unwrap();
-        let path = entry.path();
+    run_test_folder("./tests/cases/fail/tokenizer", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         match tokenizer::tokens(&source) {
@@ -84,16 +83,14 @@ fn test_tokenizer_fail_cases() {
                 }
             }
         }
-    }
+    })
 }
 
 #[test]
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_parser_fail_cases() {
-    for entry in fs::read_dir("./tests/lua52_cases/fail/parser").expect("couldn't read directory") {
-        let entry = entry.unwrap();
-        let path = entry.path();
+    run_test_folder("./tests/lua52_cases/fail/parser", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
@@ -136,5 +133,5 @@ fn test_lua52_parser_fail_cases() {
                 }
             }
         }
-    }
+    })
 }
