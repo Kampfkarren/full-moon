@@ -6,13 +6,7 @@ use full_moon::{
 };
 use insta::assert_yaml_snapshot;
 use pretty_assertions::assert_eq;
-use std::{
-    borrow::Cow,
-    fmt,
-    fs::{self, File},
-    io::Write,
-    path::Path,
-};
+use std::{borrow::Cow, fmt, fs, path::Path};
 
 mod common;
 use common::run_test_folder;
@@ -41,27 +35,7 @@ fn test_pass_case(path: &Path) {
 
     let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
-    let tokens_path = path.join("tokens.json");
-    let tokens_contents;
-
-    if let Ok(tokens_contents_tmp) = fs::read_to_string(dbg!(&tokens_path)) {
-        tokens_contents = tokens_contents_tmp;
-        let expected_tokens: Vec<Token> =
-            serde_json::from_str(&tokens_contents).expect("couldn't deserialize tokens file");
-        {
-            let tokens = &expected_tokens;
-            assert_yaml_snapshot!("tokens", tokens);
-        }
-        assert_eq!(tokens, expected_tokens);
-    } else {
-        let mut file = File::create(&tokens_path).expect("couldn't write tokens file");
-        file.write_all(
-            serde_json::to_string_pretty(&tokens)
-                .expect("couldn't serialize")
-                .as_bytes(),
-        )
-        .expect("couldn't write to tokens file");
-    }
+    assert_yaml_snapshot!("tokens", tokens);
 
     let ast = ast::Ast::from_tokens(tokens)
         .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
@@ -75,32 +49,8 @@ fn test_pass_case(path: &Path) {
             .collect::<Vec<_>>(),
     );
 
-    let ast_path = path.join("ast.json");
-
-    if let Ok(ast_file) = fs::read_to_string(&ast_path) {
-        let expected_ast = serde_json::from_str(&ast_file).expect("couldn't deserialize ast file");
-        {
-            struct Ast<T>(T);
-            impl<T> Ast<T> {
-                fn nodes(self) -> T {
-                    self.0
-                }
-            }
-            let ast = Ast(&expected_ast);
-            assert_yaml_snapshot!("ast", ast.nodes());
-        }
-        assert_eq!(ast.nodes(), &expected_ast);
-        assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
-    } else {
-        let mut file = File::create(&ast_path).expect("couldn't write ast file");
-        file.write_all(
-            serde_json::to_string_pretty(ast.nodes())
-                .expect("couldn't serialize")
-                .as_bytes(),
-        )
-        .expect("couldn't write to ast file");
-        assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
-    }
+    assert_yaml_snapshot!("ast", ast.nodes());
+    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
 }
 
 #[test]

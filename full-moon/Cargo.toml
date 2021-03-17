@@ -37,7 +37,6 @@ nom = "6.1.2"
 criterion = "0.2"
 insta = { version = "1.7.0", features = ["glob"] }
 pretty_assertions = "0.6.1"
-serde_json = "1.0"
 
 [[bench]]
 name = "date"
