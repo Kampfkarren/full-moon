@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/while-4
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 12
+      character: 2
+      line: 2
+    end_position:
+      bytes: 16
+      character: 6
+      line: 2
+    token_type:
+      type: Identifier
+      identifier: call
+  additional: "expected 'do'"
+

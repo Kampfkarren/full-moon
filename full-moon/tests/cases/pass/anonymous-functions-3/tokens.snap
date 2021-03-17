@@ -1,0 +1,149 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/anonymous-functions-3
+
+---
+- start_position:
+    bytes: 0
+    character: 1
+    line: 1
+  end_position:
+    bytes: 5
+    character: 6
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 5
+    character: 6
+    line: 1
+  end_position:
+    bytes: 6
+    character: 7
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    character: 7
+    line: 1
+  end_position:
+    bytes: 7
+    character: 8
+    line: 1
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 7
+    character: 8
+    line: 1
+  end_position:
+    bytes: 8
+    character: 9
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 8
+    character: 9
+    line: 1
+  end_position:
+    bytes: 9
+    character: 10
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 9
+    character: 10
+    line: 1
+  end_position:
+    bytes: 10
+    character: 11
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 10
+    character: 11
+    line: 1
+  end_position:
+    bytes: 18
+    character: 19
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 18
+    character: 19
+    line: 1
+  end_position:
+    bytes: 19
+    character: 20
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 19
+    character: 20
+    line: 1
+  end_position:
+    bytes: 22
+    character: 23
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: "..."
+- start_position:
+    bytes: 22
+    character: 23
+    line: 1
+  end_position:
+    bytes: 23
+    character: 24
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 23
+    character: 24
+    line: 1
+  end_position:
+    bytes: 24
+    character: 25
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 24
+    character: 25
+    line: 1
+  end_position:
+    bytes: 27
+    character: 28
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 27
+    character: 28
+    line: 1
+  end_position:
+    bytes: 27
+    character: 28
+    line: 1
+  token_type:
+    type: Eof
+

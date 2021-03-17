@@ -1,0 +1,50 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/single-line-comment-1
+
+---
+- start_position:
+    bytes: 0
+    character: 1
+    line: 1
+  end_position:
+    bytes: 14
+    character: 15
+    line: 1
+  token_type:
+    type: SingleLineComment
+    comment: " hello world"
+- start_position:
+    bytes: 14
+    character: 15
+    line: 1
+  end_position:
+    bytes: 15
+    character: 15
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 15
+    character: 1
+    line: 2
+  end_position:
+    bytes: 34
+    character: 20
+    line: 2
+  token_type:
+    type: SingleLineComment
+    comment: " and doge you too"
+- start_position:
+    bytes: 34
+    character: 20
+    line: 2
+  end_position:
+    bytes: 34
+    character: 20
+    line: 2
+  token_type:
+    type: Eof
+

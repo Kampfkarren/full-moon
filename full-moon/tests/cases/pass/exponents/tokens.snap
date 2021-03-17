@@ -1,0 +1,270 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/exponents
+
+---
+- start_position:
+    bytes: 0
+    character: 1
+    line: 1
+  end_position:
+    bytes: 5
+    character: 6
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 5
+    character: 6
+    line: 1
+  end_position:
+    bytes: 6
+    character: 7
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    character: 7
+    line: 1
+  end_position:
+    bytes: 9
+    character: 10
+    line: 1
+  token_type:
+    type: Identifier
+    identifier: num
+- start_position:
+    bytes: 9
+    character: 10
+    line: 1
+  end_position:
+    bytes: 10
+    character: 11
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 10
+    character: 11
+    line: 1
+  end_position:
+    bytes: 11
+    character: 12
+    line: 1
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 11
+    character: 12
+    line: 1
+  end_position:
+    bytes: 12
+    character: 13
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 12
+    character: 13
+    line: 1
+  end_position:
+    bytes: 15
+    character: 16
+    line: 1
+  token_type:
+    type: Number
+    text: "1e5"
+- start_position:
+    bytes: 15
+    character: 16
+    line: 1
+  end_position:
+    bytes: 16
+    character: 16
+    line: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 16
+    character: 1
+    line: 2
+  end_position:
+    bytes: 21
+    character: 6
+    line: 2
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 21
+    character: 6
+    line: 2
+  end_position:
+    bytes: 22
+    character: 7
+    line: 2
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 22
+    character: 7
+    line: 2
+  end_position:
+    bytes: 26
+    character: 11
+    line: 2
+  token_type:
+    type: Identifier
+    identifier: num2
+- start_position:
+    bytes: 26
+    character: 11
+    line: 2
+  end_position:
+    bytes: 27
+    character: 12
+    line: 2
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 27
+    character: 12
+    line: 2
+  end_position:
+    bytes: 28
+    character: 13
+    line: 2
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 28
+    character: 13
+    line: 2
+  end_position:
+    bytes: 29
+    character: 14
+    line: 2
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 29
+    character: 14
+    line: 2
+  end_position:
+    bytes: 33
+    character: 18
+    line: 2
+  token_type:
+    type: Number
+    text: "1e-5"
+- start_position:
+    bytes: 33
+    character: 18
+    line: 2
+  end_position:
+    bytes: 34
+    character: 18
+    line: 2
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 34
+    character: 1
+    line: 3
+  end_position:
+    bytes: 39
+    character: 6
+    line: 3
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 39
+    character: 6
+    line: 3
+  end_position:
+    bytes: 40
+    character: 7
+    line: 3
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 40
+    character: 7
+    line: 3
+  end_position:
+    bytes: 44
+    character: 11
+    line: 3
+  token_type:
+    type: Identifier
+    identifier: num3
+- start_position:
+    bytes: 44
+    character: 11
+    line: 3
+  end_position:
+    bytes: 45
+    character: 12
+    line: 3
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 45
+    character: 12
+    line: 3
+  end_position:
+    bytes: 46
+    character: 13
+    line: 3
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 46
+    character: 13
+    line: 3
+  end_position:
+    bytes: 47
+    character: 14
+    line: 3
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 47
+    character: 14
+    line: 3
+  end_position:
+    bytes: 51
+    character: 18
+    line: 3
+  token_type:
+    type: Number
+    text: "1e+5"
+- start_position:
+    bytes: 51
+    character: 18
+    line: 3
+  end_position:
+    bytes: 51
+    character: 18
+    line: 3
+  token_type:
+    type: Eof
+

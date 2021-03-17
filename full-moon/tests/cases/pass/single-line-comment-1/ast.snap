@@ -1,0 +1,8 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/single-line-comment-1
+
+---
+stmts: []
+
