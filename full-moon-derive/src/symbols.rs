@@ -97,7 +97,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        #[cfg_attr(feature = "non-exhaustive", non_exhaustive)]
+        #[non_exhaustive]
         pub enum Symbol {
             #(
                 #[cfg_attr(feature = "serde", serde(rename = #string))]
