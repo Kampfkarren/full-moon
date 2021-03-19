@@ -8,12 +8,12 @@ UnexpectedToken:
   token:
     start_position:
       bytes: 33
-      character: 1
       line: 5
+      character: 1
     end_position:
       bytes: 39
-      character: 7
       line: 5
+      character: 7
     token_type:
       type: Symbol
       symbol: elseif

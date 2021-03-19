@@ -8,12 +8,12 @@ UnexpectedToken:
   token:
     start_position:
       bytes: 10
-      character: 2
       line: 2
+      character: 2
     end_position:
       bytes: 15
-      character: 7
       line: 2
+      character: 7
     token_type:
       type: Symbol
       symbol: until

@@ -12,12 +12,12 @@ stmts:
             token:
               start_position:
                 bytes: 0
-                character: 1
                 line: 1
+                character: 1
               end_position:
                 bytes: 5
-                character: 6
                 line: 1
+                character: 6
               token_type:
                 type: Identifier
                 identifier: print
@@ -32,12 +32,12 @@ stmts:
                         token:
                           start_position:
                             bytes: 5
-                            character: 6
                             line: 1
+                            character: 6
                           end_position:
                             bytes: 6
-                            character: 7
                             line: 1
+                            character: 7
                           token_type:
                             type: Symbol
                             symbol: (
@@ -46,24 +46,24 @@ stmts:
                         token:
                           start_position:
                             bytes: 17
-                            character: 6
                             line: 2
+                            character: 6
                           end_position:
                             bytes: 18
-                            character: 7
                             line: 2
+                            character: 7
                           token_type:
                             type: Symbol
                             symbol: )
                         trailing_trivia:
                           - start_position:
                               bytes: 18
-                              character: 7
                               line: 2
+                              character: 7
                             end_position:
                               bytes: 19
-                              character: 7
                               line: 2
+                              character: 7
                             token_type:
                               type: Whitespace
                               characters: "\n"
@@ -76,12 +76,12 @@ stmts:
                               token:
                                 start_position:
                                   bytes: 6
-                                  character: 7
                                   line: 1
+                                  character: 7
                                 end_position:
                                   bytes: 17
-                                  character: 6
                                   line: 2
+                                  character: 6
                                 token_type:
                                   type: StringLiteral
                                   literal: "foo\\\n\tbar"

@@ -8,12 +8,12 @@ UnexpectedToken:
   token:
     start_position:
       bytes: 12
-      character: 2
       line: 2
+      character: 2
     end_position:
       bytes: 16
-      character: 6
       line: 2
+      character: 6
     token_type:
       type: Identifier
       identifier: call

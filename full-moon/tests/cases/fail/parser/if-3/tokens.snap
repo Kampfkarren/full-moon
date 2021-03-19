@@ -6,89 +6,89 @@ input_file: full-moon/tests/cases/fail/parser/if-3
 ---
 - start_position:
     bytes: 0
-    character: 1
     line: 1
+    character: 1
   end_position:
     bytes: 2
-    character: 3
     line: 1
+    character: 3
   token_type:
     type: Symbol
     symbol: if
 - start_position:
     bytes: 2
-    character: 3
     line: 1
+    character: 3
   end_position:
     bytes: 3
-    character: 4
     line: 1
+    character: 4
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
     bytes: 3
-    character: 4
     line: 1
+    character: 4
   end_position:
     bytes: 8
-    character: 9
     line: 1
+    character: 9
   token_type:
     type: Symbol
     symbol: local
 - start_position:
     bytes: 8
-    character: 9
     line: 1
+    character: 9
   end_position:
     bytes: 9
-    character: 10
     line: 1
+    character: 10
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
     bytes: 9
-    character: 10
     line: 1
+    character: 10
   end_position:
     bytes: 13
-    character: 14
     line: 1
+    character: 14
   token_type:
     type: Symbol
     symbol: then
 - start_position:
     bytes: 13
-    character: 14
     line: 1
+    character: 14
   end_position:
     bytes: 14
-    character: 15
     line: 1
+    character: 15
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
     bytes: 14
-    character: 15
     line: 1
+    character: 15
   end_position:
     bytes: 17
-    character: 18
     line: 1
+    character: 18
   token_type:
     type: Symbol
     symbol: end
 - start_position:
     bytes: 17
-    character: 18
     line: 1
+    character: 18
   end_position:
     bytes: 17
-    character: 18
     line: 1
+    character: 18
   token_type:
     type: Eof
 

@@ -8,12 +8,12 @@ UnexpectedToken:
   token:
     start_position:
       bytes: 15
-      character: 16
       line: 1
+      character: 16
     end_position:
       bytes: 17
-      character: 18
       line: 1
+      character: 18
     token_type:
       type: Symbol
       symbol: do

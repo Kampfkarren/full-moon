@@ -11,24 +11,24 @@ stmts:
           token:
             start_position:
               bytes: 0
-              character: 1
               line: 1
+              character: 1
             end_position:
               bytes: 5
-              character: 6
               line: 1
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 5
-                character: 6
                 line: 1
+                character: 6
               end_position:
                 bytes: 6
-                character: 7
                 line: 1
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -41,24 +41,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 6
-                    character: 7
                     line: 1
+                    character: 7
                   end_position:
                     bytes: 10
-                    character: 11
                     line: 1
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num1
                 trailing_trivia:
                   - start_position:
                       bytes: 10
-                      character: 11
                       line: 1
+                      character: 11
                     end_position:
                       bytes: 11
-                      character: 12
                       line: 1
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -67,24 +67,24 @@ stmts:
           token:
             start_position:
               bytes: 11
-              character: 12
               line: 1
+              character: 12
             end_position:
               bytes: 12
-              character: 13
               line: 1
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 12
-                character: 13
                 line: 1
+                character: 13
               end_position:
                 bytes: 13
-                character: 14
                 line: 1
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -97,24 +97,24 @@ stmts:
                     token:
                       start_position:
                         bytes: 13
-                        character: 14
                         line: 1
+                        character: 14
                       end_position:
                         bytes: 22
-                        character: 23
                         line: 1
+                        character: 23
                       token_type:
                         type: Number
                         text: 1_048_576
                     trailing_trivia:
                       - start_position:
                           bytes: 22
-                          character: 23
                           line: 1
+                          character: 23
                         end_position:
                           bytes: 23
-                          character: 23
                           line: 1
+                          character: 23
                         token_type:
                           type: Whitespace
                           characters: "\n"
@@ -125,24 +125,24 @@ stmts:
           token:
             start_position:
               bytes: 23
-              character: 1
               line: 2
+              character: 1
             end_position:
               bytes: 28
-              character: 6
               line: 2
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 28
-                character: 6
                 line: 2
+                character: 6
               end_position:
                 bytes: 29
-                character: 7
                 line: 2
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -155,24 +155,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 29
-                    character: 7
                     line: 2
+                    character: 7
                   end_position:
                     bytes: 33
-                    character: 11
                     line: 2
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num2
                 trailing_trivia:
                   - start_position:
                       bytes: 33
-                      character: 11
                       line: 2
+                      character: 11
                     end_position:
                       bytes: 34
-                      character: 12
                       line: 2
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -181,24 +181,24 @@ stmts:
           token:
             start_position:
               bytes: 34
-              character: 12
               line: 2
+              character: 12
             end_position:
               bytes: 35
-              character: 13
               line: 2
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 35
-                character: 13
                 line: 2
+                character: 13
               end_position:
                 bytes: 36
-                character: 14
                 line: 2
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -211,24 +211,24 @@ stmts:
                     token:
                       start_position:
                         bytes: 36
-                        character: 14
                         line: 2
+                        character: 14
                       end_position:
                         bytes: 47
-                        character: 25
                         line: 2
+                        character: 25
                       token_type:
                         type: Number
                         text: "0xFFFF_FFFF"
                     trailing_trivia:
                       - start_position:
                           bytes: 47
-                          character: 25
                           line: 2
+                          character: 25
                         end_position:
                           bytes: 48
-                          character: 25
                           line: 2
+                          character: 25
                         token_type:
                           type: Whitespace
                           characters: "\n"
@@ -239,24 +239,24 @@ stmts:
           token:
             start_position:
               bytes: 48
-              character: 1
               line: 3
+              character: 1
             end_position:
               bytes: 53
-              character: 6
               line: 3
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 53
-                character: 6
                 line: 3
+                character: 6
               end_position:
                 bytes: 54
-                character: 7
                 line: 3
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -269,24 +269,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 54
-                    character: 7
                     line: 3
+                    character: 7
                   end_position:
                     bytes: 58
-                    character: 11
                     line: 3
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num3
                 trailing_trivia:
                   - start_position:
                       bytes: 58
-                      character: 11
                       line: 3
+                      character: 11
                     end_position:
                       bytes: 59
-                      character: 12
                       line: 3
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -295,24 +295,24 @@ stmts:
           token:
             start_position:
               bytes: 59
-              character: 12
               line: 3
+              character: 12
             end_position:
               bytes: 60
-              character: 13
               line: 3
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 60
-                character: 13
                 line: 3
+                character: 13
               end_position:
                 bytes: 61
-                character: 14
                 line: 3
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -325,24 +325,24 @@ stmts:
                     token:
                       start_position:
                         bytes: 61
-                        character: 14
                         line: 3
+                        character: 14
                       end_position:
                         bytes: 73
-                        character: 26
                         line: 3
+                        character: 26
                       token_type:
                         type: Number
                         text: 0b_0101_0101
                     trailing_trivia:
                       - start_position:
                           bytes: 73
-                          character: 26
                           line: 3
+                          character: 26
                         end_position:
                           bytes: 74
-                          character: 26
                           line: 3
+                          character: 26
                         token_type:
                           type: Whitespace
                           characters: "\n"
@@ -353,24 +353,24 @@ stmts:
           token:
             start_position:
               bytes: 74
-              character: 1
               line: 4
+              character: 1
             end_position:
               bytes: 79
-              character: 6
               line: 4
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 79
-                character: 6
                 line: 4
+                character: 6
               end_position:
                 bytes: 80
-                character: 7
                 line: 4
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -383,24 +383,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 80
-                    character: 7
                     line: 4
+                    character: 7
                   end_position:
                     bytes: 84
-                    character: 11
                     line: 4
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num4
                 trailing_trivia:
                   - start_position:
                       bytes: 84
-                      character: 11
                       line: 4
+                      character: 11
                     end_position:
                       bytes: 85
-                      character: 12
                       line: 4
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -409,24 +409,24 @@ stmts:
           token:
             start_position:
               bytes: 85
-              character: 12
               line: 4
+              character: 12
             end_position:
               bytes: 86
-              character: 13
               line: 4
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 86
-                character: 13
                 line: 4
+                character: 13
               end_position:
                 bytes: 87
-                character: 14
                 line: 4
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -439,24 +439,24 @@ stmts:
                     token:
                       start_position:
                         bytes: 87
-                        character: 14
                         line: 4
+                        character: 14
                       end_position:
                         bytes: 108
-                        character: 35
                         line: 4
+                        character: 35
                       token_type:
                         type: Number
                         text: 1_523_423.132_452_312
                     trailing_trivia:
                       - start_position:
                           bytes: 108
-                          character: 35
                           line: 4
+                          character: 35
                         end_position:
                           bytes: 109
-                          character: 35
                           line: 4
+                          character: 35
                         token_type:
                           type: Whitespace
                           characters: "\n"
@@ -467,24 +467,24 @@ stmts:
           token:
             start_position:
               bytes: 109
-              character: 1
               line: 5
+              character: 1
             end_position:
               bytes: 114
-              character: 6
               line: 5
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 114
-                character: 6
                 line: 5
+                character: 6
               end_position:
                 bytes: 115
-                character: 7
                 line: 5
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -497,24 +497,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 115
-                    character: 7
                     line: 5
+                    character: 7
                   end_position:
                     bytes: 119
-                    character: 11
                     line: 5
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num5
                 trailing_trivia:
                   - start_position:
                       bytes: 119
-                      character: 11
                       line: 5
+                      character: 11
                     end_position:
                       bytes: 120
-                      character: 12
                       line: 5
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -523,24 +523,24 @@ stmts:
           token:
             start_position:
               bytes: 120
-              character: 12
               line: 5
+              character: 12
             end_position:
               bytes: 121
-              character: 13
               line: 5
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 121
-                character: 13
                 line: 5
+                character: 13
               end_position:
                 bytes: 122
-                character: 14
                 line: 5
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -553,24 +553,24 @@ stmts:
                     token:
                       start_position:
                         bytes: 122
-                        character: 14
                         line: 5
+                        character: 14
                       end_position:
                         bytes: 131
-                        character: 23
                         line: 5
+                        character: 23
                       token_type:
                         type: Number
                         text: 1e512_412
                     trailing_trivia:
                       - start_position:
                           bytes: 131
-                          character: 23
                           line: 5
+                          character: 23
                         end_position:
                           bytes: 132
-                          character: 23
                           line: 5
+                          character: 23
                         token_type:
                           type: Whitespace
                           characters: "\n"
@@ -581,24 +581,24 @@ stmts:
           token:
             start_position:
               bytes: 132
-              character: 1
               line: 6
+              character: 1
             end_position:
               bytes: 137
-              character: 6
               line: 6
+              character: 6
             token_type:
               type: Symbol
               symbol: local
           trailing_trivia:
             - start_position:
                 bytes: 137
-                character: 6
                 line: 6
+                character: 6
               end_position:
                 bytes: 138
-                character: 7
                 line: 6
+                character: 7
               token_type:
                 type: Whitespace
                 characters: " "
@@ -611,24 +611,24 @@ stmts:
                 token:
                   start_position:
                     bytes: 138
-                    character: 7
                     line: 6
+                    character: 7
                   end_position:
                     bytes: 142
-                    character: 11
                     line: 6
+                    character: 11
                   token_type:
                     type: Identifier
                     identifier: num6
                 trailing_trivia:
                   - start_position:
                       bytes: 142
-                      character: 11
                       line: 6
+                      character: 11
                     end_position:
                       bytes: 143
-                      character: 12
                       line: 6
+                      character: 12
                     token_type:
                       type: Whitespace
                       characters: " "
@@ -637,24 +637,24 @@ stmts:
           token:
             start_position:
               bytes: 143
-              character: 12
               line: 6
+              character: 12
             end_position:
               bytes: 144
-              character: 13
               line: 6
+              character: 13
             token_type:
               type: Symbol
               symbol: "="
           trailing_trivia:
             - start_position:
                 bytes: 144
-                character: 13
                 line: 6
+                character: 13
               end_position:
                 bytes: 145
-                character: 14
                 line: 6
+                character: 14
               token_type:
                 type: Whitespace
                 characters: " "
@@ -667,12 +667,12 @@ stmts:
                     token:
                       start_position:
                         bytes: 145
-                        character: 14
                         line: 6
+                        character: 14
                       end_position:
                         bytes: 155
-                        character: 24
                         line: 6
+                        character: 24
                       token_type:
                         type: Number
                         text: 1e-512_412

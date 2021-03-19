@@ -12,24 +12,24 @@ last_stmt:
         token:
           start_position:
             bytes: 0
-            character: 1
             line: 1
+            character: 1
           end_position:
             bytes: 6
-            character: 7
             line: 1
+            character: 7
           token_type:
             type: Symbol
             symbol: return
         trailing_trivia:
           - start_position:
               bytes: 6
-              character: 7
               line: 1
+              character: 7
             end_position:
               bytes: 7
-              character: 8
               line: 1
+              character: 8
             token_type:
               type: Whitespace
               characters: " "
@@ -44,24 +44,24 @@ last_stmt:
                         token:
                           start_position:
                             bytes: 7
-                            character: 8
                             line: 1
+                            character: 8
                           end_position:
                             bytes: 8
-                            character: 9
                             line: 1
+                            character: 9
                           token_type:
                             type: Symbol
                             symbol: "{"
                         trailing_trivia:
                           - start_position:
                               bytes: 8
-                              character: 9
                               line: 1
+                              character: 9
                             end_position:
                               bytes: 9
-                              character: 9
                               line: 1
+                              character: 9
                             token_type:
                               type: Whitespace
                               characters: "\n"
@@ -69,24 +69,24 @@ last_stmt:
                         token:
                           start_position:
                             bytes: 129
-                            character: 1
                             line: 4
+                            character: 1
                           end_position:
                             bytes: 130
-                            character: 2
                             line: 4
+                            character: 2
                           token_type:
                             type: Symbol
                             symbol: "}"
                         trailing_trivia:
                           - start_position:
                               bytes: 130
-                              character: 2
                               line: 4
+                              character: 2
                             end_position:
                               bytes: 131
-                              character: 2
                               line: 4
+                              character: 2
                             token_type:
                               type: Whitespace
                               characters: "\n"
@@ -99,24 +99,24 @@ last_stmt:
                                   - leading_trivia:
                                       - start_position:
                                           bytes: 9
-                                          character: 1
                                           line: 2
+                                          character: 1
                                         end_position:
                                           bytes: 10
-                                          character: 2
                                           line: 2
+                                          character: 2
                                         token_type:
                                           type: Whitespace
                                           characters: "\t"
                                     token:
                                       start_position:
                                         bytes: 10
-                                        character: 2
                                         line: 2
+                                        character: 2
                                       end_position:
                                         bytes: 11
-                                        character: 3
                                         line: 2
+                                        character: 3
                                       token_type:
                                         type: Symbol
                                         symbol: "["
@@ -125,24 +125,24 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 36
-                                        character: 28
                                         line: 2
+                                        character: 28
                                       end_position:
                                         bytes: 37
-                                        character: 29
                                         line: 2
+                                        character: 29
                                       token_type:
                                         type: Symbol
                                         symbol: "]"
                                     trailing_trivia:
                                       - start_position:
                                           bytes: 37
-                                          character: 29
                                           line: 2
+                                          character: 29
                                         end_position:
                                           bytes: 38
-                                          character: 30
                                           line: 2
+                                          character: 30
                                         token_type:
                                           type: Whitespace
                                           characters: " "
@@ -153,12 +153,12 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 11
-                                        character: 3
                                         line: 2
+                                        character: 3
                                       end_position:
                                         bytes: 36
-                                        character: 28
                                         line: 2
+                                        character: 28
                                       token_type:
                                         type: StringLiteral
                                         literal: "Noob Attack: Periastron"
@@ -169,24 +169,24 @@ last_stmt:
                                 token:
                                   start_position:
                                     bytes: 38
-                                    character: 30
                                     line: 2
+                                    character: 30
                                   end_position:
                                     bytes: 39
-                                    character: 31
                                     line: 2
+                                    character: 31
                                   token_type:
                                     type: Symbol
                                     symbol: "="
                                 trailing_trivia:
                                   - start_position:
                                       bytes: 39
-                                      character: 31
                                       line: 2
+                                      character: 31
                                     end_position:
                                       bytes: 40
-                                      character: 32
                                       line: 2
+                                      character: 32
                                     token_type:
                                       type: Whitespace
                                       characters: " "
@@ -197,12 +197,12 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 40
-                                        character: 32
                                         line: 2
+                                        character: 32
                                       end_position:
                                         bytes: 66
-                                        character: 58
                                         line: 2
+                                        character: 58
                                       token_type:
                                         type: StringLiteral
                                         literal: Noob Attack - Periastron
@@ -212,24 +212,24 @@ last_stmt:
                             token:
                               start_position:
                                 bytes: 66
-                                character: 58
                                 line: 2
+                                character: 58
                               end_position:
                                 bytes: 67
-                                character: 59
                                 line: 2
+                                character: 59
                               token_type:
                                 type: Symbol
                                 symbol: ;
                             trailing_trivia:
                               - start_position:
                                   bytes: 67
-                                  character: 59
                                   line: 2
+                                  character: 59
                                 end_position:
                                   bytes: 68
-                                  character: 59
                                   line: 2
+                                  character: 59
                                 token_type:
                                   type: Whitespace
                                   characters: "\n"
@@ -240,24 +240,24 @@ last_stmt:
                                   - leading_trivia:
                                       - start_position:
                                           bytes: 68
-                                          character: 1
                                           line: 3
+                                          character: 1
                                         end_position:
                                           bytes: 69
-                                          character: 2
                                           line: 3
+                                          character: 2
                                         token_type:
                                           type: Whitespace
                                           characters: "\t"
                                     token:
                                       start_position:
                                         bytes: 69
-                                        character: 2
                                         line: 3
+                                        character: 2
                                       end_position:
                                         bytes: 70
-                                        character: 3
                                         line: 3
+                                        character: 3
                                       token_type:
                                         type: Symbol
                                         symbol: "["
@@ -266,24 +266,24 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 97
-                                        character: 28
                                         line: 3
+                                        character: 28
                                       end_position:
                                         bytes: 98
-                                        character: 29
                                         line: 3
+                                        character: 29
                                       token_type:
                                         type: Symbol
                                         symbol: "]"
                                     trailing_trivia:
                                       - start_position:
                                           bytes: 98
-                                          character: 29
                                           line: 3
+                                          character: 29
                                         end_position:
                                           bytes: 99
-                                          character: 30
                                           line: 3
+                                          character: 30
                                         token_type:
                                           type: Whitespace
                                           characters: " "
@@ -294,12 +294,12 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 70
-                                        character: 3
                                         line: 3
+                                        character: 3
                                       end_position:
                                         bytes: 97
-                                        character: 28
                                         line: 3
+                                        character: 28
                                       token_type:
                                         type: StringLiteral
                                         literal: Noob Attack꞉ Periastron
@@ -310,24 +310,24 @@ last_stmt:
                                 token:
                                   start_position:
                                     bytes: 99
-                                    character: 30
                                     line: 3
+                                    character: 30
                                   end_position:
                                     bytes: 100
-                                    character: 31
                                     line: 3
+                                    character: 31
                                   token_type:
                                     type: Symbol
                                     symbol: "="
                                 trailing_trivia:
                                   - start_position:
                                       bytes: 100
-                                      character: 31
                                       line: 3
+                                      character: 31
                                     end_position:
                                       bytes: 101
-                                      character: 32
                                       line: 3
+                                      character: 32
                                     token_type:
                                       type: Whitespace
                                       characters: " "
@@ -338,12 +338,12 @@ last_stmt:
                                     token:
                                       start_position:
                                         bytes: 101
-                                        character: 32
                                         line: 3
+                                        character: 32
                                       end_position:
                                         bytes: 127
-                                        character: 58
                                         line: 3
+                                        character: 58
                                       token_type:
                                         type: StringLiteral
                                         literal: Noob Attack - Periastron
@@ -353,24 +353,24 @@ last_stmt:
                             token:
                               start_position:
                                 bytes: 127
-                                character: 58
                                 line: 3
+                                character: 58
                               end_position:
                                 bytes: 128
-                                character: 59
                                 line: 3
+                                character: 59
                               token_type:
                                 type: Symbol
                                 symbol: ;
                             trailing_trivia:
                               - start_position:
                                   bytes: 128
-                                  character: 59
                                   line: 3
+                                  character: 59
                                 end_position:
                                   bytes: 129
-                                  character: 59
                                   line: 3
+                                  character: 59
                                 token_type:
                                   type: Whitespace
                                   characters: "\n"

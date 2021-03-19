@@ -8,12 +8,12 @@ UnexpectedToken:
   token:
     start_position:
       bytes: 20
-      character: 21
       line: 1
+      character: 21
     end_position:
       bytes: 20
-      character: 21
       line: 1
+      character: 21
     token_type:
       type: Eof
   additional: "expected 'end'"

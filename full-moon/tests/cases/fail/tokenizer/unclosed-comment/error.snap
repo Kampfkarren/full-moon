@@ -7,6 +7,6 @@ input_file: full-moon/tests/cases/fail/tokenizer/unclosed-comment
 error: UnclosedComment
 position:
   bytes: 0
-  character: 1
   line: 1
+  character: 1
 

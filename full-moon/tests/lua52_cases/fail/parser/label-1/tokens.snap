@@ -6,34 +6,34 @@ input_file: full-moon/tests/lua52_cases/fail/parser/label-1
 ---
 - start_position:
     bytes: 0
-    character: 1
     line: 1
+    character: 1
   end_position:
     bytes: 2
-    character: 3
     line: 1
+    character: 3
   token_type:
     type: Symbol
     symbol: "::"
 - start_position:
     bytes: 2
-    character: 3
     line: 1
+    character: 3
   end_position:
     bytes: 7
-    character: 8
     line: 1
+    character: 8
   token_type:
     type: Identifier
     identifier: label
 - start_position:
     bytes: 7
-    character: 8
     line: 1
+    character: 8
   end_position:
     bytes: 7
-    character: 8
     line: 1
+    character: 8
   token_type:
     type: Eof
 
