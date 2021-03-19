@@ -22,7 +22,7 @@ pub enum TypeInfo<'a> {
 
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
-    Basic(#[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>),
+    Basic(#[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>),
 
     /// A callback type, such as `(string, number) => boolean`.
     #[display(
@@ -42,7 +42,7 @@ pub enum TypeInfo<'a> {
         arguments: Punctuated<'a, TypeInfo<'a>>,
         /// The "thin arrow" (`->`) in between the arguments and the return type.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        arrow: Cow<'a, TokenReference<'a>>,
+        arrow: TokenReference<'a>,
         /// The return type: `boolean`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         return_type: Box<TypeInfo<'a>>,
@@ -59,7 +59,7 @@ pub enum TypeInfo<'a> {
     Generic {
         /// The type that has generics: `map`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        base: Cow<'a, TokenReference<'a>>,
+        base: TokenReference<'a>,
         /// The arrows (`<>`) containing the type parameters.
         #[cfg_attr(feature = "serde", serde(borrow))]
         arrows: ContainedSpan<'a>,
@@ -76,7 +76,7 @@ pub enum TypeInfo<'a> {
         left: Box<TypeInfo<'a>>,
         /// The ampersand (`&`) to separate the types.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        ampersand: Cow<'a, TokenReference<'a>>,
+        ampersand: TokenReference<'a>,
         /// The right hand side: `number`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,
@@ -87,10 +87,10 @@ pub enum TypeInfo<'a> {
     Module {
         /// The module the type is coming from: `module`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        module: Cow<'a, TokenReference<'a>>,
+        module: TokenReference<'a>,
         /// The punctuation (`.`) to index the module.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        punctuation: Cow<'a, TokenReference<'a>>,
+        punctuation: TokenReference<'a>,
         /// The indexed type info: `Foo`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         type_info: Box<IndexedTypeInfo<'a>>,
@@ -104,7 +104,7 @@ pub enum TypeInfo<'a> {
         base: Box<TypeInfo<'a>>,
         /// The question mark: `?`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        question_mark: Cow<'a, TokenReference<'a>>,
+        question_mark: TokenReference<'a>,
     },
 
     /// A type annotating the structure of a table: { foo: number, bar: string }
@@ -129,7 +129,7 @@ pub enum TypeInfo<'a> {
     Typeof {
         /// The token `typeof`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        typeof_token: Cow<'a, TokenReference<'a>>,
+        typeof_token: TokenReference<'a>,
         /// The parentheses used to contain the expression.
         #[cfg_attr(feature = "serde", serde(borrow))]
         parentheses: ContainedSpan<'a>,
@@ -162,7 +162,7 @@ pub enum TypeInfo<'a> {
         left: Box<TypeInfo<'a>>,
         /// The pipe (`|`) to separate the types.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        pipe: Cow<'a, TokenReference<'a>>,
+        pipe: TokenReference<'a>,
         /// The right hand side: `number`.
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,
@@ -176,7 +176,7 @@ pub enum TypeInfo<'a> {
 pub enum IndexedTypeInfo<'a> {
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
-    Basic(#[cfg_attr(feature = "serde", serde(borrow))] Cow<'a, TokenReference<'a>>),
+    Basic(#[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>),
 
     /// A type using generics, such as `map<number, string>`.
     #[display(
@@ -189,7 +189,7 @@ pub enum IndexedTypeInfo<'a> {
     Generic {
         /// The type that has generics: `map`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        base: Cow<'a, TokenReference<'a>>,
+        base: TokenReference<'a>,
         /// The arrows (`<>`) containing the type parameters.
         #[cfg_attr(feature = "serde", serde(borrow))]
         arrows: ContainedSpan<'a>,
@@ -208,7 +208,7 @@ pub struct TypeField<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) key: TypeFieldKey<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) colon: Cow<'a, TokenReference<'a>>,
+    pub(crate) colon: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) value: TypeInfo<'a>,
 }
@@ -218,7 +218,7 @@ impl<'a> TypeField<'a> {
     pub fn new(key: TypeFieldKey<'a>, value: TypeInfo<'a>) -> Self {
         Self {
             key,
-            colon: Cow::Owned(TokenReference::symbol(": ").unwrap()),
+            colon: TokenReference::symbol(": ").unwrap(),
             value,
         }
     }
@@ -244,7 +244,7 @@ impl<'a> TypeField<'a> {
     }
 
     /// Returns a new TypeField with the `:` token
-    pub fn with_colon_token(self, colon_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_colon_token(self, colon_token: TokenReference<'a>) -> Self {
         Self {
             colon: colon_token,
             ..self
@@ -264,7 +264,7 @@ impl<'a> TypeField<'a> {
 pub enum TypeFieldKey<'a> {
     /// A name, such as `foo`.
     #[display(fmt = "{}", "_0")]
-    Name(Cow<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 
     /// An index signature, such as `[number]`.
     #[display(fmt = "{}{}{}", "brackets.tokens().0", "inner", "brackets.tokens().1")]
@@ -285,7 +285,7 @@ pub enum TypeFieldKey<'a> {
 #[display(fmt = "{}{}", "assertion_op", "cast_to")]
 pub struct TypeAssertion<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) assertion_op: Cow<'a, TokenReference<'a>>,
+    pub(crate) assertion_op: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) cast_to: TypeInfo<'a>,
 }
@@ -294,7 +294,7 @@ impl<'a> TypeAssertion<'a> {
     /// Creates a new TypeAssertion from the given cast to TypeInfo
     pub fn new(cast_to: TypeInfo<'a>) -> Self {
         Self {
-            assertion_op: Cow::Owned(TokenReference::symbol("::").unwrap()),
+            assertion_op: TokenReference::symbol("::").unwrap(),
             cast_to,
         }
     }
@@ -310,7 +310,7 @@ impl<'a> TypeAssertion<'a> {
     }
 
     /// Returns a new TypeAssertion with the given `::` token
-    pub fn with_assertion_op(self, assertion_op: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_assertion_op(self, assertion_op: TokenReference<'a>) -> Self {
         Self {
             assertion_op,
             ..self
@@ -336,25 +336,25 @@ impl<'a> TypeAssertion<'a> {
 )]
 pub struct TypeDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) type_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) type_token: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) base: Cow<'a, TokenReference<'a>>,
+    pub(crate) base: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) generics: Option<GenericDeclaration<'a>>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) equal_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) equal_token: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) declare_as: TypeInfo<'a>,
 }
 
 impl<'a> TypeDeclaration<'a> {
     /// Creates a new TypeDeclaration from the given type name and type declaration
-    pub fn new(type_name: Cow<'a, TokenReference<'a>>, type_definition: TypeInfo<'a>) -> Self {
+    pub fn new(type_name: TokenReference<'a>, type_definition: TypeInfo<'a>) -> Self {
         Self {
-            type_token: Cow::Owned(TokenReference::symbol("type ").unwrap()),
+            type_token: TokenReference::symbol("type ").unwrap(),
             base: type_name,
             generics: None,
-            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            equal_token: TokenReference::symbol(" = ").unwrap(),
             declare_as: type_definition,
         }
     }
@@ -385,12 +385,12 @@ impl<'a> TypeDeclaration<'a> {
     }
 
     /// Returns a new TypeDeclaration with the given `type` token
-    pub fn with_type_token(self, type_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_type_token(self, type_token: TokenReference<'a>) -> Self {
         Self { type_token, ..self }
     }
 
     /// Returns a new TypeDeclaration with the given type name
-    pub fn with_type_name(self, type_name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_type_name(self, type_name: TokenReference<'a>) -> Self {
         Self {
             base: type_name,
             ..self
@@ -403,7 +403,7 @@ impl<'a> TypeDeclaration<'a> {
     }
 
     /// Returns a new TypeDeclaration with the given generics of the type
-    pub fn with_equal_token(self, equal_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_equal_token(self, equal_token: TokenReference<'a>) -> Self {
         Self {
             equal_token,
             ..self
@@ -428,7 +428,7 @@ pub struct GenericDeclaration<'a> {
     #[visit(contains = "generics")]
     pub(crate) arrows: ContainedSpan<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) generics: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+    pub(crate) generics: Punctuated<'a, TokenReference<'a>>,
 }
 
 impl<'a> GenericDeclaration<'a> {
@@ -436,8 +436,8 @@ impl<'a> GenericDeclaration<'a> {
     pub fn new() -> Self {
         Self {
             arrows: ContainedSpan::new(
-                Cow::Owned(TokenReference::symbol("<").unwrap()),
-                Cow::Owned(TokenReference::symbol(">").unwrap()),
+                TokenReference::symbol("<").unwrap(),
+                TokenReference::symbol(">").unwrap(),
             ),
             generics: Punctuated::new(),
         }
@@ -449,7 +449,7 @@ impl<'a> GenericDeclaration<'a> {
     }
 
     /// The names of the generics: `T, U` in `<T, U>`.
-    pub fn generics(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn generics(&self) -> &Punctuated<'a, TokenReference<'a>> {
         &self.generics
     }
 
@@ -459,7 +459,7 @@ impl<'a> GenericDeclaration<'a> {
     }
 
     /// Returns a new TypeDeclaration with the given names of the generics
-    pub fn with_generics(self, generics: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_generics(self, generics: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self { generics, ..self }
     }
 }
@@ -470,7 +470,7 @@ impl<'a> GenericDeclaration<'a> {
 #[display(fmt = "{}{}", "punctuation", "type_info")]
 pub struct TypeSpecifier<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) punctuation: Cow<'a, TokenReference<'a>>,
+    pub(crate) punctuation: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) type_info: TypeInfo<'a>,
 }
@@ -479,7 +479,7 @@ impl<'a> TypeSpecifier<'a> {
     /// Creates a new TypeSpecifier with the given type info
     pub fn new(type_info: TypeInfo<'a>) -> Self {
         Self {
-            punctuation: Cow::Owned(TokenReference::symbol(": ").unwrap()),
+            punctuation: TokenReference::symbol(": ").unwrap(),
             type_info,
         }
     }
@@ -496,7 +496,7 @@ impl<'a> TypeSpecifier<'a> {
     }
 
     /// Returns a new TypeSpecifier with the given punctuation
-    pub fn with_punctuation(self, punctuation: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_punctuation(self, punctuation: TokenReference<'a>) -> Self {
         Self {
             punctuation,
             ..self
@@ -515,7 +515,7 @@ impl<'a> TypeSpecifier<'a> {
 #[display(fmt = "{}{}", "export_token", "type_declaration")]
 pub struct ExportedTypeDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) export_token: Cow<'a, TokenReference<'a>>,
+    pub(crate) export_token: TokenReference<'a>,
     #[cfg_attr(feature = "serde", serde(borrow))]
     pub(crate) type_declaration: TypeDeclaration<'a>,
 }
@@ -524,13 +524,13 @@ impl<'a> ExportedTypeDeclaration<'a> {
     /// Creates a new ExportedTypeDeclaration with the given type declaration
     pub fn new(type_declaration: TypeDeclaration<'a>) -> Self {
         Self {
-            export_token: Cow::Owned(TokenReference::new(
+            export_token: TokenReference::new(
                 vec![],
                 Token::new(TokenType::Identifier {
                     identifier: Cow::Owned(String::from("export")),
                 }),
                 vec![Token::new(TokenType::spaces(1))],
-            )),
+            ),
             type_declaration,
         }
     }
@@ -546,7 +546,7 @@ impl<'a> ExportedTypeDeclaration<'a> {
     }
 
     /// Returns a new ExportedTypeDeclaration with the `export` token
-    pub fn with_export_token(self, export_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_export_token(self, export_token: TokenReference<'a>) -> Self {
         Self {
             export_token,
             ..self

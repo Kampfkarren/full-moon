@@ -9,7 +9,7 @@ use crate::{
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt};
+use std::fmt;
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy)]
@@ -24,7 +24,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
         ParserState {
             index: 0,
             len: tokens.len(),
-            tokens: tokens,
+            tokens,
         }
     }
 
@@ -42,14 +42,14 @@ impl<'a, 'b> ParserState<'a, 'b> {
     // TODO: This is bad, containing a mandatory clone on every call so that everything is
     // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
     // to tackle lifetimes.
-    pub fn peek(&self) -> Cow<'a, TokenReference<'a>> {
+    pub fn peek(&self) -> &TokenReference<'a> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
 
         let result = self.tokens.get(self.index).expect("couldn't peek, no eof?");
 
-        Cow::Owned(result.to_owned())
+        &result
     }
 }
 
@@ -86,7 +86,7 @@ macro_rules! make_op {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
                 #[allow(missing_docs)]
-                $operator(Cow<'a, TokenReference<'a>>),
+                $operator(TokenReference<'a>),
             )+
         }
     };
@@ -141,7 +141,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek().into_owned(),
+                    token: $state.peek().clone(),
                     additional: None,
                 });
             }
@@ -154,7 +154,7 @@ macro_rules! expect {
             Ok((state, node)) => (state, node),
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
-                    token: $state.peek().into_owned(),
+                    token: $state.peek().clone(),
                     additional: Some($error),
                 });
             }
@@ -282,7 +282,7 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
@@ -317,7 +317,7 @@ where
                         break;
                     } else {
                         return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek().into_owned(),
+                            token: state.peek().clone(),
                             additional: Some("trailing character"),
                         });
                     }
@@ -350,7 +350,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = Cow<'a, TokenReference<'a>>>,
+    Delimiter: Parser<'a, Item = TokenReference<'a>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;

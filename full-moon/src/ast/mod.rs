@@ -48,9 +48,9 @@ use lua52::*;
 )]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
+    stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    last_stmt: Option<(LastStmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
+    last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
 }
 
 impl<'a> Block<'a> {
@@ -71,7 +71,7 @@ impl<'a> Block<'a> {
     /// semicolon token reference present
     pub fn stmts_with_semicolon(
         &self,
-    ) -> impl Iterator<Item = &(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)> {
+    ) -> impl Iterator<Item = &(Stmt<'a>, Option<TokenReference<'a>>)> {
         self.stmts.iter()
     }
 
@@ -82,7 +82,7 @@ impl<'a> Block<'a> {
 
     /// Returns a new block with the given statements
     /// Takes a vector of statements, followed by an optional semicolon token reference
-    pub fn with_stmts(self, stmts: Vec<(Stmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>) -> Self {
+    pub fn with_stmts(self, stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>) -> Self {
         Self { stmts, ..self }
     }
 
@@ -90,7 +90,7 @@ impl<'a> Block<'a> {
     /// Takes an optional last statement, with an optional semicolon
     pub fn with_last_stmt(
         self,
-        last_stmt: Option<(LastStmt<'a>, Option<Cow<'a, TokenReference<'a>>>)>,
+        last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
     ) -> Self {
         Self { last_stmt, ..self }
     }
@@ -103,11 +103,11 @@ impl<'a> Block<'a> {
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
-    Break(Cow<'a, TokenReference<'a>>),
+    Break(TokenReference<'a>),
     /// A continue statement
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
-    Continue(Cow<'a, TokenReference<'a>>),
+    Continue(TokenReference<'a>),
     /// A `return` statement
     Return(Return<'a>),
 }
@@ -118,7 +118,7 @@ pub enum LastStmt<'a> {
 #[display(fmt = "{}{}", token, returns)]
 pub struct Return<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token: Cow<'a, TokenReference<'a>>,
+    token: TokenReference<'a>,
     returns: Punctuated<'a, Expression<'a>>,
 }
 
@@ -127,7 +127,7 @@ impl<'a> Return<'a> {
     /// Default return token is followed by a single space
     pub fn new() -> Self {
         Self {
-            token: Cow::Owned(TokenReference::symbol("return ").unwrap()),
+            token: TokenReference::symbol("return ").unwrap(),
             returns: Punctuated::new(),
         }
     }
@@ -143,7 +143,7 @@ impl<'a> Return<'a> {
     }
 
     /// Returns a new Return with the given `return` token
-    pub fn with_token(self, token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_token(self, token: TokenReference<'a>) -> Self {
         Self { token, ..self }
     }
 
@@ -180,7 +180,7 @@ pub enum Field<'a> {
         /// The `expression` part of `[expression] = value`
         key: Expression<'a>,
         /// The `=` part of `[expression] = value`
-        equal: Cow<'a, TokenReference<'a>>,
+        equal: TokenReference<'a>,
         /// The `value` part of `[expression] = value`
         value: Expression<'a>,
     },
@@ -190,9 +190,9 @@ pub enum Field<'a> {
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `name` part of `name = value`
-        key: Cow<'a, TokenReference<'a>>,
+        key: TokenReference<'a>,
         /// The `=` part of `name = value`
-        equal: Cow<'a, TokenReference<'a>>,
+        equal: TokenReference<'a>,
         /// The `value` part of `name = value`
         value: Expression<'a>,
     },
@@ -221,8 +221,8 @@ impl<'a> TableConstructor<'a> {
     pub fn new() -> Self {
         Self {
             braces: ContainedSpan::new(
-                Cow::Owned(TokenReference::symbol("{ ").unwrap()),
-                Cow::Owned(TokenReference::symbol(" }").unwrap()),
+                TokenReference::symbol("{ ").unwrap(),
+                TokenReference::symbol(" }").unwrap(),
             ),
             fields: Punctuated::new(),
         }
@@ -326,7 +326,7 @@ pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
-    Function((Cow<'a, TokenReference<'a>>, FunctionBody<'a>)),
+    Function((TokenReference<'a>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
     #[display(fmt = "{}", "_0")]
     FunctionCall(FunctionCall<'a>),
@@ -335,16 +335,16 @@ pub enum Value<'a> {
     TableConstructor(TableConstructor<'a>),
     /// A number token, such as `3.3`
     #[display(fmt = "{}", "_0")]
-    Number(Cow<'a, TokenReference<'a>>),
+    Number(TokenReference<'a>),
     /// An expression between parentheses, such as `(3 + 2)`
     #[display(fmt = "{}", "_0")]
     ParenthesesExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     #[display(fmt = "{}", "_0")]
-    String(Cow<'a, TokenReference<'a>>),
+    String(TokenReference<'a>),
     /// A symbol, such as `true`
     #[display(fmt = "{}", "_0")]
-    Symbol(Cow<'a, TokenReference<'a>>),
+    Symbol(TokenReference<'a>),
     /// A more complex value, such as `call().x`
     #[display(fmt = "{}", "_0")]
     Var(Var<'a>),
@@ -426,7 +426,7 @@ pub enum Prefix<'a> {
     Expression(Expression<'a>),
     #[display(fmt = "{}", _0)]
     /// Just a name, such as `foo`
-    Name(Cow<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 }
 
 /// The indexing of something, such as `x.y` or `x["y"]`
@@ -455,9 +455,9 @@ pub enum Index<'a> {
     Dot {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `.` part of `.y`
-        dot: Cow<'a, TokenReference<'a>>,
+        dot: TokenReference<'a>,
         /// The `y` part of `.y`
-        name: Cow<'a, TokenReference<'a>>,
+        name: TokenReference<'a>,
     },
 }
 
@@ -484,7 +484,7 @@ pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call "foobar"`
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[display(fmt = "{}", "_0")]
-    String(Cow<'a, TokenReference<'a>>),
+    String(TokenReference<'a>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<'a>),
@@ -495,17 +495,17 @@ pub enum FunctionArgs<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: Cow<'a, TokenReference<'a>>,
-    index_variable: Cow<'a, TokenReference<'a>>,
-    equal_token: Cow<'a, TokenReference<'a>>,
+    for_token: TokenReference<'a>,
+    index_variable: TokenReference<'a>,
+    equal_token: TokenReference<'a>,
     start: Expression<'a>,
-    start_end_comma: Cow<'a, TokenReference<'a>>,
+    start_end_comma: TokenReference<'a>,
     end: Expression<'a>,
-    end_step_comma: Option<Cow<'a, TokenReference<'a>>>,
+    end_step_comma: Option<TokenReference<'a>>,
     step: Option<Expression<'a>>,
-    do_token: Cow<'a, TokenReference<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifier: Option<TypeSpecifier<'a>>,
@@ -514,22 +514,22 @@ pub struct NumericFor<'a> {
 impl<'a> NumericFor<'a> {
     /// Creates a new NumericFor from the given index variable, start, and end expressions
     pub fn new(
-        index_variable: Cow<'a, TokenReference<'a>>,
+        index_variable: TokenReference<'a>,
         start: Expression<'a>,
         end: Expression<'a>,
     ) -> Self {
         Self {
-            for_token: Cow::Owned(TokenReference::symbol("for ").unwrap()),
+            for_token: TokenReference::symbol("for ").unwrap(),
             index_variable,
-            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            equal_token: TokenReference::symbol(" = ").unwrap(),
             start,
-            start_end_comma: Cow::Owned(TokenReference::symbol(", ").unwrap()),
+            start_end_comma: TokenReference::symbol(", ").unwrap(),
             end,
             end_step_comma: None,
             step: None,
-            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            end_token: TokenReference::symbol("\nend").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifier: None,
         }
@@ -571,7 +571,7 @@ impl<'a> NumericFor<'a> {
     /// for _ = 0, 10, 2 do
     ///              ^
     pub fn end_step_comma(&self) -> Option<&TokenReference<'a>> {
-        self.end_step_comma.as_deref()
+        self.end_step_comma.as_ref()
     }
 
     /// The step if one exists, `2` in `for index = 0, 10, 2 do end`
@@ -604,12 +604,12 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given for token
-    pub fn with_for_token(self, for_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_for_token(self, for_token: TokenReference<'a>) -> Self {
         Self { for_token, ..self }
     }
 
     /// Returns a new NumericFor with the given index variable
-    pub fn with_index_variable(self, index_variable: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_index_variable(self, index_variable: TokenReference<'a>) -> Self {
         Self {
             index_variable,
             ..self
@@ -617,7 +617,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `=` token
-    pub fn with_equal_token(self, equal_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_equal_token(self, equal_token: TokenReference<'a>) -> Self {
         Self {
             equal_token,
             ..self
@@ -630,7 +630,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given comma between the start and end expressions
-    pub fn with_start_end_comma(self, start_end_comma: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_start_end_comma(self, start_end_comma: TokenReference<'a>) -> Self {
         Self {
             start_end_comma,
             ..self
@@ -643,7 +643,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given comma between the end and the step expressions
-    pub fn with_end_step_comma(self, end_step_comma: Option<Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_end_step_comma(self, end_step_comma: Option<TokenReference<'a>>) -> Self {
         Self {
             end_step_comma,
             ..self
@@ -656,7 +656,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `do` token
-    pub fn with_do_token(self, do_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -666,7 +666,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 
@@ -727,13 +727,13 @@ impl fmt::Display for NumericFor<'_> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: Cow<'a, TokenReference<'a>>,
-    names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
-    in_token: Cow<'a, TokenReference<'a>>,
+    for_token: TokenReference<'a>,
+    names: Punctuated<'a, TokenReference<'a>>,
+    in_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
-    do_token: Cow<'a, TokenReference<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
@@ -742,17 +742,17 @@ pub struct GenericFor<'a> {
 impl<'a> GenericFor<'a> {
     /// Creates a new GenericFor from the given names and expressions
     pub fn new(
-        names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
+        names: Punctuated<'a, TokenReference<'a>>,
         expr_list: Punctuated<'a, Expression<'a>>,
     ) -> Self {
         Self {
-            for_token: Cow::Owned(TokenReference::symbol("for ").unwrap()),
+            for_token: TokenReference::symbol("for ").unwrap(),
             names,
-            in_token: Cow::Owned(TokenReference::symbol(" in ").unwrap()),
+            in_token: TokenReference::symbol(" in ").unwrap(),
             expr_list,
-            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            end_token: TokenReference::symbol("\nend").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
         }
@@ -765,7 +765,7 @@ impl<'a> GenericFor<'a> {
 
     /// Returns the punctuated sequence of names
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
-    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
         &self.names
     }
 
@@ -805,17 +805,17 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `for` token
-    pub fn with_for_token(self, for_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_for_token(self, for_token: TokenReference<'a>) -> Self {
         Self { for_token, ..self }
     }
 
     /// Returns a new GenericFor with the given names
-    pub fn with_names(self, names: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_names(self, names: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self { names, ..self }
     }
 
     /// Returns a new GenericFor with the given `in` token
-    pub fn with_in_token(self, in_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_in_token(self, in_token: TokenReference<'a>) -> Self {
         Self { in_token, ..self }
     }
 
@@ -825,7 +825,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `do` token
-    pub fn with_do_token(self, do_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -835,7 +835,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 
@@ -898,29 +898,29 @@ impl fmt::Display for GenericFor<'_> {
 )]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    if_token: Cow<'a, TokenReference<'a>>,
+    if_token: TokenReference<'a>,
     condition: Expression<'a>,
-    then_token: Cow<'a, TokenReference<'a>>,
+    then_token: TokenReference<'a>,
     block: Block<'a>,
     else_if: Option<Vec<ElseIf<'a>>>,
-    else_token: Option<Cow<'a, TokenReference<'a>>>,
+    else_token: Option<TokenReference<'a>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> If<'a> {
     /// Creates a new If from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            if_token: Cow::Owned(TokenReference::symbol("if ").unwrap()),
+            if_token: TokenReference::symbol("if ").unwrap(),
             condition,
-            then_token: Cow::Owned(TokenReference::symbol(" then").unwrap()),
+            then_token: TokenReference::symbol(" then").unwrap(),
             block: Block::new(),
             else_if: None,
             else_token: None,
             r#else: None,
-            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            end_token: TokenReference::symbol("\nend").unwrap(),
         }
     }
 
@@ -946,7 +946,7 @@ impl<'a> If<'a> {
 
     /// The `else` token if one exists
     pub fn else_token(&self) -> Option<&TokenReference<'a>> {
-        self.else_token.as_deref()
+        self.else_token.as_ref()
     }
 
     /// If there are `elseif` conditions, returns a vector of them
@@ -967,7 +967,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `if` token
-    pub fn with_if_token(self, if_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_if_token(self, if_token: TokenReference<'a>) -> Self {
         Self { if_token, ..self }
     }
 
@@ -977,7 +977,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `then` token
-    pub fn with_then_token(self, then_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_then_token(self, then_token: TokenReference<'a>) -> Self {
         Self { then_token, ..self }
     }
 
@@ -992,7 +992,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `else` token
-    pub fn with_else_token(self, else_token: Option<Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_else_token(self, else_token: Option<TokenReference<'a>>) -> Self {
         Self { else_token, ..self }
     }
 
@@ -1002,7 +1002,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1013,9 +1013,9 @@ impl<'a> If<'a> {
 #[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
 pub struct ElseIf<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    else_if_token: Cow<'a, TokenReference<'a>>,
+    else_if_token: TokenReference<'a>,
     condition: Expression<'a>,
-    then_token: Cow<'a, TokenReference<'a>>,
+    then_token: TokenReference<'a>,
     block: Block<'a>,
 }
 
@@ -1023,9 +1023,9 @@ impl<'a> ElseIf<'a> {
     /// Creates a new ElseIf from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            else_if_token: Cow::Owned(TokenReference::symbol("elseif ").unwrap()),
+            else_if_token: TokenReference::symbol("elseif ").unwrap(),
             condition,
-            then_token: Cow::Owned(TokenReference::symbol(" then\n").unwrap()),
+            then_token: TokenReference::symbol(" then\n").unwrap(),
             block: Block::new(),
         }
     }
@@ -1051,7 +1051,7 @@ impl<'a> ElseIf<'a> {
     }
 
     /// Returns a new ElseIf with the given `elseif` token
-    pub fn with_else_if_token(self, else_if_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_else_if_token(self, else_if_token: TokenReference<'a>) -> Self {
         Self {
             else_if_token,
             ..self
@@ -1064,7 +1064,7 @@ impl<'a> ElseIf<'a> {
     }
 
     /// Returns a new ElseIf with the given `then` token
-    pub fn with_then_token(self, then_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_then_token(self, then_token: TokenReference<'a>) -> Self {
         Self { then_token, ..self }
     }
 
@@ -1087,22 +1087,22 @@ impl<'a> ElseIf<'a> {
 )]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    while_token: Cow<'a, TokenReference<'a>>,
+    while_token: TokenReference<'a>,
     condition: Expression<'a>,
-    do_token: Cow<'a, TokenReference<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> While<'a> {
     /// Creates a new While from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            while_token: Cow::Owned(TokenReference::symbol("while ").unwrap()),
+            while_token: TokenReference::symbol("while ").unwrap(),
             condition,
-            do_token: Cow::Owned(TokenReference::symbol(" do\n").unwrap()),
+            do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: Cow::Owned(TokenReference::symbol("end\n").unwrap()),
+            end_token: TokenReference::symbol("end\n").unwrap(),
         }
     }
 
@@ -1132,7 +1132,7 @@ impl<'a> While<'a> {
     }
 
     /// Returns a new While with the given `while` token
-    pub fn with_while_token(self, while_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_while_token(self, while_token: TokenReference<'a>) -> Self {
         Self {
             while_token,
             ..self
@@ -1145,7 +1145,7 @@ impl<'a> While<'a> {
     }
 
     /// Returns a new While with the given `do` token
-    pub fn with_do_token(self, do_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -1155,7 +1155,7 @@ impl<'a> While<'a> {
     }
 
     /// Returns a new While with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1166,9 +1166,9 @@ impl<'a> While<'a> {
 #[display(fmt = "{}{}{}{}", "repeat_token", "block", "until_token", "until")]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    repeat_token: Cow<'a, TokenReference<'a>>,
+    repeat_token: TokenReference<'a>,
     block: Block<'a>,
-    until_token: Cow<'a, TokenReference<'a>>,
+    until_token: TokenReference<'a>,
     until: Expression<'a>,
 }
 
@@ -1176,9 +1176,9 @@ impl<'a> Repeat<'a> {
     /// Creates a new Repeat from the given expression to repeat until
     pub fn new(until: Expression<'a>) -> Self {
         Self {
-            repeat_token: Cow::Owned(TokenReference::symbol("repeat\n").unwrap()),
+            repeat_token: TokenReference::symbol("repeat\n").unwrap(),
             block: Block::new(),
-            until_token: Cow::Owned(TokenReference::symbol("\nuntil ").unwrap()),
+            until_token: TokenReference::symbol("\nuntil ").unwrap(),
             until,
         }
     }
@@ -1204,7 +1204,7 @@ impl<'a> Repeat<'a> {
     }
 
     /// Returns a new Repeat with the given `repeat` token
-    pub fn with_repeat_token(self, repeat_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_repeat_token(self, repeat_token: TokenReference<'a>) -> Self {
         Self {
             repeat_token,
             ..self
@@ -1217,7 +1217,7 @@ impl<'a> Repeat<'a> {
     }
 
     /// Returns a new Repeat with the given `until` token
-    pub fn with_until_token(self, until_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_until_token(self, until_token: TokenReference<'a>) -> Self {
         Self {
             until_token,
             ..self
@@ -1236,16 +1236,16 @@ impl<'a> Repeat<'a> {
 #[display(fmt = "{}{}{}", "colon_token", "name", "args")]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    colon_token: Cow<'a, TokenReference<'a>>,
-    name: Cow<'a, TokenReference<'a>>,
+    colon_token: TokenReference<'a>,
+    name: TokenReference<'a>,
     args: FunctionArgs<'a>,
 }
 
 impl<'a> MethodCall<'a> {
     /// Returns a new MethodCall from the given name and args
-    pub fn new(name: Cow<'a, TokenReference<'a>>, args: FunctionArgs<'a>) -> Self {
+    pub fn new(name: TokenReference<'a>, args: FunctionArgs<'a>) -> Self {
         Self {
-            colon_token: Cow::Owned(TokenReference::symbol(":").unwrap()),
+            colon_token: TokenReference::symbol(":").unwrap(),
             name,
             args,
         }
@@ -1267,7 +1267,7 @@ impl<'a> MethodCall<'a> {
     }
 
     /// Returns a new MethodCall with the given `:` token
-    pub fn with_colon_token(self, colon_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_colon_token(self, colon_token: TokenReference<'a>) -> Self {
         Self {
             colon_token,
             ..self
@@ -1275,7 +1275,7 @@ impl<'a> MethodCall<'a> {
     }
 
     /// Returns a new MethodCall with the given name
-    pub fn with_name(self, name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_name(self, name: TokenReference<'a>) -> Self {
         Self { name, ..self }
     }
 
@@ -1317,7 +1317,7 @@ pub struct FunctionBody<'a> {
     return_type: Option<TypeSpecifier<'a>>,
 
     block: Block<'a>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> FunctionBody<'a> {
@@ -1325,8 +1325,8 @@ impl<'a> FunctionBody<'a> {
     pub fn new() -> Self {
         Self {
             parameters_parentheses: ContainedSpan::new(
-                Cow::Owned(TokenReference::symbol("(").unwrap()),
-                Cow::Owned(TokenReference::symbol(")").unwrap()),
+                TokenReference::symbol("(").unwrap(),
+                TokenReference::symbol(")").unwrap(),
             ),
             parameters: Punctuated::new(),
 
@@ -1337,7 +1337,7 @@ impl<'a> FunctionBody<'a> {
             return_type: None,
 
             block: Block::new(),
-            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            end_token: TokenReference::symbol("\nend").unwrap(),
         }
     }
 
@@ -1414,7 +1414,7 @@ impl<'a> FunctionBody<'a> {
     }
 
     /// Returns a new FunctionBody with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1461,9 +1461,9 @@ impl fmt::Display for FunctionBody<'_> {
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// The `...` vararg syntax, such as `function x(...)`
-    Ellipse(Cow<'a, TokenReference<'a>>),
+    Ellipse(TokenReference<'a>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(Cow<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
@@ -1532,7 +1532,7 @@ pub enum Var<'a> {
     Expression(VarExpression<'a>),
     /// A literal identifier, such as `x`
     #[display(fmt = "{}", "_0")]
-    Name(Cow<'a, TokenReference<'a>>),
+    Name(TokenReference<'a>),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](LocalAssignment)
@@ -1542,7 +1542,7 @@ pub enum Var<'a> {
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
-    equal_token: Cow<'a, TokenReference<'a>>,
+    equal_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -1554,7 +1554,7 @@ impl<'a> Assignment<'a> {
     ) -> Self {
         Self {
             var_list,
-            equal_token: Cow::Owned(TokenReference::symbol(" = ").unwrap()),
+            equal_token: TokenReference::symbol(" = ").unwrap(),
             expr_list,
         }
     }
@@ -1582,7 +1582,7 @@ impl<'a> Assignment<'a> {
     }
 
     /// Returns a new Assignment with the given `=` token
-    pub fn with_equal_token(self, equal_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_equal_token(self, equal_token: TokenReference<'a>) -> Self {
         Self {
             equal_token,
             ..self
@@ -1601,18 +1601,18 @@ impl<'a> Assignment<'a> {
 #[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "func_body")]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: Cow<'a, TokenReference<'a>>,
-    function_token: Cow<'a, TokenReference<'a>>,
-    name: Cow<'a, TokenReference<'a>>,
+    local_token: TokenReference<'a>,
+    function_token: TokenReference<'a>,
+    name: TokenReference<'a>,
     func_body: FunctionBody<'a>,
 }
 
 impl<'a> LocalFunction<'a> {
     /// Returns a new LocalFunction from the given name
-    pub fn new(name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn new(name: TokenReference<'a>) -> Self {
         LocalFunction {
-            local_token: Cow::Owned(TokenReference::symbol("local ").unwrap()),
-            function_token: Cow::Owned(TokenReference::symbol("function ").unwrap()),
+            local_token: TokenReference::symbol("local ").unwrap(),
+            function_token: TokenReference::symbol("function ").unwrap(),
             name,
             func_body: FunctionBody::new(),
         }
@@ -1639,7 +1639,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given `local` token
-    pub fn with_local_token(self, local_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_local_token(self, local_token: TokenReference<'a>) -> Self {
         Self {
             local_token,
             ..self
@@ -1647,7 +1647,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given `function` token
-    pub fn with_function_token(self, function_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_function_token(self, function_token: TokenReference<'a>) -> Self {
         Self {
             function_token,
             ..self
@@ -1655,7 +1655,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given name
-    pub fn with_name(self, name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_name(self, name: TokenReference<'a>) -> Self {
         Self { name, ..self }
     }
 
@@ -1670,20 +1670,20 @@ impl<'a> LocalFunction<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: Cow<'a, TokenReference<'a>>,
+    local_token: TokenReference<'a>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
-    name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
-    equal_token: Option<Cow<'a, TokenReference<'a>>>,
+    name_list: Punctuated<'a, TokenReference<'a>>,
+    equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
 impl<'a> LocalAssignment<'a> {
     /// Returns a new LocalAssignment from the given name list
-    pub fn new(name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn new(name_list: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self {
-            local_token: Cow::Owned(TokenReference::symbol("local ").unwrap()),
+            local_token: TokenReference::symbol("local ").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
             name_list,
@@ -1699,7 +1699,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// The `=` token in between `local x = y`, if one exists
     pub fn equal_token(&self) -> Option<&TokenReference<'a>> {
-        self.equal_token.as_deref()
+        self.equal_token.as_ref()
     }
 
     /// Returns the punctuated sequence of the expressions being assigned.
@@ -1710,7 +1710,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns the punctuated sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
         &self.name_list
     }
 
@@ -1724,7 +1724,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given `local` token
-    pub fn with_local_token(self, local_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_local_token(self, local_token: TokenReference<'a>) -> Self {
         Self {
             local_token,
             ..self
@@ -1741,12 +1741,12 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given name list
-    pub fn with_names(self, name_list: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_names(self, name_list: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self { name_list, ..self }
     }
 
     /// Returns a new LocalAssignment with the given `=` token
-    pub fn with_equal_token(self, equal_token: Option<Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_equal_token(self, equal_token: Option<TokenReference<'a>>) -> Self {
         Self {
             equal_token,
             ..self
@@ -1792,18 +1792,18 @@ impl fmt::Display for LocalAssignment<'_> {
 #[display(fmt = "{}{}{}", "do_token", "block", "end_token")]
 pub struct Do<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    do_token: Cow<'a, TokenReference<'a>>,
+    do_token: TokenReference<'a>,
     block: Block<'a>,
-    end_token: Cow<'a, TokenReference<'a>>,
+    end_token: TokenReference<'a>,
 }
 
 impl<'a> Do<'a> {
     /// Creates an empty Do
     pub fn new() -> Self {
         Self {
-            do_token: Cow::Owned(TokenReference::symbol("do\n").unwrap()),
+            do_token: TokenReference::symbol("do\n").unwrap(),
             block: Block::new(),
-            end_token: Cow::Owned(TokenReference::symbol("\nend").unwrap()),
+            end_token: TokenReference::symbol("\nend").unwrap(),
         }
     }
 
@@ -1823,7 +1823,7 @@ impl<'a> Do<'a> {
     }
 
     /// Returns a new Do with the given `do` token
-    pub fn with_do_token(self, do_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -1833,7 +1833,7 @@ impl<'a> Do<'a> {
     }
 
     /// Returns a new Do with the given `end` token
-    pub fn with_end_token(self, end_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1864,8 +1864,8 @@ impl<'a> FunctionCall<'a> {
                 FunctionArgs::Parentheses {
                     arguments: Punctuated::new(),
                     parentheses: ContainedSpan::new(
-                        Cow::Owned(TokenReference::symbol("(").unwrap()),
-                        Cow::Owned(TokenReference::symbol(")").unwrap()),
+                        TokenReference::symbol("(").unwrap(),
+                        TokenReference::symbol(")").unwrap(),
                     ),
                 },
             ))],
@@ -1904,13 +1904,13 @@ impl<'a> FunctionCall<'a> {
 )]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Punctuated<'a, Cow<'a, TokenReference<'a>>>,
-    colon_name: Option<(Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>)>,
+    names: Punctuated<'a, TokenReference<'a>>,
+    colon_name: Option<(TokenReference<'a>, TokenReference<'a>)>,
 }
 
 impl<'a> FunctionName<'a> {
     /// Creates a new FunctionName from the given list of names
-    pub fn new(names: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn new(names: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self {
             names,
             colon_name: None,
@@ -1929,21 +1929,18 @@ impl<'a> FunctionName<'a> {
 
     /// Returns the punctuated sequence over the names used when defining the function.
     /// This is the `x.y.z` part of `function x.y.z() end`
-    pub fn names(&self) -> &Punctuated<'a, Cow<'a, TokenReference<'a>>> {
+    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
         &self.names
     }
 
     /// Returns a new FunctionName with the given names
-    pub fn with_names(self, names: Punctuated<'a, Cow<'a, TokenReference<'a>>>) -> Self {
+    pub fn with_names(self, names: Punctuated<'a, TokenReference<'a>>) -> Self {
         Self { names, ..self }
     }
 
     /// Returns a new FunctionName with the given method name
     /// The first token is the colon, and the second token is the method name itself
-    pub fn with_method(
-        self,
-        method: Option<(Cow<'a, TokenReference<'a>>, Cow<'a, TokenReference<'a>>)>,
-    ) -> Self {
+    pub fn with_method(self, method: Option<(TokenReference<'a>, TokenReference<'a>)>) -> Self {
         Self {
             colon_name: method,
             ..self
@@ -1958,7 +1955,7 @@ impl<'a> FunctionName<'a> {
 #[display(fmt = "{}{}{}", "function_token", "name", "body")]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    function_token: Cow<'a, TokenReference<'a>>,
+    function_token: TokenReference<'a>,
     name: FunctionName<'a>,
     body: FunctionBody<'a>,
 }
@@ -1967,7 +1964,7 @@ impl<'a> FunctionDeclaration<'a> {
     /// Creates a new FunctionDeclaration from the given name
     pub fn new(name: FunctionName<'a>) -> Self {
         Self {
-            function_token: Cow::Owned(TokenReference::symbol("function ").unwrap()),
+            function_token: TokenReference::symbol("function ").unwrap(),
             name,
             body: FunctionBody::new(),
         }
@@ -1989,7 +1986,7 @@ impl<'a> FunctionDeclaration<'a> {
     }
 
     /// Returns a new FunctionDeclaration with the given `function` token
-    pub fn with_function_token(self, function_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_function_token(self, function_token: TokenReference<'a>) -> Self {
         Self {
             function_token,
             ..self
@@ -2174,20 +2171,20 @@ impl<'a> Ast<'a> {
                         })
                     } else {
                         Err(AstError::UnexpectedToken {
-                            token: (*state.peek()).to_owned().token,
+                            token: state.peek().token.clone(),
                             additional: Some(Cow::Borrowed("leftover token")),
                         })
                     }
                 }
 
                 Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                    token: (*state.peek()).to_owned().token,
+                    token: state.peek().token.clone(),
                     additional: None,
                 }),
 
                 Err(InternalAstError::UnexpectedToken { token, additional }) => {
                     Err(AstError::UnexpectedToken {
-                        token: (*token).to_owned(),
+                        token: token.token,
                         additional: additional.map(Cow::Borrowed),
                     })
                 }
@@ -2352,13 +2349,13 @@ mod tests {
     // Tests AST nodes with new methods that call unwrap
     #[test]
     fn test_new_validity() {
-        let token: Cow<TokenReference> = Cow::Owned(TokenReference::new(
+        let token: TokenReference = TokenReference::new(
             Vec::new(),
             Token::new(TokenType::Identifier {
                 identifier: "foo".into(),
             }),
             Vec::new(),
-        ));
+        );
 
         let expression = Expression::Value {
             value: Box::new(Value::Var(Var::Name(token.clone()))),

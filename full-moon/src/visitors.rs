@@ -3,7 +3,6 @@ use crate::{
     private::Sealed,
     tokenizer::{Token, TokenReference},
 };
-use std::borrow::Cow;
 
 #[cfg(feature = "lua52")]
 use crate::ast::lua52::*;
@@ -200,20 +199,6 @@ impl<'ast, A: Visit<'ast>, B: Visit<'ast>> Visit<'ast> for (A, B) {
 impl<'ast, A: VisitMut<'ast>, B: VisitMut<'ast>> VisitMut<'ast> for (A, B) {
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
         (self.0.visit_mut(visitor), self.1.visit_mut(visitor))
-    }
-}
-
-impl<'ast, T: Clone + Visit<'ast>> Visit<'ast> for Cow<'ast, T> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
-        (**self).visit(visitor);
-    }
-}
-
-// TODO: This clones every Cow every visit, and there are a lot
-// Can this be remedied? Is this an issue?
-impl<'ast, T: Clone + VisitMut<'ast>> VisitMut<'ast> for Cow<'ast, T> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
-        Cow::Owned(self.into_owned().visit_mut(visitor))
     }
 }
 

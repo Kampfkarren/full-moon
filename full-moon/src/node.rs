@@ -3,7 +3,7 @@ use crate::{
     private,
     tokenizer::{Position, Token, TokenReference},
 };
-use std::{borrow::Cow, fmt};
+use std::fmt;
 
 /// Used to represent nodes such as tokens or function definitions
 ///
@@ -31,24 +31,18 @@ pub trait Node<'ast>: private::Sealed {
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
     /// Returns a tuple of the leading and trailing trivia.
-    fn surrounding_trivia<'b>(&'b self) -> (Vec<Cow<'b, Token<'ast>>>, Vec<Cow<'b, Token<'ast>>>) {
+    fn surrounding_trivia<'b>(&'b self) -> (Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>) {
         let mut tokens = self.tokens();
         let leading = tokens.next();
         let trailing = tokens.next_back();
 
         (
             match leading {
-                Some(Cow::Owned(token)) => {
-                    token.leading_trivia.into_iter().map(Cow::Owned).collect()
-                }
-                Some(Cow::Borrowed(token)) => token.leading_trivia().map(Cow::Borrowed).collect(),
+                Some(token) => token.leading_trivia().collect(),
                 None => Vec::new(),
             },
             match trailing {
-                Some(Cow::Owned(token)) => {
-                    token.trailing_trivia.into_iter().map(Cow::Owned).collect()
-                }
-                Some(Cow::Borrowed(token)) => token.trailing_trivia().map(Cow::Borrowed).collect(),
+                Some(token) => token.trailing_trivia().collect(),
                 None => Vec::new(),
             },
         )
@@ -57,7 +51,7 @@ pub trait Node<'ast>: private::Sealed {
 
 pub(crate) enum TokenItem<'ast, 'b> {
     MoreTokens(&'b dyn Node<'ast>),
-    TokenReference(Cow<'b, TokenReference<'ast>>),
+    TokenReference(&'b TokenReference<'ast>),
 }
 
 impl fmt::Debug for TokenItem<'_, '_> {
@@ -77,7 +71,7 @@ pub struct Tokens<'ast, 'b> {
 }
 
 impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
-    type Item = Cow<'b, TokenReference<'ast>>;
+    type Item = &'b TokenReference<'ast>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.items.is_empty() {
@@ -185,48 +179,6 @@ impl<'a, T: Node<'a>> Node<'a> for &mut T {
     }
 }
 
-impl<'a, T: Node<'a> + ToOwned> Node<'a> for Cow<'_, T> {
-    fn start_position(&self) -> Option<Position> {
-        (**self).start_position()
-    }
-
-    fn end_position(&self) -> Option<Position> {
-        (**self).end_position()
-    }
-
-    fn similar(&self, other: &Self) -> bool {
-        (**self).similar(other)
-    }
-
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
-        (**self).tokens()
-    }
-}
-
-impl<'a> Node<'a> for Token<'a> {
-    fn start_position(&self) -> Option<Position> {
-        Some(self.start_position())
-    }
-
-    fn end_position(&self) -> Option<Position> {
-        Some(self.end_position())
-    }
-
-    fn similar(&self, other: &Self) -> bool {
-        *self.token_type() == *other.token_type()
-    }
-
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
-        Tokens {
-            items: vec![TokenItem::TokenReference(Cow::Owned(TokenReference::new(
-                Vec::new(),
-                self.to_owned(),
-                Vec::new(),
-            )))],
-        }
-    }
-}
-
 impl<'a> Node<'a> for TokenReference<'a> {
     fn start_position(&self) -> Option<Position> {
         Some((**self).start_position())
@@ -237,12 +189,12 @@ impl<'a> Node<'a> for TokenReference<'a> {
     }
 
     fn similar(&self, other: &Self) -> bool {
-        (**self).similar(other)
+        *self.token_type() == *other.token_type()
     }
 
     fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
         Tokens {
-            items: vec![TokenItem::TokenReference(Cow::Borrowed(self))],
+            items: vec![TokenItem::TokenReference(&self)],
         }
     }
 }

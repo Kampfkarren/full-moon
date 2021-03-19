@@ -7,7 +7,6 @@ use full_moon_derive::{Node, Owned, Visit};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 
 /// A goto statement, such as `goto label`.
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
@@ -15,15 +14,15 @@ use std::borrow::Cow;
 #[display(fmt = "{}{}", "goto_token", "label_name")]
 pub struct Goto<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) goto_token: Cow<'a, TokenReference<'a>>,
-    pub(crate) label_name: Cow<'a, TokenReference<'a>>,
+    pub(crate) goto_token: TokenReference<'a>,
+    pub(crate) label_name: TokenReference<'a>,
 }
 
 impl<'a> Goto<'a> {
     /// Creates a new Goto with the given label name
-    pub fn new(label_name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn new(label_name: TokenReference<'a>) -> Self {
         Self {
-            goto_token: Cow::Owned(TokenReference::symbol("goto").unwrap()),
+            goto_token: TokenReference::symbol("goto").unwrap(),
             label_name,
         }
     }
@@ -39,12 +38,12 @@ impl<'a> Goto<'a> {
     }
 
     /// Returns a new Goto with the given `goto` symbol
-    pub fn with_goto_token(self, goto_token: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_goto_token(self, goto_token: TokenReference<'a>) -> Self {
         Self { goto_token, ..self }
     }
 
     /// Returns a new Goto with the given label name
-    pub fn with_label_name(self, label_name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_label_name(self, label_name: TokenReference<'a>) -> Self {
         Self { label_name, ..self }
     }
 }
@@ -55,18 +54,18 @@ impl<'a> Goto<'a> {
 #[display(fmt = "{}{}{}", "left_colons", "name", "right_colons")]
 pub struct Label<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) left_colons: Cow<'a, TokenReference<'a>>,
-    pub(crate) name: Cow<'a, TokenReference<'a>>,
-    pub(crate) right_colons: Cow<'a, TokenReference<'a>>,
+    pub(crate) left_colons: TokenReference<'a>,
+    pub(crate) name: TokenReference<'a>,
+    pub(crate) right_colons: TokenReference<'a>,
 }
 
 impl<'a> Label<'a> {
     /// Creates a new Label with the given name
-    pub fn new(name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn new(name: TokenReference<'a>) -> Self {
         Self {
-            left_colons: Cow::Owned(TokenReference::symbol("::").unwrap()),
+            left_colons: TokenReference::symbol("::").unwrap(),
             name,
-            right_colons: Cow::Owned(TokenReference::symbol("::").unwrap()),
+            right_colons: TokenReference::symbol("::").unwrap(),
         }
     }
 
@@ -86,7 +85,7 @@ impl<'a> Label<'a> {
     }
 
     /// Returns a new Label with the given `::` symbol on the left hand side
-    pub fn with_left_colons(self, left_colons: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_left_colons(self, left_colons: TokenReference<'a>) -> Self {
         Self {
             left_colons,
             ..self
@@ -94,12 +93,12 @@ impl<'a> Label<'a> {
     }
 
     /// Returns a new Label with the given label name
-    pub fn with_name(self, name: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_name(self, name: TokenReference<'a>) -> Self {
         Self { name, ..self }
     }
 
     /// Returns a new Label with the given `::` symbol on the right hand side
-    pub fn with_right_colons(self, right_colons: Cow<'a, TokenReference<'a>>) -> Self {
+    pub fn with_right_colons(self, right_colons: TokenReference<'a>) -> Self {
         Self {
             right_colons,
             ..self

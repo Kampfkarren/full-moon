@@ -10,23 +10,14 @@ fn token_getter(
     deref: bool,
 ) -> TokenStream {
     if let syn::Type::Path(path) = ty {
-        let cow = path.path.segments.first().expect("no first segment?");
+        let token_ref = path.path.segments.first().expect("no first segment?");
 
         // Clippy suggests *cow.ident, which doesn't work
         #[allow(clippy::cmp_owned)]
-        if cow.ident.to_string() == "Cow".to_owned() {
-            if let syn::PathArguments::AngleBracketed(generics) = &cow.arguments {
-                if let syn::GenericArgument::Type(ty) = &generics.args[1] {
-                    if let syn::Type::Path(path) = ty {
-                        let inner = path.path.segments.first().unwrap();
-                        if inner.ident.to_string() == "TokenReference" {
-                            return quote! {
-                                crate::node::TokenItem::TokenReference(#prefix#ident.clone())
-                            };
-                        }
-                    }
-                }
-            }
+        if token_ref.ident.to_string() == "TokenReference" {
+            return quote! {
+                crate::node::TokenItem::TokenReference(&#prefix#ident)
+            };
         }
     }
 

@@ -1,8 +1,5 @@
 use crate::tokenizer::TokenReference;
-use std::{
-    borrow::{Borrow, Cow},
-    fmt::Display,
-};
+use std::{borrow::Borrow, fmt::Display};
 
 #[cfg(feature = "roblox")]
 use crate::ast::punctuated::Punctuated;
@@ -14,14 +11,12 @@ pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
     }
 }
 
-pub fn display_optional_punctuated<T: Display>(
-    pair: &(T, Option<Cow<'_, TokenReference<'_>>>),
-) -> String {
+pub fn display_optional_punctuated<T: Display>(pair: &(T, Option<TokenReference<'_>>)) -> String {
     format!("{}{}", pair.0, display_option(&pair.1))
 }
 
 pub fn display_optional_punctuated_vec<T: Display>(
-    vec: &[(T, Option<Cow<'_, TokenReference<'_>>>)],
+    vec: &[(T, Option<TokenReference<'_>>)],
 ) -> String {
     let mut string = String::new();
 

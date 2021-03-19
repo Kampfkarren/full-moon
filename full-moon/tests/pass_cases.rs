@@ -6,7 +6,7 @@ use full_moon::{
 };
 use insta::assert_yaml_snapshot;
 use pretty_assertions::assert_eq;
-use std::{borrow::Cow, fmt, fs, path::Path};
+use std::{fmt, fs, path::Path};
 
 mod common;
 use common::run_test_folder;
@@ -21,7 +21,7 @@ impl<'a> fmt::Debug for PrettyString<'a> {
     }
 }
 
-fn unpack_token_reference<'a>(token: Cow<TokenReference<'a>>) -> Vec<Token<'a>> {
+fn unpack_token_reference<'a>(token: &TokenReference<'a>) -> Vec<Token<'a>> {
     token
         .leading_trivia()
         .chain(std::iter::once(token.token()))
