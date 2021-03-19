@@ -42,6 +42,7 @@ See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
 - TokenReference equality now checks for leading and trailing trivia to be the same.
+- Allow numbers to have a trailing decimal `.`.
 
 ### Removed
 - Removed `BinOpRhs`. This is now part of `Expression::BinaryOperator`.

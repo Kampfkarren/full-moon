@@ -741,7 +741,7 @@ fn parse_basic_number(code: &str) -> IResult<&str, &str> {
     recognize(pair(
         parse_digit_with_seperator,
         pair(
-            opt(pair(tag("."), parse_digit_with_seperator)),
+            opt(pair(tag("."), opt(parse_digit_with_seperator))),
             opt(pair(
                 pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
                 parse_digit_with_seperator,
