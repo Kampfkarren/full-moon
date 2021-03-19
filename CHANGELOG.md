@@ -38,7 +38,7 @@ See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 	- `VarExpression::iter_suffixes` -> `VarExpression::suffixes`
 	- `FunctionCall::iter_suffixes` -> `FunctionCall::suffixes`
 	- `FunctionBody::func_body` -> `FunctionBody::body`
-- **[BREAKING HANGE]** All uses of `Cow<'a, TokenRefernce<'a>>` have been removed, though `Cow<'a, str>` remain. 
+- **[BREAKING CHANGE]** All uses of `Cow<'a, TokenReference<'a>>` have been removed, though `Cow<'a, str>` remain. 
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
