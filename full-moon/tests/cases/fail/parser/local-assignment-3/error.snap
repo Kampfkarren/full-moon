@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/local-assignment-3
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 11
+      line: 1
+      character: 12
+    end_position:
+      bytes: 12
+      line: 1
+      character: 13
+    token_type:
+      type: Symbol
+      symbol: ","
+  additional: leftover token
+

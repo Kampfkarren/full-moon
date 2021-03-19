@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/numeric-for-5
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 4
+      line: 1
+      character: 5
+    end_position:
+      bytes: 9
+      line: 1
+      character: 10
+    token_type:
+      type: Symbol
+      symbol: local
+  additional: expected names
+

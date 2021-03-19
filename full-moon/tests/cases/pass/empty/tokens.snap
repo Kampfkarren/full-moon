@@ -1,0 +1,17 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/empty
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 0
+    line: 1
+    character: 1
+  token_type:
+    type: Eof
+

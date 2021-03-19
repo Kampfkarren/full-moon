@@ -1,0 +1,378 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/table-constructors-8
+
+---
+stmts: []
+last_stmt:
+  - Return:
+      token:
+        leading_trivia: []
+        token:
+          start_position:
+            bytes: 0
+            line: 1
+            character: 1
+          end_position:
+            bytes: 6
+            line: 1
+            character: 7
+          token_type:
+            type: Symbol
+            symbol: return
+        trailing_trivia:
+          - start_position:
+              bytes: 6
+              line: 1
+              character: 7
+            end_position:
+              bytes: 7
+              line: 1
+              character: 8
+            token_type:
+              type: Whitespace
+              characters: " "
+      returns:
+        pairs:
+          - End:
+              value:
+                TableConstructor:
+                  braces:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 7
+                            line: 1
+                            character: 8
+                          end_position:
+                            bytes: 8
+                            line: 1
+                            character: 9
+                          token_type:
+                            type: Symbol
+                            symbol: "{"
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 8
+                              line: 1
+                              character: 9
+                            end_position:
+                              bytes: 9
+                              line: 1
+                              character: 9
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 129
+                            line: 4
+                            character: 1
+                          end_position:
+                            bytes: 130
+                            line: 4
+                            character: 2
+                          token_type:
+                            type: Symbol
+                            symbol: "}"
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 130
+                              line: 4
+                              character: 2
+                            end_position:
+                              bytes: 131
+                              line: 4
+                              character: 2
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  fields:
+                    pairs:
+                      - Punctuated:
+                          - ExpressionKey:
+                              brackets:
+                                tokens:
+                                  - leading_trivia:
+                                      - start_position:
+                                          bytes: 9
+                                          line: 2
+                                          character: 1
+                                        end_position:
+                                          bytes: 10
+                                          line: 2
+                                          character: 2
+                                        token_type:
+                                          type: Whitespace
+                                          characters: "\t"
+                                    token:
+                                      start_position:
+                                        bytes: 10
+                                        line: 2
+                                        character: 2
+                                      end_position:
+                                        bytes: 11
+                                        line: 2
+                                        character: 3
+                                      token_type:
+                                        type: Symbol
+                                        symbol: "["
+                                    trailing_trivia: []
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 36
+                                        line: 2
+                                        character: 28
+                                      end_position:
+                                        bytes: 37
+                                        line: 2
+                                        character: 29
+                                      token_type:
+                                        type: Symbol
+                                        symbol: "]"
+                                    trailing_trivia:
+                                      - start_position:
+                                          bytes: 37
+                                          line: 2
+                                          character: 29
+                                        end_position:
+                                          bytes: 38
+                                          line: 2
+                                          character: 30
+                                        token_type:
+                                          type: Whitespace
+                                          characters: " "
+                              key:
+                                value:
+                                  String:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 11
+                                        line: 2
+                                        character: 3
+                                      end_position:
+                                        bytes: 36
+                                        line: 2
+                                        character: 28
+                                      token_type:
+                                        type: StringLiteral
+                                        literal: "Noob Attack: Periastron"
+                                        quote_type: Double
+                                    trailing_trivia: []
+                              equal:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 38
+                                    line: 2
+                                    character: 30
+                                  end_position:
+                                    bytes: 39
+                                    line: 2
+                                    character: 31
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "="
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 39
+                                      line: 2
+                                      character: 31
+                                    end_position:
+                                      bytes: 40
+                                      line: 2
+                                      character: 32
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                              value:
+                                value:
+                                  String:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 40
+                                        line: 2
+                                        character: 32
+                                      end_position:
+                                        bytes: 66
+                                        line: 2
+                                        character: 58
+                                      token_type:
+                                        type: StringLiteral
+                                        literal: Noob Attack - Periastron
+                                        quote_type: Double
+                                    trailing_trivia: []
+                          - leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 66
+                                line: 2
+                                character: 58
+                              end_position:
+                                bytes: 67
+                                line: 2
+                                character: 59
+                              token_type:
+                                type: Symbol
+                                symbol: ;
+                            trailing_trivia:
+                              - start_position:
+                                  bytes: 67
+                                  line: 2
+                                  character: 59
+                                end_position:
+                                  bytes: 68
+                                  line: 2
+                                  character: 59
+                                token_type:
+                                  type: Whitespace
+                                  characters: "\n"
+                      - Punctuated:
+                          - ExpressionKey:
+                              brackets:
+                                tokens:
+                                  - leading_trivia:
+                                      - start_position:
+                                          bytes: 68
+                                          line: 3
+                                          character: 1
+                                        end_position:
+                                          bytes: 69
+                                          line: 3
+                                          character: 2
+                                        token_type:
+                                          type: Whitespace
+                                          characters: "\t"
+                                    token:
+                                      start_position:
+                                        bytes: 69
+                                        line: 3
+                                        character: 2
+                                      end_position:
+                                        bytes: 70
+                                        line: 3
+                                        character: 3
+                                      token_type:
+                                        type: Symbol
+                                        symbol: "["
+                                    trailing_trivia: []
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 97
+                                        line: 3
+                                        character: 28
+                                      end_position:
+                                        bytes: 98
+                                        line: 3
+                                        character: 29
+                                      token_type:
+                                        type: Symbol
+                                        symbol: "]"
+                                    trailing_trivia:
+                                      - start_position:
+                                          bytes: 98
+                                          line: 3
+                                          character: 29
+                                        end_position:
+                                          bytes: 99
+                                          line: 3
+                                          character: 30
+                                        token_type:
+                                          type: Whitespace
+                                          characters: " "
+                              key:
+                                value:
+                                  String:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 70
+                                        line: 3
+                                        character: 3
+                                      end_position:
+                                        bytes: 97
+                                        line: 3
+                                        character: 28
+                                      token_type:
+                                        type: StringLiteral
+                                        literal: Noob Attack꞉ Periastron
+                                        quote_type: Double
+                                    trailing_trivia: []
+                              equal:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 99
+                                    line: 3
+                                    character: 30
+                                  end_position:
+                                    bytes: 100
+                                    line: 3
+                                    character: 31
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "="
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 100
+                                      line: 3
+                                      character: 31
+                                    end_position:
+                                      bytes: 101
+                                      line: 3
+                                      character: 32
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                              value:
+                                value:
+                                  String:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 101
+                                        line: 3
+                                        character: 32
+                                      end_position:
+                                        bytes: 127
+                                        line: 3
+                                        character: 58
+                                      token_type:
+                                        type: StringLiteral
+                                        literal: Noob Attack - Periastron
+                                        quote_type: Double
+                                    trailing_trivia: []
+                          - leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 127
+                                line: 3
+                                character: 58
+                              end_position:
+                                bytes: 128
+                                line: 3
+                                character: 59
+                              token_type:
+                                type: Symbol
+                                symbol: ;
+                            trailing_trivia:
+                              - start_position:
+                                  bytes: 128
+                                  line: 3
+                                  character: 59
+                                end_position:
+                                  bytes: 129
+                                  line: 3
+                                  character: 59
+                                token_type:
+                                  type: Whitespace
+                                  characters: "\n"
+  - ~
+

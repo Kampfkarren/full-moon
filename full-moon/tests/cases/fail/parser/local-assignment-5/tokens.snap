@@ -1,0 +1,94 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/local-assignment-5
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 7
+    line: 1
+    character: 8
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 13
+    line: 1
+    character: 14
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 13
+    line: 1
+    character: 14
+  end_position:
+    bytes: 13
+    line: 1
+    character: 14
+  token_type:
+    type: Eof
+

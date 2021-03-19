@@ -1,0 +1,72 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/do-2
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: do
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: until
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Eof
+

@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/tokenizer/wrong-place-shebang
+
+---
+error:
+  UnexpectedToken: "#"
+position:
+  bytes: 2
+  line: 2
+  character: 2
+

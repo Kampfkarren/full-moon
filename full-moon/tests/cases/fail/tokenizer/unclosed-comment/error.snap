@@ -1,0 +1,12 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-comment
+
+---
+error: UnclosedComment
+position:
+  bytes: 0
+  line: 1
+  character: 1
+

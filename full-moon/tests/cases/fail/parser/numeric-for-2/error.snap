@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/numeric-for-2
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 7
+      line: 1
+      character: 8
+    end_position:
+      bytes: 7
+      line: 1
+      character: 8
+    token_type:
+      type: Eof
+  additional: expected start expression
+

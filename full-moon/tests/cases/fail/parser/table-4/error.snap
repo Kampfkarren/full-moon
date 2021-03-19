@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/table-4
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 9
+      line: 1
+      character: 10
+    end_position:
+      bytes: 14
+      line: 1
+      character: 15
+    token_type:
+      type: Symbol
+      symbol: until
+  additional: "expected '}'"
+

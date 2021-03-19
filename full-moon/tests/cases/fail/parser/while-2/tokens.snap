@@ -1,0 +1,94 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/while-2
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: while
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Symbol
+    symbol: until
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 14
+    line: 1
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: do
+- start_position:
+    bytes: 14
+    line: 1
+    character: 15
+  end_position:
+    bytes: 15
+    line: 1
+    character: 16
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 15
+    line: 1
+    character: 16
+  end_position:
+    bytes: 18
+    line: 1
+    character: 19
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 18
+    line: 1
+    character: 19
+  end_position:
+    bytes: 18
+    line: 1
+    character: 19
+  token_type:
+    type: Eof
+

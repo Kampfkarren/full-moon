@@ -1,0 +1,158 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/repeat-until
+
+---
+stmts:
+  - - Repeat:
+        repeat_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 6
+              line: 1
+              character: 7
+            token_type:
+              type: Symbol
+              symbol: repeat
+          trailing_trivia:
+            - start_position:
+                bytes: 6
+                line: 1
+                character: 7
+              end_position:
+                bytes: 7
+                line: 1
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: "\n"
+        block:
+          stmts:
+            - - FunctionCall:
+                  prefix:
+                    Name:
+                      leading_trivia:
+                        - start_position:
+                            bytes: 7
+                            line: 2
+                            character: 1
+                          end_position:
+                            bytes: 8
+                            line: 2
+                            character: 2
+                          token_type:
+                            type: Whitespace
+                            characters: "\t"
+                      token:
+                        start_position:
+                          bytes: 8
+                          line: 2
+                          character: 2
+                        end_position:
+                          bytes: 12
+                          line: 2
+                          character: 6
+                        token_type:
+                          type: Identifier
+                          identifier: call
+                      trailing_trivia: []
+                  suffixes:
+                    - Call:
+                        AnonymousCall:
+                          Parentheses:
+                            parentheses:
+                              tokens:
+                                - leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 12
+                                      line: 2
+                                      character: 6
+                                    end_position:
+                                      bytes: 13
+                                      line: 2
+                                      character: 7
+                                    token_type:
+                                      type: Symbol
+                                      symbol: (
+                                  trailing_trivia: []
+                                - leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 13
+                                      line: 2
+                                      character: 7
+                                    end_position:
+                                      bytes: 14
+                                      line: 2
+                                      character: 8
+                                    token_type:
+                                      type: Symbol
+                                      symbol: )
+                                  trailing_trivia:
+                                    - start_position:
+                                        bytes: 14
+                                        line: 2
+                                        character: 8
+                                      end_position:
+                                        bytes: 15
+                                        line: 2
+                                        character: 8
+                                      token_type:
+                                        type: Whitespace
+                                        characters: "\n"
+                            arguments:
+                              pairs: []
+              - ~
+        until_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 15
+              line: 3
+              character: 1
+            end_position:
+              bytes: 20
+              line: 3
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: until
+          trailing_trivia:
+            - start_position:
+                bytes: 20
+                line: 3
+                character: 6
+              end_position:
+                bytes: 21
+                line: 3
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        until:
+          value:
+            Var:
+              Name:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 21
+                    line: 3
+                    character: 7
+                  end_position:
+                    bytes: 30
+                    line: 3
+                    character: 16
+                  token_type:
+                    type: Identifier
+                    identifier: condition
+                trailing_trivia: []
+    - ~
+

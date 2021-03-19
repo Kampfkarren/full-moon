@@ -1,0 +1,29 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/multi-line-comments-4
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 50
+    line: 5
+    character: 8
+  token_type:
+    type: MultiLineComment
+    blocks: 5
+    comment: "\n\tlua be like\n]====]\n\tstill going\n"
+- start_position:
+    bytes: 50
+    line: 5
+    character: 8
+  end_position:
+    bytes: 50
+    line: 5
+    character: 8
+  token_type:
+    type: Eof
+

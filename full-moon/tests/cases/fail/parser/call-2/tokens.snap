@@ -1,0 +1,51 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/call-2
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: call
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: StringLiteral
+    literal: hello
+    quote_type: Double
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Eof
+

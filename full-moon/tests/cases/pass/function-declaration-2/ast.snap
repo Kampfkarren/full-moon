@@ -1,0 +1,173 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/function-declaration-2
+
+---
+stmts:
+  - - FunctionDeclaration:
+        function_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 8
+              line: 1
+              character: 9
+            token_type:
+              type: Symbol
+              symbol: function
+          trailing_trivia:
+            - start_position:
+                bytes: 8
+                line: 1
+                character: 9
+              end_position:
+                bytes: 9
+                line: 1
+                character: 10
+              token_type:
+                type: Whitespace
+                characters: " "
+        name:
+          names:
+            pairs:
+              - Punctuated:
+                  - leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 9
+                        line: 1
+                        character: 10
+                      end_position:
+                        bytes: 10
+                        line: 1
+                        character: 11
+                      token_type:
+                        type: Identifier
+                        identifier: x
+                    trailing_trivia: []
+                  - leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 10
+                        line: 1
+                        character: 11
+                      end_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      token_type:
+                        type: Symbol
+                        symbol: "."
+                    trailing_trivia: []
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 11
+                      line: 1
+                      character: 12
+                    end_position:
+                      bytes: 12
+                      line: 1
+                      character: 13
+                    token_type:
+                      type: Identifier
+                      identifier: y
+                  trailing_trivia: []
+          colon_name:
+            - leading_trivia: []
+              token:
+                start_position:
+                  bytes: 12
+                  line: 1
+                  character: 13
+                end_position:
+                  bytes: 13
+                  line: 1
+                  character: 14
+                token_type:
+                  type: Symbol
+                  symbol: ":"
+              trailing_trivia: []
+            - leading_trivia: []
+              token:
+                start_position:
+                  bytes: 13
+                  line: 1
+                  character: 14
+                end_position:
+                  bytes: 14
+                  line: 1
+                  character: 15
+                token_type:
+                  type: Identifier
+                  identifier: z
+              trailing_trivia: []
+        body:
+          parameters_parentheses:
+            tokens:
+              - leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 14
+                    line: 1
+                    character: 15
+                  end_position:
+                    bytes: 15
+                    line: 1
+                    character: 16
+                  token_type:
+                    type: Symbol
+                    symbol: (
+                trailing_trivia: []
+              - leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 15
+                    line: 1
+                    character: 16
+                  end_position:
+                    bytes: 16
+                    line: 1
+                    character: 17
+                  token_type:
+                    type: Symbol
+                    symbol: )
+                trailing_trivia:
+                  - start_position:
+                      bytes: 16
+                      line: 1
+                      character: 17
+                    end_position:
+                      bytes: 17
+                      line: 1
+                      character: 18
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+          parameters:
+            pairs: []
+          block:
+            stmts: []
+          end_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 17
+                line: 1
+                character: 18
+              end_position:
+                bytes: 20
+                line: 1
+                character: 21
+              token_type:
+                type: Symbol
+                symbol: end
+            trailing_trivia: []
+    - ~
+

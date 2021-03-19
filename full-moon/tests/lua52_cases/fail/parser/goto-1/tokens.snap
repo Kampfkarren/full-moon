@@ -1,0 +1,28 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/lua52_cases/fail/parser/goto-1
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Symbol
+    symbol: goto
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Eof
+

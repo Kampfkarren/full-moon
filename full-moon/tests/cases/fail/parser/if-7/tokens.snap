@@ -1,0 +1,116 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/if-7
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: if
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: then
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: do
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 13
+    line: 1
+    character: 13
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 13
+    line: 2
+    character: 1
+  end_position:
+    bytes: 16
+    line: 2
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 16
+    line: 2
+    character: 4
+  end_position:
+    bytes: 16
+    line: 2
+    character: 4
+  token_type:
+    type: Eof
+

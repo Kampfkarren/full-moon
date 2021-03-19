@@ -1,0 +1,73 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/multi-line-comments-7
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 22
+    line: 1
+    character: 17
+  token_type:
+    type: MultiLineComment
+    blocks: 1
+    comment: " μέλλον "
+- start_position:
+    bytes: 22
+    line: 1
+    character: 17
+  end_position:
+    bytes: 23
+    line: 1
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 23
+    line: 2
+    character: 1
+  end_position:
+    bytes: 24
+    line: 2
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 24
+    line: 3
+    character: 1
+  end_position:
+    bytes: 41
+    line: 3
+    character: 18
+  token_type:
+    type: SingleLineComment
+    comment: " some text here"
+- start_position:
+    bytes: 41
+    line: 3
+    character: 18
+  end_position:
+    bytes: 42
+    line: 3
+    character: 18
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 42
+    line: 4
+    character: 1
+  end_position:
+    bytes: 42
+    line: 4
+    character: 1
+  token_type:
+    type: Eof
+

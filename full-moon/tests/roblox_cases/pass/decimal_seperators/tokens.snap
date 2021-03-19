@@ -1,0 +1,534 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/roblox_cases/pass/decimal_seperators
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num1
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 13
+    line: 1
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 13
+    line: 1
+    character: 14
+  end_position:
+    bytes: 22
+    line: 1
+    character: 23
+  token_type:
+    type: Number
+    text: 1_048_576
+- start_position:
+    bytes: 22
+    line: 1
+    character: 23
+  end_position:
+    bytes: 23
+    line: 1
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 23
+    line: 2
+    character: 1
+  end_position:
+    bytes: 28
+    line: 2
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 28
+    line: 2
+    character: 6
+  end_position:
+    bytes: 29
+    line: 2
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 29
+    line: 2
+    character: 7
+  end_position:
+    bytes: 33
+    line: 2
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num2
+- start_position:
+    bytes: 33
+    line: 2
+    character: 11
+  end_position:
+    bytes: 34
+    line: 2
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 34
+    line: 2
+    character: 12
+  end_position:
+    bytes: 35
+    line: 2
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 35
+    line: 2
+    character: 13
+  end_position:
+    bytes: 36
+    line: 2
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 36
+    line: 2
+    character: 14
+  end_position:
+    bytes: 47
+    line: 2
+    character: 25
+  token_type:
+    type: Number
+    text: "0xFFFF_FFFF"
+- start_position:
+    bytes: 47
+    line: 2
+    character: 25
+  end_position:
+    bytes: 48
+    line: 2
+    character: 25
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 48
+    line: 3
+    character: 1
+  end_position:
+    bytes: 53
+    line: 3
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 53
+    line: 3
+    character: 6
+  end_position:
+    bytes: 54
+    line: 3
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 54
+    line: 3
+    character: 7
+  end_position:
+    bytes: 58
+    line: 3
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num3
+- start_position:
+    bytes: 58
+    line: 3
+    character: 11
+  end_position:
+    bytes: 59
+    line: 3
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 59
+    line: 3
+    character: 12
+  end_position:
+    bytes: 60
+    line: 3
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 60
+    line: 3
+    character: 13
+  end_position:
+    bytes: 61
+    line: 3
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 61
+    line: 3
+    character: 14
+  end_position:
+    bytes: 73
+    line: 3
+    character: 26
+  token_type:
+    type: Number
+    text: 0b_0101_0101
+- start_position:
+    bytes: 73
+    line: 3
+    character: 26
+  end_position:
+    bytes: 74
+    line: 3
+    character: 26
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 74
+    line: 4
+    character: 1
+  end_position:
+    bytes: 79
+    line: 4
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 79
+    line: 4
+    character: 6
+  end_position:
+    bytes: 80
+    line: 4
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 80
+    line: 4
+    character: 7
+  end_position:
+    bytes: 84
+    line: 4
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num4
+- start_position:
+    bytes: 84
+    line: 4
+    character: 11
+  end_position:
+    bytes: 85
+    line: 4
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 85
+    line: 4
+    character: 12
+  end_position:
+    bytes: 86
+    line: 4
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 86
+    line: 4
+    character: 13
+  end_position:
+    bytes: 87
+    line: 4
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 87
+    line: 4
+    character: 14
+  end_position:
+    bytes: 108
+    line: 4
+    character: 35
+  token_type:
+    type: Number
+    text: 1_523_423.132_452_312
+- start_position:
+    bytes: 108
+    line: 4
+    character: 35
+  end_position:
+    bytes: 109
+    line: 4
+    character: 35
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 109
+    line: 5
+    character: 1
+  end_position:
+    bytes: 114
+    line: 5
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 114
+    line: 5
+    character: 6
+  end_position:
+    bytes: 115
+    line: 5
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 115
+    line: 5
+    character: 7
+  end_position:
+    bytes: 119
+    line: 5
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num5
+- start_position:
+    bytes: 119
+    line: 5
+    character: 11
+  end_position:
+    bytes: 120
+    line: 5
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 120
+    line: 5
+    character: 12
+  end_position:
+    bytes: 121
+    line: 5
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 121
+    line: 5
+    character: 13
+  end_position:
+    bytes: 122
+    line: 5
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 122
+    line: 5
+    character: 14
+  end_position:
+    bytes: 131
+    line: 5
+    character: 23
+  token_type:
+    type: Number
+    text: 1e512_412
+- start_position:
+    bytes: 131
+    line: 5
+    character: 23
+  end_position:
+    bytes: 132
+    line: 5
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 132
+    line: 6
+    character: 1
+  end_position:
+    bytes: 137
+    line: 6
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 137
+    line: 6
+    character: 6
+  end_position:
+    bytes: 138
+    line: 6
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 138
+    line: 6
+    character: 7
+  end_position:
+    bytes: 142
+    line: 6
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: num6
+- start_position:
+    bytes: 142
+    line: 6
+    character: 11
+  end_position:
+    bytes: 143
+    line: 6
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 143
+    line: 6
+    character: 12
+  end_position:
+    bytes: 144
+    line: 6
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 144
+    line: 6
+    character: 13
+  end_position:
+    bytes: 145
+    line: 6
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 145
+    line: 6
+    character: 14
+  end_position:
+    bytes: 155
+    line: 6
+    character: 24
+  token_type:
+    type: Number
+    text: 1e-512_412
+- start_position:
+    bytes: 155
+    line: 6
+    character: 24
+  end_position:
+    bytes: 155
+    line: 6
+    character: 24
+  token_type:
+    type: Eof
+

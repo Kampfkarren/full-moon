@@ -1,0 +1,29 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/multi-line-comments-5
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 146
+    line: 6
+    character: 3
+  token_type:
+    type: MultiLineComment
+    blocks: 0
+    comment: "\nlocal emotes = {\n\t[\":thinking:\"] = \"http://www.roblox.com/asset/?id=643340245\",\n\t[\":bug:\"] = \"http://www.roblox.com/asset/?id=860037275\"\n}\n"
+- start_position:
+    bytes: 146
+    line: 6
+    character: 3
+  end_position:
+    bytes: 146
+    line: 6
+    character: 3
+  token_type:
+    type: Eof
+

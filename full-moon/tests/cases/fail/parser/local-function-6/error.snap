@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/local-function-6
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 17
+      line: 1
+      character: 18
+    end_position:
+      bytes: 18
+      line: 1
+      character: 19
+    token_type:
+      type: Symbol
+      symbol: ","
+  additional: "expected ')'"
+

@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/call-4
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 5
+      line: 1
+      character: 6
+    end_position:
+      bytes: 8
+      line: 1
+      character: 9
+    token_type:
+      type: Symbol
+      symbol: end
+  additional: "expected ')'"
+

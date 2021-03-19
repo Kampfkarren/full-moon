@@ -1,0 +1,50 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/local-function-1
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 14
+    line: 1
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 14
+    line: 1
+    character: 15
+  end_position:
+    bytes: 14
+    line: 1
+    character: 15
+  token_type:
+    type: Eof
+

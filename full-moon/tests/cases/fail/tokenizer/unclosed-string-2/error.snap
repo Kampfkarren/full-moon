@@ -1,0 +1,12 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-2
+
+---
+error: UnclosedString
+position:
+  bytes: 10
+  line: 1
+  character: 11
+

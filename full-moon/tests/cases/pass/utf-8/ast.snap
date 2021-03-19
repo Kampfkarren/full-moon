@@ -1,0 +1,137 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/utf-8
+
+---
+stmts:
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 5
+                            line: 1
+                            character: 6
+                          end_position:
+                            bytes: 6
+                            line: 1
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 24
+                            line: 1
+                            character: 22
+                          end_position:
+                            bytes: 25
+                            line: 1
+                            character: 23
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia: []
+                  arguments:
+                    pairs:
+                      - End:
+                          lhs:
+                            value:
+                              String:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 6
+                                    line: 1
+                                    character: 7
+                                  end_position:
+                                    bytes: 13
+                                    line: 1
+                                    character: 11
+                                  token_type:
+                                    type: StringLiteral
+                                    literal: "👚 "
+                                    quote_type: Double
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 13
+                                      line: 1
+                                      character: 11
+                                    end_position:
+                                      bytes: 14
+                                      line: 1
+                                      character: 12
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                          binop:
+                            TwoDots:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 14
+                                  line: 1
+                                  character: 12
+                                end_position:
+                                  bytes: 16
+                                  line: 1
+                                  character: 14
+                                token_type:
+                                  type: Symbol
+                                  symbol: ".."
+                              trailing_trivia:
+                                - start_position:
+                                    bytes: 16
+                                    line: 1
+                                    character: 14
+                                  end_position:
+                                    bytes: 17
+                                    line: 1
+                                    character: 15
+                                  token_type:
+                                    type: Whitespace
+                                    characters: " "
+                          rhs:
+                            value:
+                              Var:
+                                Name:
+                                  leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 17
+                                      line: 1
+                                      character: 15
+                                    end_position:
+                                      bytes: 24
+                                      line: 1
+                                      character: 22
+                                    token_type:
+                                      type: Identifier
+                                      identifier: message
+                                  trailing_trivia: []
+    - ~
+

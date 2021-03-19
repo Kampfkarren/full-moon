@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/lua52_cases/fail/parser/label-2
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 0
+      line: 1
+      character: 1
+    end_position:
+      bytes: 5
+      line: 1
+      character: 6
+    token_type:
+      type: Identifier
+      identifier: label
+  additional: leftover token
+

@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/index-4
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 10
+      line: 1
+      character: 11
+    end_position:
+      bytes: 11
+      line: 1
+      character: 12
+    token_type:
+      type: Identifier
+      identifier: x
+  additional: expected expression
+

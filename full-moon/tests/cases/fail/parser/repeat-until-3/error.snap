@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/repeat-until-3
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 20
+      line: 3
+      character: 6
+    end_position:
+      bytes: 20
+      line: 3
+      character: 6
+    token_type:
+      type: Eof
+  additional: expected condition
+

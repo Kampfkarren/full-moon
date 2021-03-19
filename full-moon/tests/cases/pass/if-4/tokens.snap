@@ -1,0 +1,347 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/if-4
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: if
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: then
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 10
+    line: 1
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 10
+    line: 2
+    character: 1
+  end_position:
+    bytes: 11
+    line: 2
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 11
+    line: 2
+    character: 2
+  end_position:
+    bytes: 14
+    line: 2
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: foo
+- start_position:
+    bytes: 14
+    line: 2
+    character: 5
+  end_position:
+    bytes: 15
+    line: 2
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 15
+    line: 2
+    character: 6
+  end_position:
+    bytes: 16
+    line: 2
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 16
+    line: 2
+    character: 7
+  end_position:
+    bytes: 17
+    line: 2
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 17
+    line: 3
+    character: 1
+  end_position:
+    bytes: 23
+    line: 3
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: elseif
+- start_position:
+    bytes: 23
+    line: 3
+    character: 7
+  end_position:
+    bytes: 24
+    line: 3
+    character: 8
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 24
+    line: 3
+    character: 8
+  end_position:
+    bytes: 25
+    line: 3
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: y
+- start_position:
+    bytes: 25
+    line: 3
+    character: 9
+  end_position:
+    bytes: 26
+    line: 3
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 26
+    line: 3
+    character: 10
+  end_position:
+    bytes: 30
+    line: 3
+    character: 14
+  token_type:
+    type: Symbol
+    symbol: then
+- start_position:
+    bytes: 30
+    line: 3
+    character: 14
+  end_position:
+    bytes: 31
+    line: 3
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 31
+    line: 4
+    character: 1
+  end_position:
+    bytes: 32
+    line: 4
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 32
+    line: 4
+    character: 2
+  end_position:
+    bytes: 35
+    line: 4
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: bar
+- start_position:
+    bytes: 35
+    line: 4
+    character: 5
+  end_position:
+    bytes: 36
+    line: 4
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 36
+    line: 4
+    character: 6
+  end_position:
+    bytes: 37
+    line: 4
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 37
+    line: 4
+    character: 7
+  end_position:
+    bytes: 38
+    line: 4
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 38
+    line: 5
+    character: 1
+  end_position:
+    bytes: 42
+    line: 5
+    character: 5
+  token_type:
+    type: Symbol
+    symbol: else
+- start_position:
+    bytes: 42
+    line: 5
+    character: 5
+  end_position:
+    bytes: 43
+    line: 5
+    character: 5
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 43
+    line: 6
+    character: 1
+  end_position:
+    bytes: 44
+    line: 6
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 44
+    line: 6
+    character: 2
+  end_position:
+    bytes: 47
+    line: 6
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: baz
+- start_position:
+    bytes: 47
+    line: 6
+    character: 5
+  end_position:
+    bytes: 48
+    line: 6
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 48
+    line: 6
+    character: 6
+  end_position:
+    bytes: 49
+    line: 6
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 49
+    line: 6
+    character: 7
+  end_position:
+    bytes: 50
+    line: 6
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 50
+    line: 7
+    character: 1
+  end_position:
+    bytes: 53
+    line: 7
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 53
+    line: 7
+    character: 4
+  end_position:
+    bytes: 53
+    line: 7
+    character: 4
+  token_type:
+    type: Eof
+

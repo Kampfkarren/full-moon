@@ -1,0 +1,29 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/multi-line-comments-1
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 39
+    line: 5
+    character: 3
+  token_type:
+    type: MultiLineComment
+    blocks: 0
+    comment: "\n\tsuch comments\n\tmuch lines\n\twow\n"
+- start_position:
+    bytes: 39
+    line: 5
+    character: 3
+  end_position:
+    bytes: 39
+    line: 5
+    character: 3
+  token_type:
+    type: Eof
+

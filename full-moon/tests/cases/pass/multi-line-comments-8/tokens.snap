@@ -1,0 +1,128 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/pass/multi-line-comments-8
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 21
+    line: 1
+    character: 11
+  token_type:
+    type: MultiLineComment
+    blocks: 0
+    comment: 👨🏾‍💻
+- start_position:
+    bytes: 21
+    line: 1
+    character: 11
+  end_position:
+    bytes: 22
+    line: 1
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 22
+    line: 2
+    character: 1
+  end_position:
+    bytes: 27
+    line: 2
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 27
+    line: 2
+    character: 6
+  end_position:
+    bytes: 28
+    line: 2
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 28
+    line: 2
+    character: 7
+  end_position:
+    bytes: 37
+    line: 2
+    character: 16
+  token_type:
+    type: Identifier
+    identifier: more_code
+- start_position:
+    bytes: 37
+    line: 2
+    character: 16
+  end_position:
+    bytes: 38
+    line: 2
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 38
+    line: 2
+    character: 17
+  end_position:
+    bytes: 39
+    line: 2
+    character: 18
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 39
+    line: 2
+    character: 18
+  end_position:
+    bytes: 40
+    line: 2
+    character: 19
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 40
+    line: 2
+    character: 19
+  end_position:
+    bytes: 44
+    line: 2
+    character: 23
+  token_type:
+    type: Identifier
+    identifier: here
+- start_position:
+    bytes: 44
+    line: 2
+    character: 23
+  end_position:
+    bytes: 45
+    line: 2
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 45
+    line: 3
+    character: 1
+  end_position:
+    bytes: 45
+    line: 3
+    character: 1
+  token_type:
+    type: Eof
+

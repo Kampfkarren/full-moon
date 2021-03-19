@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/if-7
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 16
+      line: 2
+      character: 4
+    end_position:
+      bytes: 16
+      line: 2
+      character: 4
+    token_type:
+      type: Eof
+  additional: "expected 'end'"
+

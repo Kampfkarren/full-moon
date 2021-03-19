@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/cases/fail/parser/generic-for-2
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 17
+      line: 1
+      character: 18
+    end_position:
+      bytes: 17
+      line: 1
+      character: 18
+    token_type:
+      type: Eof
+  additional: "expected 'do'"
+

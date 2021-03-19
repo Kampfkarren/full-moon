@@ -1,0 +1,72 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/cases/fail/parser/assignment-2
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 1
+    line: 1
+    character: 2
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 1
+    line: 1
+    character: 2
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 7
+    line: 1
+    character: 8
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Eof
+
