@@ -726,7 +726,7 @@ peg::parser! {
             = "--" v:multi_line_block()
               { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
             / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
-            / "--" comment:$((!['\r'|'\n'] [_])+)
+            / "--" comment:$((!['\r'|'\n'] [_])*)
               { TokenType::SingleLineComment { comment: comment.into() }.into() }
 
         rule roblox()
@@ -1021,6 +1021,10 @@ mod tests {
                 comment: " hello world ".into()
             }
         );
+        test_rule!(
+            comment("--"),
+            TokenType::SingleLineComment { comment: "".into() }
+        );
     }
 
     #[test]
@@ -1169,7 +1173,10 @@ mod tests {
             }
         );
         // Don't recognize with a whitespace.
-        test_rule!(" #!/usr/bin/env lua\n", TokenizerErrorType::UnexpectedShebang);
+        test_rule!(
+            " #!/usr/bin/env lua\n",
+            TokenizerErrorType::UnexpectedShebang
+        );
     }
 
     #[test]
