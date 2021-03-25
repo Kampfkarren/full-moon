@@ -80,6 +80,11 @@ impl<'a> Block<'a> {
         Some(&self.last_stmt.as_ref()?.0)
     }
 
+    /// The last statement of the block if on exists, including any optional semicolon token reference present
+    pub fn last_stmt_with_semicolon(&self) -> &Option<(LastStmt<'a>, Option<TokenReference<'a>>)> {
+        &self.last_stmt
+    }
+
     /// Returns a new block with the given statements
     /// Takes a vector of statements, followed by an optional semicolon token reference
     pub fn with_stmts(self, stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>) -> Self {
