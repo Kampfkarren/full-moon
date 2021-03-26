@@ -81,8 +81,8 @@ impl<'a> Block<'a> {
     }
 
     /// The last statement of the block if on exists, including any optional semicolon token reference present
-    pub fn last_stmt_with_semicolon(&self) -> &Option<(LastStmt<'a>, Option<TokenReference<'a>>)> {
-        &self.last_stmt
+    pub fn last_stmt_with_semicolon(&self) -> Option<&(LastStmt<'a>, Option<TokenReference<'a>>)> {
+        self.last_stmt.as_ref()
     }
 
     /// Returns a new block with the given statements
