@@ -75,7 +75,7 @@ impl<'a> Label<'a> {
     }
 
     /// The name used for the label, the `label` part of `::label::`
-    pub fn body(&self) -> &TokenReference<'a> {
+    pub fn name(&self) -> &TokenReference<'a> {
         &self.name
     }
 
