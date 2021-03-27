@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.10.0] - 2021-03-26
 ### Added
 - Added `block.iter_stmts_with_semicolon()` which returns an iterator over tuples containing the statement and an optional semicolon.
 - Added `Expression::BinaryOperator{ lhs, binop, rhs }` which now handles binary operation expressions, with support for precedence.
@@ -39,7 +39,7 @@ See [#125](https://github.com/Kampfkarren/full-moon/pull/125) for more details.
 	- `VarExpression::iter_suffixes` -> `VarExpression::suffixes`
 	- `FunctionCall::iter_suffixes` -> `FunctionCall::suffixes`
 	- `FunctionBody::func_body` -> `FunctionBody::body`
-- **[BREAKING CHANGE]** All uses of `Cow<'a, TokenReference<'a>>` have been removed, though `Cow<'a, str>` remain. 
+- **[BREAKING CHANGE]** All uses of `Cow<'a, TokenReference<'a>>` have been removed, though `Cow<'a, str>` remain.
 
 ### Fixed
 - Fixed the start position of tokens at the beginning of a line to not be at the end of the previous line.
