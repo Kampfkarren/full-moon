@@ -1,9 +1,4 @@
-use full_moon::{
-    ast,
-    node::Node,
-    print,
-    tokenizer::{self, Token, TokenReference},
-};
+use full_moon::{ast, node::Node, print, tokenizer};
 use insta::assert_yaml_snapshot;
 use pretty_assertions::assert_eq;
 use std::{fmt, fs, path::Path};
@@ -21,42 +16,22 @@ impl<'a> fmt::Debug for PrettyString<'a> {
     }
 }
 
-fn unpack_token_reference<'a>(token: &TokenReference<'a>) -> Vec<Token<'a>> {
-    token
-        .leading_trivia()
-        .chain(std::iter::once(token.token()))
-        .chain(token.trailing_trivia())
-        .cloned()
-        .collect()
-}
-
 fn test_pass_case(path: &Path) {
     let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
     let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
-    assert_yaml_snapshot!(
-        "tokens",
-        tokens
-            .iter()
-            .flat_map(unpack_token_reference)
-            .collect::<Vec<_>>()
-    );
+    assert_yaml_snapshot!("tokens", tokens);
 
     let ast = ast::Ast::from_tokens(tokens)
         .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
 
-    let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
-    let ast = ast.update_positions();
-    assert_eq!(
-        old_positions,
-        ast.tokens()
-            .flat_map(unpack_token_reference)
-            .collect::<Vec<_>>(),
-    );
-
     assert_yaml_snapshot!("ast", ast.nodes());
     assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
+
+    let old_positions: Vec<_> = ast.tokens().cloned().collect();
+    let ast = ast.update_positions();
+    assert_eq!(old_positions, ast.tokens().cloned().collect::<Vec<_>>());
 }
 
 #[test]

@@ -4,25 +4,31 @@ expression: tokens
 input_file: full-moon/tests/cases/fail/parser/function-1
 
 ---
-- start_position:
-    bytes: 0
-    line: 1
-    character: 1
-  end_position:
-    bytes: 8
-    line: 1
-    character: 9
-  token_type:
-    type: Symbol
-    symbol: function
-- start_position:
-    bytes: 8
-    line: 1
-    character: 9
-  end_position:
-    bytes: 8
-    line: 1
-    character: 9
-  token_type:
-    type: Eof
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 0
+      line: 1
+      character: 1
+    end_position:
+      bytes: 8
+      line: 1
+      character: 9
+    token_type:
+      type: Symbol
+      symbol: function
+  trailing_trivia: []
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 8
+      line: 1
+      character: 9
+    end_position:
+      bytes: 8
+      line: 1
+      character: 9
+    token_type:
+      type: Eof
+  trailing_trivia: []
 
