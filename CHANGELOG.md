@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- **[BREAKING CHANGE]** Moved trivia handling to tokenization. Now ``tokens`` returns a vector of ``TokenReference``s and ``Ast::from_tokens`` takes the same. 
 - Switched from using nom to peg for lexing.
 
 ## [0.10.0] - 2021-03-26

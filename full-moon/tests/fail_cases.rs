@@ -5,6 +5,15 @@ use std::fs;
 mod common;
 use common::run_test_folder;
 
+fn unpack_token_reference<'a>(token: &tokenizer::TokenReference<'a>) -> Vec<tokenizer::Token<'a>> {
+    token
+        .leading_trivia()
+        .chain(std::iter::once(token.token()))
+        .chain(token.trailing_trivia())
+        .cloned()
+        .collect()
+}
+
 #[test]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_parser_fail_cases() {
@@ -13,7 +22,13 @@ fn test_parser_fail_cases() {
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
-        assert_yaml_snapshot!("tokens", tokens);
+        assert_yaml_snapshot!(
+            "tokens",
+            tokens
+                .iter()
+                .flat_map(unpack_token_reference)
+                .collect::<Vec<_>>()
+        );
 
         match ast::Ast::from_tokens(tokens) {
             Ok(_) => panic!("fail case passed for {:?}", path),
@@ -49,7 +64,13 @@ fn test_lua52_parser_fail_cases() {
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
-        assert_yaml_snapshot!("tokens", tokens);
+        assert_yaml_snapshot!(
+            "tokens",
+            tokens
+                .iter()
+                .flat_map(unpack_token_reference)
+                .collect::<Vec<_>>()
+        );
 
         match ast::Ast::from_tokens(tokens) {
             Ok(_) => panic!("fail case passed for {:?}", path),

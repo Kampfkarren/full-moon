@@ -183,6 +183,15 @@ impl<'a> TokenType<'a> {
         }
     }
 
+    fn is_terminal(&self) -> bool {
+        if let TokenType::Whitespace { ref characters } = self {
+            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+            characters.contains('\n')
+        } else {
+            false
+        }
+    }
+
     /// Returns the kind of the token type.
     ///
     /// ```rust
@@ -289,6 +298,14 @@ impl<'a> Token<'a> {
     /// If you need any information such as idenitfier names, use [`token_type`](Token::token_type) instead.
     pub fn token_kind(&self) -> TokenKind {
         self.token_type().kind()
+    }
+}
+
+impl<'a> std::ops::Deref for Token<'a> {
+    type Target = TokenType<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.token_type
     }
 }
 
@@ -839,40 +856,95 @@ impl From<peg::str::LineCol> for Position {
 }
 
 struct TokenCollector<'input> {
-    result: Vec<Token<'input>>,
+    result: Vec<TokenReference<'input>>,
+    leading_trivia: Vec<Token<'input>>,
+    trailing_trivia: Vec<Token<'input>>,
+    current_token: Option<Token<'input>>,
 }
 
 // Collector
 impl<'input> TokenCollector<'input> {
     fn new() -> Self {
-        Self { result: Vec::new() }
+        Self {
+            result: Vec::new(),
+            leading_trivia: Vec::new(),
+            trailing_trivia: Vec::new(),
+            current_token: None,
+        }
     }
+
     fn push(
         &mut self,
         start_position: Position,
         raw_token: RawToken<'input>,
         end_position: Position,
     ) -> Result<(), TokenizerError> {
-        match raw_token {
+        Ok(match raw_token {
             Ok(token_type) => {
-                self.result.push(Token {
+                let token = Token {
                     start_position,
-                    end_position,
                     token_type,
-                });
-                Ok(())
+                    end_position,
+                };
+                if token.is_trivia() {
+                    match self.current_token {
+                        Some(_) => {
+                            if token.is_terminal() {
+                                self.trailing_trivia.push(token);
+                                self.result.push(TokenReference {
+                                    leading_trivia: self.leading_trivia.drain(..).collect(),
+                                    trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                                    token: self.current_token.take().expect(
+                                        "(internal full-moon error) Don't have current token after checking for it."
+                                        ),
+                                });
+                                self.current_token = None;
+                            } else {
+                                self.trailing_trivia.push(token);
+                            }
+                        }
+                        None => {
+                            self.leading_trivia.push(token);
+                        }
+                    }
+                } else {
+                    if let Some(current_token) = self.current_token.take() {
+                        self.result.push(TokenReference {
+                            leading_trivia: self.leading_trivia.drain(..).collect(),
+                            trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                            token: current_token,
+                        });
+                    }
+                    self.current_token = Some(token);
+                }
             }
             Err(error) => Err(TokenizerError {
                 error,
                 position: start_position,
-            }),
-        }
+            })?,
+        })
     }
-    fn finish(mut self, eof_position: Position) -> Vec<Token<'input>> {
-        self.result.push(Token {
-            start_position: eof_position,
-            end_position: eof_position,
-            token_type: TokenType::Eof,
+    fn finish(mut self, eof_position: Position) -> Vec<TokenReference<'input>> {
+        if let Some(token) = self.current_token {
+            self.result.push(TokenReference {
+                leading_trivia: self.leading_trivia.drain(..).collect(),
+                trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                token,
+            });
+        }
+        assert_eq!(
+            self.trailing_trivia.len(),
+            0,
+            "(internal full-moon error) trailing trivia left when adding eof to token stream)"
+        );
+        self.result.push(TokenReference {
+            leading_trivia: self.leading_trivia,
+            trailing_trivia: self.trailing_trivia,
+            token: Token {
+                start_position: eof_position,
+                end_position: eof_position,
+                token_type: TokenType::Eof,
+            },
         });
         self.result
     }
@@ -905,7 +977,7 @@ fn from_parser_error<'input>(
 /// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
-pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
+pub fn tokens<'a>(code: &'a str) -> Result<Vec<TokenReference<'a>>, TokenizerError> {
     let mut tokens = TokenCollector::new();
 
     let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
@@ -987,7 +1059,15 @@ mod tests {
                 Ok(token) => {
                     let tokens = tokens(code).expect("couldn't tokenize");
                     let first_token = &tokens.get(0).expect("tokenized response is empty");
-                    assert_eq!(*first_token.token_type(), token);
+                    if token.is_trivia() {
+                        let first_trivia = &first_token
+                            .leading_trivia
+                            .get(0)
+                            .expect("leading trivia is empty");
+                        assert_eq!(*first_trivia.token_type(), token);
+                    } else {
+                        assert_eq!(*first_token.token_type(), token);
+                    }
                 }
 
                 Err(expected) => {
@@ -1184,7 +1264,7 @@ mod tests {
     #[test]
     fn test_new_line_on_same_line() {
         assert_eq!(
-            tokens("\n").unwrap()[0],
+            tokens("\n").unwrap()[0].leading_trivia[0],
             Token {
                 start_position: Position {
                     bytes: 0,
@@ -1210,5 +1290,38 @@ mod tests {
         let _ = tokens("*ա");
         let _ = tokens("̹(");
         let _ = tokens("¹;");
+    }
+
+    #[test]
+    fn test_extract_token_references() {
+        let references =
+            tokens("print(1)\n-- hello world\nlocal foo -- this is the word foo").unwrap();
+
+        assert_eq!(references.len(), 7);
+
+        assert!(references[0].trailing_trivia.is_empty());
+        assert_eq!(references[0].token.to_string(), "print");
+        assert!(references[0].leading_trivia.is_empty());
+
+        assert!(references[1].trailing_trivia.is_empty());
+        assert_eq!(references[1].token.to_string(), "(");
+        assert!(references[1].leading_trivia.is_empty());
+
+        assert!(references[2].trailing_trivia.is_empty());
+        assert_eq!(references[2].token.to_string(), "1");
+        assert!(references[2].leading_trivia.is_empty());
+
+        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].token.to_string(), ")");
+        assert!(references[3].leading_trivia.is_empty());
+
+        assert_eq!(
+            references[4].leading_trivia[0].to_string(),
+            "-- hello world",
+        );
+
+        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
+        assert_eq!(references[4].token.to_string(), "local");
+        assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
     }
 }
