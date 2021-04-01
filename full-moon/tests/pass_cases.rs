@@ -35,7 +35,13 @@ fn test_pass_case(path: &Path) {
 
     let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
 
-    assert_yaml_snapshot!("tokens", tokens);
+    assert_yaml_snapshot!(
+        "tokens",
+        tokens
+            .iter()
+            .flat_map(unpack_token_reference)
+            .collect::<Vec<_>>()
+    );
 
     let ast = ast::Ast::from_tokens(tokens)
         .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
