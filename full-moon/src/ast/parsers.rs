@@ -10,12 +10,12 @@ use super::types::*;
 #[cfg(feature = "lua52")]
 use super::lua52::*;
 
-use crate::tokenizer::{TokenKind, TokenReference, TokenType};
+use crate::tokenizer::{Token, TokenKind, TokenType, WithTrivia};
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseSymbol(Symbol);
 
-define_parser!(ParseSymbol, TokenReference<'a>, |this, state| {
+define_parser!(ParseSymbol, WithTrivia<'a, Token<'a>>, |this, state| {
     let expecting = TokenType::Symbol { symbol: this.0 };
     let token = state.peek();
 
@@ -32,7 +32,7 @@ define_parser!(ParseSymbol, TokenReference<'a>, |this, state| {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseNumber;
 
-define_parser!(ParseNumber, TokenReference<'a>, |_, state| {
+define_parser!(ParseNumber, WithTrivia<'a, Token<'a>>, |_, state| {
     let token = state.peek();
     if token.token_kind() == TokenKind::Number {
         Ok((
@@ -47,7 +47,7 @@ define_parser!(ParseNumber, TokenReference<'a>, |_, state| {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseStringLiteral;
 
-define_parser!(ParseStringLiteral, TokenReference<'a>, |_, state| {
+define_parser!(ParseStringLiteral, WithTrivia<'a, Token<'a>>, |_, state| {
     let token = state.peek();
     if token.token_kind() == TokenKind::StringLiteral {
         Ok((
@@ -336,7 +336,7 @@ struct ParseTypeAssertion;
 define_roblox_parser!(
     ParseTypeAssertion,
     TypeAssertion<'a>,
-    TokenReference<'a>,
+    WithTrivia<'a, Token<'a>>,
     |_, state| {
         let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
         let (state, cast_to) = expect!(
@@ -835,7 +835,7 @@ struct ParseFunctionReturnType;
 define_roblox_parser!(
     ParseFunctionReturnType,
     TypeSpecifier<'a>,
-    TokenReference<'a>,
+    WithTrivia<'a, Token<'a>>,
     |_, state| {
         let (state, colon) = ParseSymbol(Symbol::Colon).parse(state)?;
         let (state, return_type) =
@@ -855,7 +855,7 @@ define_roblox_parser!(
 struct ParseFunction;
 define_parser!(
     ParseFunction,
-    (TokenReference<'a>, FunctionBody<'a>),
+    (WithTrivia<'a, Token<'a>>, FunctionBody<'a>),
     |_, state| {
         let (state, token) = ParseSymbol(Symbol::Function).parse(state)?;
         let (state, body) = expect!(
@@ -1075,7 +1075,7 @@ define_parser!(
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;
 #[rustfmt::skip]
-define_parser!(ParseIdentifier, TokenReference<'a>, |_, state| {
+define_parser!(ParseIdentifier, WithTrivia<'a, Token<'a>>, |_, state| {
     let next_token = state.peek();
     match next_token.token_kind() {
         TokenKind::Identifier => Ok((
@@ -1091,8 +1091,8 @@ define_parser!(ParseIdentifier, TokenReference<'a>, |_, state| {
 struct ParseNameWithType;
 define_roblox_parser!(
     ParseNameWithType,
-    (TokenReference<'a>, Option<TypeSpecifier<'a>>),
-    (TokenReference<'a>, Option<TokenReference<'a>>),
+    (WithTrivia<'a, Token<'a>>, Option<TypeSpecifier<'a>>),
+    (WithTrivia<'a, Token<'a>>, Option<WithTrivia<'a, Token<'a>>>),
     |_, state| {
         let (state, name) = ParseIdentifier.parse(state)?;
         let (state, type_specifier) =
@@ -1544,47 +1544,57 @@ cfg_if::cfg_if! {
 // Lua 5.2 related syntax
 #[derive(Clone, Debug, PartialEq)]
 struct ParseGoto;
-define_lua52_parser!(ParseGoto, Goto<'a>, TokenReference<'a>, |_, state| {
-    let (state, goto_token) = ParseSymbol(Symbol::Goto).parse(state)?;
-    let (state, label_name) = expect!(
-        state,
-        ParseIdentifier.parse(state),
-        "expected identifier after `goto`"
-    );
+define_lua52_parser!(
+    ParseGoto,
+    Goto<'a>,
+    WithTrivia<'a, Token<'a>>,
+    |_, state| {
+        let (state, goto_token) = ParseSymbol(Symbol::Goto).parse(state)?;
+        let (state, label_name) = expect!(
+            state,
+            ParseIdentifier.parse(state),
+            "expected identifier after `goto`"
+        );
 
-    Ok((
-        state,
-        Goto {
-            goto_token,
-            label_name,
-        },
-    ))
-});
+        Ok((
+            state,
+            Goto {
+                goto_token,
+                label_name,
+            },
+        ))
+    }
+);
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseLabel;
-define_lua52_parser!(ParseLabel, Label<'a>, TokenReference<'a>, |_, state| {
-    let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
-    let (state, name) = expect!(
-        state,
-        ParseIdentifier.parse(state),
-        "expected identifier after `::`"
-    );
-    let (state, right_colons) = expect!(
-        state,
-        ParseSymbol(Symbol::TwoColons).parse(state),
-        "expected `::`"
-    );
+define_lua52_parser!(
+    ParseLabel,
+    Label<'a>,
+    WithTrivia<'a, Token<'a>>,
+    |_, state| {
+        let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+        let (state, name) = expect!(
+            state,
+            ParseIdentifier.parse(state),
+            "expected identifier after `::`"
+        );
+        let (state, right_colons) = expect!(
+            state,
+            ParseSymbol(Symbol::TwoColons).parse(state),
+            "expected `::`"
+        );
 
-    Ok((
-        state,
-        Label {
-            left_colons,
-            name,
-            right_colons,
-        },
-    ))
-});
+        Ok((
+            state,
+            Label {
+                left_colons,
+                name,
+                right_colons,
+            },
+        ))
+    }
+);
 
 macro_rules! make_op_parser {
 	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {

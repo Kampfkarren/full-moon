@@ -1,6 +1,6 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
-use full_moon_derive::{symbols, Owned};
+use full_moon_derive::symbols;
 use peg;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -110,35 +110,11 @@ pub enum TokenType<'a> {
         identifier: Cow<'a, str>,
     },
 
-    /// A multi line comment in the format of `--[[ comment ]]`
-    MultiLineComment {
-        /// Number of equals signs, if any, for the multi line comment
-        /// For example, `--[=[` would have a `blocks` value of `1`
-        blocks: usize,
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The comment itself, ignoring opening and closing tags
-        comment: Cow<'a, str>,
-    },
-
     /// A literal number, such as `3.3`
     Number {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The text representing the number, includes details such as `0x`
         text: Cow<'a, str>,
-    },
-
-    /// A shebang line
-    Shebang {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The shebang line itself
-        line: Cow<'a, str>,
-    },
-
-    /// A single line comment, such as `-- comment`
-    SingleLineComment {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The comment, ignoring initial `--`
-        comment: Cow<'a, str>,
     },
 
     /// A literal string, such as "Hello, world"
@@ -161,37 +137,9 @@ pub enum TokenType<'a> {
         /// The symbol itself
         symbol: Symbol,
     },
-
-    /// Whitespace, such as tabs or new lines
-    Whitespace {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// Characters consisting of the whitespace
-        characters: Cow<'a, str>,
-    },
 }
 
 impl<'a> TokenType<'a> {
-    /// Returns whether a token can be practically ignored in most cases
-    /// Comments and whitespace will return `true`, everything else will return `false`
-    pub fn is_trivia(&self) -> bool {
-        match self {
-            TokenType::Shebang { .. }
-            | TokenType::SingleLineComment { .. }
-            | TokenType::MultiLineComment { .. }
-            | TokenType::Whitespace { .. } => true,
-            _ => false,
-        }
-    }
-
-    fn is_terminal(&self) -> bool {
-        if let TokenType::Whitespace { ref characters } = self {
-            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-            characters.contains('\n')
-        } else {
-            false
-        }
-    }
-
     /// Returns the kind of the token type.
     ///
     /// ```rust
@@ -209,27 +157,57 @@ impl<'a> TokenType<'a> {
         match self {
             TokenType::Eof => TokenKind::Eof,
             TokenType::Identifier { .. } => TokenKind::Identifier,
-            TokenType::MultiLineComment { .. } => TokenKind::MultiLineComment,
             TokenType::Number { .. } => TokenKind::Number,
-            TokenType::Shebang { .. } => TokenKind::Shebang,
-            TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
-            TokenType::Whitespace { .. } => TokenKind::Whitespace,
         }
     }
+}
 
+impl<'a> TriviaType<'a> {
     /// Returns a whitespace `TokenType` consisting of spaces
     pub fn spaces(spaces: usize) -> Self {
-        TokenType::Whitespace {
+        TriviaType::Whitespace {
             characters: Cow::from(" ".repeat(spaces)),
         }
     }
 
     /// Returns a whitespace `TokenType` consisting of tabs
     pub fn tabs(tabs: usize) -> Self {
-        TokenType::Whitespace {
+        TriviaType::Whitespace {
             characters: Cow::from("\t".repeat(tabs)),
+        }
+    }
+
+    /// Returns the kind of the triva type.
+    ///
+    /// ```rust
+    /// use std::borrow::Cow;
+    /// use full_moon::tokenizer::{TriviaTriviaType};
+    ///
+    /// assert_eq!(
+    ///     TriviaType::Whitespace {
+    ///         characters: Cow::from("   ")
+    ///     }.kind(),
+    ///     TriviaKind::Whitespace,
+    /// );
+    /// ```
+    pub fn kind(&self) -> TriviaKind {
+        match self {
+            TriviaType::Shebang { .. } => TriviaKind::Shebang,
+            TriviaType::SingleLineComment { .. } => TriviaKind::SingleLineComment,
+            TriviaType::MultiLineComment { .. } => TriviaKind::MultiLineComment,
+            TriviaType::Whitespace { .. } => TriviaKind::Whitespace,
+        }
+    }
+
+    /// Returns whether this should be the terminal trivia of a trailing trivia cluster.
+    fn is_terminal(&self) -> bool {
+        if let TriviaType::Whitespace { ref characters } = self {
+            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+            characters.contains('\n')
+        } else {
+            false
         }
     }
 }
@@ -242,36 +220,78 @@ pub enum TokenKind {
     Eof,
     /// An identifier, such as `foo`
     Identifier,
-    /// A multi line comment in the format of `--[[ comment ]]`
-    MultiLineComment,
     /// A literal number, such as `3.3`
     Number,
-    /// The shebang line
-    Shebang,
-    /// A single line comment, such as `-- comment`
-    SingleLineComment,
     /// A literal string, such as "Hello, world"
     StringLiteral,
     /// A [`Symbol`], such as `local` or `+`
     Symbol,
+}
+
+/// The kind of trivia. Contains no additional data.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum TriviaKind {
+    /// The shebang line
+    Shebang,
+    /// A single line comment, such as `-- comment`
+    SingleLineComment,
+    /// A multi line comment in the format of `--[[ comment ]]`
+    MultiLineComment,
     /// Whitespace, such as tabs or new lines
     Whitespace,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
+#[non_exhaustive]
+pub enum TriviaType<'a> {
+    /// A shebang line
+    Shebang {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The shebang line itself
+        line: Cow<'a, str>,
+    },
+
+    /// A single line comment, such as `-- comment`
+    SingleLineComment {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment, ignoring initial `--`
+        comment: Cow<'a, str>,
+    },
+
+    /// A multi line comment in the format of `--[[ comment ]]`
+    MultiLineComment {
+        /// Number of equals signs, if any, for the multi line comment
+        /// For example, `--[=[` would have a `blocks` value of `1`
+        blocks: usize,
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment itself, ignoring opening and closing tags
+        comment: Cow<'a, str>,
+    },
+
+    /// Whitespace, such as tabs or new lines
+    Whitespace {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// Characters consisting of the whitespace
+        characters: Cow<'a, str>,
+    },
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct Token<'a> {
+pub struct Spanned<T> {
     pub(crate) start_position: Position,
     pub(crate) end_position: Position,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token_type: TokenType<'a>,
+    pub(crate) token_type: T,
 }
 
-impl<'a> Token<'a> {
+impl<T> Spanned<T> {
     /// Creates a token with a zero position
-    pub fn new(token_type: TokenType<'a>) -> Token<'a> {
-        Token {
+    pub fn new(token_type: T) -> Spanned<T> {
+        Spanned {
             start_position: Position::default(),
             end_position: Position::default(),
             token_type,
@@ -287,25 +307,43 @@ impl<'a> Token<'a> {
     pub fn end_position(&self) -> Position {
         self.end_position
     }
+}
 
+impl<T> std::ops::Deref for Spanned<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        &self.token_type
+    }
+}
+
+pub type Token<'a> = Spanned<TokenType<'a>>;
+pub type Trivia<'a> = Spanned<TriviaType<'a>>;
+
+impl<'a> Token<'a> {
     /// The type of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](Token::token_kind) instead.
     pub fn token_type(&self) -> &TokenType<'a> {
-        &self.token_type
+        &self
     }
 
     /// The kind of token with no additional data.
     /// If you need any information such as idenitfier names, use [`token_type`](Token::token_type) instead.
     pub fn token_kind(&self) -> TokenKind {
-        self.token_type().kind()
+        self.kind()
     }
 }
 
-impl<'a> std::ops::Deref for Token<'a> {
-    type Target = TokenType<'a>;
+impl<'a> Trivia<'a> {
+    /// The type of trivia as well as the data needed to represent it
+    /// If you don't need any other information, use [`trivia_kind`](Trivia::trivia_kind) instead.
+    pub fn trivia_type(&self) -> &TriviaType<'a> {
+        &self
+    }
 
-    fn deref(&self) -> &Self::Target {
-        &self.token_type
+    /// The kind of token with no additional data.
+    /// If you need any information such as idenitfier names, use [`trivia_type`](Trivia::trivia_type) instead.
+    pub fn trivia_kind(&self) -> TriviaKind {
+        self.kind()
     }
 }
 
@@ -317,11 +355,6 @@ impl<'a> fmt::Display for Token<'a> {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
-            MultiLineComment { blocks, comment } => {
-                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
-            }
-            Shebang { line } => line.to_string(),
-            SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
                 multi_line,
@@ -334,29 +367,44 @@ impl<'a> fmt::Display for Token<'a> {
                 }
             }
             Symbol { symbol } => symbol.to_string(),
+        }
+        .fmt(formatter)
+    }
+}
+
+impl<'a> fmt::Display for Trivia<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        use self::TriviaType::*;
+
+        match &*self.trivia_type() {
+            Shebang { line } => line.to_string(),
+            SingleLineComment { comment } => format!("--{}", comment),
+            MultiLineComment { blocks, comment } => {
+                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
+            }
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
     }
 }
 
-impl<'a> PartialEq<Self> for Token<'a> {
+impl<T: PartialEq> PartialEq<Self> for Spanned<T> {
     fn eq(&self, rhs: &Self) -> bool {
-        self.start_position() == rhs.start_position()
-            && self.end_position() == rhs.end_position()
+        self.start_position == rhs.start_position
+            && self.end_position == rhs.end_position
             && self.token_type == rhs.token_type
     }
 }
 
-impl<'a> Eq for Token<'a> {}
+impl<T: Eq> Eq for Spanned<T> {}
 
-impl<'a> Ord for Token<'a> {
+impl<T: Eq> Ord for Spanned<T> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.start_position().cmp(&other.start_position())
+        self.start_position.cmp(&other.start_position)
     }
 }
 
-impl<'a> PartialOrd for Token<'a> {
+impl<T: Eq> PartialOrd for Spanned<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -369,13 +417,22 @@ impl<'ast> Visit<'ast> for Token<'ast> {
         match self.token_kind() {
             TokenKind::Eof => {}
             TokenKind::Identifier => visitor.visit_identifier(self),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
             TokenKind::Number => visitor.visit_number(self),
-            TokenKind::Shebang => {}
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
-            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for Trivia<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        visitor.visit_trivia(self);
+
+        match self.trivia_kind() {
+            TriviaKind::Shebang => {}
+            TriviaKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TriviaKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TriviaKind::Whitespace => visitor.visit_whitespace(self),
         }
     }
 }
@@ -387,36 +444,44 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
         match token.token_kind() {
             TokenKind::Eof => token,
             TokenKind::Identifier => visitor.visit_identifier(token),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(token),
             TokenKind::Number => visitor.visit_number(token),
-            TokenKind::Shebang => token,
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
-            TokenKind::Whitespace => visitor.visit_whitespace(token),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for Trivia<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let trivia = visitor.visit_trivia(self);
+
+        match trivia.trivia_kind() {
+            TriviaKind::Shebang => trivia,
+            TriviaKind::SingleLineComment => visitor.visit_single_line_comment(trivia),
+            TriviaKind::MultiLineComment => visitor.visit_multi_line_comment(trivia),
+            TriviaKind::Whitespace => visitor.visit_whitespace(trivia),
         }
     }
 }
 
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`]
-#[derive(Clone, Debug, Owned)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct TokenReference<'a> {
+pub struct WithTrivia<'input, T> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) leading_trivia: Vec<Token<'a>>,
+    pub(crate) leading_trivia: Vec<Trivia<'input>>,
+    pub(crate) token: T,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token: Token<'a>,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) trailing_trivia: Vec<Token<'a>>,
+    pub(crate) trailing_trivia: Vec<Trivia<'input>>,
 }
 
-impl<'a> TokenReference<'a> {
-    /// Creates a TokenReference from leading/trailing trivia as well as the leading token
+impl<'input, T> WithTrivia<'input, T> {
+    /// Creates a WithTrivia from leading/trailing trivia as well as the leading token
     pub fn new(
-        leading_trivia: Vec<Token<'a>>,
-        token: Token<'a>,
-        trailing_trivia: Vec<Token<'a>>,
+        leading_trivia: Vec<Trivia<'input>>,
+        token: T,
+        trailing_trivia: Vec<Trivia<'input>>,
     ) -> Self {
         Self {
             leading_trivia,
@@ -425,23 +490,49 @@ impl<'a> TokenReference<'a> {
         }
     }
 
+    /// Returns the inner token.
+    pub fn token(&self) -> &T {
+        &self.token
+    }
+
+    /// Returns the leading trivia
+    pub fn leading_trivia(&self) -> impl Iterator<Item = &Trivia<'input>> {
+        self.leading_trivia.iter()
+    }
+
+    /// Returns the trailing trivia
+    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Trivia<'input>> {
+        self.trailing_trivia.iter()
+    }
+
+    /// Creates a clone of the current WithTrivia with the new inner token, preserving trivia.
+    pub fn with_token<U>(&self, token: U) -> WithTrivia<'input, U> {
+        WithTrivia {
+            token,
+            leading_trivia: self.leading_trivia.clone(),
+            trailing_trivia: self.trailing_trivia.clone(),
+        }
+    }
+}
+
+impl<'input> WithTrivia<'input, Token<'input>> {
     /// Returns a symbol with the leading and trailing whitespace
     /// Only whitespace is supported
     /// ```rust
-    /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
+    /// # use full_moon::tokenizer::{Symbol, WithTrivia, TokenType, TokenizerErrorType};
     /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
-    /// let symbol = TokenReference::symbol("\nreturn ")?;
+    /// let symbol = WithTrivia::symbol("\nreturn ")?;
     /// assert_eq!(symbol.leading_trivia().next().unwrap().to_string(), "\n");
     /// assert_eq!(symbol.token().token_type(), &TokenType::Symbol {
     ///     symbol: Symbol::Return,
     /// });
     /// assert_eq!(symbol.trailing_trivia().next().unwrap().to_string(), " ");
-    /// assert!(TokenReference::symbol("isnt whitespace").is_err());
-    /// assert!(TokenReference::symbol(" notasymbol ").is_err());
+    /// assert!(WithTrivia::symbol("isnt whitespace").is_err());
+    /// assert!(WithTrivia::symbol(" notasymbol ").is_err());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
+    pub fn symbol(text: &'input str) -> Result<Self, TokenizerErrorType> {
         let mut chars = text.chars().peekable();
 
         let mut leading_trivia = String::new();
@@ -475,62 +566,40 @@ impl<'a> TokenReference<'a> {
         }
 
         Ok(Self {
-            leading_trivia: vec![Token::new(TokenType::Whitespace {
+            leading_trivia: vec![Trivia::new(TriviaType::Whitespace {
                 characters: Cow::Owned(leading_trivia),
             })],
             token: Token::new(TokenType::Symbol { symbol }),
-            trailing_trivia: vec![Token::new(TokenType::Whitespace {
+            trailing_trivia: vec![Trivia::new(TriviaType::Whitespace {
                 characters: Cow::Owned(trailing_trivia),
             })],
         })
     }
-
-    /// Returns the inner token.
-    pub fn token(&self) -> &Token<'a> {
-        &self.token
-    }
-
-    /// Returns the leading trivia
-    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.leading_trivia.iter()
-    }
-
-    /// Returns the trailing trivia
-    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.trailing_trivia.iter()
-    }
-
-    /// Creates a clone of the current TokenReference with the new inner token, preserving trivia.
-    pub fn with_token(&self, token: Token<'a>) -> Self {
-        Self {
-            token,
-            leading_trivia: self.leading_trivia.clone(),
-            trailing_trivia: self.trailing_trivia.clone(),
-        }
-    }
 }
 
-impl<'a> std::borrow::Borrow<Token<'a>> for &TokenReference<'a> {
-    fn borrow(&self) -> &Token<'a> {
+impl<'input, T> std::borrow::Borrow<T> for &WithTrivia<'input, T> {
+    fn borrow(&self) -> &T {
         &**self
     }
 }
 
-impl<'a> std::ops::Deref for TokenReference<'a> {
-    type Target = Token<'a>;
+impl<'input> WithTrivia<'input, Token<'input>> {}
+
+impl<'input, T> std::ops::Deref for WithTrivia<'input, T> {
+    type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.token
     }
 }
 
-impl<'a> fmt::Display for TokenReference<'a> {
+impl<'input, T: fmt::Display> fmt::Display for WithTrivia<'input, T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         for trivia in &self.leading_trivia {
             formatter.write_str(&trivia.to_string())?;
         }
 
-        formatter.write_str(&self.token.to_string())?;
+        self.token.fmt(formatter)?;
 
         for trivia in &self.trailing_trivia {
             formatter.write_str(&trivia.to_string())?;
@@ -540,7 +609,7 @@ impl<'a> fmt::Display for TokenReference<'a> {
     }
 }
 
-impl<'a> PartialEq<Self> for TokenReference<'a> {
+impl<'input, T: PartialEq> PartialEq<Self> for WithTrivia<'input, T> {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
             && self.leading_trivia == other.leading_trivia
@@ -548,21 +617,21 @@ impl<'a> PartialEq<Self> for TokenReference<'a> {
     }
 }
 
-impl<'a> Eq for TokenReference<'a> {}
+impl<'input, T: Eq> Eq for WithTrivia<'input, T> {}
 
-impl<'a> Ord for TokenReference<'a> {
+impl<'input, T: Ord> Ord for WithTrivia<'input, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         (**self).cmp(&**other)
     }
 }
 
-impl<'a> PartialOrd for TokenReference<'a> {
+impl<'input, T: Ord> PartialOrd for WithTrivia<'input, T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'ast> Visit<'ast> for TokenReference<'ast> {
+impl<'ast> Visit<'ast> for WithTrivia<'ast, Token<'ast>> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
@@ -576,7 +645,7 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
     }
 }
 
-impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
+impl<'ast> VisitMut<'ast> for WithTrivia<'ast, Token<'ast>> {
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
         let mut token_reference = visitor.visit_token_reference(self);
 
@@ -630,9 +699,54 @@ impl PartialOrd for Position {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct TokenAdvancement<'a> {
-    pub advance: usize,
-    pub token_type: TokenType<'a>,
+enum RawTokenType<'input> {
+    Token(TokenType<'input>),
+    Trivia(TriviaType<'input>),
+    Error(TokenizerErrorType),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+enum RawToken<'input> {
+    Token(Token<'input>),
+    Trivia(Trivia<'input>),
+    Error(TokenizerError),
+}
+
+impl<'input> From<Spanned<RawTokenType<'input>>> for RawToken<'input> {
+    fn from(raw_token: Spanned<RawTokenType<'input>>) -> RawToken<'input> {
+        match raw_token.token_type {
+            RawTokenType::Token(token_type) => RawToken::Token(Token {
+                start_position: raw_token.start_position,
+                end_position: raw_token.end_position,
+                token_type,
+            }),
+            RawTokenType::Trivia(token_type) => RawToken::Trivia(Trivia {
+                start_position: raw_token.start_position,
+                end_position: raw_token.end_position,
+                token_type,
+            }),
+            RawTokenType::Error(error) => RawToken::Error(TokenizerError {
+                error,
+                position: raw_token.start_position,
+            }),
+        }
+    }
+}
+
+impl<'input> From<TokenType<'input>> for RawTokenType<'input> {
+    fn from(token_type: TokenType<'input>) -> RawTokenType<'input> {
+        RawTokenType::Token(token_type)
+    }
+}
+impl<'input> From<TriviaType<'input>> for RawTokenType<'input> {
+    fn from(trivia_type: TriviaType<'input>) -> RawTokenType<'input> {
+        RawTokenType::Trivia(trivia_type)
+    }
+}
+impl<'input> From<TokenizerErrorType> for RawTokenType<'input> {
+    fn from(error: TokenizerErrorType) -> RawTokenType<'input> {
+        RawTokenType::Error(error)
+    }
 }
 
 /// The types of quotes used in a Lua string
@@ -659,20 +773,6 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
     }
 }
 
-type RawToken<'a> = Result<TokenType<'a>, TokenizerErrorType>;
-
-impl<'a> From<TokenType<'a>> for RawToken<'a> {
-    fn from(token_type: TokenType<'a>) -> RawToken<'a> {
-        Ok(token_type)
-    }
-}
-
-impl<'a> From<TokenizerErrorType> for RawToken<'a> {
-    fn from(error: TokenizerErrorType) -> RawToken<'a> {
-        Err(error)
-    }
-}
-
 peg::parser! {
     grammar tokens() for str {
         use super::ParseSymbol;
@@ -683,9 +783,9 @@ peg::parser! {
         rule space()
             = [' '|'\t']
 
-        pub(super) rule whitespace() -> RawToken<'input>
+        pub(super) rule whitespace() -> RawTokenType<'input>
             = chars:$( space()+ line_ending()? / line_ending() )
-              { TokenType::Whitespace { characters:chars.into() }.into() }
+              { TriviaType::Whitespace { characters:chars.into() }.into() }
 
         rule multi_line_start() -> &'input str
             = "[" block:$("="*) "[" {block}
@@ -699,7 +799,7 @@ peg::parser! {
               multi_line_end(block)
               { (block.len(), content) }
 
-        rule multi_line_quote() -> RawToken<'input>
+        rule multi_line_quote() -> RawTokenType<'input>
             = v:multi_line_block() { TokenType::StringLiteral {
                 multi_line: Some(v.0),
                 literal:v.1.into(),
@@ -713,25 +813,25 @@ peg::parser! {
         rule quote_char(quote: &str)
             = !(##parse_string_literal(quote) / ['\r'|'\n'|'\\']) [_]
 
-        rule quoted(quote: &str, quote_type: QuoteType) -> RawToken<'input>
+        rule quoted(quote: &str, quote_type: QuoteType) -> RawTokenType<'input>
             = ##parse_string_literal(quote)
               literal:$((quote_char(quote) / escape())+ / )
               ##parse_string_literal(quote)
               { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
             / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
 
-        rule single_line_quote() -> RawToken<'input>
+        rule single_line_quote() -> RawTokenType<'input>
             = quoted("\"", (QuoteType::Double))
             / quoted("\'", (QuoteType::Single))
 
-        pub(super) rule string_literal() -> RawToken<'input>
+        pub(super) rule string_literal() -> RawTokenType<'input>
             = multi_line_quote() / single_line_quote()
 
-        pub(super) rule shebang() -> RawToken<'input>
+        pub(super) rule shebang() -> RawTokenType<'input>
             = line:$("#!" (!line_ending() [_])* line_ending())
-              {TokenType::Shebang{line:line.into()}.into()}
+              {TriviaType::Shebang{line:line.into()}.into()}
 
-        pub(super) rule identifier() -> RawToken<'input>
+        pub(super) rule identifier() -> RawTokenType<'input>
             = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
               { match parse_keyword(id) {
                     Some(symbol) => TokenType::Symbol { symbol }.into(),
@@ -739,12 +839,12 @@ peg::parser! {
               }}
             / expected!("identifier")
 
-        pub(super) rule comment() -> RawToken<'input>
+        pub(super) rule comment() -> RawTokenType<'input>
             = "--" v:multi_line_block()
-              { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
+              { TriviaType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
             / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
             / "--" comment:$((!['\r'|'\n'] [_])*)
-              { TokenType::SingleLineComment { comment: comment.into() }.into() }
+              { TriviaType::SingleLineComment { comment: comment.into() }.into() }
 
         rule roblox()
             = {? if cfg!(feature = "roblox") {
@@ -777,7 +877,7 @@ peg::parser! {
                 (['e'|'E'] ['-'|'+']? digit_with_separator())?
 
             )
-        pub(super) rule number() -> RawToken<'input>
+        pub(super) rule number() -> RawTokenType<'input>
             = n:(
                 roblox_number()
               / hex_number()
@@ -785,9 +885,9 @@ peg::parser! {
               / no_int_fractional_number()
             ) { TokenType::Number { text:n.into() }.into() }
 
-        pub(super) rule symbol() -> RawToken<'input> = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
+        pub(super) rule symbol() -> RawTokenType<'input> = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
 
-        rule token() -> RawToken<'input>
+        rule token() -> RawTokenType<'input>
             = whitespace()
             / comment()
             / number()
@@ -796,7 +896,7 @@ peg::parser! {
             / symbol()
             / identifier()
 
-        pub(crate) rule tokens() -> Vec<(RawToken<'input>, usize)>
+        pub(super) rule tokens() -> Vec<(RawTokenType<'input>, usize)>
             = shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
               body:( token:token() pos:position!() {(token,pos)})*
               {
@@ -854,9 +954,9 @@ impl From<peg::str::LineCol> for Position {
 }
 
 struct TokenCollector<'input> {
-    result: Vec<TokenReference<'input>>,
-    leading_trivia: Vec<Token<'input>>,
-    trailing_trivia: Vec<Token<'input>>,
+    result: Vec<WithTrivia<'input, Token<'input>>>,
+    leading_trivia: Vec<Trivia<'input>>,
+    trailing_trivia: Vec<Trivia<'input>>,
     current_token: Option<Token<'input>>,
 }
 
@@ -870,61 +970,42 @@ impl<'input> TokenCollector<'input> {
             current_token: None,
         }
     }
-
-    fn push(
-        &mut self,
-        start_position: Position,
-        raw_token: RawToken<'input>,
-        end_position: Position,
-    ) -> Result<(), TokenizerError> {
+    fn push(&mut self, raw_token: RawToken<'input>) -> Result<(), TokenizerError> {
         Ok(match raw_token {
-            Ok(token_type) => {
-                let token = Token {
-                    start_position,
-                    token_type,
-                    end_position,
-                };
-                if token.is_trivia() {
-                    match self.current_token {
-                        Some(_) => {
-                            if token.is_terminal() {
-                                self.trailing_trivia.push(token);
-                                self.result.push(TokenReference {
-                                    leading_trivia: self.leading_trivia.drain(..).collect(),
-                                    trailing_trivia: self.trailing_trivia.drain(..).collect(),
-                                    token: self.current_token.take().expect(
-                                        "(internal full-moon error) Don't have current token after checking for it."
-                                        ),
-                                });
-                                self.current_token = None;
-                            } else {
-                                self.trailing_trivia.push(token);
-                            }
-                        }
-                        None => {
-                            self.leading_trivia.push(token);
-                        }
-                    }
-                } else {
-                    if let Some(current_token) = self.current_token.take() {
-                        self.result.push(TokenReference {
+            RawToken::Trivia(trivia) => match self.current_token {
+                Some(_) => {
+                    if trivia.is_terminal() {
+                        self.trailing_trivia.push(trivia);
+                        self.result.push(WithTrivia {
                             leading_trivia: self.leading_trivia.drain(..).collect(),
                             trailing_trivia: self.trailing_trivia.drain(..).collect(),
-                            token: current_token,
+                            token: self.current_token.take().unwrap(), // FIXME: unwrap
                         });
+                        self.current_token = None;
+                    } else {
+                        self.trailing_trivia.push(trivia);
                     }
-                    self.current_token = Some(token);
                 }
+                None => {
+                    self.leading_trivia.push(trivia);
+                }
+            },
+            RawToken::Token(token) => {
+                if let Some(current_token) = self.current_token.take() {
+                    self.result.push(WithTrivia {
+                        leading_trivia: self.leading_trivia.drain(..).collect(),
+                        trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                        token: current_token,
+                    });
+                }
+                self.current_token = Some(token);
             }
-            Err(error) => Err(TokenizerError {
-                error,
-                position: start_position,
-            })?,
+            RawToken::Error(error) => Err(error)?,
         })
     }
-    fn finish(mut self, eof_position: Position) -> Vec<TokenReference<'input>> {
+    fn finish(mut self, eof_position: Position) -> Vec<WithTrivia<'input, Token<'input>>> {
         if let Some(token) = self.current_token {
-            self.result.push(TokenReference {
+            self.result.push(WithTrivia {
                 leading_trivia: self.leading_trivia.drain(..).collect(),
                 trailing_trivia: self.trailing_trivia.drain(..).collect(),
                 token,
@@ -935,7 +1016,7 @@ impl<'input> TokenCollector<'input> {
             0,
             "(internal full-moon error) trailing trivia left when adding eof to token stream)"
         );
-        self.result.push(TokenReference {
+        self.result.push(WithTrivia {
             leading_trivia: self.leading_trivia,
             trailing_trivia: self.trailing_trivia,
             token: Token {
@@ -975,7 +1056,7 @@ fn from_parser_error<'input>(
 /// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
-pub fn tokens<'a>(code: &'a str) -> Result<Vec<TokenReference<'a>>, TokenizerError> {
+pub fn tokens<'a>(code: &'a str) -> Result<Vec<WithTrivia<'a, Token<'a>>>, TokenizerError> {
     let mut tokens = TokenCollector::new();
 
     let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
@@ -1012,7 +1093,14 @@ pub fn tokens<'a>(code: &'a str) -> Result<Vec<TokenReference<'a>>, TokenizerErr
             }
 
             if token_offset == end_position.bytes {
-                tokens.push(start_position, token_type, end_position)?;
+                tokens.push(
+                    Spanned {
+                        start_position,
+                        token_type: token_type,
+                        end_position,
+                    }
+                    .into(),
+                )?;
                 start_position = position;
                 if let Some((next_token_type, next_token_offset)) = raw_tokens.next() {
                     token_type = next_token_type;
@@ -1172,28 +1260,28 @@ mod tests {
     fn test_rule_whitespace() {
         test_rule!(
             "\t  \n\t",
-            TokenType::Whitespace {
+            TriviaType::Whitespace {
                 characters: "\t  \n".into(),
             }
         );
 
         test_rule!(
             "\thello",
-            TokenType::Whitespace {
+            TriviaType::Whitespace {
                 characters: "\t".into(),
             }
         );
 
         test_rule!(
             "\t\t\nhello",
-            TokenType::Whitespace {
+            TriviaType::Whitespace {
                 characters: "\t\t\n".into(),
             }
         );
 
         test_rule!(
             "\n\thello",
-            TokenType::Whitespace {
+            TriviaType::Whitespace {
                 characters: "\n".into(),
             }
         );
@@ -1276,7 +1364,7 @@ mod tests {
                     line: 1,
                 },
 
-                token_type: TokenType::Whitespace {
+                token_type: TriviaType::Whitespace {
                     characters: "\n".into()
                 },
             }

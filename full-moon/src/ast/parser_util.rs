@@ -3,7 +3,7 @@
 use super::punctuated::{Pair, Punctuated};
 use crate::{
     node::Node,
-    tokenizer::TokenReference,
+    tokenizer::{Token, WithTrivia},
     visitors::{Visit, VisitMut},
 };
 
@@ -16,11 +16,11 @@ use std::fmt;
 pub struct ParserState<'a, 'b> {
     pub index: usize,
     pub len: usize,
-    pub tokens: &'b [TokenReference<'a>],
+    pub tokens: &'b [WithTrivia<'a, Token<'a>>],
 }
 
 impl<'a, 'b> ParserState<'a, 'b> {
-    pub fn new(tokens: &'b [TokenReference<'a>]) -> ParserState<'a, 'b> {
+    pub fn new(tokens: &'b [WithTrivia<'a, Token<'a>>]) -> ParserState<'a, 'b> {
         ParserState {
             index: 0,
             len: tokens.len(),
@@ -42,7 +42,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
     // TODO: This is bad, containing a mandatory clone on every call so that everything is
     // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
     // to tackle lifetimes.
-    pub fn peek(&self) -> &TokenReference<'a> {
+    pub fn peek(&self) -> &WithTrivia<'a, Token<'a>> {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
@@ -86,7 +86,7 @@ macro_rules! make_op {
             #[cfg_attr(feature = "serde", serde(borrow))]
             $(
                 #[allow(missing_docs)]
-                $operator(TokenReference<'a>),
+                $operator(WithTrivia<'a, Token<'a>>),
             )+
         }
     };
@@ -214,7 +214,7 @@ pub enum InternalAstError<'a> {
     NoMatch,
     UnexpectedToken {
         #[cfg_attr(feature = "serde", serde(borrow))]
-        token: TokenReference<'a>,
+        token: WithTrivia<'a, Token<'a>>,
         additional: Option<&'a str>,
     },
 }
@@ -282,7 +282,7 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    Delimiter: Parser<'a, Item = WithTrivia<'a, Token<'a>>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, T>;
@@ -350,7 +350,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
+    Delimiter: Parser<'a, Item = WithTrivia<'a, Token<'a>>>,
     T: Node<'a> + Visit<'a> + VisitMut<'a>,
 {
     type Item = Punctuated<'a, ItemParser::Item>;

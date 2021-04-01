@@ -8,7 +8,7 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Symbol, Token, TokenType, WithTrivia},
     util::*,
 };
 use derive_more::Display;
@@ -48,9 +48,9 @@ use lua52::*;
 )]
 pub struct Block<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>,
+    stmts: Vec<(Stmt<'a>, Option<WithTrivia<'a, Token<'a>>>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
+    last_stmt: Option<(LastStmt<'a>, Option<WithTrivia<'a, Token<'a>>>)>,
 }
 
 impl<'a> Block<'a> {
@@ -71,7 +71,7 @@ impl<'a> Block<'a> {
     /// semicolon token reference present
     pub fn stmts_with_semicolon(
         &self,
-    ) -> impl Iterator<Item = &(Stmt<'a>, Option<TokenReference<'a>>)> {
+    ) -> impl Iterator<Item = &(Stmt<'a>, Option<WithTrivia<'a, Token<'a>>>)> {
         self.stmts.iter()
     }
 
@@ -81,13 +81,15 @@ impl<'a> Block<'a> {
     }
 
     /// The last statement of the block if on exists, including any optional semicolon token reference present
-    pub fn last_stmt_with_semicolon(&self) -> Option<&(LastStmt<'a>, Option<TokenReference<'a>>)> {
+    pub fn last_stmt_with_semicolon(
+        &self,
+    ) -> Option<&(LastStmt<'a>, Option<WithTrivia<'a, Token<'a>>>)> {
         self.last_stmt.as_ref()
     }
 
     /// Returns a new block with the given statements
     /// Takes a vector of statements, followed by an optional semicolon token reference
-    pub fn with_stmts(self, stmts: Vec<(Stmt<'a>, Option<TokenReference<'a>>)>) -> Self {
+    pub fn with_stmts(self, stmts: Vec<(Stmt<'a>, Option<WithTrivia<'a, Token<'a>>>)>) -> Self {
         Self { stmts, ..self }
     }
 
@@ -95,7 +97,7 @@ impl<'a> Block<'a> {
     /// Takes an optional last statement, with an optional semicolon
     pub fn with_last_stmt(
         self,
-        last_stmt: Option<(LastStmt<'a>, Option<TokenReference<'a>>)>,
+        last_stmt: Option<(LastStmt<'a>, Option<WithTrivia<'a, Token<'a>>>)>,
     ) -> Self {
         Self { last_stmt, ..self }
     }
@@ -108,11 +110,11 @@ impl<'a> Block<'a> {
 pub enum LastStmt<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// A `break` statement
-    Break(TokenReference<'a>),
+    Break(WithTrivia<'a, Token<'a>>),
     /// A continue statement
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
-    Continue(TokenReference<'a>),
+    Continue(WithTrivia<'a, Token<'a>>),
     /// A `return` statement
     Return(Return<'a>),
 }
@@ -123,7 +125,7 @@ pub enum LastStmt<'a> {
 #[display(fmt = "{}{}", token, returns)]
 pub struct Return<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    token: TokenReference<'a>,
+    token: WithTrivia<'a, Token<'a>>,
     returns: Punctuated<'a, Expression<'a>>,
 }
 
@@ -132,13 +134,13 @@ impl<'a> Return<'a> {
     /// Default return token is followed by a single space
     pub fn new() -> Self {
         Self {
-            token: TokenReference::symbol("return ").unwrap(),
+            token: WithTrivia::symbol("return ").unwrap(),
             returns: Punctuated::new(),
         }
     }
 
     /// The `return` token
-    pub fn token(&self) -> &TokenReference<'a> {
+    pub fn token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.token
     }
 
@@ -148,7 +150,7 @@ impl<'a> Return<'a> {
     }
 
     /// Returns a new Return with the given `return` token
-    pub fn with_token(self, token: TokenReference<'a>) -> Self {
+    pub fn with_token(self, token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { token, ..self }
     }
 
@@ -185,7 +187,7 @@ pub enum Field<'a> {
         /// The `expression` part of `[expression] = value`
         key: Expression<'a>,
         /// The `=` part of `[expression] = value`
-        equal: TokenReference<'a>,
+        equal: WithTrivia<'a, Token<'a>>,
         /// The `value` part of `[expression] = value`
         value: Expression<'a>,
     },
@@ -195,9 +197,9 @@ pub enum Field<'a> {
     NameKey {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `name` part of `name = value`
-        key: TokenReference<'a>,
+        key: WithTrivia<'a, Token<'a>>,
         /// The `=` part of `name = value`
-        equal: TokenReference<'a>,
+        equal: WithTrivia<'a, Token<'a>>,
         /// The `value` part of `name = value`
         value: Expression<'a>,
     },
@@ -226,8 +228,8 @@ impl<'a> TableConstructor<'a> {
     pub fn new() -> Self {
         Self {
             braces: ContainedSpan::new(
-                TokenReference::symbol("{ ").unwrap(),
-                TokenReference::symbol(" }").unwrap(),
+                WithTrivia::symbol("{ ").unwrap(),
+                WithTrivia::symbol(" }").unwrap(),
             ),
             fields: Punctuated::new(),
         }
@@ -331,7 +333,7 @@ pub enum Value<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// An anonymous function, such as `function() end)`
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
-    Function((TokenReference<'a>, FunctionBody<'a>)),
+    Function((WithTrivia<'a, Token<'a>>, FunctionBody<'a>)),
     /// A call of a function, such as `call()`
     #[display(fmt = "{}", "_0")]
     FunctionCall(FunctionCall<'a>),
@@ -340,16 +342,16 @@ pub enum Value<'a> {
     TableConstructor(TableConstructor<'a>),
     /// A number token, such as `3.3`
     #[display(fmt = "{}", "_0")]
-    Number(TokenReference<'a>),
+    Number(WithTrivia<'a, Token<'a>>),
     /// An expression between parentheses, such as `(3 + 2)`
     #[display(fmt = "{}", "_0")]
     ParenthesesExpression(Expression<'a>),
     /// A string token, such as `"hello"`
     #[display(fmt = "{}", "_0")]
-    String(TokenReference<'a>),
+    String(WithTrivia<'a, Token<'a>>),
     /// A symbol, such as `true`
     #[display(fmt = "{}", "_0")]
-    Symbol(TokenReference<'a>),
+    Symbol(WithTrivia<'a, Token<'a>>),
     /// A more complex value, such as `call().x`
     #[display(fmt = "{}", "_0")]
     Var(Var<'a>),
@@ -431,7 +433,7 @@ pub enum Prefix<'a> {
     Expression(Expression<'a>),
     #[display(fmt = "{}", _0)]
     /// Just a name, such as `foo`
-    Name(TokenReference<'a>),
+    Name(WithTrivia<'a, Token<'a>>),
 }
 
 /// The indexing of something, such as `x.y` or `x["y"]`
@@ -460,9 +462,9 @@ pub enum Index<'a> {
     Dot {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The `.` part of `.y`
-        dot: TokenReference<'a>,
+        dot: WithTrivia<'a, Token<'a>>,
         /// The `y` part of `.y`
-        name: TokenReference<'a>,
+        name: WithTrivia<'a, Token<'a>>,
     },
 }
 
@@ -489,7 +491,7 @@ pub enum FunctionArgs<'a> {
     /// Used when a function is called in the form of `call "foobar"`
     #[cfg_attr(feature = "serde", serde(borrow))]
     #[display(fmt = "{}", "_0")]
-    String(TokenReference<'a>),
+    String(WithTrivia<'a, Token<'a>>),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<'a>),
@@ -500,17 +502,17 @@ pub enum FunctionArgs<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: TokenReference<'a>,
-    index_variable: TokenReference<'a>,
-    equal_token: TokenReference<'a>,
+    for_token: WithTrivia<'a, Token<'a>>,
+    index_variable: WithTrivia<'a, Token<'a>>,
+    equal_token: WithTrivia<'a, Token<'a>>,
     start: Expression<'a>,
-    start_end_comma: TokenReference<'a>,
+    start_end_comma: WithTrivia<'a, Token<'a>>,
     end: Expression<'a>,
-    end_step_comma: Option<TokenReference<'a>>,
+    end_step_comma: Option<WithTrivia<'a, Token<'a>>>,
     step: Option<Expression<'a>>,
-    do_token: TokenReference<'a>,
+    do_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifier: Option<TypeSpecifier<'a>>,
@@ -519,39 +521,39 @@ pub struct NumericFor<'a> {
 impl<'a> NumericFor<'a> {
     /// Creates a new NumericFor from the given index variable, start, and end expressions
     pub fn new(
-        index_variable: TokenReference<'a>,
+        index_variable: WithTrivia<'a, Token<'a>>,
         start: Expression<'a>,
         end: Expression<'a>,
     ) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ").unwrap(),
+            for_token: WithTrivia::symbol("for ").unwrap(),
             index_variable,
-            equal_token: TokenReference::symbol(" = ").unwrap(),
+            equal_token: WithTrivia::symbol(" = ").unwrap(),
             start,
-            start_end_comma: TokenReference::symbol(", ").unwrap(),
+            start_end_comma: WithTrivia::symbol(", ").unwrap(),
             end,
             end_step_comma: None,
             step: None,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: WithTrivia::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: WithTrivia::symbol("\nend").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifier: None,
         }
     }
 
     /// The `for` token
-    pub fn for_token(&self) -> &TokenReference<'a> {
+    pub fn for_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.for_token
     }
 
     /// The index identity, `index` in the initial example
-    pub fn index_variable(&self) -> &TokenReference<'a> {
+    pub fn index_variable(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.index_variable
     }
 
     /// The `=` token
-    pub fn equal_token(&self) -> &TokenReference<'a> {
+    pub fn equal_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.equal_token
     }
 
@@ -563,7 +565,7 @@ impl<'a> NumericFor<'a> {
     /// The comma in between the starting point and end point
     /// for _ = 1, 10 do
     ///          ^
-    pub fn start_end_comma(&self) -> &TokenReference<'a> {
+    pub fn start_end_comma(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.start_end_comma
     }
 
@@ -575,7 +577,7 @@ impl<'a> NumericFor<'a> {
     /// The comma in between the ending point and limit, if one exists
     /// for _ = 0, 10, 2 do
     ///              ^
-    pub fn end_step_comma(&self) -> Option<&TokenReference<'a>> {
+    pub fn end_step_comma(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         self.end_step_comma.as_ref()
     }
 
@@ -585,7 +587,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// The `do` token
-    pub fn do_token(&self) -> &TokenReference<'a> {
+    pub fn do_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.do_token
     }
 
@@ -595,7 +597,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
@@ -609,12 +611,12 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given for token
-    pub fn with_for_token(self, for_token: TokenReference<'a>) -> Self {
+    pub fn with_for_token(self, for_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { for_token, ..self }
     }
 
     /// Returns a new NumericFor with the given index variable
-    pub fn with_index_variable(self, index_variable: TokenReference<'a>) -> Self {
+    pub fn with_index_variable(self, index_variable: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             index_variable,
             ..self
@@ -622,7 +624,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `=` token
-    pub fn with_equal_token(self, equal_token: TokenReference<'a>) -> Self {
+    pub fn with_equal_token(self, equal_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             equal_token,
             ..self
@@ -635,7 +637,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given comma between the start and end expressions
-    pub fn with_start_end_comma(self, start_end_comma: TokenReference<'a>) -> Self {
+    pub fn with_start_end_comma(self, start_end_comma: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             start_end_comma,
             ..self
@@ -648,7 +650,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given comma between the end and the step expressions
-    pub fn with_end_step_comma(self, end_step_comma: Option<TokenReference<'a>>) -> Self {
+    pub fn with_end_step_comma(self, end_step_comma: Option<WithTrivia<'a, Token<'a>>>) -> Self {
         Self {
             end_step_comma,
             ..self
@@ -661,7 +663,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `do` token
-    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
+    pub fn with_do_token(self, do_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -671,7 +673,7 @@ impl<'a> NumericFor<'a> {
     }
 
     /// Returns a new NumericFor with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 
@@ -732,13 +734,13 @@ impl fmt::Display for NumericFor<'_> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    for_token: TokenReference<'a>,
-    names: Punctuated<'a, TokenReference<'a>>,
-    in_token: TokenReference<'a>,
+    for_token: WithTrivia<'a, Token<'a>>,
+    names: Punctuated<'a, WithTrivia<'a, Token<'a>>>,
+    in_token: WithTrivia<'a, Token<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
-    do_token: TokenReference<'a>,
+    do_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
@@ -747,35 +749,35 @@ pub struct GenericFor<'a> {
 impl<'a> GenericFor<'a> {
     /// Creates a new GenericFor from the given names and expressions
     pub fn new(
-        names: Punctuated<'a, TokenReference<'a>>,
+        names: Punctuated<'a, WithTrivia<'a, Token<'a>>>,
         expr_list: Punctuated<'a, Expression<'a>>,
     ) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ").unwrap(),
+            for_token: WithTrivia::symbol("for ").unwrap(),
             names,
-            in_token: TokenReference::symbol(" in ").unwrap(),
+            in_token: WithTrivia::symbol(" in ").unwrap(),
             expr_list,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: WithTrivia::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: WithTrivia::symbol("\nend").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
         }
     }
 
     /// The `for` token
-    pub fn for_token(&self) -> &TokenReference<'a> {
+    pub fn for_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.for_token
     }
 
     /// Returns the punctuated sequence of names
     /// In `for index, value in pairs(list) do`, iterates over `index` and `value`
-    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn names(&self) -> &Punctuated<'a, WithTrivia<'a, Token<'a>>> {
         &self.names
     }
 
     /// The `in` token
-    pub fn in_token(&self) -> &TokenReference<'a> {
+    pub fn in_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.in_token
     }
 
@@ -786,7 +788,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// The `do` token
-    pub fn do_token(&self) -> &TokenReference<'a> {
+    pub fn do_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.do_token
     }
 
@@ -796,7 +798,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
@@ -810,17 +812,17 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `for` token
-    pub fn with_for_token(self, for_token: TokenReference<'a>) -> Self {
+    pub fn with_for_token(self, for_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { for_token, ..self }
     }
 
     /// Returns a new GenericFor with the given names
-    pub fn with_names(self, names: Punctuated<'a, TokenReference<'a>>) -> Self {
+    pub fn with_names(self, names: Punctuated<'a, WithTrivia<'a, Token<'a>>>) -> Self {
         Self { names, ..self }
     }
 
     /// Returns a new GenericFor with the given `in` token
-    pub fn with_in_token(self, in_token: TokenReference<'a>) -> Self {
+    pub fn with_in_token(self, in_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { in_token, ..self }
     }
 
@@ -830,7 +832,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `do` token
-    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
+    pub fn with_do_token(self, do_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -840,7 +842,7 @@ impl<'a> GenericFor<'a> {
     }
 
     /// Returns a new GenericFor with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 
@@ -903,34 +905,34 @@ impl fmt::Display for GenericFor<'_> {
 )]
 pub struct If<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    if_token: TokenReference<'a>,
+    if_token: WithTrivia<'a, Token<'a>>,
     condition: Expression<'a>,
-    then_token: TokenReference<'a>,
+    then_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
     else_if: Option<Vec<ElseIf<'a>>>,
-    else_token: Option<TokenReference<'a>>,
+    else_token: Option<WithTrivia<'a, Token<'a>>>,
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<'a>>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
 }
 
 impl<'a> If<'a> {
     /// Creates a new If from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            if_token: TokenReference::symbol("if ").unwrap(),
+            if_token: WithTrivia::symbol("if ").unwrap(),
             condition,
-            then_token: TokenReference::symbol(" then").unwrap(),
+            then_token: WithTrivia::symbol(" then").unwrap(),
             block: Block::new(),
             else_if: None,
             else_token: None,
             r#else: None,
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: WithTrivia::symbol("\nend").unwrap(),
         }
     }
 
     /// The `if` token
-    pub fn if_token(&self) -> &TokenReference<'a> {
+    pub fn if_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.if_token
     }
 
@@ -940,7 +942,7 @@ impl<'a> If<'a> {
     }
 
     /// The `then` token
-    pub fn then_token(&self) -> &TokenReference<'a> {
+    pub fn then_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.then_token
     }
 
@@ -950,7 +952,7 @@ impl<'a> If<'a> {
     }
 
     /// The `else` token if one exists
-    pub fn else_token(&self) -> Option<&TokenReference<'a>> {
+    pub fn else_token(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         self.else_token.as_ref()
     }
 
@@ -967,12 +969,12 @@ impl<'a> If<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
     /// Returns a new If with the given `if` token
-    pub fn with_if_token(self, if_token: TokenReference<'a>) -> Self {
+    pub fn with_if_token(self, if_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { if_token, ..self }
     }
 
@@ -982,7 +984,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `then` token
-    pub fn with_then_token(self, then_token: TokenReference<'a>) -> Self {
+    pub fn with_then_token(self, then_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { then_token, ..self }
     }
 
@@ -997,7 +999,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `else` token
-    pub fn with_else_token(self, else_token: Option<TokenReference<'a>>) -> Self {
+    pub fn with_else_token(self, else_token: Option<WithTrivia<'a, Token<'a>>>) -> Self {
         Self { else_token, ..self }
     }
 
@@ -1007,7 +1009,7 @@ impl<'a> If<'a> {
     }
 
     /// Returns a new If with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1018,9 +1020,9 @@ impl<'a> If<'a> {
 #[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
 pub struct ElseIf<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    else_if_token: TokenReference<'a>,
+    else_if_token: WithTrivia<'a, Token<'a>>,
     condition: Expression<'a>,
-    then_token: TokenReference<'a>,
+    then_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
 }
 
@@ -1028,15 +1030,15 @@ impl<'a> ElseIf<'a> {
     /// Creates a new ElseIf from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            else_if_token: TokenReference::symbol("elseif ").unwrap(),
+            else_if_token: WithTrivia::symbol("elseif ").unwrap(),
             condition,
-            then_token: TokenReference::symbol(" then\n").unwrap(),
+            then_token: WithTrivia::symbol(" then\n").unwrap(),
             block: Block::new(),
         }
     }
 
     /// The `elseif` token
-    pub fn else_if_token(&self) -> &TokenReference<'a> {
+    pub fn else_if_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.else_if_token
     }
 
@@ -1046,7 +1048,7 @@ impl<'a> ElseIf<'a> {
     }
 
     /// The `then` token
-    pub fn then_token(&self) -> &TokenReference<'a> {
+    pub fn then_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.then_token
     }
 
@@ -1056,7 +1058,7 @@ impl<'a> ElseIf<'a> {
     }
 
     /// Returns a new ElseIf with the given `elseif` token
-    pub fn with_else_if_token(self, else_if_token: TokenReference<'a>) -> Self {
+    pub fn with_else_if_token(self, else_if_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             else_if_token,
             ..self
@@ -1069,7 +1071,7 @@ impl<'a> ElseIf<'a> {
     }
 
     /// Returns a new ElseIf with the given `then` token
-    pub fn with_then_token(self, then_token: TokenReference<'a>) -> Self {
+    pub fn with_then_token(self, then_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { then_token, ..self }
     }
 
@@ -1092,27 +1094,27 @@ impl<'a> ElseIf<'a> {
 )]
 pub struct While<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    while_token: TokenReference<'a>,
+    while_token: WithTrivia<'a, Token<'a>>,
     condition: Expression<'a>,
-    do_token: TokenReference<'a>,
+    do_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
 }
 
 impl<'a> While<'a> {
     /// Creates a new While from the given condition
     pub fn new(condition: Expression<'a>) -> Self {
         Self {
-            while_token: TokenReference::symbol("while ").unwrap(),
+            while_token: WithTrivia::symbol("while ").unwrap(),
             condition,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: WithTrivia::symbol(" do\n").unwrap(),
             block: Block::new(),
-            end_token: TokenReference::symbol("end\n").unwrap(),
+            end_token: WithTrivia::symbol("end\n").unwrap(),
         }
     }
 
     /// The `while` token
-    pub fn while_token(&self) -> &TokenReference<'a> {
+    pub fn while_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.while_token
     }
 
@@ -1122,7 +1124,7 @@ impl<'a> While<'a> {
     }
 
     /// The `do` token
-    pub fn do_token(&self) -> &TokenReference<'a> {
+    pub fn do_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.do_token
     }
 
@@ -1132,12 +1134,12 @@ impl<'a> While<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
     /// Returns a new While with the given `while` token
-    pub fn with_while_token(self, while_token: TokenReference<'a>) -> Self {
+    pub fn with_while_token(self, while_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             while_token,
             ..self
@@ -1150,7 +1152,7 @@ impl<'a> While<'a> {
     }
 
     /// Returns a new While with the given `do` token
-    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
+    pub fn with_do_token(self, do_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -1160,7 +1162,7 @@ impl<'a> While<'a> {
     }
 
     /// Returns a new While with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1171,9 +1173,9 @@ impl<'a> While<'a> {
 #[display(fmt = "{}{}{}{}", "repeat_token", "block", "until_token", "until")]
 pub struct Repeat<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    repeat_token: TokenReference<'a>,
+    repeat_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
-    until_token: TokenReference<'a>,
+    until_token: WithTrivia<'a, Token<'a>>,
     until: Expression<'a>,
 }
 
@@ -1181,15 +1183,15 @@ impl<'a> Repeat<'a> {
     /// Creates a new Repeat from the given expression to repeat until
     pub fn new(until: Expression<'a>) -> Self {
         Self {
-            repeat_token: TokenReference::symbol("repeat\n").unwrap(),
+            repeat_token: WithTrivia::symbol("repeat\n").unwrap(),
             block: Block::new(),
-            until_token: TokenReference::symbol("\nuntil ").unwrap(),
+            until_token: WithTrivia::symbol("\nuntil ").unwrap(),
             until,
         }
     }
 
     /// The `repeat` token
-    pub fn repeat_token(&self) -> &TokenReference<'a> {
+    pub fn repeat_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.repeat_token
     }
 
@@ -1199,7 +1201,7 @@ impl<'a> Repeat<'a> {
     }
 
     /// The `until` token
-    pub fn until_token(&self) -> &TokenReference<'a> {
+    pub fn until_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.until_token
     }
 
@@ -1209,7 +1211,7 @@ impl<'a> Repeat<'a> {
     }
 
     /// Returns a new Repeat with the given `repeat` token
-    pub fn with_repeat_token(self, repeat_token: TokenReference<'a>) -> Self {
+    pub fn with_repeat_token(self, repeat_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             repeat_token,
             ..self
@@ -1222,7 +1224,7 @@ impl<'a> Repeat<'a> {
     }
 
     /// Returns a new Repeat with the given `until` token
-    pub fn with_until_token(self, until_token: TokenReference<'a>) -> Self {
+    pub fn with_until_token(self, until_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             until_token,
             ..self
@@ -1241,23 +1243,23 @@ impl<'a> Repeat<'a> {
 #[display(fmt = "{}{}{}", "colon_token", "name", "args")]
 pub struct MethodCall<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    colon_token: TokenReference<'a>,
-    name: TokenReference<'a>,
+    colon_token: WithTrivia<'a, Token<'a>>,
+    name: WithTrivia<'a, Token<'a>>,
     args: FunctionArgs<'a>,
 }
 
 impl<'a> MethodCall<'a> {
     /// Returns a new MethodCall from the given name and args
-    pub fn new(name: TokenReference<'a>, args: FunctionArgs<'a>) -> Self {
+    pub fn new(name: WithTrivia<'a, Token<'a>>, args: FunctionArgs<'a>) -> Self {
         Self {
-            colon_token: TokenReference::symbol(":").unwrap(),
+            colon_token: WithTrivia::symbol(":").unwrap(),
             name,
             args,
         }
     }
 
     /// The `:` in `x:y()`
-    pub fn colon_token(&self) -> &TokenReference<'a> {
+    pub fn colon_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.colon_token
     }
 
@@ -1267,12 +1269,12 @@ impl<'a> MethodCall<'a> {
     }
 
     /// The method being called, the `call` part of `method:call()`
-    pub fn name(&self) -> &TokenReference<'a> {
+    pub fn name(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.name
     }
 
     /// Returns a new MethodCall with the given `:` token
-    pub fn with_colon_token(self, colon_token: TokenReference<'a>) -> Self {
+    pub fn with_colon_token(self, colon_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             colon_token,
             ..self
@@ -1280,7 +1282,7 @@ impl<'a> MethodCall<'a> {
     }
 
     /// Returns a new MethodCall with the given name
-    pub fn with_name(self, name: TokenReference<'a>) -> Self {
+    pub fn with_name(self, name: WithTrivia<'a, Token<'a>>) -> Self {
         Self { name, ..self }
     }
 
@@ -1322,7 +1324,7 @@ pub struct FunctionBody<'a> {
     return_type: Option<TypeSpecifier<'a>>,
 
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
 }
 
 impl<'a> FunctionBody<'a> {
@@ -1330,8 +1332,8 @@ impl<'a> FunctionBody<'a> {
     pub fn new() -> Self {
         Self {
             parameters_parentheses: ContainedSpan::new(
-                TokenReference::symbol("(").unwrap(),
-                TokenReference::symbol(")").unwrap(),
+                WithTrivia::symbol("(").unwrap(),
+                WithTrivia::symbol(")").unwrap(),
             ),
             parameters: Punctuated::new(),
 
@@ -1342,7 +1344,7 @@ impl<'a> FunctionBody<'a> {
             return_type: None,
 
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: WithTrivia::symbol("\nend").unwrap(),
         }
     }
 
@@ -1362,7 +1364,7 @@ impl<'a> FunctionBody<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
@@ -1419,7 +1421,7 @@ impl<'a> FunctionBody<'a> {
     }
 
     /// Returns a new FunctionBody with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1466,9 +1468,9 @@ impl fmt::Display for FunctionBody<'_> {
 pub enum Parameter<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     /// The `...` vararg syntax, such as `function x(...)`
-    Ellipse(TokenReference<'a>),
+    Ellipse(WithTrivia<'a, Token<'a>>),
     /// A name parameter, such as `function x(a, b, c)`
-    Name(TokenReference<'a>),
+    Name(WithTrivia<'a, Token<'a>>),
 }
 
 /// A suffix in certain cases, such as `:y()` in `x:y()`
@@ -1537,7 +1539,7 @@ pub enum Var<'a> {
     Expression(VarExpression<'a>),
     /// A literal identifier, such as `x`
     #[display(fmt = "{}", "_0")]
-    Name(TokenReference<'a>),
+    Name(WithTrivia<'a, Token<'a>>),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](LocalAssignment)
@@ -1547,7 +1549,7 @@ pub enum Var<'a> {
 pub struct Assignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     var_list: Punctuated<'a, Var<'a>>,
-    equal_token: TokenReference<'a>,
+    equal_token: WithTrivia<'a, Token<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
@@ -1559,7 +1561,7 @@ impl<'a> Assignment<'a> {
     ) -> Self {
         Self {
             var_list,
-            equal_token: TokenReference::symbol(" = ").unwrap(),
+            equal_token: WithTrivia::symbol(" = ").unwrap(),
             expr_list,
         }
     }
@@ -1571,7 +1573,7 @@ impl<'a> Assignment<'a> {
     }
 
     /// The `=` token in between `x = y`
-    pub fn equal_token(&self) -> &TokenReference<'a> {
+    pub fn equal_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.equal_token
     }
 
@@ -1587,7 +1589,7 @@ impl<'a> Assignment<'a> {
     }
 
     /// Returns a new Assignment with the given `=` token
-    pub fn with_equal_token(self, equal_token: TokenReference<'a>) -> Self {
+    pub fn with_equal_token(self, equal_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             equal_token,
             ..self
@@ -1606,30 +1608,30 @@ impl<'a> Assignment<'a> {
 #[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "func_body")]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: TokenReference<'a>,
-    function_token: TokenReference<'a>,
-    name: TokenReference<'a>,
+    local_token: WithTrivia<'a, Token<'a>>,
+    function_token: WithTrivia<'a, Token<'a>>,
+    name: WithTrivia<'a, Token<'a>>,
     func_body: FunctionBody<'a>,
 }
 
 impl<'a> LocalFunction<'a> {
     /// Returns a new LocalFunction from the given name
-    pub fn new(name: TokenReference<'a>) -> Self {
+    pub fn new(name: WithTrivia<'a, Token<'a>>) -> Self {
         LocalFunction {
-            local_token: TokenReference::symbol("local ").unwrap(),
-            function_token: TokenReference::symbol("function ").unwrap(),
+            local_token: WithTrivia::symbol("local ").unwrap(),
+            function_token: WithTrivia::symbol("function ").unwrap(),
             name,
             func_body: FunctionBody::new(),
         }
     }
 
     /// The `local` token
-    pub fn local_token(&self) -> &TokenReference<'a> {
+    pub fn local_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.local_token
     }
 
     /// The `function` token
-    pub fn function_token(&self) -> &TokenReference<'a> {
+    pub fn function_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.function_token
     }
 
@@ -1639,12 +1641,12 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// The name of the function, the `x` part of `local function x() end`
-    pub fn name(&self) -> &TokenReference<'a> {
+    pub fn name(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.name
     }
 
     /// Returns a new LocalFunction with the given `local` token
-    pub fn with_local_token(self, local_token: TokenReference<'a>) -> Self {
+    pub fn with_local_token(self, local_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             local_token,
             ..self
@@ -1652,7 +1654,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given `function` token
-    pub fn with_function_token(self, function_token: TokenReference<'a>) -> Self {
+    pub fn with_function_token(self, function_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             function_token,
             ..self
@@ -1660,7 +1662,7 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given name
-    pub fn with_name(self, name: TokenReference<'a>) -> Self {
+    pub fn with_name(self, name: WithTrivia<'a, Token<'a>>) -> Self {
         Self { name, ..self }
     }
 
@@ -1675,20 +1677,20 @@ impl<'a> LocalFunction<'a> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    local_token: TokenReference<'a>,
+    local_token: WithTrivia<'a, Token<'a>>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
-    name_list: Punctuated<'a, TokenReference<'a>>,
-    equal_token: Option<TokenReference<'a>>,
+    name_list: Punctuated<'a, WithTrivia<'a, Token<'a>>>,
+    equal_token: Option<WithTrivia<'a, Token<'a>>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
 
 impl<'a> LocalAssignment<'a> {
     /// Returns a new LocalAssignment from the given name list
-    pub fn new(name_list: Punctuated<'a, TokenReference<'a>>) -> Self {
+    pub fn new(name_list: Punctuated<'a, WithTrivia<'a, Token<'a>>>) -> Self {
         Self {
-            local_token: TokenReference::symbol("local ").unwrap(),
+            local_token: WithTrivia::symbol("local ").unwrap(),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
             name_list,
@@ -1698,12 +1700,12 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// The `local` token
-    pub fn local_token(&self) -> &TokenReference<'a> {
+    pub fn local_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.local_token
     }
 
     /// The `=` token in between `local x = y`, if one exists
-    pub fn equal_token(&self) -> Option<&TokenReference<'a>> {
+    pub fn equal_token(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         self.equal_token.as_ref()
     }
 
@@ -1715,7 +1717,7 @@ impl<'a> LocalAssignment<'a> {
 
     /// Returns the punctuated sequence of names being assigned to.
     /// This is the `x, y` part of `local x, y = 1, 2`
-    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn names(&self) -> &Punctuated<'a, WithTrivia<'a, Token<'a>>> {
         &self.name_list
     }
 
@@ -1729,7 +1731,7 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given `local` token
-    pub fn with_local_token(self, local_token: TokenReference<'a>) -> Self {
+    pub fn with_local_token(self, local_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             local_token,
             ..self
@@ -1746,12 +1748,12 @@ impl<'a> LocalAssignment<'a> {
     }
 
     /// Returns a new LocalAssignment with the given name list
-    pub fn with_names(self, name_list: Punctuated<'a, TokenReference<'a>>) -> Self {
+    pub fn with_names(self, name_list: Punctuated<'a, WithTrivia<'a, Token<'a>>>) -> Self {
         Self { name_list, ..self }
     }
 
     /// Returns a new LocalAssignment with the given `=` token
-    pub fn with_equal_token(self, equal_token: Option<TokenReference<'a>>) -> Self {
+    pub fn with_equal_token(self, equal_token: Option<WithTrivia<'a, Token<'a>>>) -> Self {
         Self {
             equal_token,
             ..self
@@ -1797,23 +1799,23 @@ impl fmt::Display for LocalAssignment<'_> {
 #[display(fmt = "{}{}{}", "do_token", "block", "end_token")]
 pub struct Do<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    do_token: TokenReference<'a>,
+    do_token: WithTrivia<'a, Token<'a>>,
     block: Block<'a>,
-    end_token: TokenReference<'a>,
+    end_token: WithTrivia<'a, Token<'a>>,
 }
 
 impl<'a> Do<'a> {
     /// Creates an empty Do
     pub fn new() -> Self {
         Self {
-            do_token: TokenReference::symbol("do\n").unwrap(),
+            do_token: WithTrivia::symbol("do\n").unwrap(),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: WithTrivia::symbol("\nend").unwrap(),
         }
     }
 
     /// The `do` token
-    pub fn do_token(&self) -> &TokenReference<'a> {
+    pub fn do_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.do_token
     }
 
@@ -1823,12 +1825,12 @@ impl<'a> Do<'a> {
     }
 
     /// The `end` token
-    pub fn end_token(&self) -> &TokenReference<'a> {
+    pub fn end_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.end_token
     }
 
     /// Returns a new Do with the given `do` token
-    pub fn with_do_token(self, do_token: TokenReference<'a>) -> Self {
+    pub fn with_do_token(self, do_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { do_token, ..self }
     }
 
@@ -1838,7 +1840,7 @@ impl<'a> Do<'a> {
     }
 
     /// Returns a new Do with the given `end` token
-    pub fn with_end_token(self, end_token: TokenReference<'a>) -> Self {
+    pub fn with_end_token(self, end_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self { end_token, ..self }
     }
 }
@@ -1869,8 +1871,8 @@ impl<'a> FunctionCall<'a> {
                 FunctionArgs::Parentheses {
                     arguments: Punctuated::new(),
                     parentheses: ContainedSpan::new(
-                        TokenReference::symbol("(").unwrap(),
-                        TokenReference::symbol(")").unwrap(),
+                        WithTrivia::symbol("(").unwrap(),
+                        WithTrivia::symbol(")").unwrap(),
                     ),
                 },
             ))],
@@ -1909,13 +1911,13 @@ impl<'a> FunctionCall<'a> {
 )]
 pub struct FunctionName<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    names: Punctuated<'a, TokenReference<'a>>,
-    colon_name: Option<(TokenReference<'a>, TokenReference<'a>)>,
+    names: Punctuated<'a, WithTrivia<'a, Token<'a>>>,
+    colon_name: Option<(WithTrivia<'a, Token<'a>>, WithTrivia<'a, Token<'a>>)>,
 }
 
 impl<'a> FunctionName<'a> {
     /// Creates a new FunctionName from the given list of names
-    pub fn new(names: Punctuated<'a, TokenReference<'a>>) -> Self {
+    pub fn new(names: Punctuated<'a, WithTrivia<'a, Token<'a>>>) -> Self {
         Self {
             names,
             colon_name: None,
@@ -1923,29 +1925,32 @@ impl<'a> FunctionName<'a> {
     }
 
     /// The colon between the name and the method, the `:` part of `function x:y() end`
-    pub fn method_colon(&self) -> Option<&TokenReference<'a>> {
+    pub fn method_colon(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         Some(&self.colon_name.as_ref()?.0)
     }
 
     /// A method name if one exists, the `y` part of `function x:y() end`
-    pub fn method_name(&self) -> Option<&TokenReference<'a>> {
+    pub fn method_name(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         Some(&self.colon_name.as_ref()?.1)
     }
 
     /// Returns the punctuated sequence over the names used when defining the function.
     /// This is the `x.y.z` part of `function x.y.z() end`
-    pub fn names(&self) -> &Punctuated<'a, TokenReference<'a>> {
+    pub fn names(&self) -> &Punctuated<'a, WithTrivia<'a, Token<'a>>> {
         &self.names
     }
 
     /// Returns a new FunctionName with the given names
-    pub fn with_names(self, names: Punctuated<'a, TokenReference<'a>>) -> Self {
+    pub fn with_names(self, names: Punctuated<'a, WithTrivia<'a, Token<'a>>>) -> Self {
         Self { names, ..self }
     }
 
     /// Returns a new FunctionName with the given method name
     /// The first token is the colon, and the second token is the method name itself
-    pub fn with_method(self, method: Option<(TokenReference<'a>, TokenReference<'a>)>) -> Self {
+    pub fn with_method(
+        self,
+        method: Option<(WithTrivia<'a, Token<'a>>, WithTrivia<'a, Token<'a>>)>,
+    ) -> Self {
         Self {
             colon_name: method,
             ..self
@@ -1960,7 +1965,7 @@ impl<'a> FunctionName<'a> {
 #[display(fmt = "{}{}{}", "function_token", "name", "body")]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    function_token: TokenReference<'a>,
+    function_token: WithTrivia<'a, Token<'a>>,
     name: FunctionName<'a>,
     body: FunctionBody<'a>,
 }
@@ -1969,14 +1974,14 @@ impl<'a> FunctionDeclaration<'a> {
     /// Creates a new FunctionDeclaration from the given name
     pub fn new(name: FunctionName<'a>) -> Self {
         Self {
-            function_token: TokenReference::symbol("function ").unwrap(),
+            function_token: WithTrivia::symbol("function ").unwrap(),
             name,
             body: FunctionBody::new(),
         }
     }
 
     /// The `function` token
-    pub fn function_token(&self) -> &TokenReference<'a> {
+    pub fn function_token(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.function_token
     }
 
@@ -1991,7 +1996,7 @@ impl<'a> FunctionDeclaration<'a> {
     }
 
     /// Returns a new FunctionDeclaration with the given `function` token
-    pub fn with_function_token(self, function_token: TokenReference<'a>) -> Self {
+    pub fn with_function_token(self, function_token: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             function_token,
             ..self
@@ -2121,7 +2126,7 @@ impl<'a> std::error::Error for AstError<'a> {}
 #[derive(Clone, Debug, Owned)]
 pub struct Ast<'a> {
     pub(crate) nodes: Block<'a>,
-    pub(crate) eof: TokenReference<'a>,
+    pub(crate) eof: WithTrivia<'a, Token<'a>>,
 }
 
 impl<'a> Ast<'a> {
@@ -2135,18 +2140,15 @@ impl<'a> Ast<'a> {
     ///
     /// More likely, if the tokens pass are invalid Lua 5.1 code, an
     /// UnexpectedToken error will be returned.
-    pub fn from_tokens(mut tokens: Vec<TokenReference<'a>>) -> Result<Ast<'a>, AstError<'a>> {
+    pub fn from_tokens(
+        mut tokens: Vec<WithTrivia<'a, Token<'a>>>,
+    ) -> Result<Ast<'a>, AstError<'a>> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {
-            let mut state = ParserState::new(&tokens);
+            let state = ParserState::new(&tokens);
 
-            if tokens
-                .iter()
-                .filter(|token| !token.token_type().is_trivia())
-                .count()
-                == 1
-            {
+            if tokens.iter().count() == 1 {
                 // Entirely comments/whitespace
                 return Ok(Ast {
                     nodes: Block {
@@ -2157,11 +2159,6 @@ impl<'a> Ast<'a> {
                         "(internal full-moon error) No EOF in tokens after checking for EOF.",
                     ),
                 });
-            }
-
-            // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-            if state.peek().token_type().is_trivia() {
-                state = state.advance().unwrap();
             }
 
             match parsers::ParseBlock.parse(state) {
@@ -2202,7 +2199,7 @@ impl<'a> Ast<'a> {
     }
 
     /// Returns a new Ast with the given EOF token
-    pub fn with_eof(self, eof: TokenReference<'a>) -> Self {
+    pub fn with_eof(self, eof: WithTrivia<'a, Token<'a>>) -> Self {
         Self { eof, ..self }
     }
 
@@ -2224,7 +2221,7 @@ impl<'a> Ast<'a> {
     }
 
     /// The EOF token at the end of every Ast
-    pub fn eof(&self) -> &TokenReference<'a> {
+    pub fn eof(&self) -> &WithTrivia<'a, Token<'a>> {
         &self.eof
     }
 }
@@ -2277,7 +2274,7 @@ mod tests {
     // Tests AST nodes with new methods that call unwrap
     #[test]
     fn test_new_validity() {
-        let token: TokenReference = TokenReference::new(
+        let token: WithTrivia = WithTrivia::new(
             Vec::new(),
             Token::new(TokenType::Identifier {
                 identifier: "foo".into(),

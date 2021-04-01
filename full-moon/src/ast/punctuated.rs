@@ -2,7 +2,7 @@
 //!
 //! Examples of punctuated sequences include:
 //! - Arguments in a function call are `Punctuated<Expression>`
-//! - Names and definitions in a local assignment are `Punctuated<TokenReference>` and `Punctuated<Expression>` respectively
+//! - Names and definitions in a local assignment are `Punctuated<WithTrivia<Identifier>>` and `Punctuated<Expression>` respectively
 //! - The values of a return statement are `Punctuated<Expression>`
 //!
 //! Everything with punctuation uses the [`Punctuated<T>`](Punctuated) type with the following logic.
@@ -17,7 +17,7 @@
 use crate::{
     node::{Node, TokenItem, Tokens},
     private::Sealed,
-    tokenizer::{Position, TokenReference},
+    tokenizer::{Position, Token, WithTrivia},
     util,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
 };
@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, iter::FromIterator};
 
 /// A punctuated sequence of node `T` separated by
-/// [`TokenReference`](crate::tokenizer::TokenReference).
+/// [`WithTrivia`](crate::tokenizer::WithTrivia).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -299,7 +299,7 @@ impl<'a, 'b, T> Iterator for IterMut<'a, 'b, T> {
 }
 
 /// A node `T` followed by the possible trailing
-/// [`TokenReference`](crate::tokenizer::TokenReference).
+/// [`WithTrivia`](crate::tokenizer::WithTrivia).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -309,11 +309,11 @@ pub enum Pair<'a, T> {
     End(T),
 
     /// A node `T` followed by punctuation (in the form of a
-    /// [`TokenReference`](crate::tokenizer::TokenReference))
+    /// [`WithTrivia`](crate::tokenizer::WithTrivia))
     #[display(fmt = "{}{}", "_0", "_1")]
     Punctuated(
         T,
-        #[cfg_attr(feature = "serde", serde(borrow))] TokenReference<'a>,
+        #[cfg_attr(feature = "serde", serde(borrow))] WithTrivia<'a, Token<'a>>,
     ),
 }
 
@@ -323,7 +323,7 @@ impl<'a, T> Pair<'a, T> {
     /// # use full_moon::ast::punctuated::Pair;
     /// let pair = Pair::new(1, None);
     /// ```
-    pub fn new(value: T, punctuation: Option<TokenReference<'a>>) -> Self {
+    pub fn new(value: T, punctuation: Option<WithTrivia<'a, Token<'a>>>) -> Self {
         match punctuation {
             None => Pair::End(value),
             Some(punctuation) => Pair::Punctuated(value, punctuation),
@@ -336,7 +336,7 @@ impl<'a, T> Pair<'a, T> {
     /// let pair = Pair::new(1, None);
     /// assert_eq!(pair.into_tuple(), (1, None));
     /// ```
-    pub fn into_tuple(self) -> (T, Option<TokenReference<'a>>) {
+    pub fn into_tuple(self) -> (T, Option<WithTrivia<'a, Token<'a>>>) {
         match self {
             Pair::End(value) => (value, None),
             Pair::Punctuated(value, punctuation) => (value, Some(punctuation)),
@@ -386,7 +386,7 @@ impl<'a, T> Pair<'a, T> {
     /// let pair = Pair::new(1, None);
     /// assert_eq!(pair.punctuation(), None);
     /// ```
-    pub fn punctuation(&self) -> Option<&TokenReference<'a>> {
+    pub fn punctuation(&self) -> Option<&WithTrivia<'a, Token<'a>>> {
         match self {
             Pair::End(_) => None,
             Pair::Punctuated(_, punctuation) => Some(punctuation),
@@ -429,7 +429,7 @@ impl<'a, T: Node<'a>> Node<'a> for Pair<'a, T> {
         match self {
             Pair::Punctuated(node, separator) => {
                 let mut items = node.tokens().items;
-                items.push(TokenItem::TokenReference(separator));
+                items.push(TokenItem::Token(separator));
 
                 Tokens { items }
             }

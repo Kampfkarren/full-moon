@@ -1,7 +1,7 @@
 use crate::{
     ast::Ast,
     private,
-    tokenizer::{Position, Token, TokenReference},
+    tokenizer::{Position, Token, Trivia, WithTrivia},
 };
 use std::fmt;
 
@@ -31,7 +31,7 @@ pub trait Node<'ast>: private::Sealed {
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
     /// Returns a tuple of the leading and trailing trivia.
-    fn surrounding_trivia<'b>(&'b self) -> (Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>) {
+    fn surrounding_trivia<'b>(&'b self) -> (Vec<&'b Trivia<'ast>>, Vec<&'b Trivia<'ast>>) {
         let mut tokens = self.tokens();
         let leading = tokens.next();
         let trailing = tokens.next_back();
@@ -51,14 +51,14 @@ pub trait Node<'ast>: private::Sealed {
 
 pub(crate) enum TokenItem<'ast, 'b> {
     MoreTokens(&'b dyn Node<'ast>),
-    TokenReference(&'b TokenReference<'ast>),
+    Token(&'b WithTrivia<'ast, Token<'ast>>),
 }
 
 impl fmt::Debug for TokenItem<'_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),
-            TokenItem::TokenReference(token) => write!(f, "TokenItem::TokenReference({})", token),
+            TokenItem::Token(token) => write!(f, "TokenItem::Token({})", token),
         }
     }
 }
@@ -71,7 +71,7 @@ pub struct Tokens<'ast, 'b> {
 }
 
 impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
-    type Item = &'b TokenReference<'ast>;
+    type Item = &'b WithTrivia<'ast, Token<'ast>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.items.is_empty() {
@@ -79,7 +79,7 @@ impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
         }
 
         match self.items.remove(0) {
-            TokenItem::TokenReference(reference) => Some(reference),
+            TokenItem::Token(token) => Some(&token),
             TokenItem::MoreTokens(node) => {
                 let mut tokens = node.tokens();
                 tokens.items.extend(self.items.drain(..));
@@ -97,7 +97,7 @@ impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
         }
 
         match self.items.pop()? {
-            TokenItem::TokenReference(reference) => Some(reference),
+            TokenItem::Token(token) => Some(&token),
             TokenItem::MoreTokens(node) => {
                 let mut tokens = node.tokens();
                 self.items.extend(tokens.items.drain(..));
@@ -179,13 +179,13 @@ impl<'a, T: Node<'a>> Node<'a> for &mut T {
     }
 }
 
-impl<'a> Node<'a> for TokenReference<'a> {
+impl<'a> Node<'a> for WithTrivia<'a, Token<'a>> {
     fn start_position(&self) -> Option<Position> {
-        Some((**self).start_position())
+        Some(self.token.start_position())
     }
 
     fn end_position(&self) -> Option<Position> {
-        Some((**self).end_position())
+        Some(self.token.end_position())
     }
 
     fn similar(&self, other: &Self) -> bool {
@@ -194,7 +194,7 @@ impl<'a> Node<'a> for TokenReference<'a> {
 
     fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
         Tokens {
-            items: vec![TokenItem::TokenReference(&self)],
+            items: vec![TokenItem::Token(self)],
         }
     }
 }
