@@ -1,6 +1,6 @@
 use crate::{
     ast::{Ast, AstError},
-    tokenizer::{Token, TokenReference, TokenType, TokenizerError},
+    tokenizer::{Spanned, Symbol, TokenType, TokenizerError, TriviaType, WithTrivia},
     Error,
 };
 use std::borrow::Cow;
@@ -13,10 +13,12 @@ impl<T: ToOwned> Sealed for Cow<'_, T> {}
 impl Sealed for Ast<'_> {}
 impl Sealed for AstError<'_> {}
 impl Sealed for Error<'_> {}
-impl Sealed for Token<'_> {}
+impl<T> Sealed for Spanned<T> {}
 impl Sealed for TokenizerError {}
-impl Sealed for TokenReference<'_> {}
+impl<T> Sealed for WithTrivia<'_, T> {}
 impl Sealed for TokenType<'_> {}
+impl Sealed for TriviaType<'_> {}
+impl Sealed for Symbol {}
 impl<T> Sealed for Box<T> {}
 impl<T> Sealed for Option<T> {}
 impl<T> Sealed for Vec<T> {}

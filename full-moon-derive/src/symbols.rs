@@ -10,8 +10,6 @@ use syn::{
     parse_macro_input, Ident, LitStr, Token,
 };
 
-const ALT_LIMIT: usize = 21;
-
 #[derive(Debug)]
 struct SymbolsInput {
     symbols: IndexMap<Ident, LitStr>,
@@ -65,33 +63,23 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let string: Vec<_> = symbols.values().collect();
     let ident: Vec<_> = symbols.keys().collect();
     let symbols: Vec<_> = symbols.iter().collect();
-    let splits = symbols.chunks(ALT_LIMIT).map(|symbols| {
-        let parsers = symbols.iter().map(|(symbol, string)| {
-            // Note this doesn't handle the case of keywords with digits
-            // which doesn't currently occur.
-            let matcher = if string
-                .value()
-                .chars()
-                .all(|char| char.is_ascii_alphabetic() || char == '_')
-            {
-                quote! {
-                    terminated(
-                        tag(#string),
-                        not(alt((alphanumeric1, tag("_")))),
-                    )
-                }
-            } else {
-                quote! {tag(#string)}
-            };
-            quote! {value(Symbol::#symbol, #matcher)}
-        });
-
-        quote! {
-            alt((#(
-                #parsers,
-            )*))
-        }
+    let (keywords, operators): (Vec<_>, Vec<_>) = symbols.iter().partition(|(_, string)| {
+        // Note this doesn't handle the case of keywords with digits
+        // which doesn't currently occur.
+        string
+            .value()
+            .chars()
+            .all(|char| char.is_ascii_alphabetic() || char == '_')
     });
+    let identifier_match: Vec<_> = keywords
+        .iter()
+        .map(|(symbol, string)| quote!(#string => Symbol::#symbol,))
+        .collect();
+
+    let operator_array: Vec<_> = operators
+        .iter()
+        .map(|(symbol, string)| quote!((Symbol::#symbol, #string)))
+        .collect();
 
     let output = quote! {
         /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
@@ -126,20 +114,27 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         }
 
-        fn parse_symbol(code: &str) -> IResult<&str, Symbol> {
-            use ::nom::{
-                branch::alt,
-                bytes::complete::{tag},
-                character::complete::{alphanumeric1},
-                combinator::{not, value},
-                sequence::terminated,
-            };
-            let mut combinator = alt((
-                #(
-                    #splits,
-                )*
-            ));
-            combinator(code)
+        fn parse_keyword(identifier: &str) -> Option<Symbol> {
+            Some(match identifier {
+                #(#identifier_match)*
+                _ => return None,
+            })
+        }
+
+        trait ParseSymbol<'input> {
+            fn parse_symbol(self, pos: usize) -> peg::RuleResult<Symbol>;
+        }
+
+        impl<'input> ParseSymbol<'input> for &'input str {
+            fn parse_symbol(self: Self, pos: usize) -> peg::RuleResult<Symbol> {
+                for (symbol, string) in &[#(#operator_array,)*] {
+                    if self[pos..].starts_with(string) {
+                        return peg::RuleResult::Matched(pos + string.len(), *symbol);
+                    }
+                }
+
+                peg::RuleResult::Failed
+            }
         }
     };
 

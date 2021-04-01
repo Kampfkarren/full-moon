@@ -9,7 +9,7 @@
 use crate::{
     node::{Node, Tokens},
     private::Sealed,
-    tokenizer::{Position, TokenReference},
+    tokenizer::{Position, Token, WithTrivia},
 };
 
 use full_moon_derive::{Owned, Visit};
@@ -22,19 +22,19 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) tokens: (TokenReference<'a>, TokenReference<'a>),
+    pub(crate) tokens: (WithTrivia<'a, Token<'a>>, WithTrivia<'a, Token<'a>>),
 }
 
 impl<'a> ContainedSpan<'a> {
     /// Creates a contained span from the start and end bounds
-    pub fn new(start: TokenReference<'a>, end: TokenReference<'a>) -> Self {
+    pub fn new(start: WithTrivia<'a, Token<'a>>, end: WithTrivia<'a, Token<'a>>) -> Self {
         Self {
             tokens: (start, end),
         }
     }
 
     /// Returns the start and end bounds in a tuple as references
-    pub fn tokens(&self) -> (&TokenReference<'a>, &TokenReference<'a>) {
+    pub fn tokens(&self) -> (&WithTrivia<'a, Token<'a>>, &WithTrivia<'a, Token<'a>>) {
         (&self.tokens.0, &self.tokens.1)
     }
 }

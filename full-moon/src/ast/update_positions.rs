@@ -1,6 +1,6 @@
 use crate::{
     ast::Ast,
-    tokenizer::{Position, Token, TokenKind, TokenReference},
+    tokenizer::{Position, Spanned, Token, WithTrivia},
     visitors::VisitorMut,
 };
 
@@ -11,12 +11,18 @@ struct UpdatePositionsRewriter {
 }
 
 impl UpdatePositionsRewriter {
-    fn update_token<'ast>(&mut self, token: &Token<'ast>) -> Token<'ast> {
+    fn update_spanned<T>(&mut self, token: &Spanned<T>) -> Spanned<T>
+    where
+        Spanned<T>: std::fmt::Display,
+        T: Clone,
+    {
         let display = token.to_string();
 
         let mut end_position = self.start_position;
 
-        if token.token_kind() != TokenKind::Eof {
+        if true
+        /*token.token_kind() != TokenKind::Eof*/
+        {
             for character in display.chars() {
                 if self.next_is_new_line {
                     self.next_is_new_line = false;
@@ -34,10 +40,10 @@ impl UpdatePositionsRewriter {
             }
         }
 
-        let result = Token {
+        let result = Spanned {
             start_position: self.start_position,
             end_position,
-            token_type: token.token_type.to_owned(),
+            token_type: token.token_type.clone(),
         };
 
         if self.next_is_new_line {
@@ -53,16 +59,19 @@ impl UpdatePositionsRewriter {
 }
 
 impl<'ast> VisitorMut<'ast> for UpdatePositionsRewriter {
-    fn visit_token_reference(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
-        TokenReference::new(
+    fn visit_token_reference(
+        &mut self,
+        token: WithTrivia<'ast, Token<'ast>>,
+    ) -> WithTrivia<'ast, Token<'ast>> {
+        WithTrivia::new(
             token
                 .leading_trivia()
-                .map(|token| self.update_token(token))
+                .map(|trivia| self.update_spanned(trivia))
                 .collect(),
-            self.update_token(token.token()),
+            self.update_spanned(token.token()),
             token
                 .trailing_trivia()
-                .map(|token| self.update_token(token))
+                .map(|trivia| self.update_spanned(trivia))
                 .collect(),
         )
     }

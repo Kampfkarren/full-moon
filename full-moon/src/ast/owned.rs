@@ -2,7 +2,7 @@
 //! Owned versions are represented as the node with a lifetime of `'static`. For example, if you have
 //! an [`Ast<'a>`](crate::ast::Ast), calling `ast.owned()` on it will produce an owned `Ast<'static>`.
 use super::*;
-use crate::tokenizer::*;
+use crate::tokenizer::{Spanned, TokenType, TokenizerError, TriviaType, WithTrivia};
 
 use std::borrow::Cow;
 
@@ -62,18 +62,6 @@ where
     }
 }
 
-impl Owned for Token<'_> {
-    type Owned = Token<'static>;
-
-    fn owned(&self) -> Self::Owned {
-        Token {
-            start_position: self.start_position,
-            end_position: self.end_position,
-            token_type: self.token_type().owned(),
-        }
-    }
-}
-
 impl Owned for TokenizerError {
     type Owned = TokenizerError;
 
@@ -91,18 +79,8 @@ impl Owned for TokenType<'_> {
             TokenType::Identifier { identifier } => TokenType::Identifier {
                 identifier: Cow::Owned(identifier.clone().into_owned()),
             },
-            TokenType::MultiLineComment { blocks, comment } => TokenType::MultiLineComment {
-                blocks: *blocks,
-                comment: Cow::Owned(comment.clone().into_owned()),
-            },
             TokenType::Number { text } => TokenType::Number {
                 text: Cow::Owned(text.clone().into_owned()),
-            },
-            TokenType::Shebang { line } => TokenType::Shebang {
-                line: Cow::Owned(line.clone().into_owned()),
-            },
-            TokenType::SingleLineComment { comment } => TokenType::SingleLineComment {
-                comment: Cow::Owned(comment.clone().into_owned()),
             },
             TokenType::StringLiteral {
                 literal,
@@ -114,9 +92,51 @@ impl Owned for TokenType<'_> {
                 quote_type: *quote_type,
             },
             TokenType::Symbol { symbol } => TokenType::Symbol { symbol: *symbol },
-            TokenType::Whitespace { characters } => TokenType::Whitespace {
+        }
+    }
+}
+
+impl Owned for TriviaType<'_> {
+    type Owned = TriviaType<'static>;
+
+    fn owned(&self) -> Self::Owned {
+        match self {
+            TriviaType::Shebang { line } => TriviaType::Shebang {
+                line: Cow::Owned(line.clone().into_owned()),
+            },
+            TriviaType::SingleLineComment { comment } => TriviaType::SingleLineComment {
+                comment: Cow::Owned(comment.clone().into_owned()),
+            },
+            TriviaType::MultiLineComment { blocks, comment } => TriviaType::MultiLineComment {
+                blocks: *blocks,
+                comment: Cow::Owned(comment.clone().into_owned()),
+            },
+            TriviaType::Whitespace { characters } => TriviaType::Whitespace {
                 characters: Cow::Owned(characters.clone().into_owned()),
             },
+        }
+    }
+}
+
+impl<T: Owned> Owned for Spanned<T> {
+    type Owned = Spanned<T::Owned>;
+
+    fn owned(&self) -> Self::Owned {
+        Spanned {
+            start_position: self.start_position,
+            end_position: self.end_position,
+            token_type: self.token_type.owned(),
+        }
+    }
+}
+
+impl<'input, T: Owned> Owned for WithTrivia<'input, T> {
+    type Owned = WithTrivia<'static, <T as Owned>::Owned>;
+    fn owned(&self) -> Self::Owned {
+        WithTrivia {
+            leading_trivia: self.leading_trivia.owned(),
+            token: self.token.owned(),
+            trailing_trivia: self.leading_trivia.owned(),
         }
     }
 }

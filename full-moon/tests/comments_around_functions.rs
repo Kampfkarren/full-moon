@@ -1,6 +1,6 @@
 // This is code from a real life usage of full-moon
 
-use full_moon::{self, ast::*, node::Node, tokenizer::TokenKind, visitors::Visitor};
+use full_moon::{self, ast::*, node::Node, tokenizer::TriviaKind, visitors::Visitor};
 use owned::Owned;
 use std::error::Error;
 
@@ -34,7 +34,7 @@ impl Visitor<'static> for MemberVisitor {
     fn visit_function_declaration(&mut self, function: &FunctionDeclaration<'static>) {
         let (tokens, _) = function.surrounding_trivia();
         let mut tokens = tokens.clone();
-        tokens.retain(|t| t.token_kind() == TokenKind::MultiLineComment);
+        tokens.retain(|t| t.trivia_kind() == TriviaKind::MultiLineComment);
         self.comments.extend(
             tokens
                 .into_iter()

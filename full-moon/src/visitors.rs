@@ -1,7 +1,7 @@
 use crate::{
     ast::{span::ContainedSpan, *},
     private::Sealed,
-    tokenizer::{Token, TokenReference},
+    tokenizer::{Token, Trivia, WithTrivia},
 };
 
 #[cfg(feature = "lua52")]
@@ -16,8 +16,12 @@ macro_rules! create_visitor {
         $(#[$meta:meta] {
             $($meta_visit_name:ident => $meta_ast_type:ident,)+
         })+
+    }, with_trivia: {
+        $($visit_with_trivia:ident => $with_trivia_type:ty,)+
     }, token: {
         $($visit_token:ident,)+
+    }, trivia: {
+        $($visit_trivia:ident,)+
     }) => {
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`VisitorMut`], nodes/tokens passed are immutable.
@@ -73,7 +77,17 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
+                fn $visit_with_trivia(&mut self, _node: &WithTrivia<'ast, $with_trivia_type>) { }
+            )+
+
+            $(
+                #[allow(missing_docs)]
                 fn $visit_token(&mut self, _token: &Token<'ast>) { }
+            )+
+
+            $(
+                #[allow(missing_docs)]
+                fn $visit_trivia(&mut self, _trivia: &Trivia<'ast>) { }
             )+
         }
 
@@ -126,8 +140,21 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
+                fn $visit_with_trivia(&mut self, node: WithTrivia<'ast, $with_trivia_type>) -> WithTrivia<'ast, $with_trivia_type> {
+                    node
+                }
+            )+
+
+            $(
+                #[allow(missing_docs)]
                 fn $visit_token(&mut self, token: Token<'ast>) -> Token<'ast> {
                     token
+                }
+            )+
+            $(
+                #[allow(missing_docs)]
+                fn $visit_trivia(&mut self, trivia: Trivia<'ast>) -> Trivia<'ast> {
+                    trivia
                 }
             )+
         }
@@ -222,7 +249,6 @@ create_visitor!(ast: {
     visit_contained_span => ContainedSpan,
     visit_do => Do,
     visit_else_if => ElseIf,
-    visit_eof => TokenReference,
     visit_expression => Expression,
     visit_field => Field,
     visit_function_args => FunctionArgs,
@@ -245,7 +271,6 @@ create_visitor!(ast: {
     visit_stmt => Stmt,
     visit_suffix => Suffix,
     visit_table_constructor => TableConstructor,
-    visit_token_reference => TokenReference,
     visit_un_op => UnOp,
     visit_value => Value,
     visit_var => Var,
@@ -272,13 +297,18 @@ create_visitor!(ast: {
         visit_goto => Goto,
         visit_label => Label,
     }
+}, with_trivia: {
+    visit_eof => Token<'ast>,
+    visit_token_reference => Token<'ast>,
 }, token: {
     visit_identifier,
-    visit_multi_line_comment,
     visit_number,
-    visit_single_line_comment,
     visit_string_literal,
     visit_symbol,
     visit_token,
+}, trivia: {
+    visit_single_line_comment,
+    visit_multi_line_comment,
     visit_whitespace,
+    visit_trivia,
 });

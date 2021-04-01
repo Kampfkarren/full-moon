@@ -4,454 +4,517 @@ expression: tokens
 input_file: full-moon/tests/cases/pass/fractional-numbers
 
 ---
-- start_position:
-    bytes: 0
-    line: 1
-    character: 1
-  end_position:
-    bytes: 5
-    line: 1
-    character: 6
-  token_type:
-    type: Symbol
-    symbol: local
-- start_position:
-    bytes: 5
-    line: 1
-    character: 6
-  end_position:
-    bytes: 6
-    line: 1
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 6
-    line: 1
-    character: 7
-  end_position:
-    bytes: 9
-    line: 1
-    character: 10
-  token_type:
-    type: Identifier
-    identifier: num
-- start_position:
-    bytes: 9
-    line: 1
-    character: 10
-  end_position:
-    bytes: 10
-    line: 1
-    character: 11
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 10
-    line: 1
-    character: 11
-  end_position:
-    bytes: 11
-    line: 1
-    character: 12
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 11
-    line: 1
-    character: 12
-  end_position:
-    bytes: 12
-    line: 1
-    character: 13
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 12
-    line: 1
-    character: 13
-  end_position:
-    bytes: 15
-    line: 1
-    character: 16
-  token_type:
-    type: Number
-    text: "0.5"
-- start_position:
-    bytes: 15
-    line: 1
-    character: 16
-  end_position:
-    bytes: 16
-    line: 1
-    character: 16
-  token_type:
-    type: Whitespace
-    characters: "\n"
-- start_position:
-    bytes: 16
-    line: 2
-    character: 1
-  end_position:
-    bytes: 21
-    line: 2
-    character: 6
-  token_type:
-    type: Symbol
-    symbol: local
-- start_position:
-    bytes: 21
-    line: 2
-    character: 6
-  end_position:
-    bytes: 22
-    line: 2
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 22
-    line: 2
-    character: 7
-  end_position:
-    bytes: 26
-    line: 2
-    character: 11
-  token_type:
-    type: Identifier
-    identifier: num2
-- start_position:
-    bytes: 26
-    line: 2
-    character: 11
-  end_position:
-    bytes: 27
-    line: 2
-    character: 12
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 27
-    line: 2
-    character: 12
-  end_position:
-    bytes: 28
-    line: 2
-    character: 13
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 28
-    line: 2
-    character: 13
-  end_position:
-    bytes: 29
-    line: 2
-    character: 14
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 29
-    line: 2
-    character: 14
-  end_position:
-    bytes: 34
-    line: 2
-    character: 19
-  token_type:
-    type: Number
-    text: "0.5e5"
-- start_position:
-    bytes: 34
-    line: 2
-    character: 19
-  end_position:
-    bytes: 35
-    line: 2
-    character: 19
-  token_type:
-    type: Whitespace
-    characters: "\n"
-- start_position:
-    bytes: 35
-    line: 3
-    character: 1
-  end_position:
-    bytes: 40
-    line: 3
-    character: 6
-  token_type:
-    type: Symbol
-    symbol: local
-- start_position:
-    bytes: 40
-    line: 3
-    character: 6
-  end_position:
-    bytes: 41
-    line: 3
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 41
-    line: 3
-    character: 7
-  end_position:
-    bytes: 45
-    line: 3
-    character: 11
-  token_type:
-    type: Identifier
-    identifier: num3
-- start_position:
-    bytes: 45
-    line: 3
-    character: 11
-  end_position:
-    bytes: 46
-    line: 3
-    character: 12
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 46
-    line: 3
-    character: 12
-  end_position:
-    bytes: 47
-    line: 3
-    character: 13
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 47
-    line: 3
-    character: 13
-  end_position:
-    bytes: 48
-    line: 3
-    character: 14
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 48
-    line: 3
-    character: 14
-  end_position:
-    bytes: 50
-    line: 3
-    character: 16
-  token_type:
-    type: Number
-    text: ".5"
-- start_position:
-    bytes: 50
-    line: 3
-    character: 16
-  end_position:
-    bytes: 51
-    line: 3
-    character: 16
-  token_type:
-    type: Whitespace
-    characters: "\n"
-- start_position:
-    bytes: 51
-    line: 4
-    character: 1
-  end_position:
-    bytes: 56
-    line: 4
-    character: 6
-  token_type:
-    type: Symbol
-    symbol: local
-- start_position:
-    bytes: 56
-    line: 4
-    character: 6
-  end_position:
-    bytes: 57
-    line: 4
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 57
-    line: 4
-    character: 7
-  end_position:
-    bytes: 61
-    line: 4
-    character: 11
-  token_type:
-    type: Identifier
-    identifier: num4
-- start_position:
-    bytes: 61
-    line: 4
-    character: 11
-  end_position:
-    bytes: 62
-    line: 4
-    character: 12
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 62
-    line: 4
-    character: 12
-  end_position:
-    bytes: 63
-    line: 4
-    character: 13
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 63
-    line: 4
-    character: 13
-  end_position:
-    bytes: 64
-    line: 4
-    character: 14
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 64
-    line: 4
-    character: 14
-  end_position:
-    bytes: 68
-    line: 4
-    character: 18
-  token_type:
-    type: Number
-    text: ".5e5"
-- start_position:
-    bytes: 68
-    line: 4
-    character: 18
-  end_position:
-    bytes: 69
-    line: 4
-    character: 18
-  token_type:
-    type: Whitespace
-    characters: "\n"
-- start_position:
-    bytes: 69
-    line: 5
-    character: 1
-  end_position:
-    bytes: 74
-    line: 5
-    character: 6
-  token_type:
-    type: Symbol
-    symbol: local
-- start_position:
-    bytes: 74
-    line: 5
-    character: 6
-  end_position:
-    bytes: 75
-    line: 5
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 75
-    line: 5
-    character: 7
-  end_position:
-    bytes: 79
-    line: 5
-    character: 11
-  token_type:
-    type: Identifier
-    identifier: num5
-- start_position:
-    bytes: 79
-    line: 5
-    character: 11
-  end_position:
-    bytes: 80
-    line: 5
-    character: 12
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 80
-    line: 5
-    character: 12
-  end_position:
-    bytes: 81
-    line: 5
-    character: 13
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 81
-    line: 5
-    character: 13
-  end_position:
-    bytes: 82
-    line: 5
-    character: 14
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 82
-    line: 5
-    character: 14
-  end_position:
-    bytes: 84
-    line: 5
-    character: 16
-  token_type:
-    type: Number
-    text: "1."
-- start_position:
-    bytes: 84
-    line: 5
-    character: 16
-  end_position:
-    bytes: 85
-    line: 5
-    character: 16
-  token_type:
-    type: Whitespace
-    characters: "\n"
-- start_position:
-    bytes: 85
-    line: 6
-    character: 1
-  end_position:
-    bytes: 85
-    line: 6
-    character: 1
-  token_type:
-    type: Eof
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 0
+      line: 1
+      character: 1
+    end_position:
+      bytes: 5
+      line: 1
+      character: 6
+    token_type:
+      type: Symbol
+      symbol: local
+  trailing_trivia:
+    - start_position:
+        bytes: 5
+        line: 1
+        character: 6
+      end_position:
+        bytes: 6
+        line: 1
+        character: 7
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 6
+      line: 1
+      character: 7
+    end_position:
+      bytes: 9
+      line: 1
+      character: 10
+    token_type:
+      type: Identifier
+      identifier: num
+  trailing_trivia:
+    - start_position:
+        bytes: 9
+        line: 1
+        character: 10
+      end_position:
+        bytes: 10
+        line: 1
+        character: 11
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 10
+      line: 1
+      character: 11
+    end_position:
+      bytes: 11
+      line: 1
+      character: 12
+    token_type:
+      type: Symbol
+      symbol: "="
+  trailing_trivia:
+    - start_position:
+        bytes: 11
+        line: 1
+        character: 12
+      end_position:
+        bytes: 12
+        line: 1
+        character: 13
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 12
+      line: 1
+      character: 13
+    end_position:
+      bytes: 15
+      line: 1
+      character: 16
+    token_type:
+      type: Number
+      text: "0.5"
+  trailing_trivia:
+    - start_position:
+        bytes: 15
+        line: 1
+        character: 16
+      end_position:
+        bytes: 16
+        line: 1
+        character: 16
+      token_type:
+        type: Whitespace
+        characters: "\n"
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 16
+      line: 2
+      character: 1
+    end_position:
+      bytes: 21
+      line: 2
+      character: 6
+    token_type:
+      type: Symbol
+      symbol: local
+  trailing_trivia:
+    - start_position:
+        bytes: 21
+        line: 2
+        character: 6
+      end_position:
+        bytes: 22
+        line: 2
+        character: 7
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 22
+      line: 2
+      character: 7
+    end_position:
+      bytes: 26
+      line: 2
+      character: 11
+    token_type:
+      type: Identifier
+      identifier: num2
+  trailing_trivia:
+    - start_position:
+        bytes: 26
+        line: 2
+        character: 11
+      end_position:
+        bytes: 27
+        line: 2
+        character: 12
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 27
+      line: 2
+      character: 12
+    end_position:
+      bytes: 28
+      line: 2
+      character: 13
+    token_type:
+      type: Symbol
+      symbol: "="
+  trailing_trivia:
+    - start_position:
+        bytes: 28
+        line: 2
+        character: 13
+      end_position:
+        bytes: 29
+        line: 2
+        character: 14
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 29
+      line: 2
+      character: 14
+    end_position:
+      bytes: 34
+      line: 2
+      character: 19
+    token_type:
+      type: Number
+      text: "0.5e5"
+  trailing_trivia:
+    - start_position:
+        bytes: 34
+        line: 2
+        character: 19
+      end_position:
+        bytes: 35
+        line: 2
+        character: 19
+      token_type:
+        type: Whitespace
+        characters: "\n"
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 35
+      line: 3
+      character: 1
+    end_position:
+      bytes: 40
+      line: 3
+      character: 6
+    token_type:
+      type: Symbol
+      symbol: local
+  trailing_trivia:
+    - start_position:
+        bytes: 40
+        line: 3
+        character: 6
+      end_position:
+        bytes: 41
+        line: 3
+        character: 7
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 41
+      line: 3
+      character: 7
+    end_position:
+      bytes: 45
+      line: 3
+      character: 11
+    token_type:
+      type: Identifier
+      identifier: num3
+  trailing_trivia:
+    - start_position:
+        bytes: 45
+        line: 3
+        character: 11
+      end_position:
+        bytes: 46
+        line: 3
+        character: 12
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 46
+      line: 3
+      character: 12
+    end_position:
+      bytes: 47
+      line: 3
+      character: 13
+    token_type:
+      type: Symbol
+      symbol: "="
+  trailing_trivia:
+    - start_position:
+        bytes: 47
+        line: 3
+        character: 13
+      end_position:
+        bytes: 48
+        line: 3
+        character: 14
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 48
+      line: 3
+      character: 14
+    end_position:
+      bytes: 50
+      line: 3
+      character: 16
+    token_type:
+      type: Number
+      text: ".5"
+  trailing_trivia:
+    - start_position:
+        bytes: 50
+        line: 3
+        character: 16
+      end_position:
+        bytes: 51
+        line: 3
+        character: 16
+      token_type:
+        type: Whitespace
+        characters: "\n"
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 51
+      line: 4
+      character: 1
+    end_position:
+      bytes: 56
+      line: 4
+      character: 6
+    token_type:
+      type: Symbol
+      symbol: local
+  trailing_trivia:
+    - start_position:
+        bytes: 56
+        line: 4
+        character: 6
+      end_position:
+        bytes: 57
+        line: 4
+        character: 7
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 57
+      line: 4
+      character: 7
+    end_position:
+      bytes: 61
+      line: 4
+      character: 11
+    token_type:
+      type: Identifier
+      identifier: num4
+  trailing_trivia:
+    - start_position:
+        bytes: 61
+        line: 4
+        character: 11
+      end_position:
+        bytes: 62
+        line: 4
+        character: 12
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 62
+      line: 4
+      character: 12
+    end_position:
+      bytes: 63
+      line: 4
+      character: 13
+    token_type:
+      type: Symbol
+      symbol: "="
+  trailing_trivia:
+    - start_position:
+        bytes: 63
+        line: 4
+        character: 13
+      end_position:
+        bytes: 64
+        line: 4
+        character: 14
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 64
+      line: 4
+      character: 14
+    end_position:
+      bytes: 68
+      line: 4
+      character: 18
+    token_type:
+      type: Number
+      text: ".5e5"
+  trailing_trivia:
+    - start_position:
+        bytes: 68
+        line: 4
+        character: 18
+      end_position:
+        bytes: 69
+        line: 4
+        character: 18
+      token_type:
+        type: Whitespace
+        characters: "\n"
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 69
+      line: 5
+      character: 1
+    end_position:
+      bytes: 74
+      line: 5
+      character: 6
+    token_type:
+      type: Symbol
+      symbol: local
+  trailing_trivia:
+    - start_position:
+        bytes: 74
+        line: 5
+        character: 6
+      end_position:
+        bytes: 75
+        line: 5
+        character: 7
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 75
+      line: 5
+      character: 7
+    end_position:
+      bytes: 79
+      line: 5
+      character: 11
+    token_type:
+      type: Identifier
+      identifier: num5
+  trailing_trivia:
+    - start_position:
+        bytes: 79
+        line: 5
+        character: 11
+      end_position:
+        bytes: 80
+        line: 5
+        character: 12
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 80
+      line: 5
+      character: 12
+    end_position:
+      bytes: 81
+      line: 5
+      character: 13
+    token_type:
+      type: Symbol
+      symbol: "="
+  trailing_trivia:
+    - start_position:
+        bytes: 81
+        line: 5
+        character: 13
+      end_position:
+        bytes: 82
+        line: 5
+        character: 14
+      token_type:
+        type: Whitespace
+        characters: " "
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 82
+      line: 5
+      character: 14
+    end_position:
+      bytes: 84
+      line: 5
+      character: 16
+    token_type:
+      type: Number
+      text: "1."
+  trailing_trivia:
+    - start_position:
+        bytes: 84
+        line: 5
+        character: 16
+      end_position:
+        bytes: 85
+        line: 5
+        character: 16
+      token_type:
+        type: Whitespace
+        characters: "\n"
+- leading_trivia: []
+  token:
+    start_position:
+      bytes: 85
+      line: 6
+      character: 1
+    end_position:
+      bytes: 85
+      line: 6
+      character: 1
+    token_type:
+      type: Eof
+  trailing_trivia: []
 

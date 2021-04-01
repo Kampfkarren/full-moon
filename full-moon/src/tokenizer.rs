@@ -1,17 +1,7 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
-use full_moon_derive::{symbols, Owned};
-use nom::{
-    branch::alt,
-    bytes::complete::{escaped, tag, tag_no_case, take_till, take_until, take_while, take_while1},
-    character::complete::{
-        alpha1, alphanumeric1, anychar, digit1, line_ending, none_of, one_of, space1,
-    },
-    combinator::{consumed, map, opt, recognize, success, value},
-    multi::{many0, many_till},
-    sequence::{delimited, pair, preceded, terminated},
-    IResult,
-};
+use full_moon_derive::symbols;
+use peg;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
@@ -95,6 +85,8 @@ pub enum TokenizerErrorType {
     UnclosedComment,
     /// An unclosed string was found
     UnclosedString,
+    /// An unexpected #! was found
+    UnexpectedShebang,
     /// An unexpected token was found
     UnexpectedToken(char),
     /// Symbol passed is not valid
@@ -118,35 +110,11 @@ pub enum TokenType<'a> {
         identifier: Cow<'a, str>,
     },
 
-    /// A multi line comment in the format of `--[[ comment ]]`
-    MultiLineComment {
-        /// Number of equals signs, if any, for the multi line comment
-        /// For example, `--[=[` would have a `blocks` value of `1`
-        blocks: usize,
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The comment itself, ignoring opening and closing tags
-        comment: Cow<'a, str>,
-    },
-
     /// A literal number, such as `3.3`
     Number {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The text representing the number, includes details such as `0x`
         text: Cow<'a, str>,
-    },
-
-    /// A shebang line
-    Shebang {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The shebang line itself
-        line: Cow<'a, str>,
-    },
-
-    /// A single line comment, such as `-- comment`
-    SingleLineComment {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// The comment, ignoring initial `--`
-        comment: Cow<'a, str>,
     },
 
     /// A literal string, such as "Hello, world"
@@ -169,28 +137,9 @@ pub enum TokenType<'a> {
         /// The symbol itself
         symbol: Symbol,
     },
-
-    /// Whitespace, such as tabs or new lines
-    Whitespace {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        /// Characters consisting of the whitespace
-        characters: Cow<'a, str>,
-    },
 }
 
 impl<'a> TokenType<'a> {
-    /// Returns whether a token can be practically ignored in most cases
-    /// Comments and whitespace will return `true`, everything else will return `false`
-    pub fn is_trivia(&self) -> bool {
-        match self {
-            TokenType::Shebang { .. }
-            | TokenType::SingleLineComment { .. }
-            | TokenType::MultiLineComment { .. }
-            | TokenType::Whitespace { .. } => true,
-            _ => false,
-        }
-    }
-
     /// Returns the kind of the token type.
     ///
     /// ```rust
@@ -208,27 +157,57 @@ impl<'a> TokenType<'a> {
         match self {
             TokenType::Eof => TokenKind::Eof,
             TokenType::Identifier { .. } => TokenKind::Identifier,
-            TokenType::MultiLineComment { .. } => TokenKind::MultiLineComment,
             TokenType::Number { .. } => TokenKind::Number,
-            TokenType::Shebang { .. } => TokenKind::Shebang,
-            TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
-            TokenType::Whitespace { .. } => TokenKind::Whitespace,
         }
     }
+}
 
+impl<'a> TriviaType<'a> {
     /// Returns a whitespace `TokenType` consisting of spaces
     pub fn spaces(spaces: usize) -> Self {
-        TokenType::Whitespace {
+        TriviaType::Whitespace {
             characters: Cow::from(" ".repeat(spaces)),
         }
     }
 
     /// Returns a whitespace `TokenType` consisting of tabs
     pub fn tabs(tabs: usize) -> Self {
-        TokenType::Whitespace {
+        TriviaType::Whitespace {
             characters: Cow::from("\t".repeat(tabs)),
+        }
+    }
+
+    /// Returns the kind of the triva type.
+    ///
+    /// ```rust
+    /// use std::borrow::Cow;
+    /// use full_moon::tokenizer::{TriviaTriviaType};
+    ///
+    /// assert_eq!(
+    ///     TriviaType::Whitespace {
+    ///         characters: Cow::from("   ")
+    ///     }.kind(),
+    ///     TriviaKind::Whitespace,
+    /// );
+    /// ```
+    pub fn kind(&self) -> TriviaKind {
+        match self {
+            TriviaType::Shebang { .. } => TriviaKind::Shebang,
+            TriviaType::SingleLineComment { .. } => TriviaKind::SingleLineComment,
+            TriviaType::MultiLineComment { .. } => TriviaKind::MultiLineComment,
+            TriviaType::Whitespace { .. } => TriviaKind::Whitespace,
+        }
+    }
+
+    /// Returns whether this should be the terminal trivia of a trailing trivia cluster.
+    fn is_terminal(&self) -> bool {
+        if let TriviaType::Whitespace { ref characters } = self {
+            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+            characters.contains('\n')
+        } else {
+            false
         }
     }
 }
@@ -241,36 +220,78 @@ pub enum TokenKind {
     Eof,
     /// An identifier, such as `foo`
     Identifier,
-    /// A multi line comment in the format of `--[[ comment ]]`
-    MultiLineComment,
     /// A literal number, such as `3.3`
     Number,
-    /// The shebang line
-    Shebang,
-    /// A single line comment, such as `-- comment`
-    SingleLineComment,
     /// A literal string, such as "Hello, world"
     StringLiteral,
     /// A [`Symbol`], such as `local` or `+`
     Symbol,
+}
+
+/// The kind of trivia. Contains no additional data.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum TriviaKind {
+    /// The shebang line
+    Shebang,
+    /// A single line comment, such as `-- comment`
+    SingleLineComment,
+    /// A multi line comment in the format of `--[[ comment ]]`
+    MultiLineComment,
     /// Whitespace, such as tabs or new lines
     Whitespace,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
+#[non_exhaustive]
+pub enum TriviaType<'a> {
+    /// A shebang line
+    Shebang {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The shebang line itself
+        line: Cow<'a, str>,
+    },
+
+    /// A single line comment, such as `-- comment`
+    SingleLineComment {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment, ignoring initial `--`
+        comment: Cow<'a, str>,
+    },
+
+    /// A multi line comment in the format of `--[[ comment ]]`
+    MultiLineComment {
+        /// Number of equals signs, if any, for the multi line comment
+        /// For example, `--[=[` would have a `blocks` value of `1`
+        blocks: usize,
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// The comment itself, ignoring opening and closing tags
+        comment: Cow<'a, str>,
+    },
+
+    /// Whitespace, such as tabs or new lines
+    Whitespace {
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        /// Characters consisting of the whitespace
+        characters: Cow<'a, str>,
+    },
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct Token<'a> {
+pub struct Spanned<T> {
     pub(crate) start_position: Position,
     pub(crate) end_position: Position,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token_type: TokenType<'a>,
+    pub(crate) token_type: T,
 }
 
-impl<'a> Token<'a> {
+impl<T> Spanned<T> {
     /// Creates a token with a zero position
-    pub fn new(token_type: TokenType<'a>) -> Token<'a> {
-        Token {
+    pub fn new(token_type: T) -> Spanned<T> {
+        Spanned {
             start_position: Position::default(),
             end_position: Position::default(),
             token_type,
@@ -286,17 +307,43 @@ impl<'a> Token<'a> {
     pub fn end_position(&self) -> Position {
         self.end_position
     }
+}
 
+impl<T> std::ops::Deref for Spanned<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        &self.token_type
+    }
+}
+
+pub type Token<'a> = Spanned<TokenType<'a>>;
+pub type Trivia<'a> = Spanned<TriviaType<'a>>;
+
+impl<'a> Token<'a> {
     /// The type of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](Token::token_kind) instead.
     pub fn token_type(&self) -> &TokenType<'a> {
-        &self.token_type
+        &self
     }
 
     /// The kind of token with no additional data.
     /// If you need any information such as idenitfier names, use [`token_type`](Token::token_type) instead.
     pub fn token_kind(&self) -> TokenKind {
-        self.token_type().kind()
+        self.kind()
+    }
+}
+
+impl<'a> Trivia<'a> {
+    /// The type of trivia as well as the data needed to represent it
+    /// If you don't need any other information, use [`trivia_kind`](Trivia::trivia_kind) instead.
+    pub fn trivia_type(&self) -> &TriviaType<'a> {
+        &self
+    }
+
+    /// The kind of token with no additional data.
+    /// If you need any information such as idenitfier names, use [`trivia_type`](Trivia::trivia_type) instead.
+    pub fn trivia_kind(&self) -> TriviaKind {
+        self.kind()
     }
 }
 
@@ -308,11 +355,6 @@ impl<'a> fmt::Display for Token<'a> {
             Eof => "".to_string(),
             Number { text } => text.to_string(),
             Identifier { identifier } => identifier.to_string(),
-            MultiLineComment { blocks, comment } => {
-                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
-            }
-            Shebang { line } => line.to_string(),
-            SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
                 multi_line,
@@ -325,29 +367,44 @@ impl<'a> fmt::Display for Token<'a> {
                 }
             }
             Symbol { symbol } => symbol.to_string(),
+        }
+        .fmt(formatter)
+    }
+}
+
+impl<'a> fmt::Display for Trivia<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        use self::TriviaType::*;
+
+        match &*self.trivia_type() {
+            Shebang { line } => line.to_string(),
+            SingleLineComment { comment } => format!("--{}", comment),
+            MultiLineComment { blocks, comment } => {
+                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
+            }
             Whitespace { characters } => characters.to_string(),
         }
         .fmt(formatter)
     }
 }
 
-impl<'a> PartialEq<Self> for Token<'a> {
+impl<T: PartialEq> PartialEq<Self> for Spanned<T> {
     fn eq(&self, rhs: &Self) -> bool {
-        self.start_position() == rhs.start_position()
-            && self.end_position() == rhs.end_position()
+        self.start_position == rhs.start_position
+            && self.end_position == rhs.end_position
             && self.token_type == rhs.token_type
     }
 }
 
-impl<'a> Eq for Token<'a> {}
+impl<T: Eq> Eq for Spanned<T> {}
 
-impl<'a> Ord for Token<'a> {
+impl<T: Eq> Ord for Spanned<T> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.start_position().cmp(&other.start_position())
+        self.start_position.cmp(&other.start_position)
     }
 }
 
-impl<'a> PartialOrd for Token<'a> {
+impl<T: Eq> PartialOrd for Spanned<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -360,13 +417,22 @@ impl<'ast> Visit<'ast> for Token<'ast> {
         match self.token_kind() {
             TokenKind::Eof => {}
             TokenKind::Identifier => visitor.visit_identifier(self),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(self),
             TokenKind::Number => visitor.visit_number(self),
-            TokenKind::Shebang => {}
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
-            TokenKind::Whitespace => visitor.visit_whitespace(self),
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for Trivia<'ast> {
+    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+        visitor.visit_trivia(self);
+
+        match self.trivia_kind() {
+            TriviaKind::Shebang => {}
+            TriviaKind::SingleLineComment => visitor.visit_single_line_comment(self),
+            TriviaKind::MultiLineComment => visitor.visit_multi_line_comment(self),
+            TriviaKind::Whitespace => visitor.visit_whitespace(self),
         }
     }
 }
@@ -378,36 +444,44 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
         match token.token_kind() {
             TokenKind::Eof => token,
             TokenKind::Identifier => visitor.visit_identifier(token),
-            TokenKind::MultiLineComment => visitor.visit_multi_line_comment(token),
             TokenKind::Number => visitor.visit_number(token),
-            TokenKind::Shebang => token,
-            TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
-            TokenKind::Whitespace => visitor.visit_whitespace(token),
+        }
+    }
+}
+
+impl<'ast> VisitMut<'ast> for Trivia<'ast> {
+    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+        let trivia = visitor.visit_trivia(self);
+
+        match trivia.trivia_kind() {
+            TriviaKind::Shebang => trivia,
+            TriviaKind::SingleLineComment => visitor.visit_single_line_comment(trivia),
+            TriviaKind::MultiLineComment => visitor.visit_multi_line_comment(trivia),
+            TriviaKind::Whitespace => visitor.visit_whitespace(trivia),
         }
     }
 }
 
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`]
-#[derive(Clone, Debug, Owned)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct TokenReference<'a> {
+pub struct WithTrivia<'input, T> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) leading_trivia: Vec<Token<'a>>,
+    pub(crate) leading_trivia: Vec<Trivia<'input>>,
+    pub(crate) token: T,
     #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token: Token<'a>,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) trailing_trivia: Vec<Token<'a>>,
+    pub(crate) trailing_trivia: Vec<Trivia<'input>>,
 }
 
-impl<'a> TokenReference<'a> {
-    /// Creates a TokenReference from leading/trailing trivia as well as the leading token
+impl<'input, T> WithTrivia<'input, T> {
+    /// Creates a WithTrivia from leading/trailing trivia as well as the leading token
     pub fn new(
-        leading_trivia: Vec<Token<'a>>,
-        token: Token<'a>,
-        trailing_trivia: Vec<Token<'a>>,
+        leading_trivia: Vec<Trivia<'input>>,
+        token: T,
+        trailing_trivia: Vec<Trivia<'input>>,
     ) -> Self {
         Self {
             leading_trivia,
@@ -416,23 +490,49 @@ impl<'a> TokenReference<'a> {
         }
     }
 
+    /// Returns the inner token.
+    pub fn token(&self) -> &T {
+        &self.token
+    }
+
+    /// Returns the leading trivia
+    pub fn leading_trivia(&self) -> impl Iterator<Item = &Trivia<'input>> {
+        self.leading_trivia.iter()
+    }
+
+    /// Returns the trailing trivia
+    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Trivia<'input>> {
+        self.trailing_trivia.iter()
+    }
+
+    /// Creates a clone of the current WithTrivia with the new inner token, preserving trivia.
+    pub fn with_token<U>(&self, token: U) -> WithTrivia<'input, U> {
+        WithTrivia {
+            token,
+            leading_trivia: self.leading_trivia.clone(),
+            trailing_trivia: self.trailing_trivia.clone(),
+        }
+    }
+}
+
+impl<'input> WithTrivia<'input, Token<'input>> {
     /// Returns a symbol with the leading and trailing whitespace
     /// Only whitespace is supported
     /// ```rust
-    /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
+    /// # use full_moon::tokenizer::{Symbol, WithTrivia, TokenType, TokenizerErrorType};
     /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
-    /// let symbol = TokenReference::symbol("\nreturn ")?;
+    /// let symbol = WithTrivia::symbol("\nreturn ")?;
     /// assert_eq!(symbol.leading_trivia().next().unwrap().to_string(), "\n");
     /// assert_eq!(symbol.token().token_type(), &TokenType::Symbol {
     ///     symbol: Symbol::Return,
     /// });
     /// assert_eq!(symbol.trailing_trivia().next().unwrap().to_string(), " ");
-    /// assert!(TokenReference::symbol("isnt whitespace").is_err());
-    /// assert!(TokenReference::symbol(" notasymbol ").is_err());
+    /// assert!(WithTrivia::symbol("isnt whitespace").is_err());
+    /// assert!(WithTrivia::symbol(" notasymbol ").is_err());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
+    pub fn symbol(text: &'input str) -> Result<Self, TokenizerErrorType> {
         let mut chars = text.chars().peekable();
 
         let mut leading_trivia = String::new();
@@ -466,62 +566,40 @@ impl<'a> TokenReference<'a> {
         }
 
         Ok(Self {
-            leading_trivia: vec![Token::new(TokenType::Whitespace {
+            leading_trivia: vec![Trivia::new(TriviaType::Whitespace {
                 characters: Cow::Owned(leading_trivia),
             })],
             token: Token::new(TokenType::Symbol { symbol }),
-            trailing_trivia: vec![Token::new(TokenType::Whitespace {
+            trailing_trivia: vec![Trivia::new(TriviaType::Whitespace {
                 characters: Cow::Owned(trailing_trivia),
             })],
         })
     }
-
-    /// Returns the inner token.
-    pub fn token(&self) -> &Token<'a> {
-        &self.token
-    }
-
-    /// Returns the leading trivia
-    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.leading_trivia.iter()
-    }
-
-    /// Returns the trailing trivia
-    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
-        self.trailing_trivia.iter()
-    }
-
-    /// Creates a clone of the current TokenReference with the new inner token, preserving trivia.
-    pub fn with_token(&self, token: Token<'a>) -> Self {
-        Self {
-            token,
-            leading_trivia: self.leading_trivia.clone(),
-            trailing_trivia: self.trailing_trivia.clone(),
-        }
-    }
 }
 
-impl<'a> std::borrow::Borrow<Token<'a>> for &TokenReference<'a> {
-    fn borrow(&self) -> &Token<'a> {
+impl<'input, T> std::borrow::Borrow<T> for &WithTrivia<'input, T> {
+    fn borrow(&self) -> &T {
         &**self
     }
 }
 
-impl<'a> std::ops::Deref for TokenReference<'a> {
-    type Target = Token<'a>;
+impl<'input> WithTrivia<'input, Token<'input>> {}
+
+impl<'input, T> std::ops::Deref for WithTrivia<'input, T> {
+    type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.token
     }
 }
 
-impl<'a> fmt::Display for TokenReference<'a> {
+impl<'input, T: fmt::Display> fmt::Display for WithTrivia<'input, T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         for trivia in &self.leading_trivia {
             formatter.write_str(&trivia.to_string())?;
         }
 
-        formatter.write_str(&self.token.to_string())?;
+        self.token.fmt(formatter)?;
 
         for trivia in &self.trailing_trivia {
             formatter.write_str(&trivia.to_string())?;
@@ -531,7 +609,7 @@ impl<'a> fmt::Display for TokenReference<'a> {
     }
 }
 
-impl<'a> PartialEq<Self> for TokenReference<'a> {
+impl<'input, T: PartialEq> PartialEq<Self> for WithTrivia<'input, T> {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
             && self.leading_trivia == other.leading_trivia
@@ -539,21 +617,21 @@ impl<'a> PartialEq<Self> for TokenReference<'a> {
     }
 }
 
-impl<'a> Eq for TokenReference<'a> {}
+impl<'input, T: Eq> Eq for WithTrivia<'input, T> {}
 
-impl<'a> Ord for TokenReference<'a> {
+impl<'input, T: Ord> Ord for WithTrivia<'input, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         (**self).cmp(&**other)
     }
 }
 
-impl<'a> PartialOrd for TokenReference<'a> {
+impl<'input, T: Ord> PartialOrd for WithTrivia<'input, T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'ast> Visit<'ast> for TokenReference<'ast> {
+impl<'ast> Visit<'ast> for WithTrivia<'ast, Token<'ast>> {
     fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
@@ -567,7 +645,7 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
     }
 }
 
-impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
+impl<'ast> VisitMut<'ast> for WithTrivia<'ast, Token<'ast>> {
     fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
         let mut token_reference = visitor.visit_token_reference(self);
 
@@ -621,9 +699,54 @@ impl PartialOrd for Position {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct TokenAdvancement<'a> {
-    pub advance: usize,
-    pub token_type: TokenType<'a>,
+enum RawTokenType<'input> {
+    Token(TokenType<'input>),
+    Trivia(TriviaType<'input>),
+    Error(TokenizerErrorType),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+enum RawToken<'input> {
+    Token(Token<'input>),
+    Trivia(Trivia<'input>),
+    Error(TokenizerError),
+}
+
+impl<'input> From<Spanned<RawTokenType<'input>>> for RawToken<'input> {
+    fn from(raw_token: Spanned<RawTokenType<'input>>) -> RawToken<'input> {
+        match raw_token.token_type {
+            RawTokenType::Token(token_type) => RawToken::Token(Token {
+                start_position: raw_token.start_position,
+                end_position: raw_token.end_position,
+                token_type,
+            }),
+            RawTokenType::Trivia(token_type) => RawToken::Trivia(Trivia {
+                start_position: raw_token.start_position,
+                end_position: raw_token.end_position,
+                token_type,
+            }),
+            RawTokenType::Error(error) => RawToken::Error(TokenizerError {
+                error,
+                position: raw_token.start_position,
+            }),
+        }
+    }
+}
+
+impl<'input> From<TokenType<'input>> for RawTokenType<'input> {
+    fn from(token_type: TokenType<'input>) -> RawTokenType<'input> {
+        RawTokenType::Token(token_type)
+    }
+}
+impl<'input> From<TriviaType<'input>> for RawTokenType<'input> {
+    fn from(trivia_type: TriviaType<'input>) -> RawTokenType<'input> {
+        RawTokenType::Trivia(trivia_type)
+    }
+}
+impl<'input> From<TokenizerErrorType> for RawTokenType<'input> {
+    fn from(error: TokenizerErrorType) -> RawTokenType<'input> {
+        RawTokenType::Error(error)
+    }
 }
 
 /// The types of quotes used in a Lua string
@@ -650,260 +773,139 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
     }
 }
 
-type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
+peg::parser! {
+    grammar tokens() for str {
+        use super::ParseSymbol;
+        use peg::ParseLiteral;
+        use super::StringLiteralQuoteType as QuoteType;
+        rule line_ending()
+            = "\n" / "\r\n"
+        rule space()
+            = [' '|'\t']
 
-#[inline]
-fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
-    preceded(tag("--"), take_till(|x: char| x == '\r' || x == '\n'))(code)
-}
+        pub(super) rule whitespace() -> RawTokenType<'input>
+            = chars:$( space()+ line_ending()? / line_ending() )
+              { TriviaType::Whitespace { characters:chars.into() }.into() }
 
-#[inline]
-fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
-    delimited(tag("--["), take_while(|x: char| x == '='), tag("["))(code)
-}
+        rule multi_line_start() -> &'input str
+            = "[" block:$("="*) "[" {block}
 
-#[inline]
-fn parse_multi_line_body<'a>(code: &'a str, block_count: &'a str) -> IResult<&'a str, &'a str> {
-    let terminator = format!("]{}]", block_count);
-    let res = terminated(take_until(terminator.as_str()), tag(terminator.as_str()))(code);
-    res
-}
+        rule multi_line_end(block: &'input str)
+            = "]" ##parse_string_literal(block) "]"
 
-fn advance_comment(code: &str) -> Advancement {
-    if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
-        return match parse_multi_line_body(code, block_count) {
-            Ok((_, comment)) => {
-                let blocks = block_count.chars().count();
-                Ok(Some(TokenAdvancement {
-                    advance: comment.chars().count() + blocks * 2 + "--[[]]".chars().count(),
-                    token_type: TokenType::MultiLineComment {
-                        blocks,
-                        comment: Cow::from(comment),
-                    },
-                }))
-            }
-            Err(_) => Err(TokenizerErrorType::UnclosedComment),
-        };
-    }
+        rule multi_line_block() -> (usize, &'input str)
+            = block:multi_line_start()
+              content:$((!multi_line_end(block) [_])*)
+              multi_line_end(block)
+              { (block.len(), content) }
 
-    match parse_single_line_comment(code) {
-        Ok((_, comment)) => Ok(Some(TokenAdvancement {
-            advance: 2 + comment.chars().count(),
-            token_type: TokenType::SingleLineComment {
-                comment: Cow::from(comment),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
+        rule multi_line_quote() -> RawTokenType<'input>
+            = v:multi_line_block() { TokenType::StringLiteral {
+                multi_line: Some(v.0),
+                literal:v.1.into(),
+                quote_type: QuoteType::Brackets,
+            }.into()}
+            / &multi_line_start() [_]* { TokenizerErrorType::UnclosedString.into() }
 
-fn parse_hex_number(code: &str) -> IResult<&str, &str> {
-    let digits_to_find;
+        rule escape()
+            = "\\" [_]
 
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "roblox")] {
-            digits_to_find = take_while1(|c: char| c.is_digit(16) || c == '_');
-        } else {
-            digits_to_find = take_while1(|c: char| c.is_digit(16));
-        }
-    };
+        rule quote_char(quote: &str)
+            = !(##parse_string_literal(quote) / ['\r'|'\n'|'\\']) [_]
 
-    recognize(pair(tag_no_case("0x"), digits_to_find))(code)
-}
+        rule quoted(quote: &str, quote_type: QuoteType) -> RawTokenType<'input>
+            = ##parse_string_literal(quote)
+              literal:$((quote_char(quote) / escape())+ / )
+              ##parse_string_literal(quote)
+              { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
+            / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
 
-#[cfg(not(feature = "roblox"))]
-fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
-    digit1(code)
-}
+        rule single_line_quote() -> RawTokenType<'input>
+            = quoted("\"", (QuoteType::Double))
+            / quoted("\'", (QuoteType::Single))
 
-#[cfg(feature = "roblox")]
-fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        digit1,
-        opt(take_while1(|c: char| c.is_digit(10) || c == '_')),
-    ))(code)
-}
+        pub(super) rule string_literal() -> RawTokenType<'input>
+            = multi_line_quote() / single_line_quote()
 
-fn parse_no_int_fractional_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        opt(parse_digit_with_seperator),
-        pair(
-            pair(tag("."), parse_digit_with_seperator),
-            opt(pair(
-                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
-                parse_digit_with_seperator,
-            )),
-        ),
-    ))(code)
-}
+        pub(super) rule shebang() -> RawTokenType<'input>
+            = line:$("#!" (!line_ending() [_])* line_ending())
+              {TriviaType::Shebang{line:line.into()}.into()}
 
-fn parse_basic_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        parse_digit_with_seperator,
-        pair(
-            opt(pair(tag("."), opt(parse_digit_with_seperator))),
-            opt(pair(
-                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
-                parse_digit_with_seperator,
-            )),
-        ),
-    ))(code)
-}
+        pub(super) rule identifier() -> RawTokenType<'input>
+            = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
+              { match parse_keyword(id) {
+                    Some(symbol) => TokenType::Symbol { symbol }.into(),
+                    None => TokenType::Identifier { identifier: id.into() }.into(),
+              }}
+            / expected!("identifier")
 
-#[cfg(feature = "roblox")]
-fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        tag_no_case("0b"),
-        take_while1(|x: char| x == '0' || x == '1' || x == '_'),
-    ))(code)
-}
+        pub(super) rule comment() -> RawTokenType<'input>
+            = "--" v:multi_line_block()
+              { TriviaType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
+            / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
+            / "--" comment:$((!['\r'|'\n'] [_])*)
+              { TriviaType::SingleLineComment { comment: comment.into() }.into() }
 
-fn parse_number(code: &str) -> IResult<&str, &str> {
-    alt((
-        #[cfg(feature = "roblox")]
-        parse_roblox_number,
-        parse_hex_number,
-        parse_basic_number,
-        parse_no_int_fractional_number,
-    ))(code)
-}
+        rule roblox()
+            = {? if cfg!(feature = "roblox") {
+                Ok(())
+            } else {
+                Err("roblox not enabled")
+            }}
 
-fn advance_number(code: &str) -> Advancement {
-    match parse_number(code) {
-        Ok((_, number)) => Ok(Some(TokenAdvancement {
-            advance: number.chars().count(),
-            token_type: TokenType::Number {
-                text: Cow::from(number),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
+        rule roblox_number() -> &'input str
+            = roblox() n:$(("0b"/"0B") ['0'|'1'|'_']+) {n}
 
-#[inline]
-fn parse_identifier(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        alt((alpha1, tag("_"))),
-        many0(alt((alphanumeric1, tag("_")))),
-    ))(code)
-}
+        rule hex_number() -> &'input str
+            = roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F'|'_']+) {n}
+            / !roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F']+) {n}
 
-fn advance_identifier(code: &str) -> Advancement {
-    match parse_identifier(code) {
-        Ok((_, identifier)) => Ok(Some(TokenAdvancement {
-            advance: identifier.chars().count(),
-            token_type: TokenType::Identifier {
-                identifier: Cow::from(identifier),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
+        rule digit_with_separator() -> &'input str
+            = roblox() n:$(['0'..='9'] ['0'..='9'|'_']*) {n}
+            / !roblox() n:$(['0'..='9']+) {n}
 
-#[inline]
-fn parse_shebang(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("#!"), many_till(anychar, line_ending)))(code)
-}
-
-fn advance_shebang(code: &str) -> Advancement {
-    match parse_shebang(code) {
-        Ok((_, line)) => Ok(Some(TokenAdvancement {
-            advance: line.chars().count(),
-            token_type: TokenType::Shebang {
-                line: Cow::from(line),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
-
-#[inline]
-fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
-    delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
-}
-
-#[inline]
-fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQuoteType, &str)>> {
-    macro_rules! quoted {
-        ($quote:literal, $quote_type:path) => {
-            pair(
-                success($quote_type),
-                delimited(
-                    tag($quote),
-                    alt((
-                        escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
-                        success(""),
-                    )),
-                    tag($quote),
-                ),
+        rule basic_number() -> &'input str
+            = $(
+                digit_with_separator()
+                ("." digit_with_separator()?)?
+                (['e'|'E'] ['-'|'+']? digit_with_separator())?
             )
-        };
-    };
-    alt((
-        map(quoted!("\"", StringLiteralQuoteType::Double), Some),
-        map(quoted!("\'", StringLiteralQuoteType::Single), Some),
-        value(None, one_of("\"\'")),
-    ))(code)
-}
 
-fn advance_quote(code: &str) -> Advancement {
-    if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
-        return match parse_multi_line_body(code, block_count) {
-            Ok((_, body)) => {
-                let blocks = block_count.chars().count();
-                Ok(Some(TokenAdvancement {
-                    advance: body.chars().count() + blocks * 2 + "[[]]".chars().count(),
-                    token_type: TokenType::StringLiteral {
-                        multi_line: Some(blocks),
-                        literal: Cow::from(body),
-                        quote_type: StringLiteralQuoteType::Brackets,
-                    },
-                }))
-            }
-            Err(_) => Err(TokenizerErrorType::UnclosedString),
-        };
-    }
+        rule no_int_fractional_number() -> &'input str
+            = $(
+                "." digit_with_separator()
+                (['e'|'E'] ['-'|'+']? digit_with_separator())?
 
-    match parse_single_line_string(code) {
-        Ok((_, Some((quote, string)))) => Ok(Some(TokenAdvancement {
-            advance: 2 + string.chars().count(),
-            token_type: TokenType::StringLiteral {
-                literal: Cow::from(string),
-                multi_line: None,
-                quote_type: quote,
-            },
-        })),
-        Ok((_, None)) => Err(TokenizerErrorType::UnclosedString),
-        Err(_) => Ok(None),
-    }
-}
+            )
+        pub(super) rule number() -> RawTokenType<'input>
+            = n:(
+                roblox_number()
+              / hex_number()
+              / basic_number()
+              / no_int_fractional_number()
+            ) { TokenType::Number { text:n.into() }.into() }
 
-fn advance_symbol(code: &str) -> Advancement {
-    match consumed(parse_symbol)(code) {
-        Ok((_, (string, symbol))) => Ok(Some(TokenAdvancement {
-            advance: string.chars().count(),
-            token_type: TokenType::Symbol { symbol },
-        })),
+        pub(super) rule symbol() -> RawTokenType<'input> = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
 
-        Err(_) => Ok(None),
-    }
-}
+        rule token() -> RawTokenType<'input>
+            = whitespace()
+            / comment()
+            / number()
+            / string_literal()
+            / "#!" { TokenizerErrorType::UnexpectedShebang.into() }
+            / symbol()
+            / identifier()
 
-#[inline]
-fn parse_whitespace(code: &str) -> IResult<&str, &str> {
-    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
-}
-
-// Keep finding whitespace until the line ends
-fn advance_whitespace(code: &str) -> Advancement {
-    match parse_whitespace(code) {
-        Ok((_, whitespace)) => Ok(Some(TokenAdvancement {
-            advance: whitespace.chars().count(),
-            token_type: TokenType::Whitespace {
-                characters: Cow::from(whitespace),
-            },
-        })),
-        Err(_) => Ok(None),
+        pub(super) rule tokens() -> Vec<(RawTokenType<'input>, usize)>
+            = shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
+              body:( token:token() pos:position!() {(token,pos)})*
+              {
+                  let mut body = body;
+                  if let Some(shebang) = shebang {
+                      body.insert(0, shebang)
+                  }
+                  body
+              }
     }
 }
 
@@ -925,6 +927,7 @@ impl fmt::Display for TokenizerError {
             match &self.error {
                 TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
                 TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
+                TokenizerErrorType::UnexpectedShebang => "unexpected shebang".to_string(),
                 TokenizerErrorType::UnexpectedToken(character) => {
                     format!("unexpected character {}", character)
                 }
@@ -940,6 +943,105 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
+impl From<peg::str::LineCol> for Position {
+    fn from(location: peg::str::LineCol) -> Position {
+        Position {
+            bytes: location.offset,
+            line: location.line,
+            character: location.column,
+        }
+    }
+}
+
+struct TokenCollector<'input> {
+    result: Vec<WithTrivia<'input, Token<'input>>>,
+    leading_trivia: Vec<Trivia<'input>>,
+    trailing_trivia: Vec<Trivia<'input>>,
+    current_token: Option<Token<'input>>,
+}
+
+// Collector
+impl<'input> TokenCollector<'input> {
+    fn new() -> Self {
+        Self {
+            result: Vec::new(),
+            leading_trivia: Vec::new(),
+            trailing_trivia: Vec::new(),
+            current_token: None,
+        }
+    }
+    fn push(&mut self, raw_token: RawToken<'input>) -> Result<(), TokenizerError> {
+        Ok(match raw_token {
+            RawToken::Trivia(trivia) => match self.current_token {
+                Some(_) => {
+                    if trivia.is_terminal() {
+                        self.trailing_trivia.push(trivia);
+                        self.result.push(WithTrivia {
+                            leading_trivia: self.leading_trivia.drain(..).collect(),
+                            trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                            token: self.current_token.take().unwrap(), // FIXME: unwrap
+                        });
+                        self.current_token = None;
+                    } else {
+                        self.trailing_trivia.push(trivia);
+                    }
+                }
+                None => {
+                    self.leading_trivia.push(trivia);
+                }
+            },
+            RawToken::Token(token) => {
+                if let Some(current_token) = self.current_token.take() {
+                    self.result.push(WithTrivia {
+                        leading_trivia: self.leading_trivia.drain(..).collect(),
+                        trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                        token: current_token,
+                    });
+                }
+                self.current_token = Some(token);
+            }
+            RawToken::Error(error) => Err(error)?,
+        })
+    }
+    fn finish(mut self, eof_position: Position) -> Vec<WithTrivia<'input, Token<'input>>> {
+        if let Some(token) = self.current_token {
+            self.result.push(WithTrivia {
+                leading_trivia: self.leading_trivia.drain(..).collect(),
+                trailing_trivia: self.trailing_trivia.drain(..).collect(),
+                token,
+            });
+        }
+        assert_eq!(
+            self.trailing_trivia.len(),
+            0,
+            "(internal full-moon error) trailing trivia left when adding eof to token stream)"
+        );
+        self.result.push(WithTrivia {
+            leading_trivia: self.leading_trivia,
+            trailing_trivia: self.trailing_trivia,
+            token: Token {
+                start_position: eof_position,
+                end_position: eof_position,
+                token_type: TokenType::Eof,
+            },
+        });
+        self.result
+    }
+}
+
+fn from_parser_error<'input>(
+    code: &'input str,
+) -> impl Fn(peg::error::ParseError<peg::str::LineCol>) -> TokenizerError + 'input {
+    move |err| TokenizerError {
+        error: TokenizerErrorType::UnexpectedToken(
+            code[err.location.offset..].chars().next().expect(
+                "(internal full-moon error) Text overflow while giving unexpected token error",
+            ),
+        ),
+        position: err.location.into(),
+    }
+}
+
 /// Returns a list of tokens.
 /// You probably want [`parse`](crate::parse) instead.
 ///
@@ -954,91 +1056,67 @@ impl std::error::Error for TokenizerError {}
 /// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
-pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
-    let mut tokens = Vec::new();
+pub fn tokens<'a>(code: &'a str) -> Result<Vec<WithTrivia<'a, Token<'a>>>, TokenizerError> {
+    let mut tokens = TokenCollector::new();
+
+    let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
+
+    // rust-peg lets us easily get the offset associated with
+    // (the end of) each token, but not the line or column
+    // information. We iterate over the characters to match
+    // up the tokens with the row/column information.
+    let mut raw_tokens = raw_tokens.drain(..);
+
     let mut position = Position {
         bytes: 0,
         character: 1,
         line: 1,
     };
-
     let mut next_is_new_line = false;
+    let mut start_position = position;
+    if let Some((mut token_type, mut token_offset)) = raw_tokens.next() {
+        for character in code.chars() {
+            if character == '\n' {
+                next_is_new_line = true;
+            } else {
+                position.character += 1;
+            }
 
-    macro_rules! advance {
-        ($function:ident) => {
-            match $function(&code[position.bytes..]) {
-                Ok(Some(advancement)) => {
-                    let start_position = position;
+            position.bytes += character.len_utf8();
 
-                    for character in code[position.bytes..].chars().take(advancement.advance) {
-                        if next_is_new_line {
-                            next_is_new_line = false;
-                            position.line += 1;
-                            position.character = 1;
-                        }
+            let end_position = position;
 
-                        if character == '\n' {
-                            next_is_new_line = true;
-                        } else {
-                            position.character += 1;
-                        }
+            if next_is_new_line {
+                next_is_new_line = false;
+                position.line += 1;
+                position.character = 1;
+            }
 
-                        position.bytes += character.len_utf8();
-                    }
-
-                    tokens.push(Token {
+            if token_offset == end_position.bytes {
+                tokens.push(
+                    Spanned {
                         start_position,
-                        end_position: position,
-                        token_type: advancement.token_type,
-                    });
-                    if next_is_new_line {
-                        next_is_new_line = false;
-                        position.line += 1;
-                        position.character = 1;
+                        token_type: token_type,
+                        end_position,
                     }
-
-                    continue;
+                    .into(),
+                )?;
+                start_position = position;
+                if let Some((next_token_type, next_token_offset)) = raw_tokens.next() {
+                    token_type = next_token_type;
+                    token_offset = next_token_offset;
+                } else {
+                    break;
                 }
-
-                Ok(None) => {}
-
-                Err(error) => {
-                    return Err(TokenizerError { error, position });
-                }
-            };
-        };
+            }
+        }
     }
 
-    for _ in 0..1 {
-        // A hack, since `advance!` requires a loop to run.
-        advance!(advance_shebang);
+    if let Some((token_type, token_offset)) = raw_tokens.next() {
+        panic!("(internal full-moon error) Found token {:?} with offset {:?} which is past the end of source", token_type, token_offset);
     }
 
-    while code.bytes().count() > position.bytes {
-        advance!(advance_whitespace);
-        advance!(advance_comment);
-        advance!(advance_number);
-        advance!(advance_quote);
-        advance!(advance_symbol);
-        advance!(advance_identifier);
-
-        return Err(TokenizerError {
-            error: TokenizerErrorType::UnexpectedToken(
-                code.chars()
-                    .nth(position.character - 1)
-                    .expect("text overflow while giving unexpected token error"),
-            ),
-            position,
-        });
-    }
-
-    tokens.push(Token {
-        start_position: position,
-        end_position: position,
-        token_type: TokenType::Eof,
-    });
-
-    Ok(tokens)
+    Ok(tokens.finish(position))
 }
 
 #[cfg(test)]
@@ -1046,260 +1124,233 @@ mod tests {
     use crate::tokenizer::*;
     use pretty_assertions::assert_eq;
 
-    macro_rules! test_advancer {
-        ($advancer:ident($code:tt), $result:expr) => {
-            assert_eq!($advancer($code), $result);
+    macro_rules! test_rule {
+        ($rule:ident($code:expr), $result:expr) => {
+            let code: &str = $code;
+            let result: RawToken = $result.into();
 
-            let result: Advancement = $result;
+            assert_eq!(
+                tokens::$rule(code)
+                    .map_err(|err| from_parser_error(code)(err).error)
+                    .and_then(|v| v),
+                result,
+            );
+            test_rule!(code, result)
+        };
+        ($code:expr, $result:expr) => {
+            let code: &str = $code;
+            let result: RawToken = $result.into();
+
             match result {
-                Ok(Some(token)) => {
-                    let tokens = tokens($code).expect("couldn't tokenize");
+                Ok(token) => {
+                    let tokens = tokens(code).expect("couldn't tokenize");
                     let first_token = &tokens.get(0).expect("tokenized response is empty");
-                    assert_eq!(*first_token.token_type(), token.token_type);
-                }
-
-                Err(advancement_error) => {
-                    if let Err(TokenizerError { error, .. }) = tokens($code) {
-                        assert_eq!(error, advancement_error);
+                    if token.is_trivia() {
+                        let first_trivia = &first_token
+                            .leading_trivia
+                            .get(0)
+                            .expect("leading trivia is empty");
+                        assert_eq!(*first_trivia.token_type(), token);
+                    } else {
+                        assert_eq!(*first_token.token_type(), token);
                     }
                 }
 
-                _ => {}
+                Err(expected) => {
+                    if let Err(TokenizerError { error, .. }) = tokens($code) {
+                        assert_eq!(error, expected);
+                    }
+                }
             };
         };
     }
 
     #[test]
-    fn test_advance_comment() {
-        test_advancer!(
-            advance_comment("-- hello world"),
-            Ok(Some(TokenAdvancement {
-                advance: 14,
-                token_type: TokenType::SingleLineComment {
-                    comment: Cow::from(" hello world"),
-                },
-            }))
+    fn test_rule_comment() {
+        test_rule!(
+            comment("-- hello world"),
+            TokenType::SingleLineComment {
+                comment: " hello world".into()
+            }
         );
 
-        test_advancer!(
-            advance_comment("--[[ hello world ]]"),
-            Ok(Some(TokenAdvancement {
-                advance: 19,
-                token_type: TokenType::MultiLineComment {
-                    blocks: 0,
-                    comment: Cow::from(" hello world "),
-                },
-            }))
+        test_rule!(
+            comment("--[[ hello world ]]"),
+            TokenType::MultiLineComment {
+                blocks: 0,
+                comment: " hello world ".into()
+            }
         );
 
-        test_advancer!(
-            advance_comment("--[=[ hello world ]=]"),
-            Ok(Some(TokenAdvancement {
-                advance: 21,
-                token_type: TokenType::MultiLineComment {
-                    blocks: 1,
-                    comment: Cow::from(" hello world "),
-                },
-            }))
+        test_rule!(
+            comment("--[=[ hello world ]=]"),
+            TokenType::MultiLineComment {
+                blocks: 1,
+                comment: " hello world ".into()
+            }
+        );
+        test_rule!(
+            comment("--"),
+            TokenType::SingleLineComment { comment: "".into() }
         );
     }
 
     #[test]
-    fn test_advance_numbers() {
-        test_advancer!(
-            advance_number("213"),
-            Ok(Some(TokenAdvancement {
-                advance: 3,
-                token_type: TokenType::Number {
-                    text: Cow::from("213"),
-                },
-            }))
-        );
+    fn test_rule_numbers() {
+        test_rule!(number("213"), TokenType::Number { text: "213".into() });
 
-        test_advancer!(
-            advance_number("123.45"),
-            Ok(Some(TokenAdvancement {
-                advance: 6,
-                token_type: TokenType::Number {
-                    text: Cow::from("123.45"),
-                },
-            }))
+        test_rule!(number("1"), TokenType::Number { text: "1".into() });
+
+        test_rule!(
+            number("123.45"),
+            TokenType::Number {
+                text: "123.45".into(),
+            }
         );
     }
 
     #[test]
     #[cfg_attr(not(feature = "roblox"), ignore)]
-    fn test_advance_binary_literals() {
-        test_advancer!(
-            advance_number("0b101"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Number {
-                    text: Cow::from("0b101"),
-                },
-            }))
+    fn test_rule_binary_literals() {
+        test_rule!(
+            number("0b101"),
+            TokenType::Number {
+                text: "0b101".into(),
+            }
         );
     }
 
     #[test]
-    fn test_advance_identifier() {
-        test_advancer!(
-            advance_identifier("hello"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello"),
-                },
-            }))
+    fn test_rule_identifier() {
+        test_rule!(
+            identifier("hello"),
+            TokenType::Identifier {
+                identifier: "hello".into(),
+            }
         );
 
-        test_advancer!(
-            advance_identifier("hello world"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello"),
-                },
-            }))
+        test_rule!(
+            "hello world",
+            TokenType::Identifier {
+                identifier: "hello".into(),
+            }
         );
 
-        test_advancer!(
-            advance_identifier("hello___"),
-            Ok(Some(TokenAdvancement {
-                advance: 8,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello___"),
-                },
-            }))
+        test_rule!(
+            identifier("hello___"),
+            TokenType::Identifier {
+                identifier: "hello___".into(),
+            }
         );
 
-        test_advancer!(advance_identifier("123"), Ok(None));
+        test_rule!(identifier("123"), TokenizerErrorType::UnexpectedToken('1'));
     }
 
     #[test]
-    fn test_advance_symbols() {
-        test_advancer!(
-            advance_symbol("local"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Symbol {
-                    symbol: Symbol::Local
-                },
-            }))
+    fn test_rule_symbols() {
+        test_rule!(
+            identifier("local"),
+            TokenType::Symbol {
+                symbol: Symbol::Local
+            }
         );
     }
 
     #[test]
-    fn test_advance_whitespace() {
-        test_advancer!(
-            advance_whitespace("\t  \n\t"),
-            Ok(Some(TokenAdvancement {
-                advance: 4,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t  \n"),
-                },
-            }))
+    fn test_rule_whitespace() {
+        test_rule!(
+            "\t  \n\t",
+            TriviaType::Whitespace {
+                characters: "\t  \n".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\thello"),
-            Ok(Some(TokenAdvancement {
-                advance: 1,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t"),
-                },
-            }))
+        test_rule!(
+            "\thello",
+            TriviaType::Whitespace {
+                characters: "\t".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\t\t\nhello"),
-            Ok(Some(TokenAdvancement {
-                advance: 3,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t\t\n"),
-                },
-            }))
+        test_rule!(
+            "\t\t\nhello",
+            TriviaType::Whitespace {
+                characters: "\t\t\n".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\n\thello"),
-            Ok(Some(TokenAdvancement {
-                advance: 1,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\n"),
-                },
-            }))
+        test_rule!(
+            "\n\thello",
+            TriviaType::Whitespace {
+                characters: "\n".into(),
+            }
         );
     }
 
     #[test]
-    fn test_advance_quote() {
-        test_advancer!(
-            advance_quote("\"hello\""),
-            Ok(Some(TokenAdvancement {
-                advance: 7,
-                token_type: TokenType::StringLiteral {
-                    literal: Cow::from("hello"),
-                    multi_line: None,
-                    quote_type: StringLiteralQuoteType::Double,
-                },
-            }))
+    fn test_rule_string_literal() {
+        test_rule!(
+            string_literal("\"hello\""),
+            TokenType::StringLiteral {
+                literal: "hello".into(),
+                multi_line: None,
+                quote_type: StringLiteralQuoteType::Double,
+            }
         );
 
-        test_advancer!(
-            advance_quote("\"hello\\\nworld\""),
-            Ok(Some(TokenAdvancement {
-                advance: 14,
-                token_type: TokenType::StringLiteral {
-                    literal: Cow::from("hello\\\nworld"),
-                    multi_line: None,
-                    quote_type: StringLiteralQuoteType::Double,
-                },
-            }))
+        test_rule!(
+            string_literal("\"hello\\\nworld\""),
+            TokenType::StringLiteral {
+                literal: "hello\\\nworld".into(),
+                multi_line: None,
+                quote_type: StringLiteralQuoteType::Double,
+            }
         );
 
-        test_advancer!(
-            advance_quote("\"hello"),
-            Err(TokenizerErrorType::UnclosedString)
+        test_rule!(
+            string_literal("\"hello"),
+            TokenizerErrorType::UnclosedString
         );
     }
 
     #[test]
     fn test_symbols_within_symbols() {
         // "index" should not return "in"
-        test_advancer!(advance_symbol("index"), Ok(None));
+        test_rule!(
+            identifier("index"),
+            TokenType::Identifier {
+                identifier: "index".into()
+            }
+        );
 
         // "<=" should not return "<"
-        test_advancer!(
-            advance_symbol("<="),
-            Ok(Some(TokenAdvancement {
-                advance: 2,
-                token_type: TokenType::Symbol {
-                    symbol: Symbol::LessThanEqual,
-                },
-            }))
+        test_rule!(
+            symbol("<="),
+            TokenType::Symbol {
+                symbol: Symbol::LessThanEqual,
+            }
         );
     }
 
     #[test]
-    fn test_advance_shebang() {
-        test_advancer!(
-            advance_shebang("#!/usr/bin/env lua\n"),
-            Ok(Some(TokenAdvancement {
-                advance: 19,
-                token_type: TokenType::Shebang {
-                    line: "#!/usr/bin/env lua\n".into()
-                }
-            }))
+    fn test_rule_shebang() {
+        test_rule!(
+            shebang("#!/usr/bin/env lua\n"),
+            TokenType::Shebang {
+                line: "#!/usr/bin/env lua\n".into()
+            }
         );
         // Don't recognize with a whitespace.
-        test_advancer!(advance_shebang(" #!/usr/bin/env lua\n"), Ok(None));
+        test_rule!(
+            " #!/usr/bin/env lua\n",
+            TokenizerErrorType::UnexpectedShebang
+        );
     }
 
     #[test]
     fn test_new_line_on_same_line() {
         assert_eq!(
-            tokens("\n").unwrap()[0],
+            tokens("\n").unwrap()[0].leading_trivia[0],
             Token {
                 start_position: Position {
                     bytes: 0,
@@ -1313,8 +1364,8 @@ mod tests {
                     line: 1,
                 },
 
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\n")
+                token_type: TriviaType::Whitespace {
+                    characters: "\n".into()
                 },
             }
         );
@@ -1325,5 +1376,38 @@ mod tests {
         let _ = tokens("*ա");
         let _ = tokens("̹(");
         let _ = tokens("¹;");
+    }
+
+    #[test]
+    fn test_extract_token_references() {
+        let references =
+            tokens("print(1)\n-- hello world\nlocal foo -- this is the word foo").unwrap();
+
+        assert_eq!(references.len(), 7);
+
+        assert!(references[0].trailing_trivia.is_empty());
+        assert_eq!(references[0].token.to_string(), "print");
+        assert!(references[0].leading_trivia.is_empty());
+
+        assert!(references[1].trailing_trivia.is_empty());
+        assert_eq!(references[1].token.to_string(), "(");
+        assert!(references[1].leading_trivia.is_empty());
+
+        assert!(references[2].trailing_trivia.is_empty());
+        assert_eq!(references[2].token.to_string(), "1");
+        assert!(references[2].leading_trivia.is_empty());
+
+        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
+        assert_eq!(references[3].token.to_string(), ")");
+        assert!(references[3].leading_trivia.is_empty());
+
+        assert_eq!(
+            references[4].leading_trivia[0].to_string(),
+            "-- hello world",
+        );
+
+        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
+        assert_eq!(references[4].token.to_string(), "local");
+        assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
     }
 }
