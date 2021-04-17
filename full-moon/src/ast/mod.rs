@@ -502,6 +502,9 @@ pub struct NumericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     index_variable: TokenReference<'a>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifier: Option<TypeSpecifier<'a>>,
     equal_token: TokenReference<'a>,
     start: Expression<'a>,
     start_end_comma: TokenReference<'a>,
@@ -511,9 +514,6 @@ pub struct NumericFor<'a> {
     do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
-    #[cfg(feature = "roblox")]
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    type_specifier: Option<TypeSpecifier<'a>>,
 }
 
 impl<'a> NumericFor<'a> {
@@ -734,14 +734,14 @@ pub struct GenericFor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     for_token: TokenReference<'a>,
     names: Punctuated<'a, TokenReference<'a>>,
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
     in_token: TokenReference<'a>,
     expr_list: Punctuated<'a, Expression<'a>>,
     do_token: TokenReference<'a>,
     block: Block<'a>,
     end_token: TokenReference<'a>,
-    #[cfg(feature = "roblox")]
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
 }
 
 impl<'a> GenericFor<'a> {
@@ -1676,10 +1676,10 @@ impl<'a> LocalFunction<'a> {
 pub struct LocalAssignment<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
+    name_list: Punctuated<'a, TokenReference<'a>>,
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(borrow))]
     type_specifiers: Vec<Option<TypeSpecifier<'a>>>,
-    name_list: Punctuated<'a, TokenReference<'a>>,
     equal_token: Option<TokenReference<'a>>,
     expr_list: Punctuated<'a, Expression<'a>>,
 }
