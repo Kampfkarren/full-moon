@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/cases/pass/multi-line-comments-6
 
 ---
 stmts:
@@ -73,7 +72,7 @@ stmts:
               type: Identifier
               identifier: x
           trailing_trivia: []
-        func_body:
+        body:
           parameters_parentheses:
             tokens:
               - leading_trivia: []
