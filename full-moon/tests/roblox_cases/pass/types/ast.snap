@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/types
 
 ---
 stmts:
@@ -2472,6 +2471,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 363
+                    line: 16
+                    character: 7
+                  end_position:
+                    bytes: 366
+                    line: 16
+                    character: 10
+                  token_type:
+                    type: Identifier
+                    identifier: foo
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -2526,23 +2542,6 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 363
-                    line: 16
-                    character: 7
-                  end_position:
-                    bytes: 366
-                    line: 16
-                    character: 10
-                  token_type:
-                    type: Identifier
-                    identifier: foo
-                trailing_trivia: []
         equal_token:
           leading_trivia: []
           token:
@@ -2627,6 +2626,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 385
+                    line: 17
+                    character: 7
+                  end_position:
+                    bytes: 388
+                    line: 17
+                    character: 10
+                  token_type:
+                    type: Identifier
+                    identifier: foo
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -2698,23 +2714,6 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: "\n"
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 385
-                    line: 17
-                    character: 7
-                  end_position:
-                    bytes: 388
-                    line: 17
-                    character: 10
-                  token_type:
-                    type: Identifier
-                    identifier: foo
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -2746,6 +2745,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 404
+                    line: 18
+                    character: 7
+                  end_position:
+                    bytes: 407
+                    line: 18
+                    character: 10
+                  token_type:
+                    type: Identifier
+                    identifier: foo
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -2849,23 +2865,6 @@ stmts:
                               type: Identifier
                               identifier: T
                           trailing_trivia: []
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 404
-                    line: 18
-                    character: 7
-                  end_position:
-                    bytes: 407
-                    line: 18
-                    character: 10
-                  token_type:
-                    type: Identifier
-                    identifier: foo
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -2897,6 +2896,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 424
+                    line: 19
+                    character: 7
+                  end_position:
+                    bytes: 427
+                    line: 19
+                    character: 10
+                  token_type:
+                    type: Identifier
+                    identifier: foo
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -3041,23 +3057,6 @@ stmts:
                               type: Identifier
                               identifier: U
                           trailing_trivia: []
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 424
-                    line: 19
-                    character: 7
-                  end_position:
-                    bytes: 427
-                    line: 19
-                    character: 10
-                  token_type:
-                    type: Identifier
-                    identifier: foo
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -3089,8 +3088,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -3119,6 +3116,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -3258,6 +3257,63 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - Punctuated:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 473
+                      line: 21
+                      character: 7
+                    end_position:
+                      bytes: 476
+                      line: 21
+                      character: 10
+                    token_type:
+                      type: Identifier
+                      identifier: foo
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 484
+                      line: 21
+                      character: 18
+                    end_position:
+                      bytes: 485
+                      line: 21
+                      character: 19
+                    token_type:
+                      type: Symbol
+                      symbol: ","
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 485
+                        line: 21
+                        character: 19
+                      end_position:
+                        bytes: 486
+                        line: 21
+                        character: 20
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 486
+                    line: 21
+                    character: 20
+                  end_position:
+                    bytes: 489
+                    line: 21
+                    character: 23
+                  token_type:
+                    type: Identifier
+                    identifier: bar
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -3354,63 +3410,6 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: "\n"
-        name_list:
-          pairs:
-            - Punctuated:
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 473
-                      line: 21
-                      character: 7
-                    end_position:
-                      bytes: 476
-                      line: 21
-                      character: 10
-                    token_type:
-                      type: Identifier
-                      identifier: foo
-                  trailing_trivia: []
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 484
-                      line: 21
-                      character: 18
-                    end_position:
-                      bytes: 485
-                      line: 21
-                      character: 19
-                    token_type:
-                      type: Symbol
-                      symbol: ","
-                  trailing_trivia:
-                    - start_position:
-                        bytes: 485
-                        line: 21
-                        character: 19
-                      end_position:
-                        bytes: 486
-                        line: 21
-                        character: 20
-                      token_type:
-                        type: Whitespace
-                        characters: " "
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 486
-                    line: 21
-                    character: 20
-                  end_position:
-                    bytes: 489
-                    line: 21
-                    character: 23
-                  token_type:
-                    type: Identifier
-                    identifier: bar
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -3453,6 +3452,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 505
+                    line: 23
+                    character: 7
+                  end_position:
+                    bytes: 510
+                    line: 23
+                    character: 12
+                  token_type:
+                    type: Identifier
+                    identifier: union
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -3562,23 +3578,6 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: "\n"
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 505
-                    line: 23
-                    character: 7
-                  end_position:
-                    bytes: 510
-                    line: 23
-                    character: 12
-                  token_type:
-                    type: Identifier
-                    identifier: union
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -3610,6 +3609,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 534
+                    line: 24
+                    character: 7
+                  end_position:
+                    bytes: 544
+                    line: 24
+                    character: 17
+                  token_type:
+                    type: Identifier
+                    identifier: multiUnion
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -3774,23 +3790,6 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 534
-                    line: 24
-                    character: 7
-                  end_position:
-                    bytes: 544
-                    line: 24
-                    character: 17
-                  token_type:
-                    type: Identifier
-                    identifier: multiUnion
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -3833,6 +3832,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 575
+                    line: 26
+                    character: 7
+                  end_position:
+                    bytes: 587
+                    line: 26
+                    character: 19
+                  token_type:
+                    type: Identifier
+                    identifier: intersection
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -3942,23 +3958,6 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: "\n"
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 575
-                    line: 26
-                    character: 7
-                  end_position:
-                    bytes: 587
-                    line: 26
-                    character: 19
-                  token_type:
-                    type: Identifier
-                    identifier: intersection
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -3990,6 +3989,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 611
+                    line: 27
+                    character: 7
+                  end_position:
+                    bytes: 628
+                    line: 27
+                    character: 24
+                  token_type:
+                    type: Identifier
+                    identifier: multiIntersection
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -4154,23 +4170,6 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 611
-                    line: 27
-                    character: 7
-                  end_position:
-                    bytes: 628
-                    line: 27
-                    character: 24
-                  token_type:
-                    type: Identifier
-                    identifier: multiIntersection
-                trailing_trivia: []
         equal_token: ~
         expr_list:
           pairs: []
@@ -4840,8 +4839,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -4870,6 +4867,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -5205,8 +5204,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -5235,6 +5232,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:

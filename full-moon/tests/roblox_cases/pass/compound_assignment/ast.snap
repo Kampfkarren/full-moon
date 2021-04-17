@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/compound_assignment
 
 ---
 stmts:
@@ -32,8 +31,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -62,6 +59,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -146,8 +145,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -176,6 +173,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -1307,8 +1306,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -1337,6 +1334,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -1422,8 +1421,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -1452,6 +1449,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:

@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/no_roblox_syntax
 
 ---
 stmts:
@@ -54,8 +53,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -84,6 +81,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -255,8 +254,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -285,6 +282,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -467,8 +466,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -497,6 +494,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -715,8 +714,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -745,6 +742,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: " "
+        type_specifiers:
+          - ~
         equal_token:
           leading_trivia: []
           token:
@@ -1053,8 +1052,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -1083,6 +1080,8 @@ stmts:
                     token_type:
                       type: Whitespace
                       characters: "\n"
+        type_specifiers:
+          - ~
         equal_token: ~
         expr_list:
           pairs: []
@@ -3153,9 +3152,6 @@ last_stmt:
                                     token_type:
                                       type: Whitespace
                                       characters: " "
-                              type_specifiers:
-                                - ~
-                                - ~
                               name_list:
                                 pairs:
                                   - Punctuated:
@@ -3224,6 +3220,9 @@ last_stmt:
                                           token_type:
                                             type: Whitespace
                                             characters: " "
+                              type_specifiers:
+                                - ~
+                                - ~
                               equal_token: ~
                               expr_list:
                                 pairs: []

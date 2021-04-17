@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/types_indexable
 
 ---
 stmts:
@@ -32,6 +31,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 6
+                    line: 1
+                    character: 7
+                  end_position:
+                    bytes: 7
+                    line: 1
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: x
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -118,23 +134,6 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: " "
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 6
-                    line: 1
-                    character: 7
-                  end_position:
-                    bytes: 7
-                    line: 1
-                    character: 8
-                  token_type:
-                    type: Identifier
-                    identifier: x
-                trailing_trivia: []
         equal_token:
           leading_trivia: []
           token:
@@ -219,6 +218,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 32
+                    line: 2
+                    character: 7
+                  end_position:
+                    bytes: 33
+                    line: 2
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: x
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -354,23 +370,6 @@ stmts:
                                   type: Identifier
                                   identifier: string
                               trailing_trivia: []
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 32
-                    line: 2
-                    character: 7
-                  end_position:
-                    bytes: 33
-                    line: 2
-                    character: 8
-                  token_type:
-                    type: Identifier
-                    identifier: x
-                trailing_trivia: []
         equal_token:
           leading_trivia: []
           token:
@@ -514,6 +513,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 74
+                    line: 3
+                    character: 7
+                  end_position:
+                    bytes: 75
+                    line: 3
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: x
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -655,23 +671,6 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: " "
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 74
-                    line: 3
-                    character: 7
-                  end_position:
-                    bytes: 75
-                    line: 3
-                    character: 8
-                  token_type:
-                    type: Identifier
-                    identifier: x
-                trailing_trivia: []
         equal_token:
           leading_trivia: []
           token:
@@ -757,6 +756,23 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 111
+                    line: 4
+                    character: 7
+                  end_position:
+                    bytes: 112
+                    line: 4
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: x
+                trailing_trivia: []
         type_specifiers:
           - punctuation:
               leading_trivia: []
@@ -860,23 +876,6 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: " "
-        name_list:
-          pairs:
-            - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 111
-                    line: 4
-                    character: 7
-                  end_position:
-                    bytes: 112
-                    line: 4
-                    character: 8
-                  token_type:
-                    type: Identifier
-                    identifier: x
-                trailing_trivia: []
         equal_token:
           leading_trivia: []
           token:
