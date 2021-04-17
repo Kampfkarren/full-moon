@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_wraps)] // Clippy currently triggers false positives wrt. Advancement: https://github.com/rust-lang/rust-clippy/issues/6613
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
 use full_moon_derive::{symbols, Owned};
@@ -182,13 +183,13 @@ impl<'a> TokenType<'a> {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
-        match self {
+        matches!(
+            self,
             TokenType::Shebang { .. }
-            | TokenType::SingleLineComment { .. }
-            | TokenType::MultiLineComment { .. }
-            | TokenType::Whitespace { .. } => true,
-            _ => false,
-        }
+                | TokenType::SingleLineComment { .. }
+                | TokenType::MultiLineComment { .. }
+                | TokenType::Whitespace { .. }
+        )
     }
 
     /// Returns the kind of the token type.
@@ -954,7 +955,7 @@ impl std::error::Error for TokenizerError {}
 /// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
-pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
+pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
     let mut tokens = Vec::new();
     let mut position = Position {
         bytes: 0,
