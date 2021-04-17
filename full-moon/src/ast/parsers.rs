@@ -921,14 +921,14 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-    let (state, func_body) = ParseFunctionBody.parse(state)?;
+    let (state, body) = ParseFunctionBody.parse(state)?;
     Ok((
         state,
         LocalFunction {
             local_token,
             function_token,
             name,
-            func_body,
+            body,
         },
     ))
 });
