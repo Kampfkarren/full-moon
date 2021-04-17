@@ -8,7 +8,9 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    node::{Node as NodeTrait, TokenItem, Tokens},
+    private::Sealed,
+    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
@@ -209,12 +211,11 @@ pub enum Field<'a> {
 }
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Owned, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "braces.tokens().0", "fields", "braces.tokens().1")]
 pub struct TableConstructor<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
-    #[node(full_range)]
     #[visit(contains = "fields")]
     braces: ContainedSpan<'a>,
     fields: Punctuated<'a, Field<'a>>,
@@ -257,6 +258,31 @@ impl<'a> TableConstructor<'a> {
 impl Default for TableConstructor<'_> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Sealed for TableConstructor<'_> {}
+impl<'a> NodeTrait<'a> for TableConstructor<'a> {
+    fn start_position(&self) -> Option<Position> {
+        self.braces.tokens().0.start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        self.braces.tokens().1.end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.braces().similar(other.braces()) && self.fields().similar(other.fields())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        let mut items = Vec::with_capacity(3);
+        let (start_brace, end_brace) = self.braces().tokens();
+        items.push(TokenItem::TokenReference(start_brace));
+        items.push(TokenItem::MoreTokens(self.fields()));
+        items.push(TokenItem::TokenReference(end_brace));
+
+        Tokens { items }
     }
 }
 
