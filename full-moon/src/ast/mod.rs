@@ -2302,7 +2302,11 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{parse, print, tokenizer::tokens, visitors::VisitorMut};
+    use crate::{
+        parse, print,
+        tokenizer::tokens,
+        visitors::{Visitor, VisitorMut},
+    };
 
     #[test]
     fn test_extract_token_references() {
@@ -2416,5 +2420,32 @@ mod tests {
         Return::new();
         TableConstructor::new();
         While::new(expression.clone());
+    }
+
+    // Test that the tokens retrieved from a node are correctly ordered
+    #[test]
+    fn test_node_tokens() {
+        let ast = parse("local x = {true}").unwrap();
+
+        struct NodesChecker;
+        impl<'ast> Visitor<'ast> for NodesChecker {
+            fn visit_table_constructor(&mut self, table_constructor: &TableConstructor<'ast>) {
+                let mut tokens = table_constructor.tokens();
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("{").unwrap()));
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("true").unwrap()));
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("}").unwrap()));
+            }
+        }
+
+        NodesChecker.visit_ast(&ast);
     }
 }
