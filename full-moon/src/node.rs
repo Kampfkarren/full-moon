@@ -1,5 +1,5 @@
 use crate::{
-    ast::Ast,
+    ast::{Ast, TableConstructor},
     private,
     tokenizer::{Position, Token, TokenReference},
 };
@@ -280,5 +280,63 @@ impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
         items.extend(self.1.tokens().items.drain(..));
 
         Tokens { items }
+    }
+}
+
+impl private::Sealed for TableConstructor<'_> {}
+impl<'a> Node<'a> for TableConstructor<'a> {
+    fn start_position(&self) -> Option<Position> {
+        self.braces().tokens().0.start_position()
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        self.braces().tokens().1.end_position()
+    }
+
+    fn similar(&self, other: &Self) -> bool {
+        self.braces().similar(other.braces()) && self.fields().similar(other.fields())
+    }
+
+    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+        let mut items = Vec::new();
+        let (start_brace, end_brace) = self.braces().tokens();
+        items.push(TokenItem::TokenReference(start_brace));
+        items.push(TokenItem::MoreTokens(self.fields()));
+        items.push(TokenItem::TokenReference(end_brace));
+
+        Tokens { items }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{parse, visitors::Visitor};
+
+    // Test TableConstructor nodes are correctly ordered
+    #[test]
+    fn test_table_constructor_tokens() {
+        let ast = parse("local x = {true}").unwrap();
+
+        struct NodesChecker;
+        impl<'ast> Visitor<'ast> for NodesChecker {
+            fn visit_table_constructor(&mut self, table_constructor: &TableConstructor<'ast>) {
+                let mut tokens = table_constructor.tokens();
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("{").unwrap()));
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("true").unwrap()));
+                assert!(tokens
+                    .next()
+                    .unwrap()
+                    .similar(&TokenReference::symbol("}").unwrap()));
+            }
+        }
+
+        NodesChecker.visit_ast(&ast);
     }
 }

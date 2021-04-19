@@ -8,9 +8,7 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    node::{Node as NodeTrait, TokenItem, Tokens},
-    private::Sealed,
-    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Symbol, Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
@@ -258,31 +256,6 @@ impl<'a> TableConstructor<'a> {
 impl Default for TableConstructor<'_> {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Sealed for TableConstructor<'_> {}
-impl<'a> NodeTrait<'a> for TableConstructor<'a> {
-    fn start_position(&self) -> Option<Position> {
-        self.braces.tokens().0.start_position()
-    }
-
-    fn end_position(&self) -> Option<Position> {
-        self.braces.tokens().1.end_position()
-    }
-
-    fn similar(&self, other: &Self) -> bool {
-        self.braces().similar(other.braces()) && self.fields().similar(other.fields())
-    }
-
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
-        let mut items = Vec::with_capacity(3);
-        let (start_brace, end_brace) = self.braces().tokens();
-        items.push(TokenItem::TokenReference(start_brace));
-        items.push(TokenItem::MoreTokens(self.fields()));
-        items.push(TokenItem::TokenReference(end_brace));
-
-        Tokens { items }
     }
 }
 
@@ -2302,11 +2275,7 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        parse, print,
-        tokenizer::tokens,
-        visitors::{Visitor, VisitorMut},
-    };
+    use crate::{parse, print, tokenizer::tokens, visitors::VisitorMut};
 
     #[test]
     fn test_extract_token_references() {
@@ -2420,32 +2389,5 @@ mod tests {
         Return::new();
         TableConstructor::new();
         While::new(expression.clone());
-    }
-
-    // Test that the tokens retrieved from a node are correctly ordered
-    #[test]
-    fn test_node_tokens() {
-        let ast = parse("local x = {true}").unwrap();
-
-        struct NodesChecker;
-        impl<'ast> Visitor<'ast> for NodesChecker {
-            fn visit_table_constructor(&mut self, table_constructor: &TableConstructor<'ast>) {
-                let mut tokens = table_constructor.tokens();
-                assert!(tokens
-                    .next()
-                    .unwrap()
-                    .similar(&TokenReference::symbol("{").unwrap()));
-                assert!(tokens
-                    .next()
-                    .unwrap()
-                    .similar(&TokenReference::symbol("true").unwrap()));
-                assert!(tokens
-                    .next()
-                    .unwrap()
-                    .similar(&TokenReference::symbol("}").unwrap()));
-            }
-        }
-
-        NodesChecker.visit_ast(&ast);
     }
 }
