@@ -1296,7 +1296,7 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeInfo(TypeInfoContext);
         define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
-            // Prohibit variadic type annotation for a parameter type specifier
+            // Only allow variadic type annotation for a return type or a tuple type
             if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
                 if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
                     let (state, type_info) = expect!(
