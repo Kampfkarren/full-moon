@@ -789,11 +789,31 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
                 parameters.push(last_parameter);
 
                 parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
+
+                // Parse ellipse type if in Luau
+                if cfg!(feature = "roblox") {
+                    if let Ok((new_state, type_specifier)) = ParseTypeSpecifier.parse(state) {
+                        state = new_state;
+                        type_specifiers.push(Some(type_specifier));
+                    } else {
+                        type_specifiers.push(None);
+                    }
+                }
             }
         }
     } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
         state = new_state;
         parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
+
+        // Parse ellipse type if in Luau
+        if cfg!(feature = "roblox") {
+            if let Ok((new_state, type_specifier)) = ParseTypeSpecifier.parse(state) {
+                state = new_state;
+                type_specifiers.push(Some(type_specifier));
+            } else {
+                type_specifiers.push(None);
+            }
+        }
     }
 
     let (state, end_parenthese) = expect!(
@@ -803,7 +823,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
     );
 
     #[cfg_attr(not(feature = "roblox"), allow(unused_variables))]
-    let (state, return_type) = if let Ok((state, return_type)) = ParseFunctionReturnType.parse(state) {
+    let (state, return_type) = if let Ok((state, return_type)) = ParseTypeSpecifier.parse(state) {
         (state, Some(return_type))
     } else {
         (state, None)
@@ -829,27 +849,6 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         },
     ))
 });
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionReturnType;
-define_roblox_parser!(
-    ParseFunctionReturnType,
-    TypeSpecifier<'a>,
-    TokenReference<'a>,
-    |_, state| {
-        let (state, colon) = ParseSymbol(Symbol::Colon).parse(state)?;
-        let (state, return_type) =
-            expect!(state, ParseTypeInfo.parse(state), "expected return type");
-
-        Ok((
-            state,
-            TypeSpecifier {
-                punctuation: colon,
-                type_info: return_type,
-            },
-        ))
-    }
-);
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunction;
@@ -1103,6 +1102,30 @@ define_roblox_parser!(
             };
 
         Ok((state, (name, type_specifier)))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseTypeSpecifier;
+define_roblox_parser!(
+    ParseTypeSpecifier,
+    TypeSpecifier<'a>,
+    TokenReference<'a>,
+    |_, state| {
+        let (state, punctuation) = ParseSymbol(Symbol::Colon).parse(state)?;
+        let (state, type_info) = expect!(
+            state,
+            ParseTypeInfo.parse(state),
+            "expected type after colon"
+        );
+
+        Ok((
+            state,
+            TypeSpecifier {
+                punctuation,
+                type_info,
+            },
+        ))
     }
 );
 
@@ -1531,29 +1554,6 @@ cfg_if::cfg_if! {
                 Err(InternalAstError::NoMatch)
             }
         });
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeSpecifier;
-        define_parser!(
-            ParseTypeSpecifier,
-            TypeSpecifier<'a>,
-            |_, state| {
-                let (state, punctuation) = ParseSymbol(Symbol::Colon).parse(state)?;
-                let (state, type_info) = expect!(
-                    state,
-                    ParseTypeInfo.parse(state),
-                    "expected type after colon"
-                );
-
-                Ok((
-                    state,
-                    TypeSpecifier {
-                        punctuation,
-                        type_info,
-                    },
-                ))
-            }
-        );
     }
 }
 

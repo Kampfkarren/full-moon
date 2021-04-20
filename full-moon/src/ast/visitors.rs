@@ -321,22 +321,14 @@ impl<'a> VisitMut<'a> for FunctionBody<'a> {
 
         for parameter_pair in self.parameters.into_pairs() {
             let parameter_tuple = parameter_pair.into_tuple();
-            let was_ellipse = matches!(parameter_tuple.0, Parameter::Ellipse(..));
             let parameter = parameter_tuple.0.visit_mut(visitor);
-            let type_specifier = if !was_ellipse {
-                type_specifiers
-                    .next()
-                    .and_then(|type_specifier| type_specifier)
-                    .map(|type_specifier| type_specifier.visit_mut(visitor))
-            } else {
-                None
-            };
 
+            let type_specifier = type_specifiers
+                .next()
+                .and_then(|type_specifier| type_specifier)
+                .map(|type_specifier| type_specifier.visit_mut(visitor));
+            new_type_specifiers.push(type_specifier);
             let punctuation = parameter_tuple.1.visit_mut(visitor);
-
-            if !was_ellipse {
-                new_type_specifiers.push(type_specifier);
-            }
 
             new_parameters.push(Pair::new(parameter, punctuation));
         }

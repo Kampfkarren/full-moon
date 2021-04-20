@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/no_roblox_syntax
 
 ---
 stmts:
@@ -1299,7 +1298,8 @@ stmts:
                                   type: Symbol
                                   symbol: "..."
                               trailing_trivia: []
-                    type_specifiers: []
+                    type_specifiers:
+                      - ~
                     block:
                       stmts:
                         - - FunctionCall:
