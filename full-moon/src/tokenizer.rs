@@ -689,7 +689,7 @@ peg::parser! {
                 literal:v.1.into(),
                 quote_type: QuoteType::Brackets,
             }.into()}
-            / &multi_line_start() [_]* { TokenizerErrorType::UnclosedString.into() }
+            / &multi_line_start() [_]+ { TokenizerErrorType::UnclosedString.into() }
 
         rule escape()
             = "\\" [_]
@@ -728,7 +728,7 @@ peg::parser! {
             = "--" v:multi_line_block()
               { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
             / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
-            / "--" comment:$((!['\r'|'\n'] [_])*)
+            / "--" comment:$(([^ '\r'|'\n'])*)
               { TokenType::SingleLineComment { comment: comment.into() }.into() }
 
         rule roblox()
