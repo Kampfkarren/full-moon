@@ -4,10 +4,9 @@ expression: error
 input_file: full-moon/tests/cases/fail/tokenizer/wrong-place-shebang
 
 ---
-error:
-  UnexpectedToken: "#"
+error: UnexpectedShebang
 position:
-  bytes: 2
+  bytes: 1
   line: 2
-  character: 2
+  character: 1
 

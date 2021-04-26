@@ -1,17 +1,7 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
 use full_moon_derive::{symbols, Owned};
-use nom::{
-    branch::alt,
-    bytes::complete::{escaped, tag, tag_no_case, take_till, take_until, take_while, take_while1},
-    character::complete::{
-        alpha1, alphanumeric1, anychar, digit1, line_ending, none_of, one_of, space1,
-    },
-    combinator::{consumed, map, opt, recognize, success, value},
-    multi::{many0, many_till},
-    sequence::{delimited, pair, preceded, terminated},
-    IResult,
-};
+use peg;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
@@ -95,6 +85,8 @@ pub enum TokenizerErrorType {
     UnclosedComment,
     /// An unclosed string was found
     UnclosedString,
+    /// An unexpected #! was found
+    UnexpectedShebang,
     /// An unexpected token was found
     UnexpectedToken(char),
     /// Symbol passed is not valid
@@ -650,260 +642,155 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
     }
 }
 
-type Advancement<'a> = Result<Option<TokenAdvancement<'a>>, TokenizerErrorType>;
+type RawToken<'a> = Result<TokenType<'a>, TokenizerErrorType>;
 
-#[inline]
-fn parse_single_line_comment(code: &str) -> IResult<&str, &str> {
-    preceded(tag("--"), take_till(|x: char| x == '\r' || x == '\n'))(code)
-}
-
-#[inline]
-fn parse_multi_line_comment_start(code: &str) -> IResult<&str, &str> {
-    delimited(tag("--["), take_while(|x: char| x == '='), tag("["))(code)
-}
-
-#[inline]
-fn parse_multi_line_body<'a>(code: &'a str, block_count: &'a str) -> IResult<&'a str, &'a str> {
-    let terminator = format!("]{}]", block_count);
-    let res = terminated(take_until(terminator.as_str()), tag(terminator.as_str()))(code);
-    res
-}
-
-fn advance_comment(code: &str) -> Advancement {
-    if let Ok((code, block_count)) = parse_multi_line_comment_start(code) {
-        return match parse_multi_line_body(code, block_count) {
-            Ok((_, comment)) => {
-                let blocks = block_count.chars().count();
-                Ok(Some(TokenAdvancement {
-                    advance: comment.chars().count() + blocks * 2 + "--[[]]".chars().count(),
-                    token_type: TokenType::MultiLineComment {
-                        blocks,
-                        comment: Cow::from(comment),
-                    },
-                }))
-            }
-            Err(_) => Err(TokenizerErrorType::UnclosedComment),
-        };
-    }
-
-    match parse_single_line_comment(code) {
-        Ok((_, comment)) => Ok(Some(TokenAdvancement {
-            advance: 2 + comment.chars().count(),
-            token_type: TokenType::SingleLineComment {
-                comment: Cow::from(comment),
-            },
-        })),
-        Err(_) => Ok(None),
+impl<'a> From<TokenType<'a>> for RawToken<'a> {
+    fn from(token_type: TokenType<'a>) -> RawToken<'a> {
+        Ok(token_type)
     }
 }
 
-fn parse_hex_number(code: &str) -> IResult<&str, &str> {
-    let digits_to_find;
-
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "roblox")] {
-            digits_to_find = take_while1(|c: char| c.is_digit(16) || c == '_');
-        } else {
-            digits_to_find = take_while1(|c: char| c.is_digit(16));
-        }
-    };
-
-    recognize(pair(tag_no_case("0x"), digits_to_find))(code)
-}
-
-#[cfg(not(feature = "roblox"))]
-fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
-    digit1(code)
-}
-
-#[cfg(feature = "roblox")]
-fn parse_digit_with_seperator(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        digit1,
-        opt(take_while1(|c: char| c.is_digit(10) || c == '_')),
-    ))(code)
-}
-
-fn parse_no_int_fractional_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        opt(parse_digit_with_seperator),
-        pair(
-            pair(tag("."), parse_digit_with_seperator),
-            opt(pair(
-                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
-                parse_digit_with_seperator,
-            )),
-        ),
-    ))(code)
-}
-
-fn parse_basic_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        parse_digit_with_seperator,
-        pair(
-            opt(pair(tag("."), opt(parse_digit_with_seperator))),
-            opt(pair(
-                pair(tag_no_case("e"), opt(alt((tag("-"), tag("+"))))),
-                parse_digit_with_seperator,
-            )),
-        ),
-    ))(code)
-}
-
-#[cfg(feature = "roblox")]
-fn parse_roblox_number(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        tag_no_case("0b"),
-        take_while1(|x: char| x == '0' || x == '1' || x == '_'),
-    ))(code)
-}
-
-fn parse_number(code: &str) -> IResult<&str, &str> {
-    alt((
-        #[cfg(feature = "roblox")]
-        parse_roblox_number,
-        parse_hex_number,
-        parse_basic_number,
-        parse_no_int_fractional_number,
-    ))(code)
-}
-
-fn advance_number(code: &str) -> Advancement {
-    match parse_number(code) {
-        Ok((_, number)) => Ok(Some(TokenAdvancement {
-            advance: number.chars().count(),
-            token_type: TokenType::Number {
-                text: Cow::from(number),
-            },
-        })),
-        Err(_) => Ok(None),
+impl<'a> From<TokenizerErrorType> for RawToken<'a> {
+    fn from(error: TokenizerErrorType) -> RawToken<'a> {
+        Err(error)
     }
 }
 
-#[inline]
-fn parse_identifier(code: &str) -> IResult<&str, &str> {
-    recognize(pair(
-        alt((alpha1, tag("_"))),
-        many0(alt((alphanumeric1, tag("_")))),
-    ))(code)
-}
+peg::parser! {
+    grammar tokens() for str {
+        use super::ParseSymbol;
+        use peg::ParseLiteral;
+        use super::StringLiteralQuoteType as QuoteType;
 
-fn advance_identifier(code: &str) -> Advancement {
-    match parse_identifier(code) {
-        Ok((_, identifier)) => Ok(Some(TokenAdvancement {
-            advance: identifier.chars().count(),
-            token_type: TokenType::Identifier {
-                identifier: Cow::from(identifier),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
+        rule line_ending()
+            = "\n" / "\r\n"
+        rule space()
+            = [' '|'\t']
 
-#[inline]
-fn parse_shebang(code: &str) -> IResult<&str, &str> {
-    recognize(pair(tag("#!"), many_till(anychar, line_ending)))(code)
-}
+        pub(super) rule whitespace() -> RawToken<'input>
+            = chars:$( space()+ line_ending()? / line_ending() )
+              { TokenType::Whitespace { characters:chars.into() }.into() }
 
-fn advance_shebang(code: &str) -> Advancement {
-    match parse_shebang(code) {
-        Ok((_, line)) => Ok(Some(TokenAdvancement {
-            advance: line.chars().count(),
-            token_type: TokenType::Shebang {
-                line: Cow::from(line),
-            },
-        })),
-        Err(_) => Ok(None),
-    }
-}
+        rule multi_line_start() -> &'input str
+            = "[" block:$("="*) "[" {block}
 
-#[inline]
-fn parse_multi_line_string_start(code: &str) -> IResult<&str, &str> {
-    delimited(tag("["), take_while(|x: char| x == '='), tag("["))(code)
-}
+        rule multi_line_end(block: &'input str)
+            = "]" ##parse_string_literal(block) "]"
 
-#[inline]
-fn parse_single_line_string(code: &str) -> IResult<&str, Option<(StringLiteralQuoteType, &str)>> {
-    macro_rules! quoted {
-        ($quote:literal, $quote_type:path) => {
-            pair(
-                success($quote_type),
-                delimited(
-                    tag($quote),
-                    alt((
-                        escaped(none_of(concat!("\r\n\\", $quote)), '\\', anychar),
-                        success(""),
-                    )),
-                    tag($quote),
-                ),
+        rule multi_line_block() -> (usize, &'input str)
+            = block:multi_line_start()
+              content:$((!multi_line_end(block) [_])*)
+              multi_line_end(block)
+              { (block.len(), content) }
+
+        rule multi_line_quote() -> RawToken<'input>
+            = v:multi_line_block() { TokenType::StringLiteral {
+                multi_line: Some(v.0),
+                literal:v.1.into(),
+                quote_type: QuoteType::Brackets,
+            }.into()}
+            / &multi_line_start() [_]+ { TokenizerErrorType::UnclosedString.into() }
+
+        rule escape()
+            = "\\" [_]
+
+        rule quote_char(quote: &str)
+            = !(##parse_string_literal(quote) / ['\r'|'\n'|'\\']) [_]
+
+        rule quoted(quote: &str, quote_type: QuoteType) -> RawToken<'input>
+            = ##parse_string_literal(quote)
+              literal:$((quote_char(quote) / escape())+ / )
+              ##parse_string_literal(quote)
+              { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
+            / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
+
+        rule single_line_quote() -> RawToken<'input>
+            = quoted("\"", (QuoteType::Double))
+            / quoted("\'", (QuoteType::Single))
+
+        pub(super) rule string_literal() -> RawToken<'input>
+            = multi_line_quote()
+            / single_line_quote()
+
+        pub(super) rule shebang() -> RawToken<'input>
+            = line:$("#!" (!line_ending() [_])* line_ending())
+              {TokenType::Shebang{line:line.into()}.into()}
+
+        pub(super) rule identifier() -> RawToken<'input>
+            = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
+              { match parse_keyword(id) {
+                    Some(symbol) => TokenType::Symbol { symbol }.into(),
+                    None => TokenType::Identifier { identifier: id.into() }.into(),
+              }}
+            / expected!("identifier")
+
+        pub(super) rule comment() -> RawToken<'input>
+            = "--" v:multi_line_block()
+              { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
+            / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
+            / "--" comment:$(([^ '\r'|'\n'])*)
+              { TokenType::SingleLineComment { comment: comment.into() }.into() }
+
+        rule roblox()
+            = {? if cfg!(feature = "roblox") {
+                Ok(())
+            } else {
+                Err("roblox not enabled")
+            }}
+
+        rule roblox_number() -> &'input str
+            = roblox() n:$(("0b"/"0B") ['0'|'1'|'_']+) {n}
+
+        rule hex_number() -> &'input str
+            = roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F'|'_']+) {n}
+            / !roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F']+) {n}
+
+        rule digit_with_separator() -> &'input str
+            = roblox() n:$(['0'..='9'] ['0'..='9'|'_']*) {n}
+            / !roblox() n:$(['0'..='9']+) {n}
+
+        rule basic_number() -> &'input str
+            = $(
+                digit_with_separator()
+                ("." digit_with_separator()?)?
+                (['e'|'E'] ['-'|'+']? digit_with_separator())?
             )
-        };
-    };
-    alt((
-        map(quoted!("\"", StringLiteralQuoteType::Double), Some),
-        map(quoted!("\'", StringLiteralQuoteType::Single), Some),
-        value(None, one_of("\"\'")),
-    ))(code)
-}
 
-fn advance_quote(code: &str) -> Advancement {
-    if let Ok((code, block_count)) = parse_multi_line_string_start(code) {
-        return match parse_multi_line_body(code, block_count) {
-            Ok((_, body)) => {
-                let blocks = block_count.chars().count();
-                Ok(Some(TokenAdvancement {
-                    advance: body.chars().count() + blocks * 2 + "[[]]".chars().count(),
-                    token_type: TokenType::StringLiteral {
-                        multi_line: Some(blocks),
-                        literal: Cow::from(body),
-                        quote_type: StringLiteralQuoteType::Brackets,
-                    },
-                }))
-            }
-            Err(_) => Err(TokenizerErrorType::UnclosedString),
-        };
-    }
+        rule no_int_fractional_number() -> &'input str
+            = $(
+                "." digit_with_separator()
+                (['e'|'E'] ['-'|'+']? digit_with_separator())?
+            )
 
-    match parse_single_line_string(code) {
-        Ok((_, Some((quote, string)))) => Ok(Some(TokenAdvancement {
-            advance: 2 + string.chars().count(),
-            token_type: TokenType::StringLiteral {
-                literal: Cow::from(string),
-                multi_line: None,
-                quote_type: quote,
-            },
-        })),
-        Ok((_, None)) => Err(TokenizerErrorType::UnclosedString),
-        Err(_) => Ok(None),
-    }
-}
+        pub(super) rule number() -> RawToken<'input>
+            = n:(
+                roblox_number()
+              / hex_number()
+              / basic_number()
+              / no_int_fractional_number()
+            ) { TokenType::Number { text:n.into() }.into() }
 
-fn advance_symbol(code: &str) -> Advancement {
-    match consumed(parse_symbol)(code) {
-        Ok((_, (string, symbol))) => Ok(Some(TokenAdvancement {
-            advance: string.chars().count(),
-            token_type: TokenType::Symbol { symbol },
-        })),
+        pub(super) rule symbol() -> RawToken<'input> = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
 
-        Err(_) => Ok(None),
-    }
-}
+        rule token() -> RawToken<'input>
+            = whitespace()
+            / comment()
+            / number()
+            / string_literal()
+            / "#!" { TokenizerErrorType::UnexpectedShebang.into() }
+            / symbol()
+            / identifier()
 
-#[inline]
-fn parse_whitespace(code: &str) -> IResult<&str, &str> {
-    alt((recognize(pair(space1, opt(line_ending))), line_ending))(code)
-}
-
-// Keep finding whitespace until the line ends
-fn advance_whitespace(code: &str) -> Advancement {
-    match parse_whitespace(code) {
-        Ok((_, whitespace)) => Ok(Some(TokenAdvancement {
-            advance: whitespace.chars().count(),
-            token_type: TokenType::Whitespace {
-                characters: Cow::from(whitespace),
-            },
-        })),
-        Err(_) => Ok(None),
+        pub(crate) rule tokens() -> Vec<(RawToken<'input>, usize)>
+            = shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
+              body:( token:token() pos:position!() {(token,pos)})*
+              {
+                  let mut body = body;
+                  if let Some(shebang) = shebang {
+                      body.insert(0, shebang)
+                  }
+                  body
+              }
     }
 }
 
@@ -925,6 +812,7 @@ impl fmt::Display for TokenizerError {
             match &self.error {
                 TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
                 TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
+                TokenizerErrorType::UnexpectedShebang => "unexpected shebang".to_string(),
                 TokenizerErrorType::UnexpectedToken(character) => {
                     format!("unexpected character {}", character)
                 }
@@ -939,6 +827,69 @@ impl fmt::Display for TokenizerError {
 }
 
 impl std::error::Error for TokenizerError {}
+
+impl From<peg::str::LineCol> for Position {
+    fn from(location: peg::str::LineCol) -> Position {
+        Position {
+            bytes: location.offset,
+            line: location.line,
+            character: location.column,
+        }
+    }
+}
+
+struct TokenCollector<'input> {
+    result: Vec<Token<'input>>,
+}
+
+// Collector
+impl<'input> TokenCollector<'input> {
+    fn new() -> Self {
+        Self { result: Vec::new() }
+    }
+    fn push(
+        &mut self,
+        start_position: Position,
+        raw_token: RawToken<'input>,
+        end_position: Position,
+    ) -> Result<(), TokenizerError> {
+        match raw_token {
+            Ok(token_type) => {
+                self.result.push(Token {
+                    start_position,
+                    end_position,
+                    token_type,
+                });
+                Ok(())
+            }
+            Err(error) => Err(TokenizerError {
+                error,
+                position: start_position,
+            }),
+        }
+    }
+    fn finish(mut self, eof_position: Position) -> Vec<Token<'input>> {
+        self.result.push(Token {
+            start_position: eof_position,
+            end_position: eof_position,
+            token_type: TokenType::Eof,
+        });
+        self.result
+    }
+}
+
+fn from_parser_error<'input>(
+    code: &'input str,
+) -> impl Fn(peg::error::ParseError<peg::str::LineCol>) -> TokenizerError + 'input {
+    move |err| TokenizerError {
+        error: TokenizerErrorType::UnexpectedToken(
+            code[err.location.offset..].chars().next().expect(
+                "(internal full-moon error) Text overflow while giving unexpected token error",
+            ),
+        ),
+        position: err.location.into(),
+    }
+}
 
 /// Returns a list of tokens.
 /// You probably want [`parse`](crate::parse) instead.
@@ -955,90 +906,59 @@ impl std::error::Error for TokenizerError {}
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
 pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
-    let mut tokens = Vec::new();
+    let mut tokens = TokenCollector::new();
+
+    let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
+
+    // rust-peg lets us easily get the offset associated with
+    // (the end of) each token, but not the line or column
+    // information. We iterate over the characters to match
+    // up the tokens with the row/column information.
+    let mut raw_tokens = raw_tokens.drain(..);
+
     let mut position = Position {
         bytes: 0,
         character: 1,
         line: 1,
     };
-
     let mut next_is_new_line = false;
+    let mut start_position = position;
+    if let Some((mut token_type, mut token_offset)) = raw_tokens.next() {
+        for character in code.chars() {
+            if character == '\n' {
+                next_is_new_line = true;
+            } else {
+                position.character += 1;
+            }
 
-    macro_rules! advance {
-        ($function:ident) => {
-            match $function(&code[position.bytes..]) {
-                Ok(Some(advancement)) => {
-                    let start_position = position;
+            position.bytes += character.len_utf8();
 
-                    for character in code[position.bytes..].chars().take(advancement.advance) {
-                        if next_is_new_line {
-                            next_is_new_line = false;
-                            position.line += 1;
-                            position.character = 1;
-                        }
+            let end_position = position;
 
-                        if character == '\n' {
-                            next_is_new_line = true;
-                        } else {
-                            position.character += 1;
-                        }
+            if next_is_new_line {
+                next_is_new_line = false;
+                position.line += 1;
+                position.character = 1;
+            }
 
-                        position.bytes += character.len_utf8();
-                    }
-
-                    tokens.push(Token {
-                        start_position,
-                        end_position: position,
-                        token_type: advancement.token_type,
-                    });
-                    if next_is_new_line {
-                        next_is_new_line = false;
-                        position.line += 1;
-                        position.character = 1;
-                    }
-
-                    continue;
+            if token_offset == end_position.bytes {
+                tokens.push(start_position, token_type, end_position)?;
+                start_position = position;
+                if let Some((next_token_type, next_token_offset)) = raw_tokens.next() {
+                    token_type = next_token_type;
+                    token_offset = next_token_offset;
+                } else {
+                    break;
                 }
-
-                Ok(None) => {}
-
-                Err(error) => {
-                    return Err(TokenizerError { error, position });
-                }
-            };
-        };
+            }
+        }
     }
 
-    for _ in 0..1 {
-        // A hack, since `advance!` requires a loop to run.
-        advance!(advance_shebang);
+    if let Some((token_type, token_offset)) = raw_tokens.next() {
+        panic!("(internal full-moon error) Found token {:?} with offset {:?} which is past the end of source", token_type, token_offset);
     }
 
-    while code.bytes().count() > position.bytes {
-        advance!(advance_whitespace);
-        advance!(advance_comment);
-        advance!(advance_number);
-        advance!(advance_quote);
-        advance!(advance_symbol);
-        advance!(advance_identifier);
-
-        return Err(TokenizerError {
-            error: TokenizerErrorType::UnexpectedToken(
-                code.chars()
-                    .nth(position.character - 1)
-                    .expect("text overflow while giving unexpected token error"),
-            ),
-            position,
-        });
-    }
-
-    tokens.push(Token {
-        start_position: position,
-        end_position: position,
-        token_type: TokenType::Eof,
-    });
-
-    Ok(tokens)
+    Ok(tokens.finish(position))
 }
 
 #[cfg(test)]
@@ -1046,254 +966,219 @@ mod tests {
     use crate::tokenizer::*;
     use pretty_assertions::assert_eq;
 
-    macro_rules! test_advancer {
-        ($advancer:ident($code:tt), $result:expr) => {
-            assert_eq!($advancer($code), $result);
+    macro_rules! test_rule {
+        ($rule:ident($code:expr), $result:expr) => {
+            let code: &str = $code;
+            let result: RawToken = $result.into();
 
-            let result: Advancement = $result;
+            assert_eq!(
+                tokens::$rule(code)
+                    .map_err(|err| from_parser_error(code)(err).error)
+                    .and_then(|v| v),
+                result,
+            );
+            test_rule!(code, result)
+        };
+        ($code:expr, $result:expr) => {
+            let code: &str = $code;
+            let result: RawToken = $result.into();
+
             match result {
-                Ok(Some(token)) => {
-                    let tokens = tokens($code).expect("couldn't tokenize");
+                Ok(token) => {
+                    let tokens = tokens(code).expect("couldn't tokenize");
                     let first_token = &tokens.get(0).expect("tokenized response is empty");
-                    assert_eq!(*first_token.token_type(), token.token_type);
+                    assert_eq!(*first_token.token_type(), token);
                 }
 
-                Err(advancement_error) => {
+                Err(expected) => {
                     if let Err(TokenizerError { error, .. }) = tokens($code) {
-                        assert_eq!(error, advancement_error);
+                        assert_eq!(error, expected);
                     }
                 }
-
-                _ => {}
             };
         };
     }
 
     #[test]
-    fn test_advance_comment() {
-        test_advancer!(
-            advance_comment("-- hello world"),
-            Ok(Some(TokenAdvancement {
-                advance: 14,
-                token_type: TokenType::SingleLineComment {
-                    comment: Cow::from(" hello world"),
-                },
-            }))
+    fn test_rule_comment() {
+        test_rule!(
+            comment("-- hello world"),
+            TokenType::SingleLineComment {
+                comment: " hello world".into()
+            }
         );
 
-        test_advancer!(
-            advance_comment("--[[ hello world ]]"),
-            Ok(Some(TokenAdvancement {
-                advance: 19,
-                token_type: TokenType::MultiLineComment {
-                    blocks: 0,
-                    comment: Cow::from(" hello world "),
-                },
-            }))
+        test_rule!(
+            comment("--[[ hello world ]]"),
+            TokenType::MultiLineComment {
+                blocks: 0,
+                comment: " hello world ".into()
+            }
         );
 
-        test_advancer!(
-            advance_comment("--[=[ hello world ]=]"),
-            Ok(Some(TokenAdvancement {
-                advance: 21,
-                token_type: TokenType::MultiLineComment {
-                    blocks: 1,
-                    comment: Cow::from(" hello world "),
-                },
-            }))
+        test_rule!(
+            comment("--[=[ hello world ]=]"),
+            TokenType::MultiLineComment {
+                blocks: 1,
+                comment: " hello world ".into()
+            }
+        );
+        test_rule!(
+            comment("--"),
+            TokenType::SingleLineComment { comment: "".into() }
         );
     }
 
     #[test]
-    fn test_advance_numbers() {
-        test_advancer!(
-            advance_number("213"),
-            Ok(Some(TokenAdvancement {
-                advance: 3,
-                token_type: TokenType::Number {
-                    text: Cow::from("213"),
-                },
-            }))
-        );
+    fn test_rule_numbers() {
+        test_rule!(number("213"), TokenType::Number { text: "213".into() });
 
-        test_advancer!(
-            advance_number("123.45"),
-            Ok(Some(TokenAdvancement {
-                advance: 6,
-                token_type: TokenType::Number {
-                    text: Cow::from("123.45"),
-                },
-            }))
+        test_rule!(number("1"), TokenType::Number { text: "1".into() });
+
+        test_rule!(
+            number("123.45"),
+            TokenType::Number {
+                text: "123.45".into(),
+            }
         );
     }
 
     #[test]
     #[cfg_attr(not(feature = "roblox"), ignore)]
-    fn test_advance_binary_literals() {
-        test_advancer!(
-            advance_number("0b101"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Number {
-                    text: Cow::from("0b101"),
-                },
-            }))
+    fn test_rule_binary_literals() {
+        test_rule!(
+            number("0b101"),
+            TokenType::Number {
+                text: "0b101".into(),
+            }
         );
     }
 
     #[test]
-    fn test_advance_identifier() {
-        test_advancer!(
-            advance_identifier("hello"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello"),
-                },
-            }))
+    fn test_rule_identifier() {
+        test_rule!(
+            identifier("hello"),
+            TokenType::Identifier {
+                identifier: "hello".into(),
+            }
         );
 
-        test_advancer!(
-            advance_identifier("hello world"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello"),
-                },
-            }))
+        test_rule!(
+            "hello world",
+            TokenType::Identifier {
+                identifier: "hello".into(),
+            }
         );
 
-        test_advancer!(
-            advance_identifier("hello___"),
-            Ok(Some(TokenAdvancement {
-                advance: 8,
-                token_type: TokenType::Identifier {
-                    identifier: Cow::from("hello___"),
-                },
-            }))
+        test_rule!(
+            identifier("hello___"),
+            TokenType::Identifier {
+                identifier: "hello___".into(),
+            }
         );
 
-        test_advancer!(advance_identifier("123"), Ok(None));
+        test_rule!(identifier("123"), TokenizerErrorType::UnexpectedToken('1'));
     }
 
     #[test]
-    fn test_advance_symbols() {
-        test_advancer!(
-            advance_symbol("local"),
-            Ok(Some(TokenAdvancement {
-                advance: 5,
-                token_type: TokenType::Symbol {
-                    symbol: Symbol::Local
-                },
-            }))
+    fn test_rule_symbols() {
+        test_rule!(
+            identifier("local"),
+            TokenType::Symbol {
+                symbol: Symbol::Local
+            }
         );
     }
 
     #[test]
-    fn test_advance_whitespace() {
-        test_advancer!(
-            advance_whitespace("\t  \n\t"),
-            Ok(Some(TokenAdvancement {
-                advance: 4,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t  \n"),
-                },
-            }))
+    fn test_rule_whitespace() {
+        test_rule!(
+            "\t  \n\t",
+            TokenType::Whitespace {
+                characters: "\t  \n".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\thello"),
-            Ok(Some(TokenAdvancement {
-                advance: 1,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t"),
-                },
-            }))
+        test_rule!(
+            "\thello",
+            TokenType::Whitespace {
+                characters: "\t".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\t\t\nhello"),
-            Ok(Some(TokenAdvancement {
-                advance: 3,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\t\t\n"),
-                },
-            }))
+        test_rule!(
+            "\t\t\nhello",
+            TokenType::Whitespace {
+                characters: "\t\t\n".into(),
+            }
         );
 
-        test_advancer!(
-            advance_whitespace("\n\thello"),
-            Ok(Some(TokenAdvancement {
-                advance: 1,
-                token_type: TokenType::Whitespace {
-                    characters: Cow::from("\n"),
-                },
-            }))
+        test_rule!(
+            "\n\thello",
+            TokenType::Whitespace {
+                characters: "\n".into(),
+            }
         );
     }
 
     #[test]
-    fn test_advance_quote() {
-        test_advancer!(
-            advance_quote("\"hello\""),
-            Ok(Some(TokenAdvancement {
-                advance: 7,
-                token_type: TokenType::StringLiteral {
-                    literal: Cow::from("hello"),
-                    multi_line: None,
-                    quote_type: StringLiteralQuoteType::Double,
-                },
-            }))
+    fn test_rule_string_literal() {
+        test_rule!(
+            string_literal("\"hello\""),
+            TokenType::StringLiteral {
+                literal: "hello".into(),
+                multi_line: None,
+                quote_type: StringLiteralQuoteType::Double,
+            }
         );
 
-        test_advancer!(
-            advance_quote("\"hello\\\nworld\""),
-            Ok(Some(TokenAdvancement {
-                advance: 14,
-                token_type: TokenType::StringLiteral {
-                    literal: Cow::from("hello\\\nworld"),
-                    multi_line: None,
-                    quote_type: StringLiteralQuoteType::Double,
-                },
-            }))
+        test_rule!(
+            string_literal("\"hello\\\nworld\""),
+            TokenType::StringLiteral {
+                literal: "hello\\\nworld".into(),
+                multi_line: None,
+                quote_type: StringLiteralQuoteType::Double,
+            }
         );
 
-        test_advancer!(
-            advance_quote("\"hello"),
-            Err(TokenizerErrorType::UnclosedString)
+        test_rule!(
+            string_literal("\"hello"),
+            TokenizerErrorType::UnclosedString
         );
     }
 
     #[test]
     fn test_symbols_within_symbols() {
         // "index" should not return "in"
-        test_advancer!(advance_symbol("index"), Ok(None));
+        test_rule!(
+            identifier("index"),
+            TokenType::Identifier {
+                identifier: "index".into()
+            }
+        );
 
         // "<=" should not return "<"
-        test_advancer!(
-            advance_symbol("<="),
-            Ok(Some(TokenAdvancement {
-                advance: 2,
-                token_type: TokenType::Symbol {
-                    symbol: Symbol::LessThanEqual,
-                },
-            }))
+        test_rule!(
+            symbol("<="),
+            TokenType::Symbol {
+                symbol: Symbol::LessThanEqual,
+            }
         );
     }
 
     #[test]
-    fn test_advance_shebang() {
-        test_advancer!(
-            advance_shebang("#!/usr/bin/env lua\n"),
-            Ok(Some(TokenAdvancement {
-                advance: 19,
-                token_type: TokenType::Shebang {
-                    line: "#!/usr/bin/env lua\n".into()
-                }
-            }))
+    fn test_rule_shebang() {
+        test_rule!(
+            shebang("#!/usr/bin/env lua\n"),
+            TokenType::Shebang {
+                line: "#!/usr/bin/env lua\n".into()
+            }
         );
         // Don't recognize with a whitespace.
-        test_advancer!(advance_shebang(" #!/usr/bin/env lua\n"), Ok(None));
+        test_rule!(
+            " #!/usr/bin/env lua\n",
+            TokenizerErrorType::UnexpectedShebang
+        );
     }
 
     #[test]
@@ -1314,7 +1199,7 @@ mod tests {
                 },
 
                 token_type: TokenType::Whitespace {
-                    characters: Cow::from("\n")
+                    characters: "\n".into()
                 },
             }
         );
