@@ -25,8 +25,8 @@ cfg-if = "1.0"
 derive_more = "0.99"
 full_moon_derive = { path = "../full-moon-derive", version = "=0.6.0" }
 paste = "0.1"
+peg = "0.7.0"
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
-nom = "6.1.2"
 
 [dev-dependencies]
 criterion = "0.2"

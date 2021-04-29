@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/cases/pass/local-function-2
 
 ---
 stmts:
@@ -73,7 +72,7 @@ stmts:
               type: Identifier
               identifier: foo
           trailing_trivia: []
-        func_body:
+        body:
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -271,7 +270,7 @@ stmts:
               type: Identifier
               identifier: bar
           trailing_trivia: []
-        func_body:
+        body:
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -428,7 +427,7 @@ stmts:
               type: Identifier
               identifier: baz
           trailing_trivia: []
-        func_body:
+        body:
           parameters_parentheses:
             tokens:
               - leading_trivia: []
