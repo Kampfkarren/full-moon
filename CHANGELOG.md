@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Made `TokenizerError` fields accessible through methods
 
+### Changed
+- Switched from using nom to peg for lexing.
+
 ## [0.10.0] - 2021-03-26
 ### Added
 - Added `block.iter_stmts_with_semicolon()` which returns an iterator over tuples containing the statement and an optional semicolon.
