@@ -1603,13 +1603,13 @@ impl<'a> Assignment<'a> {
 /// A declaration of a local function, such as `local function x() end`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "func_body")]
+#[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
     function_token: TokenReference<'a>,
     name: TokenReference<'a>,
-    func_body: FunctionBody<'a>,
+    body: FunctionBody<'a>,
 }
 
 impl<'a> LocalFunction<'a> {
@@ -1619,7 +1619,7 @@ impl<'a> LocalFunction<'a> {
             local_token: TokenReference::symbol("local ").unwrap(),
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
-            func_body: FunctionBody::new(),
+            body: FunctionBody::new(),
         }
     }
 
@@ -1635,7 +1635,7 @@ impl<'a> LocalFunction<'a> {
 
     /// The function body, everything except `local function x` in `local function x(a, b, c) call() end`
     pub fn body(&self) -> &FunctionBody<'a> {
-        &self.func_body
+        &self.body
     }
 
     /// The name of the function, the `x` part of `local function x() end`
@@ -1665,8 +1665,8 @@ impl<'a> LocalFunction<'a> {
     }
 
     /// Returns a new LocalFunction with the given function body
-    pub fn with_func_body(self, func_body: FunctionBody<'a>) -> Self {
-        Self { func_body, ..self }
+    pub fn with_body(self, body: FunctionBody<'a>) -> Self {
+        Self { body, ..self }
     }
 }
 
