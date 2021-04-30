@@ -803,6 +803,18 @@ pub struct TokenizerError {
     position: Position,
 }
 
+impl TokenizerError {
+    /// The type of error
+    pub fn error(&self) -> &TokenizerErrorType {
+        &self.error
+    }
+
+    /// The position of the token that caused the error
+    pub fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl fmt::Display for TokenizerError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
