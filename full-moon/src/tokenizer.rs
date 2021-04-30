@@ -1,7 +1,6 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
 use full_moon_derive::{symbols, Owned};
-use peg;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
@@ -174,13 +173,13 @@ impl<'a> TokenType<'a> {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
-        match self {
+        matches!(
+            self,
             TokenType::Shebang { .. }
-            | TokenType::SingleLineComment { .. }
-            | TokenType::MultiLineComment { .. }
-            | TokenType::Whitespace { .. } => true,
-            _ => false,
-        }
+                | TokenType::SingleLineComment { .. }
+                | TokenType::MultiLineComment { .. }
+                | TokenType::Whitespace { .. }
+        )
     }
 
     /// Returns the kind of the token type.
@@ -878,9 +877,9 @@ impl<'input> TokenCollector<'input> {
     }
 }
 
-fn from_parser_error<'input>(
-    code: &'input str,
-) -> impl Fn(peg::error::ParseError<peg::str::LineCol>) -> TokenizerError + 'input {
+fn from_parser_error(
+    code: &'_ str,
+) -> impl Fn(peg::error::ParseError<peg::str::LineCol>) -> TokenizerError + '_ {
     move |err| TokenizerError {
         error: TokenizerErrorType::UnexpectedToken(
             code[err.location.offset..].chars().next().expect(
@@ -905,7 +904,7 @@ fn from_parser_error<'input>(
 /// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
 /// assert!(tokens("--[[ Unclosed comment!").is_err());
 /// ```
-pub fn tokens<'a>(code: &'a str) -> Result<Vec<Token<'a>>, TokenizerError> {
+pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
     let mut tokens = TokenCollector::new();
 
     let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
