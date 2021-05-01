@@ -1296,24 +1296,6 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeInfo(TypeInfoContext);
         define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
-            // Only allow variadic type annotation for a return type or a tuple type
-            if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
-                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                    let (state, type_info) = expect!(
-                        state,
-                        ParseTypeInfo(TypeInfoContext::None).parse(state),
-                        "expected type info after `...`"
-                    );
-                    return Ok((
-                        state,
-                        TypeInfo::Variadic {
-                            ellipse,
-                            type_info: Box::new(type_info),
-                        }
-                    ));
-                }
-            }
-
             let (mut state, mut base_type) = if let Ok((state, identifier)) = {
                 ParseIdentifier
                     .parse(state)
@@ -1492,6 +1474,25 @@ cfg_if::cfg_if! {
                             type_info: Box::new(type_info)
                         },
                     )
+                }
+            } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
+                // Only allow variadic type annotation for a return type or a tuple type
+                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseTypeInfo(TypeInfoContext::None).parse(state),
+                        "expected type info after `...`"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Variadic {
+                            ellipse,
+                            type_info: Box::new(type_info),
+                        }
+                    )
+                } else {
+                    return Err(InternalAstError::NoMatch);
                 }
             } else {
                 return Err(InternalAstError::NoMatch);
