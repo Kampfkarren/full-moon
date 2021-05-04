@@ -296,27 +296,115 @@ expression: tokens
   end_position:
     bytes: 56
     line: 3
-    character: 26
+    character: 27
+  token_type:
+    type: Symbol
+    symbol: ":"
+- start_position:
+    bytes: 56
+    line: 3
+    character: 27
+  end_position:
+    bytes: 57
+    line: 3
+    character: 28
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 57
+    line: 3
+    character: 28
+  end_position:
+    bytes: 60
+    line: 3
+    character: 31
+  token_type:
+    type: Symbol
+    symbol: "..."
+- start_position:
+    bytes: 60
+    line: 3
+    character: 31
+  end_position:
+    bytes: 66
+    line: 3
+    character: 37
+  token_type:
+    type: Identifier
+    identifier: number
+- start_position:
+    bytes: 66
+    line: 3
+    character: 37
+  end_position:
+    bytes: 67
+    line: 3
+    character: 38
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 67
+    line: 3
+    character: 38
+  end_position:
+    bytes: 68
+    line: 3
+    character: 39
+  token_type:
+    type: Symbol
+    symbol: "|"
+- start_position:
+    bytes: 68
+    line: 3
+    character: 39
+  end_position:
+    bytes: 69
+    line: 3
+    character: 40
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 69
+    line: 3
+    character: 40
+  end_position:
+    bytes: 75
+    line: 3
+    character: 46
+  token_type:
+    type: Identifier
+    identifier: string
+- start_position:
+    bytes: 75
+    line: 3
+    character: 46
+  end_position:
+    bytes: 76
+    line: 3
+    character: 46
   token_type:
     type: Whitespace
     characters: "\n"
 - start_position:
-    bytes: 56
+    bytes: 76
     line: 4
     character: 1
   end_position:
-    bytes: 59
+    bytes: 79
     line: 4
     character: 4
   token_type:
     type: Symbol
     symbol: end
 - start_position:
-    bytes: 59
+    bytes: 79
     line: 4
     character: 4
   end_position:
-    bytes: 59
+    bytes: 79
     line: 4
     character: 4
   token_type:

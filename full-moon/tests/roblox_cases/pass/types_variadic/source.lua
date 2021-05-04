@@ -1,4 +1,4 @@
 type Foo = (...number) -> ()
 
-function bar(...: number)
+function bar(...: number): ...number | string
 end
