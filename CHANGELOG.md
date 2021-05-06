@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Switched from using nom to peg for lexing.
 
+### Fixed
+- full_moon will now allocate a bit less stack space in debug mode. Current consumers may have faced an issue with stack overflows with relatively simple code. The core of this problem has not been fixed yet, but this extremely minor tweak might make some files work again.
+
 ## [0.10.0] - 2021-03-26
 ### Added
 - Added `block.iter_stmts_with_semicolon()` which returns an iterator over tuples containing the statement and an optional semicolon.
