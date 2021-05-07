@@ -1091,6 +1091,7 @@ enum TypeInfoContext {
     None,
     /// A type inside of parentheses, either for the parameters in a `TypeInfo::Callback`, or for a `TypeInfo::Tuple`
     /// Variadic type infos are only permitted inside of here
+    #[cfg(feature = "roblox")]
     ParenthesesType,
     /// The return type of a function declaration or callback type, such as `function foo(bar) -> number`.
     /// This is the only location where Tuple types are allowed. Variadic type infos are also allowed here
@@ -1293,9 +1294,10 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
+        // A type info atom, excluding compound types such as Union and Intersection
         #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeInfo(TypeInfoContext);
-        define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
+        struct ParseSingleTypeInfo(TypeInfoContext);
+        define_parser!(ParseSingleTypeInfo, TypeInfo<'a>, |this, state| {
             let (mut state, mut base_type) = if let Ok((state, identifier)) = {
                 ParseIdentifier
                     .parse(state)
@@ -1480,7 +1482,7 @@ cfg_if::cfg_if! {
                 if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
                     let (state, type_info) = expect!(
                         state,
-                        ParseTypeInfo(TypeInfoContext::None).parse(state),
+                        ParseSingleTypeInfo(TypeInfoContext::None).parse(state),
                         "expected type info after `...`"
                     );
 
@@ -1507,13 +1509,20 @@ cfg_if::cfg_if! {
                 state = new_state;
             }
 
+            Ok((state, base_type))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseTypeInfo(TypeInfoContext);
+        define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
+            let (state, base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
+
             if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
                 let (state, right) = expect!(
                     state,
                     ParseTypeInfo(this.0).parse(state),
                     "expected type after `|` for union type"
                 );
-
                 Ok((
                     state,
                     TypeInfo::Union {
@@ -1528,7 +1537,6 @@ cfg_if::cfg_if! {
                     ParseTypeInfo(this.0).parse(state),
                     "expected type after `&` for intersection type"
                 );
-
                 Ok((
                     state,
                     TypeInfo::Intersection {

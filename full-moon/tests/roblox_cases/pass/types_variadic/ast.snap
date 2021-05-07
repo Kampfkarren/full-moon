@@ -1055,25 +1055,25 @@ stmts:
                     type: Whitespace
                     characters: " "
             type_info:
-              Variadic:
-                ellipse:
-                  leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 151
-                      line: 5
-                      character: 28
-                    end_position:
-                      bytes: 154
-                      line: 5
-                      character: 31
-                    token_type:
-                      type: Symbol
-                      symbol: "..."
-                  trailing_trivia: []
-                type_info:
-                  Union:
-                    left:
+              Union:
+                left:
+                  Variadic:
+                    ellipse:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 151
+                          line: 5
+                          character: 28
+                        end_position:
+                          bytes: 154
+                          line: 5
+                          character: 31
+                        token_type:
+                          type: Symbol
+                          symbol: "..."
+                      trailing_trivia: []
+                    type_info:
                       Basic:
                         leading_trivia: []
                         token:
@@ -1100,59 +1100,59 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: " "
-                    pipe:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 161
+                pipe:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 161
+                      line: 5
+                      character: 38
+                    end_position:
+                      bytes: 162
+                      line: 5
+                      character: 39
+                    token_type:
+                      type: Symbol
+                      symbol: "|"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 162
+                        line: 5
+                        character: 39
+                      end_position:
+                        bytes: 163
+                        line: 5
+                        character: 40
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+                right:
+                  Basic:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 163
+                        line: 5
+                        character: 40
+                      end_position:
+                        bytes: 169
+                        line: 5
+                        character: 46
+                      token_type:
+                        type: Identifier
+                        identifier: string
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 169
                           line: 5
-                          character: 38
+                          character: 46
                         end_position:
-                          bytes: 162
+                          bytes: 170
                           line: 5
-                          character: 39
+                          character: 46
                         token_type:
-                          type: Symbol
-                          symbol: "|"
-                      trailing_trivia:
-                        - start_position:
-                            bytes: 162
-                            line: 5
-                            character: 39
-                          end_position:
-                            bytes: 163
-                            line: 5
-                            character: 40
-                          token_type:
-                            type: Whitespace
-                            characters: " "
-                    right:
-                      Basic:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 163
-                            line: 5
-                            character: 40
-                          end_position:
-                            bytes: 169
-                            line: 5
-                            character: 46
-                          token_type:
-                            type: Identifier
-                            identifier: string
-                        trailing_trivia:
-                          - start_position:
-                              bytes: 169
-                              line: 5
-                              character: 46
-                            end_position:
-                              bytes: 170
-                              line: 5
-                              character: 46
-                            token_type:
-                              type: Whitespace
-                              characters: "\n"
+                          type: Whitespace
+                          characters: "\n"
           block:
             stmts: []
           end_token:
