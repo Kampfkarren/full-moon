@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Made `TokenizerError` fields accessible through methods
 - Added support for typing variadic symbols in function parameters under the `roblox` feature flag
 - Added support for the `...T` variadic type annotation under the `roblox` feature flag. Variadic types are only permitted as a return type (standalone or in a tuple), or as a parameter in a callback type annotation
 
@@ -14,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Switched from using nom to peg for lexing.
+
+### Fixed
+- full_moon will now allocate a bit less stack space in debug mode. Current consumers may have faced an issue with stack overflows with relatively simple code. The core of this problem has not been fixed yet, but this extremely minor tweak might make some files work again.
 
 ## [0.10.0] - 2021-03-26
 ### Added

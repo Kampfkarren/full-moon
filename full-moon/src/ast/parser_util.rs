@@ -123,7 +123,7 @@ macro_rules! parse_first_of {
         $(
             $(#[$meta])?
             match $parser.parse($state) {
-                Ok((state, node)) => return Ok((state, $constructor(node.into()))),
+                Ok((state, node)) => return Ok((state, $constructor(node))),
                 Err(InternalAstError::NoMatch) => {},
                 Err(other) => return Err(other),
             };
