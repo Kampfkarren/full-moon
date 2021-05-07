@@ -180,10 +180,10 @@ macro_rules! keep_going {
 #[macro_export]
 macro_rules! define_roblox_parser {
     ($parser:ident, $node:ty, $mock_ty:ty, |_, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |_, mut $state: ParserState<'a, 'b>| $body}
+        define_roblox_parser! {$parser, $node, $mock_ty, |_, mut $state: ParserState<'a, 'b>| $body}
     };
     ($parser:ident, $node:ty, $mock_ty:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body}
+        define_roblox_parser! {$parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body}
     };
     ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
         cfg_if::cfg_if! {
