@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct ParserState<'a, 'b> {
     pub index: usize,
     pub len: usize,
@@ -64,7 +64,7 @@ impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
     }
 }
 
-pub(crate) trait Parser<'a>: Sized {
+pub trait Parser<'a>: Sized {
     type Item;
 
     fn parse<'b>(
@@ -122,11 +122,12 @@ macro_rules! parse_first_of {
     ($state:ident, {$($(@#[$meta:meta])? $parser:expr => $constructor:expr,)+}) => ({
         $(
             $(#[$meta])?
-            match $parser.parse($state) {
-                Ok((state, node)) => return Ok((state, $constructor(node))),
-                Err(InternalAstError::NoMatch) => {},
-                Err(other) => return Err(other),
-            };
+            {
+                let parser_result = $parser.parse($state).map(|(state, node)| (state, $constructor(node)));
+                if parser_result != Err(InternalAstError::NoMatch) {
+                    return parser_result;
+                }
+            }
         )+
 
         Err(InternalAstError::NoMatch)
