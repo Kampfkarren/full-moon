@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched from using nom to peg for lexing.
 
 ### Fixed
-- full_moon will now allocate a bit less stack space in debug mode. Current consumers may have faced an issue with stack overflows with relatively simple code. The core of this problem has not been fixed yet, but this extremely minor tweak might make some files work again.
+- full_moon will now allocate about 200% less stack space in debug mode.
 
 ## [0.10.0] - 2021-03-26
 ### Added
