@@ -179,9 +179,6 @@ macro_rules! keep_going {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! define_roblox_parser {
-    ($parser:ident, $node:ty, $mock_ty:ty, |_, $state:ident| $body:expr) => {
-        define_roblox_parser! {$parser, $node, $mock_ty, |_, mut $state: ParserState<'a, 'b>| $body}
-    };
     ($parser:ident, $node:ty, $mock_ty:ty, |$self:ident, $state:ident| $body:expr) => {
         define_roblox_parser! {$parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body}
     };

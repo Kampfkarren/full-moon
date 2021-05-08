@@ -1387,47 +1387,14 @@ cfg_if::cfg_if! {
                     "expected `)` to match `(`"
                 );
 
-                match this.0 {
+                if let TypeInfoContext::ReturnType = this.0 {
                     // Tuples are only permitted as the return type of a function
-                    TypeInfoContext::ReturnType => {
-                        if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                            let (state, return_value) = expect!(
-                                state,
-                                ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                                "expected return type after `->`"
-                            );
-                            (
-                                state,
-                                TypeInfo::Callback {
-                                    arguments: types,
-                                    parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                    arrow,
-                                    return_type: Box::new(return_value),
-                                },
-                            )
-                        } else {
-                            (
-                                state,
-                                TypeInfo::Tuple {
-                                    parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                    types,
-                                },
-                            )
-                        }
-                    }
-                    _ => {
-                        let (state, arrow) = expect!(
-                            state,
-                            ParseSymbol(Symbol::ThinArrow).parse(state),
-                            "expected `->` when parsing function type"
-                        );
-
+                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
                         let (state, return_value) = expect!(
                             state,
                             ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
                             "expected return type after `->`"
                         );
-
                         (
                             state,
                             TypeInfo::Callback {
@@ -1437,7 +1404,37 @@ cfg_if::cfg_if! {
                                 return_type: Box::new(return_value),
                             },
                         )
+                    } else {
+                        (
+                            state,
+                            TypeInfo::Tuple {
+                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                                types,
+                            },
+                        )
                     }
+                } else {
+                    let (state, arrow) = expect!(
+                        state,
+                        ParseSymbol(Symbol::ThinArrow).parse(state),
+                        "expected `->` when parsing function type"
+                    );
+
+                    let (state, return_value) = expect!(
+                        state,
+                        ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
+                        "expected return type after `->`"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Callback {
+                            arguments: types,
+                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            arrow,
+                            return_type: Box::new(return_value),
+                        },
+                    )
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 if let Ok((state, fields)) = ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
