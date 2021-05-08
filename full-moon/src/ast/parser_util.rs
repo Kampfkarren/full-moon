@@ -64,7 +64,7 @@ impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
     }
 }
 
-pub trait Parser<'a>: Sized {
+pub(crate) trait Parser<'a>: Sized {
     type Item;
 
     fn parse<'b>(
