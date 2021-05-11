@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Made `TokenizerError` fields accessible through methods
+- Added support for typing variadic symbols in function parameters under the `roblox` feature flag
+- Added support for the `...T` variadic type annotation under the `roblox` feature flag. Variadic types are only permitted as a return type (standalone or in a tuple), or as a parameter in a callback type annotation
+
+### Fixed
+- Fixed invalid parsing of tuple types under the `roblox` feature flag. Tuple types are only permitted as the return type of function bodies or callback type annotations.
 
 ### Changed
 - Switched from using nom to peg for lexing.

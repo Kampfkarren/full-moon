@@ -341,7 +341,7 @@ define_roblox_parser!(
         let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
         let (state, cast_to) = expect!(
             state,
-            ParseTypeInfo.parse(state),
+            ParseTypeInfo(TypeInfoContext::None).parse(state),
             "expected type in type assertion"
         );
 
@@ -789,11 +789,31 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
                 parameters.push(last_parameter);
 
                 parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
+
+                // Parse ellipse type if in Luau
+                if cfg!(feature = "roblox") {
+                    if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::None).parse(state) {
+                        state = new_state;
+                        type_specifiers.push(Some(type_specifier));
+                    } else {
+                        type_specifiers.push(None);
+                    }
+                }
             }
         }
     } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
         state = new_state;
         parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
+
+        // Parse ellipse type if in Luau
+        if cfg!(feature = "roblox") {
+            if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::None).parse(state) {
+                state = new_state;
+                type_specifiers.push(Some(type_specifier));
+            } else {
+                type_specifiers.push(None);
+            }
+        }
     }
 
     let (state, end_parenthese) = expect!(
@@ -803,7 +823,7 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
     );
 
     #[cfg_attr(not(feature = "roblox"), allow(unused_variables))]
-    let (state, return_type) = if let Ok((state, return_type)) = ParseFunctionReturnType.parse(state) {
+    let (state, return_type) = if let Ok((state, return_type)) = ParseTypeSpecifier(TypeInfoContext::ReturnType).parse(state) {
         (state, Some(return_type))
     } else {
         (state, None)
@@ -829,27 +849,6 @@ define_parser!(ParseFunctionBody, FunctionBody<'a>, |_, state| {
         },
     ))
 });
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionReturnType;
-define_roblox_parser!(
-    ParseFunctionReturnType,
-    TypeSpecifier<'a>,
-    TokenReference<'a>,
-    |_, state| {
-        let (state, colon) = ParseSymbol(Symbol::Colon).parse(state)?;
-        let (state, return_type) =
-            expect!(state, ParseTypeInfo.parse(state), "expected return type");
-
-        Ok((
-            state,
-            TypeSpecifier {
-                punctuation: colon,
-                type_info: return_type,
-            },
-        ))
-    }
-);
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunction;
@@ -1086,6 +1085,19 @@ define_parser!(ParseIdentifier, TokenReference<'a>, |_, state| {
     }
 });
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum TypeInfoContext {
+    /// A standard type info, with no context
+    None,
+    /// A type inside of parentheses, either for the parameters in a `TypeInfo::Callback`, or for a `TypeInfo::Tuple`
+    /// Variadic type infos are only permitted inside of here
+    #[cfg(feature = "roblox")]
+    ParenthesesType,
+    /// The return type of a function declaration or callback type, such as `function foo(bar) -> number`.
+    /// This is the only location where Tuple types are allowed. Variadic type infos are also allowed here
+    ReturnType,
+}
+
 // Roblox Types
 #[derive(Clone, Debug, PartialEq)]
 struct ParseNameWithType;
@@ -1095,14 +1107,39 @@ define_roblox_parser!(
     (TokenReference<'a>, Option<TokenReference<'a>>),
     |_, state| {
         let (state, name) = ParseIdentifier.parse(state)?;
-        let (state, type_specifier) =
-            if let Ok((state, type_specifier)) = keep_going!(ParseTypeSpecifier.parse(state)) {
-                (state, Some(type_specifier))
-            } else {
-                (state, None)
-            };
+        let (state, type_specifier) = if let Ok((state, type_specifier)) =
+            keep_going!(ParseTypeSpecifier(TypeInfoContext::None).parse(state))
+        {
+            (state, Some(type_specifier))
+        } else {
+            (state, None)
+        };
 
         Ok((state, (name, type_specifier)))
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParseTypeSpecifier(TypeInfoContext);
+define_roblox_parser!(
+    ParseTypeSpecifier,
+    TypeSpecifier<'a>,
+    TokenReference<'a>,
+    |this, state| {
+        let (state, punctuation) = ParseSymbol(Symbol::Colon).parse(state)?;
+        let (state, type_info) = expect!(
+            state,
+            ParseTypeInfo(this.0).parse(state),
+            "expected type after colon"
+        );
+
+        Ok((
+            state,
+            TypeSpecifier {
+                punctuation,
+                type_info,
+            },
+        ))
     }
 );
 
@@ -1180,7 +1217,7 @@ cfg_if::cfg_if! {
                 );
 
                 let (state, declare_as) =
-                    expect!(state, ParseTypeInfo.parse(state), "expected type");
+                    expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type");
 
                 Ok((
                     state,
@@ -1229,7 +1266,7 @@ cfg_if::cfg_if! {
                 {
                     let (state, generics) = expect!(
                         state,
-                        OneOrMore(ParseTypeInfo, ParseSymbol(Symbol::Comma), false).parse(state),
+                        OneOrMore(ParseTypeInfo(TypeInfoContext::None), ParseSymbol(Symbol::Comma), false).parse(state),
                         "expected type parameters"
                     );
 
@@ -1257,9 +1294,10 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
+        // A type info atom, excluding compound types such as Union and Intersection
         #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeInfo;
-        define_parser!(ParseTypeInfo, TypeInfo<'a>, |_, state| {
+        struct ParseSingleTypeInfo(TypeInfoContext);
+        define_parser!(ParseSingleTypeInfo, TypeInfo<'a>, |this, state| {
             let (mut state, mut base_type) = if let Ok((state, identifier)) = {
                 ParseIdentifier
                     .parse(state)
@@ -1312,7 +1350,7 @@ cfg_if::cfg_if! {
                 {
                     let (state, generics) = expect!(
                         state,
-                        OneOrMore(ParseTypeInfo, ParseSymbol(Symbol::Comma), false).parse(state),
+                        OneOrMore(ParseTypeInfo(TypeInfoContext::None), ParseSymbol(Symbol::Comma), false).parse(state),
                         "expected type parameters"
                     );
 
@@ -1338,7 +1376,7 @@ cfg_if::cfg_if! {
             {
                 let (state, types) = expect!(
                     state,
-                    ZeroOrMoreDelimited(ParseTypeInfo, ParseSymbol(Symbol::Comma), false)
+                    ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::ParenthesesType), ParseSymbol(Symbol::Comma), false)
                         .parse(state),
                     "expected types within parentheses"
                 );
@@ -1349,10 +1387,42 @@ cfg_if::cfg_if! {
                     "expected `)` to match `(`"
                 );
 
-                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
+                if let TypeInfoContext::ReturnType = this.0 {
+                    // Tuples are only permitted as the return type of a function
+                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
+                        let (state, return_value) = expect!(
+                            state,
+                            ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
+                            "expected return type after `->`"
+                        );
+                        (
+                            state,
+                            TypeInfo::Callback {
+                                arguments: types,
+                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                                arrow,
+                                return_type: Box::new(return_value),
+                            },
+                        )
+                    } else {
+                        (
+                            state,
+                            TypeInfo::Tuple {
+                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                                types,
+                            },
+                        )
+                    }
+                } else {
+                    let (state, arrow) = expect!(
+                        state,
+                        ParseSymbol(Symbol::ThinArrow).parse(state),
+                        "expected `->` when parsing function type"
+                    );
+
                     let (state, return_value) = expect!(
                         state,
-                        ParseTypeInfo.parse(state),
+                        ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
                         "expected return type after `->`"
                     );
 
@@ -1363,14 +1433,6 @@ cfg_if::cfg_if! {
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             arrow,
                             return_type: Box::new(return_value),
-                        },
-                    )
-                } else {
-                    (
-                        state,
-                        TypeInfo::Tuple {
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            types,
                         },
                     )
                 }
@@ -1394,7 +1456,7 @@ cfg_if::cfg_if! {
                 } else {
                     let (state, type_info) = expect!(
                         state,
-                        ParseTypeInfo.parse(state),
+                        ParseTypeInfo(TypeInfoContext::None).parse(state),
                         "expected type in array"
                     );
 
@@ -1412,6 +1474,25 @@ cfg_if::cfg_if! {
                         },
                     )
                 }
+            } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
+                // Only allow variadic type annotation for a return type or a tuple type
+                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseSingleTypeInfo(TypeInfoContext::None).parse(state),
+                        "expected type info after `...`"
+                    );
+
+                    (
+                        state,
+                        TypeInfo::Variadic {
+                            ellipse,
+                            type_info: Box::new(type_info),
+                        }
+                    )
+                } else {
+                    return Err(InternalAstError::NoMatch);
+                }
             } else {
                 return Err(InternalAstError::NoMatch);
             };
@@ -1425,13 +1506,20 @@ cfg_if::cfg_if! {
                 state = new_state;
             }
 
+            Ok((state, base_type))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseTypeInfo(TypeInfoContext);
+        define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
+            let (state, base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
+
             if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
                 let (state, right) = expect!(
                     state,
-                    ParseTypeInfo.parse(state),
+                    ParseTypeInfo(this.0).parse(state),
                     "expected type after `|` for union type"
                 );
-
                 Ok((
                     state,
                     TypeInfo::Union {
@@ -1443,10 +1531,9 @@ cfg_if::cfg_if! {
             } else if let Ok((state, ampersand)) = ParseSymbol(Symbol::Ampersand).parse(state) {
                 let (state, right) = expect!(
                     state,
-                    ParseTypeInfo.parse(state),
+                    ParseTypeInfo(this.0).parse(state),
                     "expected type after `&` for intersection type"
                 );
-
                 Ok((
                     state,
                     TypeInfo::Intersection {
@@ -1476,7 +1563,7 @@ cfg_if::cfg_if! {
 
                 let (state, value) = expect!(
                     state,
-                    ParseTypeInfo.parse(state),
+                    ParseTypeInfo(TypeInfoContext::None).parse(state),
                     "expected value type for key"
                 );
 
@@ -1494,7 +1581,7 @@ cfg_if::cfg_if! {
             {
                 let (state, inner) = expect!(
                     state,
-                    ParseTypeInfo.parse(state),
+                    ParseTypeInfo(TypeInfoContext::None).parse(state),
                     "expected type within brackets for index signature"
                 );
 
@@ -1515,29 +1602,6 @@ cfg_if::cfg_if! {
                 Err(InternalAstError::NoMatch)
             }
         });
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeSpecifier;
-        define_parser!(
-            ParseTypeSpecifier,
-            TypeSpecifier<'a>,
-            |_, state| {
-                let (state, punctuation) = ParseSymbol(Symbol::Colon).parse(state)?;
-                let (state, type_info) = expect!(
-                    state,
-                    ParseTypeInfo.parse(state),
-                    "expected type after colon"
-                );
-
-                Ok((
-                    state,
-                    TypeSpecifier {
-                        punctuation,
-                        type_info,
-                    },
-                ))
-            }
-        );
     }
 }
 

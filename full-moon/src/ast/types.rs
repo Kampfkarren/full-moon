@@ -167,6 +167,17 @@ pub enum TypeInfo<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         right: Box<TypeInfo<'a>>,
     },
+
+    /// A variadic type: `...number`.
+    #[display(fmt = "{}{}", "ellipse", "type_info")]
+    Variadic {
+        /// The ellipse: `...`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        ellipse: TokenReference<'a>,
+        /// The type that is variadic: `number`.
+        #[cfg_attr(feature = "serde", serde(borrow))]
+        type_info: Box<TypeInfo<'a>>,
+    },
 }
 
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,

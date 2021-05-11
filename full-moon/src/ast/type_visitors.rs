@@ -92,6 +92,10 @@ impl<'a> Visit<'a> for TypeInfo<'a> {
                 ampersand.visit(visitor);
                 right.visit(visitor);
             }
+            TypeInfo::Variadic { ellipse, type_info } => {
+                ellipse.visit(visitor);
+                type_info.visit(visitor);
+            }
         };
         visitor.visit_type_info_end(self);
     }
@@ -226,6 +230,11 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
                 left: left.visit_mut(visitor),
                 ampersand: ampersand.visit_mut(visitor),
                 right: right.visit_mut(visitor),
+            },
+
+            TypeInfo::Variadic { ellipse, type_info } => TypeInfo::Variadic {
+                ellipse: ellipse.visit_mut(visitor),
+                type_info: type_info.visit_mut(visitor),
             },
         };
         self = visitor.visit_type_info_end(self);
