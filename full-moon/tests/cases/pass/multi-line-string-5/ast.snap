@@ -104,7 +104,6 @@ stmts:
                       token_type:
                         type: StringLiteral
                         literal: 🧓🏽
-                        multi_line: 0
                         quote_type: Brackets
                     trailing_trivia:
                       - start_position:

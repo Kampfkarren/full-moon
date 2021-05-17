@@ -104,7 +104,7 @@ stmts:
                       token_type:
                         type: StringLiteral
                         literal: "This is\nseveral equal\nsigns"
-                        multi_line: 1
+                        multi_line_depth: 1
                         quote_type: Brackets
                     trailing_trivia: []
     - ~

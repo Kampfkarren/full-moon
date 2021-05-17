@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Changed
+- **[BREAKING CHANGE]** `TokenType::StringLiteral::multi_line` has been replaced with `TokenType::StringLiteral::multi_line_depth`. It serves the same purpose except instead of being an `Option<usize>`, it is now a standard `usize`. It is advised to simply check `quote_type == StringLiteralQuoteType::Brackets` to get the previous behavior.
+- Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
+
 ## [0.11.0] - 2021-05-12
 ### Added
 - Made `TokenizerError` fields accessible through methods

@@ -106,11 +106,11 @@ impl Owned for TokenType<'_> {
             },
             TokenType::StringLiteral {
                 literal,
-                multi_line,
+                multi_line_depth,
                 quote_type,
             } => TokenType::StringLiteral {
                 literal: Cow::Owned(literal.clone().into_owned()),
-                multi_line: *multi_line,
+                multi_line_depth: *multi_line_depth,
                 quote_type: *quote_type,
             },
             TokenType::Symbol { symbol } => TokenType::Symbol { symbol: *symbol },
