@@ -16,5 +16,5 @@ UnexpectedToken:
     token_type:
       type: Symbol
       symbol: )
-  additional: "expected `->` when parsing function type"
+  additional: tuples are only permitted as a return type
 
