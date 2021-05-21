@@ -1409,9 +1409,13 @@ cfg_if::cfg_if! {
                     match this.0 {
                         TypeInfoContext::ReturnType => {},
                         _ => {
-                            if types.len() != 1 {
+                            let num_types_present = types.len();
+                            if num_types_present != 1 {
                                 return Err(InternalAstError::UnexpectedToken {
-                                    token: state.peek().clone(), // TODO: this is pointing to the wrong thing
+                                    token: match num_types_present {
+                                        0 => end_parenthese,
+                                        _ => types.pairs().next().unwrap().punctuation().unwrap().clone(), // A comma after the first type must exist if > 1 types present
+                                    },
                                     additional: Some("tuples are only permitted as a return type"),
                                 });
                             };

@@ -6,15 +6,15 @@ expression: error
 UnexpectedToken:
   token:
     start_position:
-      bytes: 35
+      bytes: 26
       line: 1
-      character: 36
+      character: 27
     end_position:
-      bytes: 36
+      bytes: 27
       line: 1
-      character: 37
+      character: 28
     token_type:
       type: Symbol
-      symbol: )
+      symbol: ","
   additional: tuples are only permitted as a return type
 
