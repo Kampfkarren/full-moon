@@ -1387,45 +1387,12 @@ cfg_if::cfg_if! {
                     "expected `)` to match `(`"
                 );
 
-                if let TypeInfoContext::ReturnType = this.0 {
-                    // Tuples are only permitted as the return type of a function
-                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                        let (state, return_value) = expect!(
-                            state,
-                            ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                            "expected return type after `->`"
-                        );
-                        (
-                            state,
-                            TypeInfo::Callback {
-                                arguments: types,
-                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                arrow,
-                                return_type: Box::new(return_value),
-                            },
-                        )
-                    } else {
-                        (
-                            state,
-                            TypeInfo::Tuple {
-                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                types,
-                            },
-                        )
-                    }
-                } else {
-                    let (state, arrow) = expect!(
-                        state,
-                        ParseSymbol(Symbol::ThinArrow).parse(state),
-                        "expected `->` when parsing function type"
-                    );
-
+                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
                     let (state, return_value) = expect!(
                         state,
                         ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
                         "expected return type after `->`"
                     );
-
                     (
                         state,
                         TypeInfo::Callback {
@@ -1433,6 +1400,29 @@ cfg_if::cfg_if! {
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             arrow,
                             return_type: Box::new(return_value),
+                        },
+                    )
+                } else {
+                    // Tuples are only permitted as the return type of a function
+                    // However, if we just have a single type wrapped around in parentheses, its not really a tuple - this is allowed anywhere.
+
+                    match this.0 {
+                        TypeInfoContext::ReturnType => {},
+                        _ => {
+                            if types.len() != 1 {
+                                return Err(InternalAstError::UnexpectedToken {
+                                    token: state.peek().clone(), // TODO: this is pointing to the wrong thing
+                                    additional: Some("tuples are only permitted as a return type"),
+                                });
+                            };
+                        }
+                    };
+
+                    (
+                        state,
+                        TypeInfo::Tuple {
+                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            types,
                         },
                     )
                 }
