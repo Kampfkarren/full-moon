@@ -475,6 +475,12 @@ impl<'a> GenericDeclaration<'a> {
     }
 }
 
+impl Default for GenericDeclaration<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// A type specifier, the `: number` in `local foo: number`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

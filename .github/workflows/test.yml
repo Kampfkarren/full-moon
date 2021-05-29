@@ -29,7 +29,7 @@ jobs:
         cargo test --no-default-features --features serde
     - name: Clippy
       run: |
-        cargo clippy -- -D warnings
+        cargo clippy --all-features -- -D warnings
     - name: Rustfmt
       run: |
         cargo fmt -- --check

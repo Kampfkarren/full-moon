@@ -710,9 +710,9 @@ define_parser!(ParseRepeat, Repeat<'a>, |_, state| {
         state,
         Repeat {
             repeat_token,
+            block,
             until_token,
             until,
-            block,
         },
     ))
 });
@@ -984,11 +984,11 @@ define_parser!(ParseLocalAssignment, LocalAssignment<'a>, |_, state| {
         state,
         LocalAssignment {
             local_token,
+            #[cfg(feature = "roblox")]
+            type_specifiers,
             name_list,
             equal_token,
             expr_list,
-            #[cfg(feature = "roblox")]
-            type_specifiers,
         },
     ))
 });
