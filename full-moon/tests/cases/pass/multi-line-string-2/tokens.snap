@@ -81,7 +81,7 @@ input_file: full-moon/tests/cases/pass/multi-line-string-2
   token_type:
     type: StringLiteral
     literal: "This is\nseveral equal\nsigns"
-    multi_line: 1
+    multi_line_depth: 1
     quote_type: Brackets
 - start_position:
     bytes: 43

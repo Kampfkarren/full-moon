@@ -81,7 +81,6 @@ input_file: full-moon/tests/cases/pass/multi-line-string-1
   token_type:
     type: StringLiteral
     literal: "Full Moon\nis a\nlossless\nLua parser"
-    multi_line: 0
     quote_type: Brackets
 - start_position:
     bytes: 48

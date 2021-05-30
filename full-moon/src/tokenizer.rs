@@ -145,12 +145,12 @@ pub enum TokenType<'a> {
         #[cfg_attr(feature = "serde", serde(borrow))]
         /// The literal itself, ignoring quotation marks
         literal: Cow<'a, str>,
-        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-        /// Number of equals signs used for a multi line string, if it is one
-        /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
-        /// `[[string]]` would have a `multi_line` value of Some(0)
-        /// A string such as `"string"` would have a `multi_line` value of None
-        multi_line: Option<usize>,
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_usize_zero"))]
+        /// Number of equals signs used for a multi line string.
+        /// [=[hello]=] would have a depth of 1.
+        /// [[hello]] would have a depth of 0.
+        /// "somehting without brackets" would also have a depth of 0.
+        multi_line_depth: usize,
         /// The type of quotation mark used to make the string
         quote_type: StringLiteralQuoteType,
     },
@@ -306,11 +306,15 @@ impl<'a> fmt::Display for Token<'a> {
             SingleLineComment { comment } => format!("--{}", comment),
             StringLiteral {
                 literal,
-                multi_line,
+                multi_line_depth,
                 quote_type,
             } => {
-                if let Some(blocks) = multi_line {
-                    format!("[{0}[{1}]{0}]", "=".repeat(*blocks), literal.to_string())
+                if *quote_type == StringLiteralQuoteType::Brackets {
+                    format!(
+                        "[{0}[{1}]{0}]",
+                        "=".repeat(*multi_line_depth),
+                        literal.to_string()
+                    )
                 } else {
                     format!("{0}{1}{0}", quote_type.to_string(), literal.to_string())
                 }
@@ -617,7 +621,7 @@ struct TokenAdvancement<'a> {
     pub token_type: TokenType<'a>,
 }
 
-/// The types of quotes used in a Lua string
+/// The types of quotes used in a Lua string.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
@@ -633,7 +637,10 @@ pub enum StringLiteralQuoteType {
 impl<'a> fmt::Display for StringLiteralQuoteType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            StringLiteralQuoteType::Brackets => unreachable!(),
+            // Brackets cannot be properly displayed, as not only do they have
+            // variable depth (`=`), but also they don't open the same as
+            // they end, meaning this can't really be used for display purposes.
+            StringLiteralQuoteType::Brackets => return Err(fmt::Error),
             StringLiteralQuoteType::Double => "\"",
             StringLiteralQuoteType::Single => "'",
         }
@@ -684,7 +691,7 @@ peg::parser! {
 
         rule multi_line_quote() -> RawToken<'input>
             = v:multi_line_block() { TokenType::StringLiteral {
-                multi_line: Some(v.0),
+                multi_line_depth: v.0,
                 literal:v.1.into(),
                 quote_type: QuoteType::Brackets,
             }.into()}
@@ -700,7 +707,7 @@ peg::parser! {
             = ##parse_string_literal(quote)
               literal:$((quote_char(quote) / escape())+ / )
               ##parse_string_literal(quote)
-              { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
+              { TokenType::StringLiteral { multi_line_depth: 0, literal:literal.into(), quote_type }.into() }
             / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
 
         rule single_line_quote() -> RawToken<'input>
@@ -972,6 +979,11 @@ pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
     Ok(tokens.finish(position))
 }
 
+// Used by serde
+fn is_usize_zero(input: &usize) -> bool {
+    *input == 0
+}
+
 #[cfg(test)]
 mod tests {
     use crate::tokenizer::*;
@@ -1138,7 +1150,7 @@ mod tests {
             string_literal("\"hello\""),
             TokenType::StringLiteral {
                 literal: "hello".into(),
-                multi_line: None,
+                multi_line_depth: 0,
                 quote_type: StringLiteralQuoteType::Double,
             }
         );
@@ -1147,7 +1159,7 @@ mod tests {
             string_literal("\"hello\\\nworld\""),
             TokenType::StringLiteral {
                 literal: "hello\\\nworld".into(),
-                multi_line: None,
+                multi_line_depth: 0,
                 quote_type: StringLiteralQuoteType::Double,
             }
         );

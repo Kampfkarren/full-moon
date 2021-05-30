@@ -104,7 +104,6 @@ stmts:
                       token_type:
                         type: StringLiteral
                         literal: "\nlocal emotes = {\n\t[\":thinking:\"] = \"http://www.roblox.com/asset/?id=643340245\",\n\t[\":bug:\"] = \"http://www.roblox.com/asset/?id=860037275\"\n}\n"
-                        multi_line: 0
                         quote_type: Brackets
                     trailing_trivia: []
     - ~
