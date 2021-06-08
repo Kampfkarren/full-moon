@@ -1387,45 +1387,12 @@ cfg_if::cfg_if! {
                     "expected `)` to match `(`"
                 );
 
-                if let TypeInfoContext::ReturnType = this.0 {
-                    // Tuples are only permitted as the return type of a function
-                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                        let (state, return_value) = expect!(
-                            state,
-                            ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                            "expected return type after `->`"
-                        );
-                        (
-                            state,
-                            TypeInfo::Callback {
-                                arguments: types,
-                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                arrow,
-                                return_type: Box::new(return_value),
-                            },
-                        )
-                    } else {
-                        (
-                            state,
-                            TypeInfo::Tuple {
-                                parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                                types,
-                            },
-                        )
-                    }
-                } else {
-                    let (state, arrow) = expect!(
-                        state,
-                        ParseSymbol(Symbol::ThinArrow).parse(state),
-                        "expected `->` when parsing function type"
-                    );
-
+                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
                     let (state, return_value) = expect!(
                         state,
                         ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
                         "expected return type after `->`"
                     );
-
                     (
                         state,
                         TypeInfo::Callback {
@@ -1433,6 +1400,38 @@ cfg_if::cfg_if! {
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             arrow,
                             return_type: Box::new(return_value),
+                        },
+                    )
+                } else {
+                    // Tuples are only permitted as the return type of a function
+                    // However, if we just have a single type wrapped around in parentheses, its not really a tuple - this is allowed anywhere.
+
+                    // Check our current context to see if tuples are allowed
+                    match this.0 {
+                        TypeInfoContext::ReturnType => {},
+                        _ => {
+                            // We aren't in a return type context, so tuples aren't allowed here
+                            // If we have only one type wrapped in parentheses, then it is OK. Otherwise, we must fail
+                            let num_types_present = types.len();
+                            if num_types_present != 1 {
+                                return Err(InternalAstError::UnexpectedToken {
+                                    // We have already consumed relevant tokens in state. We will set the token error
+                                    // to a useful token.
+                                    token: match num_types_present {
+                                        0 => end_parenthese,
+                                        _ => types.pairs().next().expect("no types present even though we have >1 types").punctuation().expect("no comma on first type in tuple even though we have >1 types").clone(),
+                                    },
+                                    additional: Some("tuples are only permitted as a return type"),
+                                });
+                            };
+                        }
+                    };
+
+                    (
+                        state,
+                        TypeInfo::Tuple {
+                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            types,
                         },
                     )
                 }
