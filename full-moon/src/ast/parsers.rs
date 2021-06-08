@@ -1406,15 +1406,20 @@ cfg_if::cfg_if! {
                     // Tuples are only permitted as the return type of a function
                     // However, if we just have a single type wrapped around in parentheses, its not really a tuple - this is allowed anywhere.
 
+                    // Check our current context to see if tuples are allowed
                     match this.0 {
                         TypeInfoContext::ReturnType => {},
                         _ => {
+                            // We aren't in a return type context, so tuples aren't allowed here
+                            // If we have only one type wrapped in parentheses, then it is OK. Otherwise, we must fail
                             let num_types_present = types.len();
                             if num_types_present != 1 {
                                 return Err(InternalAstError::UnexpectedToken {
+                                    // We have already consumed relevant tokens in state. We will set the token error
+                                    // to a useful token.
                                     token: match num_types_present {
                                         0 => end_parenthese,
-                                        _ => types.pairs().next().unwrap().punctuation().unwrap().clone(), // A comma after the first type must exist if > 1 types present
+                                        _ => types.pairs().next().expect("no types present even though we have >1 types").punctuation().expect("no comma on first type in tuple even though we have >1 types").clone(),
                                     },
                                     additional: Some("tuples are only permitted as a return type"),
                                 });
