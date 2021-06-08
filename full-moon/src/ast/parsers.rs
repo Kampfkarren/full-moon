@@ -920,6 +920,15 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
+    let (state, generics) = if cfg!(feature = "roblox") {
+        if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
+            (state, Some(generics))
+        } else {
+            (state, None)
+        }
+    } else {
+        (state, None)
+    };
     let (state, body) = ParseFunctionBody.parse(state)?;
     Ok((
         state,
@@ -927,6 +936,8 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
             local_token,
             function_token,
             name,
+            #[cfg(feature = "roblox")]
+            generics,
             body,
         },
     ))
@@ -1055,6 +1066,15 @@ define_parser!(
             ParseFunctionName.parse(state),
             "expected function name"
         );
+        let (state, generics) = if cfg!(feature = "roblox") {
+            if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
+                (state, Some(generics))
+            } else {
+                (state, None)
+            }
+        } else {
+            (state, None)
+        };
         let (state, body) = expect!(
             state,
             ParseFunctionBody.parse(state),
@@ -1065,6 +1085,8 @@ define_parser!(
             FunctionDeclaration {
                 function_token,
                 name,
+                #[cfg(feature = "roblox")]
+                generics,
                 body,
             },
         ))
@@ -1143,6 +1165,35 @@ define_roblox_parser!(
     }
 );
 
+#[derive(Clone, Debug, PartialEq)]
+struct ParseGenericDeclaration;
+define_roblox_parser!(
+    ParseGenericDeclaration,
+    GenericDeclaration<'a>,
+    TokenReference<'a>,
+    |_, state| {
+        let (state, start_arrow) = ParseSymbol(Symbol::LessThan).parse(state)?;
+        let (state, generics) = expect!(
+            state,
+            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
+            "expected type parameters"
+        );
+        let (state, end_arrow) = expect!(
+            state,
+            ParseSymbol(Symbol::GreaterThan).parse(state),
+            "expected `>` to match `<`"
+        );
+
+        Ok((
+            state,
+            GenericDeclaration {
+                arrows: ContainedSpan::new(start_arrow, end_arrow),
+                generics,
+            },
+        ))
+    }
+);
+
 cfg_if::cfg_if! {
     if #[cfg(feature = "roblox")] {
         // Roblox Compound Assignment
@@ -1184,28 +1235,10 @@ cfg_if::cfg_if! {
 
                 let (state, base) = ParseIdentifier.parse(state)?;
 
-                let (state, generics) = if let Ok((state, start_arrow)) =
-                    ParseSymbol(Symbol::LessThan).parse(state)
+                let (state, generics) = if let Ok((state, generics)) =
+                    keep_going!(ParseGenericDeclaration.parse(state))
                 {
-                    let (state, generics) = expect!(
-                        state,
-                        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
-                        "expected type parameters"
-                    );
-
-                    let (state, end_arrow) = expect!(
-                        state,
-                        ParseSymbol(Symbol::GreaterThan).parse(state),
-                        "expected `>` to match `<`"
-                    );
-
-                    (
-                        state,
-                        Some(GenericDeclaration {
-                            arrows: ContainedSpan::new(start_arrow, end_arrow),
-                            generics,
-                        }),
-                    )
+                    (state, Some(generics))
                 } else {
                     (state, None)
                 };
