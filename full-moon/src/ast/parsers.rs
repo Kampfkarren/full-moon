@@ -920,15 +920,13 @@ define_parser!(ParseLocalFunction, LocalFunction<'a>, |_, state| {
     let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-    let (state, generics) = if cfg!(feature = "roblox") {
+    #[cfg(feature = "roblox")]
+    let (state, generics) =
         if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
             (state, Some(generics))
         } else {
             (state, None)
-        }
-    } else {
-        (state, None)
-    };
+        };
     let (state, body) = ParseFunctionBody.parse(state)?;
     Ok((
         state,
@@ -1066,15 +1064,13 @@ define_parser!(
             ParseFunctionName.parse(state),
             "expected function name"
         );
-        let (state, generics) = if cfg!(feature = "roblox") {
+        #[cfg(feature = "roblox")]
+        let (state, generics) =
             if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
                 (state, Some(generics))
             } else {
                 (state, None)
-            }
-        } else {
-            (state, None)
-        };
+            };
         let (state, body) = expect!(
             state,
             ParseFunctionBody.parse(state),
