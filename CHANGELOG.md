@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for parsing generic functions under the `roblox` feature flag
 
+### Fixed
+- Fixed regression in parsing single types within parentheses under the `roblox` feature flag.
+
 ## [0.11.0] - 2021-05-12
 ### Added
 - Made `TokenizerError` fields accessible through methods
