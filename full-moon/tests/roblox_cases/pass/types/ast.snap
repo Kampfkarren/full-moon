@@ -4231,6 +4231,7 @@ stmts:
                       identifier: foo
                   trailing_trivia: []
           colon_name: ~
+        generics: ~
         body:
           parameters_parentheses:
             tokens:
@@ -4545,6 +4546,7 @@ stmts:
                       identifier: foo
                   trailing_trivia: []
           colon_name: ~
+        generics: ~
         body:
           parameters_parentheses:
             tokens:
