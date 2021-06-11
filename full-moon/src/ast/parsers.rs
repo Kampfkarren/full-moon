@@ -1308,7 +1308,6 @@ cfg_if::cfg_if! {
             types.push(Pair::new(type_info, None));
 
             Ok((state, TypeInfo::Tuple {
-                // TODO: can we get rid of this clone?
                 parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
                 types,
             }))
@@ -1377,7 +1376,6 @@ cfg_if::cfg_if! {
                 state,
                 TypeInfo::Callback {
                     arguments: types,
-                    // TODO: can we get rid of this clone?
                     parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
                     arrow,
                     return_type: Box::new(return_value),
@@ -1465,7 +1463,6 @@ cfg_if::cfg_if! {
             } else if let Ok((state, start_parenthese)) =
                 ParseSymbol(Symbol::LeftParen).parse(state)
             {
-                // TODO: can we get rid of this clone?
                 if let Ok((state, parentheses_type)) = ParseParenthesesTypeInfo(start_parenthese.clone()).parse(state) {
                     // Single token lookahead: see if we have a `->` ahead. If we do, we need to parse this
                     // as a callback type, using what we already have from the parentheses type
@@ -1475,13 +1472,10 @@ cfg_if::cfg_if! {
                             TypeInfo::Tuple { parentheses, types } => {
                                 // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
                                 // where each argument has no name.
-                                let mut arguments = Punctuated::new();
-                                for pair in types.into_pairs() {
-                                    arguments.push(pair.map(|type_info| TypeArgument {
-                                        name: None,
-                                        type_info
-                                    }))
-                                };
+                                let arguments = Punctuated::from_iter(types.into_pairs().map(|type_info| TypeArgument {
+                                    name: None,
+                                    type_info
+                                }));
                                 (parentheses, arguments)
                             },
                             _ => unreachable!("parsed a non-tuple as a parentheses type"),
@@ -1597,16 +1591,12 @@ cfg_if::cfg_if! {
                 // Single token lookahead: if we see a `->` afterwards, we need to bail out
                 // of attempting to parse a tuple type, since it must be a callback.
                 if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                    // TODO: this is copied from converting parentheses -> callback above
                     // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
                     // where each argument has no name.
-                    let mut arguments = Punctuated::new();
-                    for pair in types.into_pairs() {
-                        arguments.push(pair.map(|type_info| TypeArgument {
-                            name: None,
-                            type_info
-                        }))
-                    };
+                    let arguments = Punctuated::from_iter(types.into_pairs().map(|type_info| TypeArgument {
+                        name: None,
+                        type_info
+                    }));
 
                     let (state, return_value) = expect!(
                         state,
