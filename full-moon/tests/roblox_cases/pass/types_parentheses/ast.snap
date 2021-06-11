@@ -79,6 +79,7 @@ stmts:
                       identifier: new
                   trailing_trivia: []
           colon_name: ~
+        generics: ~
         body:
           parameters_parentheses:
             tokens:
@@ -2052,6 +2053,7 @@ stmts:
                       identifier: new
                   trailing_trivia: []
           colon_name: ~
+        generics: ~
         body:
           parameters_parentheses:
             tokens:

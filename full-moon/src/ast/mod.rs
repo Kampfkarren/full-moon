@@ -1603,12 +1603,28 @@ impl<'a> Assignment<'a> {
 /// A declaration of a local function, such as `local function x() end`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")]
+#[cfg_attr(
+    not(feature = "roblox"),
+    display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")
+)]
+#[cfg_attr(
+    feature = "roblox",
+    display(
+        fmt = "{}{}{}{}{}",
+        "local_token",
+        "function_token",
+        "name",
+        "display_option(self.generics())",
+        "body"
+    )
+)]
 pub struct LocalFunction<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     local_token: TokenReference<'a>,
     function_token: TokenReference<'a>,
     name: TokenReference<'a>,
+    #[cfg(feature = "roblox")]
+    generics: Option<GenericDeclaration<'a>>,
     body: FunctionBody<'a>,
 }
 
@@ -1619,6 +1635,8 @@ impl<'a> LocalFunction<'a> {
             local_token: TokenReference::symbol("local ").unwrap(),
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
+            #[cfg(feature = "roblox")]
+            generics: None,
             body: FunctionBody::new(),
         }
     }
@@ -1643,6 +1661,12 @@ impl<'a> LocalFunction<'a> {
         &self.name
     }
 
+    /// Any generics declared for the function, the `<T, U>` part of `local function x<T, U>() end`
+    #[cfg(feature = "roblox")]
+    pub fn generics(&self) -> Option<&GenericDeclaration<'a>> {
+        self.generics.as_ref()
+    }
+
     /// Returns a new LocalFunction with the given `local` token
     pub fn with_local_token(self, local_token: TokenReference<'a>) -> Self {
         Self {
@@ -1662,6 +1686,12 @@ impl<'a> LocalFunction<'a> {
     /// Returns a new LocalFunction with the given name
     pub fn with_name(self, name: TokenReference<'a>) -> Self {
         Self { name, ..self }
+    }
+
+    /// Returns a new LocalFunction with the given generics
+    #[cfg(feature = "roblox")]
+    pub fn with_generics(self, generics: Option<GenericDeclaration<'a>>) -> Self {
+        Self { generics, ..self }
     }
 
     /// Returns a new LocalFunction with the given function body
@@ -1957,11 +1987,26 @@ impl<'a> FunctionName<'a> {
 /// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "function_token", "name", "body")]
+#[cfg_attr(
+    not(feature = "roblox"),
+    display(fmt = "{}{}{}", "function_token", "name", "body")
+)]
+#[cfg_attr(
+    feature = "roblox",
+    display(
+        fmt = "{}{}{}{}",
+        "function_token",
+        "name",
+        "display_option(self.generics())",
+        "body"
+    )
+)]
 pub struct FunctionDeclaration<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
     function_token: TokenReference<'a>,
     name: FunctionName<'a>,
+    #[cfg(feature = "roblox")]
+    generics: Option<GenericDeclaration<'a>>,
     body: FunctionBody<'a>,
 }
 
@@ -1971,6 +2016,8 @@ impl<'a> FunctionDeclaration<'a> {
         Self {
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
+            #[cfg(feature = "roblox")]
+            generics: None,
             body: FunctionBody::new(),
         }
     }
@@ -1990,6 +2037,12 @@ impl<'a> FunctionDeclaration<'a> {
         &self.name
     }
 
+    /// Any generics declared for the function
+    #[cfg(feature = "roblox")]
+    pub fn generics(&self) -> Option<&GenericDeclaration<'a>> {
+        self.generics.as_ref()
+    }
+
     /// Returns a new FunctionDeclaration with the given `function` token
     pub fn with_function_token(self, function_token: TokenReference<'a>) -> Self {
         Self {
@@ -2001,6 +2054,12 @@ impl<'a> FunctionDeclaration<'a> {
     /// Returns a new FunctionDeclaration with the given function name
     pub fn with_name(self, name: FunctionName<'a>) -> Self {
         Self { name, ..self }
+    }
+
+    /// Returns a new FunctionDeclaration with the given generics
+    #[cfg(feature = "roblox")]
+    pub fn with_generics(self, generics: Option<GenericDeclaration<'a>>) -> Self {
+        Self { generics, ..self }
     }
 
     /// Returns a new FunctionDeclaration with the given function body
