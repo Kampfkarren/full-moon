@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added support for parsing generic functions under the `roblox` feature flag
+- Added support for parsing named function type arguments under the `roblox` feature flag
 
 ### Fixed
 - Fixed regression in parsing single types within parentheses under the `roblox` feature flag.
