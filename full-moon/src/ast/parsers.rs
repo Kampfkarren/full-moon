@@ -1501,10 +1501,10 @@ cfg_if::cfg_if! {
                             TypeInfo::Tuple { parentheses, types } => {
                                 // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
                                 // where each argument has no name.
-                                let arguments = Punctuated::from_iter(types.into_pairs().map(|type_info| TypeArgument {
+                                let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
                                     name: None,
                                     type_info
-                                }));
+                                })).collect::<Punctuated<_>>();
                                 (parentheses, arguments)
                             },
                             _ => unreachable!("parsed a non-tuple as a parentheses type"),
@@ -1622,10 +1622,10 @@ cfg_if::cfg_if! {
                 if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
                     // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
                     // where each argument has no name.
-                    let arguments = Punctuated::from_iter(types.into_pairs().map(|type_info| TypeArgument {
+                    let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
                         name: None,
                         type_info
-                    }));
+                    })).collect::<Punctuated<_>>();
 
                     let (state, return_value) = expect!(
                         state,
