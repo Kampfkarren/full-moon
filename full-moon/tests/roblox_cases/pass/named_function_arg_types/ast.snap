@@ -631,6 +631,7 @@ stmts:
               type: Identifier
               identifier: foo
           trailing_trivia: []
+        generics: ~
         body:
           parameters_parentheses:
             tokens:
