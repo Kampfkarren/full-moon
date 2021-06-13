@@ -39,7 +39,7 @@ pub enum TypeInfo<'a> {
         parentheses: ContainedSpan<'a>,
         /// The argument types: `(string, number)`.
         #[cfg_attr(feature = "serde", serde(borrow))]
-        arguments: Punctuated<'a, TypeInfo<'a>>,
+        arguments: Punctuated<'a, TypeArgument<'a>>,
         /// The "thin arrow" (`->`) in between the arguments and the return type.
         #[cfg_attr(feature = "serde", serde(borrow))]
         arrow: TokenReference<'a>,
@@ -523,6 +523,56 @@ impl<'a> TypeSpecifier<'a> {
     /// Returns a new TypeSpecifier with the given type being specified
     pub fn with_type_info(self, type_info: TypeInfo<'a>) -> Self {
         Self { type_info, ..self }
+    }
+}
+
+/// A type argument specified in a callback type, the `count: number` in `(count: number) -> ()`
+#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct TypeArgument<'a> {
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) name: Option<(TokenReference<'a>, TokenReference<'a>)>,
+    #[cfg_attr(feature = "serde", serde(borrow))]
+    pub(crate) type_info: TypeInfo<'a>,
+}
+
+impl<'a> TypeArgument<'a> {
+    /// Creates a new TypeArgument with the given type info
+    pub fn new(type_info: TypeInfo<'a>) -> Self {
+        Self {
+            name: None,
+            type_info,
+        }
+    }
+
+    /// The name of the argument split into identifier and punctuation: `count:` in `count: number`.
+    pub fn name(&self) -> Option<&(TokenReference<'a>, TokenReference<'a>)> {
+        self.name.as_ref()
+    }
+
+    /// The type info for the argument: `number` in `count: number`.
+    pub fn type_info(&self) -> &TypeInfo<'a> {
+        &self.type_info
+    }
+
+    /// Returns a new TypeArgument with the given punctuation
+    pub fn with_name(self, name: Option<(TokenReference<'a>, TokenReference<'a>)>) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new TypeArgument with the given type info
+    pub fn with_type_info(self, type_info: TypeInfo<'a>) -> Self {
+        Self { type_info, ..self }
+    }
+}
+
+impl fmt::Display for TypeArgument<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        if let Some((identifier, punctuation)) = self.name() {
+            write!(formatter, "{}{}{}", identifier, punctuation, self.type_info)
+        } else {
+            write!(formatter, "{}", self.type_info)
+        }
     }
 }
 

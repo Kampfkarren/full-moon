@@ -1323,11 +1323,100 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
+        #[derive(Clone, Debug, PartialEq)]
+        /// A parentheses type info atom, such as `(string)` in `type Foo = (string)?`. This excludes parentheses used to indicate
+        /// a return type, or arguments in a callback type. An opening parentheses should have already been consumed,
+        /// and is passed to this struct.
+        struct ParseParenthesesTypeInfo<'a>(TokenReference<'a>);
+        define_parser!(ParseParenthesesTypeInfo<'a>, TypeInfo<'a>, |this, state| {
+            let (state, type_info) = expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type within parentheses");
+            let (state, end_parenthese) = expect!(state, ParseSymbol(Symbol::RightParen).parse(state), "expected `)`");
+
+            // TODO: should we separate out a single type inside parentheses into a TypeInfo::Parentheses?
+            let mut types = Punctuated::new();
+            types.push(Pair::new(type_info, None));
+
+            Ok((state, TypeInfo::Tuple {
+                parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
+                types,
+            }))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseTypeArgument;
+        define_parser!(ParseTypeArgument, TypeArgument<'a>, |_, state| {
+            if let Ok((state, identifier)) = ParseIdentifier.parse(state) {
+                if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(state) {
+                    let (state, type_info) = expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type");
+                    Ok((
+                        state,
+                        TypeArgument {
+                            name: Some((identifier, colon)),
+                            type_info
+                        }
+                    ))
+                } else {
+                    Ok((
+                        state,
+                        TypeArgument {
+                            name: None,
+                            type_info: TypeInfo::Basic(identifier),
+                        }
+                    ))
+                }
+            } else {
+                let (state, type_info) = ParseTypeInfo(TypeInfoContext::ParenthesesType).parse(state)?;
+                Ok((
+                    state,
+                    TypeArgument {
+                        name: None,
+                        type_info,
+                    }
+                ))
+            }
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        /// A callback type info atom, such as `(count: number) -> string` in `type Foo = (count: number) -> string`.
+        /// An opening parentheses should have already been consumed, and is passed to this struct.
+        struct ParseCallbackTypeInfo<'a>(TokenReference<'a>);
+        define_parser!(ParseCallbackTypeInfo<'a>, TypeInfo<'a>, |this, state| {
+            let (state, types) = expect!(
+                state,
+                ZeroOrMoreDelimited(ParseTypeArgument, ParseSymbol(Symbol::Comma), false)
+                    .parse(state),
+                "expected types within parentheses"
+            );
+
+            let (state, end_parenthese) = expect!(
+                state,
+                ParseSymbol(Symbol::RightParen).parse(state),
+                "expected `)` to match `(`"
+            );
+
+            let (state, arrow) = expect!(state, ParseSymbol(Symbol::ThinArrow).parse(state), "expected `->` after `()` when parsing function type");
+            let (state, return_value) = expect!(
+                state,
+                ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
+                "expected return type after `->`"
+            );
+
+            Ok((
+                state,
+                TypeInfo::Callback {
+                    arguments: types,
+                    parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
+                    arrow,
+                    return_type: Box::new(return_value),
+                },
+            ))
+        });
+
         // A type info atom, excluding compound types such as Union and Intersection
         #[derive(Clone, Debug, PartialEq)]
         struct ParseSingleTypeInfo(TypeInfoContext);
         define_parser!(ParseSingleTypeInfo, TypeInfo<'a>, |this, state| {
-            let (mut state, mut base_type) = if let Ok((state, identifier)) = {
+            let (state, base_type) = if let Ok((state, identifier)) = {
                 ParseIdentifier
                     .parse(state)
                     .or_else(|_| ParseSymbol(Symbol::Nil).parse(state))
@@ -1403,66 +1492,44 @@ cfg_if::cfg_if! {
             } else if let Ok((state, start_parenthese)) =
                 ParseSymbol(Symbol::LeftParen).parse(state)
             {
-                let (state, types) = expect!(
-                    state,
-                    ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::ParenthesesType), ParseSymbol(Symbol::Comma), false)
-                        .parse(state),
-                    "expected types within parentheses"
-                );
+                if let Ok((state, parentheses_type)) = ParseParenthesesTypeInfo(start_parenthese.clone()).parse(state) {
+                    // Single token lookahead: see if we have a `->` ahead. If we do, we need to parse this
+                    // as a callback type, using what we already have from the parentheses type
+                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
+                        // Unwrap the parsed parentheses type into its parentheses and its enclosed type
+                        let (parentheses, arguments) = match parentheses_type {
+                            TypeInfo::Tuple { parentheses, types } => {
+                                // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
+                                // where each argument has no name.
+                                let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
+                                    name: None,
+                                    type_info
+                                })).collect::<Punctuated<_>>();
+                                (parentheses, arguments)
+                            },
+                            _ => unreachable!("parsed a non-tuple as a parentheses type"),
+                        };
 
-                let (state, end_parenthese) = expect!(
-                    state,
-                    ParseSymbol(Symbol::RightParen).parse(state),
-                    "expected `)` to match `(`"
-                );
+                        let (state, return_value) = expect!(
+                            state,
+                            ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
+                            "expected return type after `->`"
+                        );
 
-                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                    let (state, return_value) = expect!(
-                        state,
-                        ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                        "expected return type after `->`"
-                    );
-                    (
-                        state,
-                        TypeInfo::Callback {
-                            arguments: types,
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            arrow,
-                            return_type: Box::new(return_value),
-                        },
-                    )
+                        (
+                            state,
+                            TypeInfo::Callback {
+                                arguments,
+                                parentheses,
+                                arrow,
+                                return_type: Box::new(return_value),
+                            },
+                        )
+                    } else {
+                        (state, parentheses_type)
+                    }
                 } else {
-                    // Tuples are only permitted as the return type of a function
-                    // However, if we just have a single type wrapped around in parentheses, its not really a tuple - this is allowed anywhere.
-
-                    // Check our current context to see if tuples are allowed
-                    match this.0 {
-                        TypeInfoContext::ReturnType => {},
-                        _ => {
-                            // We aren't in a return type context, so tuples aren't allowed here
-                            // If we have only one type wrapped in parentheses, then it is OK. Otherwise, we must fail
-                            let num_types_present = types.len();
-                            if num_types_present != 1 {
-                                return Err(InternalAstError::UnexpectedToken {
-                                    // We have already consumed relevant tokens in state. We will set the token error
-                                    // to a useful token.
-                                    token: match num_types_present {
-                                        0 => end_parenthese,
-                                        _ => types.pairs().next().expect("no types present even though we have >1 types").punctuation().expect("no comma on first type in tuple even though we have >1 types").clone(),
-                                    },
-                                    additional: Some("tuples are only permitted as a return type"),
-                                });
-                            };
-                        }
-                    };
-
-                    (
-                        state,
-                        TypeInfo::Tuple {
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            types,
-                        },
-                    )
+                    ParseCallbackTypeInfo(start_parenthese).parse(state)?
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 if let Ok((state, fields)) = ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
@@ -1525,6 +1592,78 @@ cfg_if::cfg_if! {
                 return Err(InternalAstError::NoMatch);
             };
 
+            Ok((state, base_type))
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        /// Similar to [`ParseSingleTypeInfo`], except it allows parsing of tuple types `(x, y)`.
+        /// Should only be used when parsing a return type from a function
+        struct ParseSingleReturnTypeInfo;
+        define_parser!(ParseSingleReturnTypeInfo, TypeInfo<'a>, |_, state| {
+            // Attempt to parse a tuple type.
+            if let Ok((state, start_parenthese)) =
+                ParseSymbol(Symbol::LeftParen).parse(state)
+            {
+                let (state, types) = expect!(
+                    state,
+                    ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::ParenthesesType), ParseSymbol(Symbol::Comma), false)
+                        .parse(state),
+                    "expected types within parentheses"
+                );
+
+                let (state, end_parenthese) = expect!(
+                    state,
+                    ParseSymbol(Symbol::RightParen).parse(state),
+                    "expected `)` to match `(`"
+                );
+
+                // Single token lookahead: if we see a `->` afterwards, we need to bail out
+                // of attempting to parse a tuple type, since it must be a callback.
+                if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
+                    // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
+                    // where each argument has no name.
+                    let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
+                        name: None,
+                        type_info
+                    })).collect::<Punctuated<_>>();
+
+                    let (state, return_value) = expect!(
+                        state,
+                        ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
+                        "expected return type after `->`"
+                    );
+
+                    Ok((
+                        state,
+                        TypeInfo::Callback {
+                            arguments,
+                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            arrow,
+                            return_type: Box::new(return_value),
+                        },
+                    ))
+                } else {
+                    Ok((
+                        state,
+                        TypeInfo::Tuple {
+                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            types,
+                        },
+                    ))
+                }
+            } else {
+                ParseSingleTypeInfo(TypeInfoContext::ReturnType).parse(state)
+            }
+        });
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseSingleTypeInfoAtom(TypeInfoContext);
+        define_parser!(ParseSingleTypeInfoAtom, TypeInfo<'a>, |this, state| {
+            let (mut state, mut base_type) = match this.0 {
+                TypeInfoContext::ReturnType => ParseSingleReturnTypeInfo.parse(state)?,
+                _ => ParseSingleTypeInfo(this.0).parse(state)?,
+            };
+
             if let Ok((new_state, question_mark)) = ParseSymbol(Symbol::QuestionMark).parse(state) {
                 base_type = TypeInfo::Optional {
                     base: Box::new(base_type),
@@ -1540,7 +1679,7 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeInfo(TypeInfoContext);
         define_parser!(ParseTypeInfo, TypeInfo<'a>, |this, state| {
-            let (state, base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
+            let (state, base_type) = ParseSingleTypeInfoAtom(this.0).parse(state)?;
 
             if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
                 let (state, right) = expect!(

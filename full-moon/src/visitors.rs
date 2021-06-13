@@ -259,6 +259,7 @@ create_visitor!(ast: {
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_generic_declaration => GenericDeclaration,
         visit_indexed_type_info => IndexedTypeInfo,
+        visit_type_argument => TypeArgument,
         visit_type_assertion => TypeAssertion,
         visit_type_declaration => TypeDeclaration,
         visit_type_field => TypeField,

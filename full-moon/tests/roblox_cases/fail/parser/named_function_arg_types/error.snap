@@ -6,15 +6,14 @@ expression: error
 UnexpectedToken:
   token:
     start_position:
-      bytes: 35
+      bytes: 26
       line: 1
-      character: 36
+      character: 27
     end_position:
-      bytes: 36
+      bytes: 26
       line: 1
-      character: 37
+      character: 27
     token_type:
-      type: Symbol
-      symbol: )
+      type: Eof
   additional: "expected `->` after `()` when parsing function type"
 
