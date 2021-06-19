@@ -16,3 +16,7 @@ function GError.new(
 	originalError: (Error & { extensions: any? }) -- new syntax
 ): GError
 end
+
+type IProperties = {
+	RemoveOnCollision: (string | (IProperties, BasePart, Vector3, Vector3, Enum.Material, number) -> boolean)?,
+}
