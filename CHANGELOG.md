@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- Fixed issue with parsing complex function type arguments which began with an indetifier under the `roblox` feature flag
+
 ## [0.12.0] - 2021-06-15
 ### Added
 - Added support for parsing generic functions under the `roblox` feature flag

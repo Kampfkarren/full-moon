@@ -1345,35 +1345,29 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeArgument;
         define_parser!(ParseTypeArgument, TypeArgument<'a>, |_, state| {
-            if let Ok((state, identifier)) = ParseIdentifier.parse(state) {
-                if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(state) {
+            // Attempt to parse an identifier and then a `:`
+            if let Ok((new_state, identifier)) = ParseIdentifier.parse(state) {
+                if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(new_state) {
                     let (state, type_info) = expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type");
-                    Ok((
+                    return Ok((
                         state,
                         TypeArgument {
                             name: Some((identifier, colon)),
                             type_info
                         }
                     ))
-                } else {
-                    Ok((
-                        state,
-                        TypeArgument {
-                            name: None,
-                            type_info: TypeInfo::Basic(identifier),
-                        }
-                    ))
                 }
-            } else {
-                let (state, type_info) = ParseTypeInfo(TypeInfoContext::ParenthesesType).parse(state)?;
-                Ok((
-                    state,
-                    TypeArgument {
-                        name: None,
-                        type_info,
-                    }
-                ))
-            }
+            };
+
+            // If failed, fall back to original state and parse a type_info normally
+            let (state, type_info) = ParseTypeInfo(TypeInfoContext::ParenthesesType).parse(state)?;
+            Ok((
+                state,
+                TypeArgument {
+                    name: None,
+                    type_info,
+                }
+            ))
         });
 
         #[derive(Clone, Debug, PartialEq)]
