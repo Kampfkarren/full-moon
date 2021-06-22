@@ -181,7 +181,7 @@ impl TokenType {
     /// Returns the kind of the token type.
     ///
     /// ```rust
-    /// use full_moon::tokenizer::{TokenKind, ShortString, TokenType};
+    /// use full_moon::{ShortString, tokenizer::{TokenKind, TokenType}};
     ///
     /// assert_eq!(
     ///     TokenType::Identifier {
