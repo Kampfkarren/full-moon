@@ -4,7 +4,7 @@ use full_moon_derive::symbols;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
-use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
+use std::{cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
     And => "and",

@@ -37,7 +37,7 @@ pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
 
 #[cfg(feature = "roblox")]
 pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2: Display>(
-    parameters: &Punctuated<'_, T1>,
+    parameters: &Punctuated<T1>,
     type_specifiers: I,
 ) -> String {
     let mut string = String::new();

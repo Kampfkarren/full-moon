@@ -8,8 +8,8 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 // For example, if there is an AST node that represents `(foo)`...
 // Then visitors will visit this as `()foo`.
 // This is fixed for structs with `#[visit(contains = "...")], but this is not supported on enums.
-impl<'a> Visit<'a> for TypeInfo<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for TypeInfo {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_type_info(self);
         match self {
             TypeInfo::Array { braces, type_info } => {
@@ -101,8 +101,8 @@ impl<'a> Visit<'a> for TypeInfo<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for TypeInfo<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for TypeInfo {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_type_info(self);
         self = match self {
             TypeInfo::Array {
@@ -242,8 +242,8 @@ impl<'a> VisitMut<'a> for TypeInfo<'a> {
     }
 }
 
-impl<'a> Visit<'a> for IndexedTypeInfo<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for IndexedTypeInfo {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_indexed_type_info(self);
         match self {
             IndexedTypeInfo::Basic(__self_0) => {
@@ -264,8 +264,8 @@ impl<'a> Visit<'a> for IndexedTypeInfo<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for IndexedTypeInfo<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for IndexedTypeInfo {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_indexed_type_info(self);
         self = match self {
             IndexedTypeInfo::Basic(__self_0) => IndexedTypeInfo::Basic(__self_0.visit_mut(visitor)),
@@ -292,8 +292,8 @@ impl<'a> VisitMut<'a> for IndexedTypeInfo<'a> {
     }
 }
 
-impl<'a> Visit<'a> for TypeFieldKey<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for TypeFieldKey {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_type_field_key(self);
         match self {
             TypeFieldKey::Name(__self_0) => {
@@ -309,8 +309,8 @@ impl<'a> Visit<'a> for TypeFieldKey<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for TypeFieldKey<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for TypeFieldKey {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_type_field_key(self);
         self = match self {
             TypeFieldKey::Name(__self_0) => TypeFieldKey::Name(__self_0.visit_mut(visitor)),
