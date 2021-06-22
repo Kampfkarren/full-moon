@@ -8,7 +8,7 @@ use full_moon::{
 fn test_visitor() {
     struct FunctionCallVisitor {
         called: Vec<String>,
-    };
+    }
 
     impl Visitor for FunctionCallVisitor {
         fn visit_function_call(&mut self, call: &ast::FunctionCall) {
@@ -81,7 +81,7 @@ fn test_visit_token() {
     #[derive(Default)]
     struct CommentVisitor {
         comments: Vec<String>,
-    };
+    }
 
     impl Visitor for CommentVisitor {
         fn visit_single_line_comment(&mut self, token: &Token) {
