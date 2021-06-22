@@ -206,14 +206,14 @@ impl TokenType {
     /// Returns a whitespace `TokenType` consisting of spaces
     pub fn spaces(spaces: usize) -> Self {
         TokenType::Whitespace {
-            characters: Cow::from(" ".repeat(spaces)),
+            characters: SmolStr::new(" ".repeat(spaces)),
         }
     }
 
     /// Returns a whitespace `TokenType` consisting of tabs
     pub fn tabs(tabs: usize) -> Self {
         TokenType::Whitespace {
-            characters: Cow::from("\t".repeat(tabs)),
+            characters: SmolStr::new("\t".repeat(tabs)),
         }
     }
 }
@@ -444,11 +444,11 @@ impl TokenReference {
 
         Ok(Self {
             leading_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: Cow::Owned(leading_trivia),
+                characters: SmolStr::from(leading_trivia),
             })],
             token: Token::new(TokenType::Symbol { symbol }),
             trailing_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: Cow::Owned(trailing_trivia),
+                characters: SmolStr::from(trailing_trivia),
             })],
         })
     }

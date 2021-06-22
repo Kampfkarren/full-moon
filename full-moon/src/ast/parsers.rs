@@ -12,6 +12,8 @@ use super::lua52::*;
 
 use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
+use std::borrow::Cow;
+
 #[derive(Clone, Debug, PartialEq)]
 struct ParseSymbol(Symbol);
 
@@ -973,7 +975,7 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
                 .parse(state)
                 .map_err(|_| InternalAstError::UnexpectedToken {
                     token: (*state.peek()).to_owned(),
-                    additional: Some("expected expression"),
+                    additional: Some(Cow::from("expected expression")),
                 })?,
             Some(equal_token),
         ),

@@ -54,7 +54,7 @@ pub(crate) enum TokenItem<'b> {
     TokenReference(&'b TokenReference),
 }
 
-impl fmt::Debug for TokenItem<'_, '_> {
+impl fmt::Debug for TokenItem<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),

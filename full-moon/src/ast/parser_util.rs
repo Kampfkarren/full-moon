@@ -9,7 +9,7 @@ use crate::{
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy, PartialEq)]
@@ -155,7 +155,7 @@ macro_rules! expect {
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
                     token: $state.peek().clone(),
-                    additional: Some($error),
+                    additional: Some(Cow::from($error)),
                 });
             }
             Err(other) => return Err(other),
@@ -218,7 +218,7 @@ pub enum InternalAstError {
     NoMatch,
     UnexpectedToken {
         token: TokenReference,
-        additional: Option<String>,
+        additional: Option<Cow<'static, str>>,
     },
 }
 
@@ -321,7 +321,7 @@ where
                     } else {
                         return Err(InternalAstError::UnexpectedToken {
                             token: state.peek().clone(),
-                            additional: Some("trailing character"),
+                            additional: Some(Cow::from("trailing character")),
                         });
                     }
                 }

@@ -2087,7 +2087,7 @@ pub enum AstError {
         /// The token that caused the error
         token: Token,
         /// Any additional information that could be provided for debugging
-        additional: Option<String>,
+        additional: Option<Cow<'static, str>>,
     },
 }
 
@@ -2188,7 +2188,7 @@ impl Ast {
                 Err(InternalAstError::UnexpectedToken { token, additional }) => {
                     Err(AstError::UnexpectedToken {
                         token: token.token,
-                        additional: additional.map(Cow::Borrowed),
+                        additional,
                     })
                 }
             }
