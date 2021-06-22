@@ -32,8 +32,8 @@ macro_rules! create_visitor {
         ///     names: Vec<String>,
         /// }
         ///
-        /// impl<'ast> Visitor<'ast> for LocalVariableVisitor {
-        ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment<'ast>) {
+        /// impl Visitor for LocalVariableVisitor {
+        ///     fn visit_local_assignment(&mut self, local_assignment: &ast::LocalAssignment) {
         ///         self.names.extend(&mut local_assignment.names().iter().map(|name| name.token().to_string()));
         ///     }
         /// }
@@ -44,9 +44,9 @@ macro_rules! create_visitor {
         /// # Ok(())
         /// # }
         /// ```
-        pub trait Visitor<'ast> {
+        pub trait Visitor {
             /// Visit the nodes of an [`Ast`](crate::ast::Ast)
-            fn visit_ast(&mut self, ast: &Ast<'ast>) where Self: Sized {
+            fn visit_ast(&mut self, ast: &Ast) where Self: Sized {
                 ast.nodes().visit(self);
                 ast.eof().visit(self);
             }
@@ -54,34 +54,34 @@ macro_rules! create_visitor {
             paste::item! {
                 $(
                     #[allow(missing_docs)]
-                    fn $visit_name(&mut self, _node: &$ast_type<'ast>) { }
+                    fn $visit_name(&mut self, _node: &$ast_type) { }
                     #[allow(missing_docs)]
-                    fn [<$visit_name _end>](&mut self, _node: &$ast_type<'ast>) { }
+                    fn [<$visit_name _end>](&mut self, _node: &$ast_type) { }
                 )+
 
                 $(
                     $(
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn $meta_visit_name(&mut self, _node: &$meta_ast_type<'ast>) { }
+                        fn $meta_visit_name(&mut self, _node: &$meta_ast_type) { }
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn [<$meta_visit_name _end>](&mut self, _node: &$meta_ast_type<'ast>) { }
+                        fn [<$meta_visit_name _end>](&mut self, _node: &$meta_ast_type) { }
                     )+
                 )+
             }
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, _token: &Token<'ast>) { }
+                fn $visit_token(&mut self, _token: &Token) { }
             )+
         }
 
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`Visitor`], nodes/tokens passed are mutable.
-        pub trait VisitorMut<'ast> {
+        pub trait VisitorMut {
             /// Visit the nodes of an [`Ast`](crate::ast::Ast)
-            fn visit_ast(&mut self, ast: Ast<'ast>) -> Ast<'ast> where Self: Sized {
+            fn visit_ast(&mut self, ast: Ast) -> Ast where Self: Sized {
                 // TODO: Visit tokens?
                 let eof = ast.eof().to_owned();
                 let nodes = ast.nodes.visit_mut(self);
@@ -96,12 +96,12 @@ macro_rules! create_visitor {
             paste::item! {
                 $(
                     #[allow(missing_docs)]
-                    fn $visit_name(&mut self, node: $ast_type<'ast>) -> $ast_type<'ast> {
+                    fn $visit_name(&mut self, node: $ast_type) -> $ast_type {
                         node
                     }
 
                     #[allow(missing_docs)]
-                    fn [<$visit_name _end>](&mut self, node: $ast_type<'ast>) -> $ast_type<'ast> {
+                    fn [<$visit_name _end>](&mut self, node: $ast_type) -> $ast_type {
                         node
                     }
                 )+
@@ -111,13 +111,13 @@ macro_rules! create_visitor {
                     $(
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn $meta_visit_name(&mut self, node: $meta_ast_type<'ast>) -> $meta_ast_type<'ast> {
+                        fn $meta_visit_name(&mut self, node: $meta_ast_type) -> $meta_ast_type {
                             node
                         }
 
                         #[$meta]
                         #[allow(missing_docs)]
-                        fn [<$meta_visit_name _end>](&mut self, node: $meta_ast_type<'ast>) -> $meta_ast_type<'ast> {
+                        fn [<$meta_visit_name _end>](&mut self, node: $meta_ast_type) -> $meta_ast_type {
                             node
                         }
                     )+
@@ -126,7 +126,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
-                fn $visit_token(&mut self, token: Token<'ast>) -> Token<'ast> {
+                fn $visit_token(&mut self, token: Token) -> Token {
                     token
                 }
             )+
@@ -135,81 +135,81 @@ macro_rules! create_visitor {
 }
 
 #[doc(hidden)]
-pub trait Visit<'ast>: Sealed {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V);
+pub trait Visit: Sealed {
+    fn visit<V: Visitor>(&self, visitor: &mut V);
 }
 
 #[doc(hidden)]
-pub trait VisitMut<'ast>: Sealed
+pub trait VisitMut: Sealed
 where
     Self: Sized,
 {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self;
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self;
 }
 
-impl<'ast, T: Visit<'ast>> Visit<'ast> for &T {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<T: Visit> Visit for &T {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<'ast, T: Visit<'ast>> Visit<'ast> for &mut T {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<T: Visit> Visit for &mut T {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<'ast, T: Visit<'ast>> Visit<'ast> for Vec<T> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<T: Visit> Visit for Vec<T> {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         for item in self {
             item.visit(visitor);
         }
     }
 }
 
-impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Vec<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl<T: VisitMut> VisitMut for Vec<T> {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         self.into_iter()
             .map(|item| item.visit_mut(visitor))
             .collect()
     }
 }
 
-impl<'ast, T: Visit<'ast>> Visit<'ast> for Option<T> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<T: Visit> Visit for Option<T> {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         if let Some(item) = self {
             item.visit(visitor);
         }
     }
 }
 
-impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Option<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl<T: VisitMut> VisitMut for Option<T> {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         self.map(|item| item.visit_mut(visitor))
     }
 }
 
-impl<'ast, A: Visit<'ast>, B: Visit<'ast>> Visit<'ast> for (A, B) {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<A: Visit, B: Visit> Visit for (A, B) {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         self.0.visit(visitor);
         self.1.visit(visitor);
     }
 }
 
-impl<'ast, A: VisitMut<'ast>, B: VisitMut<'ast>> VisitMut<'ast> for (A, B) {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl<A: VisitMut, B: VisitMut> VisitMut for (A, B) {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         (self.0.visit_mut(visitor), self.1.visit_mut(visitor))
     }
 }
 
-impl<'ast, T: Visit<'ast>> Visit<'ast> for Box<T> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl<T: Visit> Visit for Box<T> {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<'ast, T: VisitMut<'ast>> VisitMut<'ast> for Box<T> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl<T: VisitMut> VisitMut for Box<T> {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         Box::new((*self).visit_mut(visitor))
     }
 }

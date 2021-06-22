@@ -3,13 +3,13 @@
 
 use crate::tokenizer::TokenReference;
 use derive_more::Display;
-use full_moon_derive::{Node, Owned, Visit};
+use full_moon_derive::{Node, Visit};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// A goto statement, such as `goto label`.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "goto_token", "label_name")]
 pub struct Goto<'a> {
@@ -49,7 +49,7 @@ impl<'a> Goto<'a> {
 }
 
 /// A label, such as `::label::`.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "left_colons", "name", "right_colons")]
 pub struct Label<'a> {

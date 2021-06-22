@@ -11,7 +11,7 @@ struct UpdatePositionsRewriter {
 }
 
 impl UpdatePositionsRewriter {
-    fn update_token<'ast>(&mut self, token: &Token<'ast>) -> Token<'ast> {
+    fn update_token(&mut self, token: &Token) -> Token {
         let display = token.to_string();
 
         let mut end_position = self.start_position;
@@ -52,8 +52,8 @@ impl UpdatePositionsRewriter {
     }
 }
 
-impl<'ast> VisitorMut<'ast> for UpdatePositionsRewriter {
-    fn visit_token_reference(&mut self, token: TokenReference<'ast>) -> TokenReference<'ast> {
+impl VisitorMut for UpdatePositionsRewriter {
+    fn visit_token_reference(&mut self, token: TokenReference) -> TokenReference {
         TokenReference::new(
             token
                 .leading_trivia()
@@ -68,7 +68,7 @@ impl<'ast> VisitorMut<'ast> for UpdatePositionsRewriter {
     }
 }
 
-impl Ast<'_> {
+impl Ast {
     /// Will update the positions of all the tokens in the tree
     /// Necessary if you are both mutating the tree and need the positions of the tokens
     pub fn update_positions(self) -> Self {

@@ -94,12 +94,6 @@ impl VisitGenerator {
 
 impl DeriveGenerator for VisitGenerator {
     fn complete(input: &syn::DeriveInput, tokens: TokenStream) -> TokenStream {
-        let lifetime = input
-            .generics
-            .lifetimes()
-            .next()
-            .expect("must derive something with a lifetime");
-
         let input_ident = &input.ident;
         let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
@@ -143,8 +137,8 @@ impl DeriveGenerator for VisitGenerator {
         };
 
         quote! {
-            impl #impl_generics crate::visitors::Visit<#lifetime> for #input_ident #ty_generics #where_clause {
-                fn visit<V: crate::visitors::Visitor<#lifetime>>(&self, visitor: &mut V) {
+            impl #impl_generics crate::visitors::Visit for #input_ident #ty_generics #where_clause {
+                fn visit<V: crate::visitors::Visitor>(&self, visitor: &mut V) {
                     macro_rules! visit {
                         ($visit_what: expr, $visitor: expr) => {
                             $visit_what.visit($visitor);
@@ -177,8 +171,8 @@ impl DeriveGenerator for VisitGenerator {
                 }
             }
 
-            impl #impl_generics crate::visitors::VisitMut<#lifetime> for #input_ident #ty_generics #where_clause {
-                fn visit_mut<V: crate::visitors::VisitorMut<#lifetime>>(mut self, visitor: &mut V) -> Self {
+            impl #impl_generics crate::visitors::VisitMut for #input_ident #ty_generics #where_clause {
+                fn visit_mut<V: crate::visitors::VisitorMut>(mut self, visitor: &mut V) -> Self {
                     macro_rules! visit {
                         ($visit_what: expr, $visitor: expr) => {
                             $visit_what = $visit_what.visit_mut($visitor);

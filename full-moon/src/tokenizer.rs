@@ -1,8 +1,9 @@
 use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 
-use full_moon_derive::{symbols, Owned};
+use full_moon_derive::symbols;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use smol_str::SmolStr;
 use std::{borrow::Cow, cmp::Ordering, fmt, str::FromStr};
 
 symbols!(
@@ -98,15 +99,14 @@ pub enum TokenizerErrorType {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 #[non_exhaustive]
-pub enum TokenType<'a> {
+pub enum TokenType {
     /// End of file, should always be the very last token
     Eof,
 
     /// An identifier, such as `foo`
     Identifier {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The identifier itself
-        identifier: Cow<'a, str>,
+        identifier: SmolStr,
     },
 
     /// A multi line comment in the format of `--[[ comment ]]`
@@ -114,37 +114,32 @@ pub enum TokenType<'a> {
         /// Number of equals signs, if any, for the multi line comment
         /// For example, `--[=[` would have a `blocks` value of `1`
         blocks: usize,
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The comment itself, ignoring opening and closing tags
-        comment: Cow<'a, str>,
+        comment: SmolStr,
     },
 
     /// A literal number, such as `3.3`
     Number {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The text representing the number, includes details such as `0x`
-        text: Cow<'a, str>,
+        text: SmolStr,
     },
 
     /// A shebang line
     Shebang {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The shebang line itself
-        line: Cow<'a, str>,
+        line: SmolStr,
     },
 
     /// A single line comment, such as `-- comment`
     SingleLineComment {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The comment, ignoring initial `--`
-        comment: Cow<'a, str>,
+        comment: SmolStr,
     },
 
     /// A literal string, such as "Hello, world"
     StringLiteral {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// The literal itself, ignoring quotation marks
-        literal: Cow<'a, str>,
+        literal: SmolStr,
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
         /// Number of equals signs used for a multi line string, if it is one
         /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
@@ -163,13 +158,12 @@ pub enum TokenType<'a> {
 
     /// Whitespace, such as tabs or new lines
     Whitespace {
-        #[cfg_attr(feature = "serde", serde(borrow))]
         /// Characters consisting of the whitespace
-        characters: Cow<'a, str>,
+        characters: SmolStr,
     },
 }
 
-impl<'a> TokenType<'a> {
+impl TokenType {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
@@ -251,16 +245,15 @@ pub enum TokenKind {
 /// A token such consisting of its [`Position`] and a [`TokenType`]
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct Token<'a> {
+pub struct Token {
     pub(crate) start_position: Position,
     pub(crate) end_position: Position,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token_type: TokenType<'a>,
+    pub(crate) token_type: TokenType,
 }
 
-impl<'a> Token<'a> {
+impl Token {
     /// Creates a token with a zero position
-    pub fn new(token_type: TokenType<'a>) -> Token<'a> {
+    pub fn new(token_type: TokenType) -> Token {
         Token {
             start_position: Position::default(),
             end_position: Position::default(),
@@ -280,7 +273,7 @@ impl<'a> Token<'a> {
 
     /// The type of token as well as the data needed to represent it
     /// If you don't need any other information, use [`token_kind`](Token::token_kind) instead.
-    pub fn token_type(&self) -> &TokenType<'a> {
+    pub fn token_type(&self) -> &TokenType {
         &self.token_type
     }
 
@@ -291,7 +284,7 @@ impl<'a> Token<'a> {
     }
 }
 
-impl<'a> fmt::Display for Token<'a> {
+impl fmt::Display for Token {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
@@ -322,7 +315,7 @@ impl<'a> fmt::Display for Token<'a> {
     }
 }
 
-impl<'a> PartialEq<Self> for Token<'a> {
+impl PartialEq<Self> for Token {
     fn eq(&self, rhs: &Self) -> bool {
         self.start_position() == rhs.start_position()
             && self.end_position() == rhs.end_position()
@@ -330,22 +323,22 @@ impl<'a> PartialEq<Self> for Token<'a> {
     }
 }
 
-impl<'a> Eq for Token<'a> {}
+impl Eq for Token {}
 
-impl<'a> Ord for Token<'a> {
+impl Ord for Token {
     fn cmp(&self, other: &Self) -> Ordering {
         self.start_position().cmp(&other.start_position())
     }
 }
 
-impl<'a> PartialOrd for Token<'a> {
+impl PartialOrd for Token {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'ast> Visit<'ast> for Token<'ast> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl Visit for Token {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
         match self.token_kind() {
@@ -362,8 +355,8 @@ impl<'ast> Visit<'ast> for Token<'ast> {
     }
 }
 
-impl<'ast> VisitMut<'ast> for Token<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl VisitMut for Token {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         let token = visitor.visit_token(self);
 
         match token.token_kind() {
@@ -382,24 +375,17 @@ impl<'ast> VisitMut<'ast> for Token<'ast> {
 
 /// A reference to a token used by Ast's.
 /// Dereferences to a [`Token`]
-#[derive(Clone, Debug, Owned)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct TokenReference<'a> {
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) leading_trivia: Vec<Token<'a>>,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) token: Token<'a>,
-    #[cfg_attr(feature = "serde", serde(borrow))]
-    pub(crate) trailing_trivia: Vec<Token<'a>>,
+pub struct TokenReference {
+    pub(crate) leading_trivia: Vec<Token>,
+    pub(crate) token: Token,
+    pub(crate) trailing_trivia: Vec<Token>,
 }
 
-impl<'a> TokenReference<'a> {
+impl TokenReference {
     /// Creates a TokenReference from leading/trailing trivia as well as the leading token
-    pub fn new(
-        leading_trivia: Vec<Token<'a>>,
-        token: Token<'a>,
-        trailing_trivia: Vec<Token<'a>>,
-    ) -> Self {
+    pub fn new(leading_trivia: Vec<Token>, token: Token, trailing_trivia: Vec<Token>) -> Self {
         Self {
             leading_trivia,
             token,
@@ -468,22 +454,22 @@ impl<'a> TokenReference<'a> {
     }
 
     /// Returns the inner token.
-    pub fn token(&self) -> &Token<'a> {
+    pub fn token(&self) -> &Token {
         &self.token
     }
 
     /// Returns the leading trivia
-    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+    pub fn leading_trivia(&self) -> impl Iterator<Item = &Token> {
         self.leading_trivia.iter()
     }
 
     /// Returns the trailing trivia
-    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token<'a>> {
+    pub fn trailing_trivia(&self) -> impl Iterator<Item = &Token> {
         self.trailing_trivia.iter()
     }
 
     /// Creates a clone of the current TokenReference with the new inner token, preserving trivia.
-    pub fn with_token(&self, token: Token<'a>) -> Self {
+    pub fn with_token(&self, token: Token) -> Self {
         Self {
             token,
             leading_trivia: self.leading_trivia.clone(),
@@ -492,21 +478,21 @@ impl<'a> TokenReference<'a> {
     }
 }
 
-impl<'a> std::borrow::Borrow<Token<'a>> for &TokenReference<'a> {
-    fn borrow(&self) -> &Token<'a> {
+impl std::borrow::Borrow<Token> for &TokenReference {
+    fn borrow(&self) -> &Token {
         &**self
     }
 }
 
-impl<'a> std::ops::Deref for TokenReference<'a> {
-    type Target = Token<'a>;
+impl std::ops::Deref for TokenReference {
+    type Target = Token;
 
     fn deref(&self) -> &Self::Target {
         &self.token
     }
 }
 
-impl<'a> fmt::Display for TokenReference<'a> {
+impl fmt::Display for TokenReference {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         for trivia in &self.leading_trivia {
             formatter.write_str(&trivia.to_string())?;
@@ -522,7 +508,7 @@ impl<'a> fmt::Display for TokenReference<'a> {
     }
 }
 
-impl<'a> PartialEq<Self> for TokenReference<'a> {
+impl PartialEq<Self> for TokenReference {
     fn eq(&self, other: &Self) -> bool {
         (**self).eq(other)
             && self.leading_trivia == other.leading_trivia
@@ -530,22 +516,22 @@ impl<'a> PartialEq<Self> for TokenReference<'a> {
     }
 }
 
-impl<'a> Eq for TokenReference<'a> {}
+impl Eq for TokenReference {}
 
-impl<'a> Ord for TokenReference<'a> {
+impl Ord for TokenReference {
     fn cmp(&self, other: &Self) -> Ordering {
         (**self).cmp(&**other)
     }
 }
 
-impl<'a> PartialOrd for TokenReference<'a> {
+impl PartialOrd for TokenReference {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'ast> Visit<'ast> for TokenReference<'ast> {
-    fn visit<V: Visitor<'ast>>(&self, visitor: &mut V) {
+impl Visit for TokenReference {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
         if matches!(self.token().token_kind(), TokenKind::Eof) {
@@ -558,8 +544,8 @@ impl<'ast> Visit<'ast> for TokenReference<'ast> {
     }
 }
 
-impl<'ast> VisitMut<'ast> for TokenReference<'ast> {
-    fn visit_mut<V: VisitorMut<'ast>>(self, visitor: &mut V) -> Self {
+impl VisitMut for TokenReference {
+    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
         let mut token_reference = visitor.visit_token_reference(self);
 
         if matches!(token_reference.token().token_kind(), TokenKind::Eof) {
@@ -612,9 +598,9 @@ impl PartialOrd for Position {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct TokenAdvancement<'a> {
+struct TokenAdvancement {
     pub advance: usize,
-    pub token_type: TokenType<'a>,
+    pub token_type: TokenType,
 }
 
 /// The types of quotes used in a Lua string
@@ -630,7 +616,7 @@ pub enum StringLiteralQuoteType {
     Single,
 }
 
-impl<'a> fmt::Display for StringLiteralQuoteType {
+impl fmt::Display for StringLiteralQuoteType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             StringLiteralQuoteType::Brackets => unreachable!(),
@@ -641,16 +627,16 @@ impl<'a> fmt::Display for StringLiteralQuoteType {
     }
 }
 
-type RawToken<'a> = Result<TokenType<'a>, TokenizerErrorType>;
+type RawToken = Result<TokenType, TokenizerErrorType>;
 
-impl<'a> From<TokenType<'a>> for RawToken<'a> {
-    fn from(token_type: TokenType<'a>) -> RawToken<'a> {
+impl From<TokenType> for RawToken {
+    fn from(token_type: TokenType) -> RawToken {
         Ok(token_type)
     }
 }
 
-impl<'a> From<TokenizerErrorType> for RawToken<'a> {
-    fn from(error: TokenizerErrorType) -> RawToken<'a> {
+impl From<TokenizerErrorType> for RawToken {
+    fn from(error: TokenizerErrorType) -> RawToken {
         Err(error)
     }
 }
@@ -666,7 +652,7 @@ peg::parser! {
         rule space()
             = [' '|'\t']
 
-        pub(super) rule whitespace() -> RawToken<'input>
+        pub(super) rule whitespace() -> RawToken
             = chars:$( space()+ line_ending()? / line_ending() )
               { TokenType::Whitespace { characters:chars.into() }.into() }
 
@@ -682,7 +668,7 @@ peg::parser! {
               multi_line_end(block)
               { (block.len(), content) }
 
-        rule multi_line_quote() -> RawToken<'input>
+        rule multi_line_quote() -> RawToken
             = v:multi_line_block() { TokenType::StringLiteral {
                 multi_line: Some(v.0),
                 literal:v.1.into(),
@@ -696,26 +682,26 @@ peg::parser! {
         rule quote_char(quote: &str)
             = !(##parse_string_literal(quote) / ['\r'|'\n'|'\\']) [_]
 
-        rule quoted(quote: &str, quote_type: QuoteType) -> RawToken<'input>
+        rule quoted(quote: &str, quote_type: QuoteType) -> RawToken
             = ##parse_string_literal(quote)
               literal:$((quote_char(quote) / escape())+ / )
               ##parse_string_literal(quote)
               { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
             / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
 
-        rule single_line_quote() -> RawToken<'input>
+        rule single_line_quote() -> RawToken
             = quoted("\"", (QuoteType::Double))
             / quoted("\'", (QuoteType::Single))
 
-        pub(super) rule string_literal() -> RawToken<'input>
+        pub(super) rule string_literal() -> RawToken
             = multi_line_quote()
             / single_line_quote()
 
-        pub(super) rule shebang() -> RawToken<'input>
+        pub(super) rule shebang() -> RawToken
             = line:$("#!" (!line_ending() [_])* line_ending())
               {TokenType::Shebang{line:line.into()}.into()}
 
-        pub(super) rule identifier() -> RawToken<'input>
+        pub(super) rule identifier() -> RawToken
             = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
               { match parse_keyword(id) {
                     Some(symbol) => TokenType::Symbol { symbol }.into(),
@@ -723,7 +709,7 @@ peg::parser! {
               }}
             / expected!("identifier")
 
-        pub(super) rule comment() -> RawToken<'input>
+        pub(super) rule comment() -> RawToken
             = "--" v:multi_line_block()
               { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
             / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
@@ -761,7 +747,7 @@ peg::parser! {
                 (['e'|'E'] ['-'|'+']? digit_with_separator())?
             )
 
-        pub(super) rule number() -> RawToken<'input>
+        pub(super) rule number() -> RawToken
             = n:(
                 roblox_number()
               / hex_number()
@@ -769,9 +755,9 @@ peg::parser! {
               / no_int_fractional_number()
             ) { TokenType::Number { text:n.into() }.into() }
 
-        pub(super) rule symbol() -> RawToken<'input> = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
+        pub(super) rule symbol() -> RawToken = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
 
-        rule token() -> RawToken<'input>
+        rule token() -> RawToken
             = whitespace()
             / comment()
             / number()
@@ -780,7 +766,7 @@ peg::parser! {
             / symbol()
             / identifier()
 
-        pub(crate) rule tokens() -> Vec<(RawToken<'input>, usize)>
+        pub(crate) rule tokens() -> Vec<(RawToken, usize)>
             = shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
               body:( token:token() pos:position!() {(token,pos)})*
               {
@@ -849,19 +835,19 @@ impl From<peg::str::LineCol> for Position {
     }
 }
 
-struct TokenCollector<'input> {
-    result: Vec<Token<'input>>,
+struct TokenCollector {
+    result: Vec<Token>,
 }
 
 // Collector
-impl<'input> TokenCollector<'input> {
+impl TokenCollector {
     fn new() -> Self {
         Self { result: Vec::new() }
     }
     fn push(
         &mut self,
         start_position: Position,
-        raw_token: RawToken<'input>,
+        raw_token: RawToken,
         end_position: Position,
     ) -> Result<(), TokenizerError> {
         match raw_token {
@@ -879,7 +865,7 @@ impl<'input> TokenCollector<'input> {
             }),
         }
     }
-    fn finish(mut self, eof_position: Position) -> Vec<Token<'input>> {
+    fn finish(mut self, eof_position: Position) -> Vec<Token> {
         self.result.push(Token {
             start_position: eof_position,
             end_position: eof_position,

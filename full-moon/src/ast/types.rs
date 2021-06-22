@@ -5,7 +5,7 @@ use crate::util::display_option;
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum TypeInfo<'a> {
@@ -181,7 +181,7 @@ pub enum TypeInfo<'a> {
 }
 
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum IndexedTypeInfo<'a> {
@@ -212,7 +212,7 @@ pub enum IndexedTypeInfo<'a> {
 
 /// A type field used within table types.
 /// The `foo: number` in `{ foo: number }`.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "key", "colon", "value")]
 pub struct TypeField<'a> {
@@ -269,7 +269,7 @@ impl<'a> TypeField<'a> {
 }
 
 /// A key in a [`TypeField`]. Can either be a name or an index signature.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum TypeFieldKey<'a> {
@@ -291,7 +291,7 @@ pub enum TypeFieldKey<'a> {
 }
 
 /// A type assertion using `::`, such as `:: number`.
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "assertion_op", "cast_to")]
 pub struct TypeAssertion<'a> {
@@ -335,7 +335,7 @@ impl<'a> TypeAssertion<'a> {
 }
 
 /// A type declaration, such as `type Meters = number`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
     fmt = "{}{}{}{}{}",
@@ -431,7 +431,7 @@ impl<'a> TypeDeclaration<'a> {
 }
 
 /// The generics used in a [`TypeDeclaration`].
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "arrows.tokens().0", "generics", "arrows.tokens().1")]
 pub struct GenericDeclaration<'a> {
@@ -482,7 +482,7 @@ impl Default for GenericDeclaration<'_> {
 }
 
 /// A type specifier, the `: number` in `local foo: number`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "punctuation", "type_info")]
 pub struct TypeSpecifier<'a> {
@@ -527,7 +527,7 @@ impl<'a> TypeSpecifier<'a> {
 }
 
 /// A type argument specified in a callback type, the `count: number` in `(count: number) -> ()`
-#[derive(Clone, Debug, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TypeArgument<'a> {
     #[cfg_attr(feature = "serde", serde(borrow))]
@@ -577,7 +577,7 @@ impl fmt::Display for TypeArgument<'_> {
 }
 
 /// An exported type declaration, such as `export type Meters = number`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "export_token", "type_declaration")]
 pub struct ExportedTypeDeclaration<'a> {
@@ -643,7 +643,7 @@ make_op!(CompoundOp,
 );
 
 /// A Compound Assignment statement, such as `x += 1` or `x -= 1`
-#[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "lhs", "compound_operator", "rhs")]
 pub struct CompoundAssignment<'a> {
