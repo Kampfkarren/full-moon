@@ -21,7 +21,7 @@ pub trait Node: private::Sealed {
         Self: Sized;
 
     /// The token references that comprise a node
-    fn tokens<'a>(&'a self) -> Tokens<'a>;
+    fn tokens(&self) -> Tokens;
 
     /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
@@ -31,7 +31,7 @@ pub trait Node: private::Sealed {
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
     /// Returns a tuple of the leading and trailing trivia.
-    fn surrounding_trivia<'a>(&'a self) -> (Vec<&'a Token>, Vec<&'a Token>) {
+    fn surrounding_trivia(&self) -> (Vec<&Token>, Vec<&Token>) {
         let mut tokens = self.tokens();
         let leading = tokens.next();
         let trailing = tokens.next_back();
@@ -120,7 +120,7 @@ impl Node for Ast {
         self.nodes().similar(other.nodes())
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         self.nodes().tokens()
     }
 }
@@ -138,7 +138,7 @@ impl<T: Node> Node for Box<T> {
         (**self).similar(other)
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
@@ -156,7 +156,7 @@ impl<T: Node> Node for &T {
         (**self).similar(other)
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
@@ -174,7 +174,7 @@ impl<T: Node> Node for &mut T {
         (**self).similar(other)
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
@@ -192,7 +192,7 @@ impl Node for TokenReference {
         *self.token_type() == *other.token_type()
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         Tokens {
             items: vec![TokenItem::TokenReference(&self)],
         }
@@ -216,7 +216,7 @@ impl<T: Node> Node for Option<T> {
         }
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         match self {
             Some(node) => node.tokens(),
             None => Tokens::default(),
@@ -241,7 +241,7 @@ impl<T: Node> Node for Vec<T> {
         }
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens(&self) -> Tokens {
         Tokens {
             items: self
                 .iter()
@@ -275,7 +275,7 @@ impl<'a, A: Node, B: Node> Node for (A, B) {
         self.0.similar(&other.0) && self.1.similar(&other.1)
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'b> {
+    fn tokens(&self) -> Tokens {
         let mut items = self.0.tokens().items;
         items.extend(self.1.tokens().items.drain(..));
 
