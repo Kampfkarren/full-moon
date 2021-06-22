@@ -10,8 +10,8 @@ fn test_visitor() {
         called: Vec<String>,
     };
 
-    impl<'ast> Visitor<'ast> for FunctionCallVisitor {
-        fn visit_function_call(&mut self, call: &ast::FunctionCall<'ast>) {
+    impl Visitor for FunctionCallVisitor {
+        fn visit_function_call(&mut self, call: &ast::FunctionCall) {
             match call.prefix() {
                 ast::Prefix::Name(token) => {
                     self.called.push(token.to_string());
@@ -34,11 +34,11 @@ fn test_visitor() {
 fn test_visitor_mut() {
     struct SnakeNamer;
 
-    impl<'ast> VisitorMut<'ast> for SnakeNamer {
+    impl VisitorMut for SnakeNamer {
         fn visit_local_assignment(
             &mut self,
-            assignment: ast::LocalAssignment<'ast>,
-        ) -> ast::LocalAssignment<'ast> {
+            assignment: ast::LocalAssignment,
+        ) -> ast::LocalAssignment {
             let name_list = assignment
                 .names()
                 .pairs()
@@ -61,8 +61,8 @@ fn test_visitor_mut() {
 
     struct PositionValidator;
 
-    impl<'ast> Visitor<'ast> for PositionValidator {
-        fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment<'ast>) {
+    impl Visitor for PositionValidator {
+        fn visit_local_assignment(&mut self, assignment: &ast::LocalAssignment) {
             for name in assignment.names() {
                 assert_eq!(
                     name.end_position().bytes() - name.start_position().bytes(),
@@ -83,8 +83,8 @@ fn test_visit_token() {
         comments: Vec<String>,
     };
 
-    impl Visitor<'_> for CommentVisitor {
-        fn visit_single_line_comment(&mut self, token: &Token<'_>) {
+    impl Visitor for CommentVisitor {
+        fn visit_single_line_comment(&mut self, token: &Token) {
             self.comments.push(token.to_string());
         }
     }
@@ -122,7 +122,7 @@ fn test_end_visit() {
         called_at: usize,
     }
 
-    impl Visitor<'_> for LogVisitor {
+    impl Visitor for LogVisitor {
         fn visit_if(&mut self, _: &ast::If) {
             self.instructions += 1;
             self.if_start_at = self.instructions
@@ -160,8 +160,8 @@ fn test_end_visit() {
 fn test_unary_visitor_regression() {
     struct TestVisitor(bool);
 
-    impl Visitor<'_> for TestVisitor {
-        fn visit_un_op(&mut self, _: &ast::UnOp<'_>) {
+    impl Visitor for TestVisitor {
+        fn visit_un_op(&mut self, _: &ast::UnOp) {
             self.0 = true;
         }
     }

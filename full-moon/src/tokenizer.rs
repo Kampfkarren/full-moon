@@ -179,12 +179,12 @@ impl TokenType {
     /// Returns the kind of the token type.
     ///
     /// ```rust
-    /// use std::borrow::Cow;
     /// use full_moon::tokenizer::{TokenKind, TokenType};
+    /// use smol_str::SmolStr;
     ///
     /// assert_eq!(
     ///     TokenType::Identifier {
-    ///         identifier: Cow::from("hello")
+    ///         identifier: SmolStr::new("hello")
     ///     }.kind(),
     ///     TokenKind::Identifier,
     /// );

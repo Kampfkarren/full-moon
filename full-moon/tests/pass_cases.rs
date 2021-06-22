@@ -21,7 +21,7 @@ impl<'a> fmt::Debug for PrettyString<'a> {
     }
 }
 
-fn unpack_token_reference<'a>(token: &TokenReference<'a>) -> Vec<Token<'a>> {
+fn unpack_token_reference(token: &TokenReference) -> Vec<Token> {
     token
         .leading_trivia()
         .chain(std::iter::once(token.token()))
