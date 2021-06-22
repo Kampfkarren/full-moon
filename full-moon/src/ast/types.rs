@@ -3,7 +3,6 @@
 use super::{punctuated::Punctuated, span::ContainedSpan, *};
 use crate::util::display_option;
 use derive_more::Display;
-use smol_str::SmolStr;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
 #[derive(Clone, Debug, Display, PartialEq, Node)]
@@ -543,7 +542,7 @@ impl ExportedTypeDeclaration {
             export_token: TokenReference::new(
                 vec![],
                 Token::new(TokenType::Identifier {
-                    identifier: SmolStr::new("export"),
+                    identifier: ShortString::new("export"),
                 }),
                 vec![Token::new(TokenType::spaces(1))],
             ),

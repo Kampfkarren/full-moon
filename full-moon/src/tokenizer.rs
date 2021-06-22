@@ -3,8 +3,9 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 use full_moon_derive::symbols;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use smol_str::SmolStr;
 use std::{cmp::Ordering, fmt, str::FromStr};
+
+pub use crate::token_string::ShortString;
 
 symbols!(
     And => "and",
@@ -106,7 +107,7 @@ pub enum TokenType {
     /// An identifier, such as `foo`
     Identifier {
         /// The identifier itself
-        identifier: SmolStr,
+        identifier: ShortString,
     },
 
     /// A multi line comment in the format of `--[[ comment ]]`
@@ -115,31 +116,31 @@ pub enum TokenType {
         /// For example, `--[=[` would have a `blocks` value of `1`
         blocks: usize,
         /// The comment itself, ignoring opening and closing tags
-        comment: SmolStr,
+        comment: ShortString,
     },
 
     /// A literal number, such as `3.3`
     Number {
         /// The text representing the number, includes details such as `0x`
-        text: SmolStr,
+        text: ShortString,
     },
 
     /// A shebang line
     Shebang {
         /// The shebang line itself
-        line: SmolStr,
+        line: ShortString,
     },
 
     /// A single line comment, such as `-- comment`
     SingleLineComment {
         /// The comment, ignoring initial `--`
-        comment: SmolStr,
+        comment: ShortString,
     },
 
     /// A literal string, such as "Hello, world"
     StringLiteral {
         /// The literal itself, ignoring quotation marks
-        literal: SmolStr,
+        literal: ShortString,
         #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
         /// Number of equals signs used for a multi line string, if it is one
         /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
@@ -159,7 +160,7 @@ pub enum TokenType {
     /// Whitespace, such as tabs or new lines
     Whitespace {
         /// Characters consisting of the whitespace
-        characters: SmolStr,
+        characters: ShortString,
     },
 }
 
@@ -179,12 +180,11 @@ impl TokenType {
     /// Returns the kind of the token type.
     ///
     /// ```rust
-    /// use full_moon::tokenizer::{TokenKind, TokenType};
-    /// use smol_str::SmolStr;
+    /// use full_moon::tokenizer::{TokenKind, ShortString, TokenType};
     ///
     /// assert_eq!(
     ///     TokenType::Identifier {
-    ///         identifier: SmolStr::new("hello")
+    ///         identifier: ShortString::new("hello")
     ///     }.kind(),
     ///     TokenKind::Identifier,
     /// );
@@ -206,14 +206,14 @@ impl TokenType {
     /// Returns a whitespace `TokenType` consisting of spaces
     pub fn spaces(spaces: usize) -> Self {
         TokenType::Whitespace {
-            characters: SmolStr::new(" ".repeat(spaces)),
+            characters: " ".repeat(spaces).into(),
         }
     }
 
     /// Returns a whitespace `TokenType` consisting of tabs
     pub fn tabs(tabs: usize) -> Self {
         TokenType::Whitespace {
-            characters: SmolStr::new("\t".repeat(tabs)),
+            characters: "\t".repeat(tabs).into(),
         }
     }
 }
@@ -444,11 +444,11 @@ impl TokenReference {
 
         Ok(Self {
             leading_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: SmolStr::from(leading_trivia),
+                characters: leading_trivia.into(),
             })],
             token: Token::new(TokenType::Symbol { symbol }),
             trailing_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: SmolStr::from(trailing_trivia),
+                characters: trailing_trivia.into(),
             })],
         })
     }

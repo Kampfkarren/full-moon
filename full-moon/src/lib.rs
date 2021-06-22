@@ -19,6 +19,7 @@ pub mod tokenizer;
 pub mod visitors;
 
 mod private;
+mod token_string;
 mod util;
 
 use std::fmt;
