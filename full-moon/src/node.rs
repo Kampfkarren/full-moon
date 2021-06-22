@@ -275,7 +275,7 @@ impl<'a, A: Node, B: Node> Node for (A, B) {
         self.0.similar(&other.0) && self.1.similar(&other.1)
     }
 
-    fn tokens<'a>(&'a self) -> Tokens<'a> {
+    fn tokens<'b>(&'b self) -> Tokens<'b> {
         let mut items = self.0.tokens().items;
         items.extend(self.1.tokens().items.drain(..));
 
