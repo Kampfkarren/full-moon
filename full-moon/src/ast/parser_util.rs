@@ -13,14 +13,14 @@ use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy, PartialEq)]
-pub struct ParserState<'b> {
+pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
-    pub tokens: &'b [TokenReference],
+    pub tokens: &'a [TokenReference],
 }
 
-impl<'b> ParserState<'b> {
-    pub fn new(tokens: &'b [TokenReference]) -> ParserState<'b> {
+impl<'a> ParserState<'a> {
+    pub fn new(tokens: &'a [TokenReference]) -> ParserState<'a> {
         ParserState {
             index: 0,
             len: tokens.len(),
@@ -28,7 +28,7 @@ impl<'b> ParserState<'b> {
         }
     }
 
-    pub fn advance(self) -> Option<ParserState<'b>> {
+    pub fn advance(self) -> Option<ParserState<'a>> {
         if self.index + 1 == self.len {
             None
         } else {
@@ -53,7 +53,7 @@ impl<'b> ParserState<'b> {
     }
 }
 
-impl<'b> fmt::Debug for ParserState<'b> {
+impl<'a> fmt::Debug for ParserState<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -67,10 +67,10 @@ impl<'b> fmt::Debug for ParserState<'b> {
 pub(crate) trait Parser: Sized {
     type Item;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        state: ParserState<'b>,
-    ) -> Result<(ParserState<'b>, Self::Item), InternalAstError>;
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Self::Item), InternalAstError>;
 }
 
 #[doc(hidden)]
@@ -95,20 +95,20 @@ macro_rules! make_op {
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ty, $node:ty, |_, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |_, mut $state: ParserState<'b>| $body}
+        define_parser! {$parser, $node, |_, mut $state: ParserState<'a>| $body}
     };
     ($parser:ty, $node:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'b>| $body}
+        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a>| $body}
     };
     ($parser:ty, $node:ty, $body:expr) => {
         impl Parser for $parser {
             type Item = $node;
 
             #[allow(unused_mut)]
-            fn parse<'b>(
+            fn parse<'a>(
                 &self,
-                state: ParserState<'b>,
-            ) -> Result<(ParserState<'b>, $node), InternalAstError> {
+                state: ParserState<'a>,
+            ) -> Result<(ParserState<'a>, $node), InternalAstError> {
                 $body(self, state)
             }
         }
@@ -181,7 +181,7 @@ macro_rules! keep_going {
 #[rustfmt::skip]
 macro_rules! define_roblox_parser {
     ($parser:ident, $node:ty, $mock_ty:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'b>| $body);
+        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a>| $body);
     };
     ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
         cfg_if::cfg_if! {
@@ -231,10 +231,10 @@ where
 {
     type Item = Vec<T>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        mut state: ParserState<'b>,
-    ) -> Result<(ParserState<'b>, Vec<T>), InternalAstError> {
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError> {
         let mut nodes = Vec::new();
         loop {
             match self.0.parse(state) {
@@ -290,10 +290,10 @@ where
 {
     type Item = Punctuated<T>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        mut state: ParserState<'b>,
-    ) -> Result<(ParserState<'b>, Punctuated<T>), InternalAstError> {
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Punctuated<T>), InternalAstError> {
         let mut nodes = Punctuated::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
@@ -358,10 +358,10 @@ where
 {
     type Item = Punctuated<ItemParser::Item>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        state: ParserState<'b>,
-    ) -> Result<(ParserState<'b>, Punctuated<ItemParser::Item>), InternalAstError> {
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Punctuated<ItemParser::Item>), InternalAstError> {
         let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));

@@ -189,7 +189,7 @@ impl<T: Node> Node for Punctuated<T> {
             .similar(&other.into_iter().collect::<Vec<_>>())
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'b> {
+    fn tokens<'a>(&'a self) -> Tokens<'a> {
         self.pairs.tokens()
     }
 }
@@ -233,9 +233,9 @@ impl<T> FromIterator<Pair<T>> for Punctuated<T> {
     }
 }
 
-impl<'b, T> IntoIterator for &'b Punctuated<T> {
-    type Item = &'b T;
-    type IntoIter = Iter<'b, T>;
+impl<'a, T> IntoIterator for &'a Punctuated<T> {
+    type Item = &'a T;
+    type IntoIter = Iter<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         Iter {
@@ -244,9 +244,9 @@ impl<'b, T> IntoIterator for &'b Punctuated<T> {
     }
 }
 
-impl<'b, T> IntoIterator for &'b mut Punctuated<T> {
-    type Item = &'b mut T;
-    type IntoIter = IterMut<'b, T>;
+impl<'a, T> IntoIterator for &'a mut Punctuated<T> {
+    type Item = &'a mut T;
+    type IntoIter = IterMut<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         IterMut {
@@ -271,12 +271,12 @@ impl<T> Iterator for IntoIter<T> {
 
 /// An iterator over borrowed values of type `&T`.
 /// Refer to the [module documentation](index.html) for more details.
-pub struct Iter<'b, T> {
-    inner: std::slice::Iter<'b, Pair<T>>,
+pub struct Iter<'a, T> {
+    inner: std::slice::Iter<'a, Pair<T>>,
 }
 
-impl<'b, T> Iterator for Iter<'b, T> {
-    type Item = &'b T;
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(self.inner.next()?.value())
@@ -285,12 +285,12 @@ impl<'b, T> Iterator for Iter<'b, T> {
 
 /// An iterator over borrowed values of type `&mut T`.
 /// Refer to the [module documentation](index.html) for more details.
-pub struct IterMut<'b, T> {
-    inner: std::slice::IterMut<'b, Pair<T>>,
+pub struct IterMut<'a, T> {
+    inner: std::slice::IterMut<'a, Pair<T>>,
 }
 
-impl<'b, T> Iterator for IterMut<'b, T> {
-    type Item = &'b mut T;
+impl<'a, T> Iterator for IterMut<'a, T> {
+    type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(self.inner.next()?.value_mut())
@@ -421,7 +421,7 @@ impl<T: Node> Node for Pair<T> {
         self.value().similar(other.value())
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'b> {
+    fn tokens<'a>(&'a self) -> Tokens<'a> {
         match self {
             Pair::Punctuated(node, separator) => {
                 let mut items = node.tokens().items;

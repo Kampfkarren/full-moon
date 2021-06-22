@@ -88,7 +88,7 @@ impl DeriveGenerator for NodeGenerator {
                     #macro_name!("similar", { #tokens })
                 }
 
-                fn tokens<'b>(&'b self) -> crate::node::Tokens<'b> {
+                fn tokens<'a>(&'a self) -> crate::node::Tokens<'a> {
                     #macro_name!("tokens", { #tokens })
                 }
             }
