@@ -1,11 +1,12 @@
-use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
+use crate::{
+    visitors::{Visit, VisitMut, Visitor, VisitorMut},
+    ShortString,
+};
 
 use full_moon_derive::symbols;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt, str::FromStr};
-
-pub use crate::token_string::ShortString;
 
 symbols!(
     And => "and",

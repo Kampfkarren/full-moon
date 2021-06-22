@@ -19,8 +19,10 @@ pub mod tokenizer;
 pub mod visitors;
 
 mod private;
-mod token_string;
+mod short_string;
 mod util;
+
+pub use short_string::ShortString;
 
 use std::fmt;
 

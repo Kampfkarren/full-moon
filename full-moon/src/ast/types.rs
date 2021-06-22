@@ -1,7 +1,7 @@
 //! Contains the types necessary to parse [Roblox's typed Lua](https://devforum.roblox.com/t/luau-type-checking-beta/435382).
 //! Only usable when the "roblox" feature flag is enabled.
 use super::{punctuated::Punctuated, span::ContainedSpan, *};
-use crate::util::display_option;
+use crate::{util::display_option, ShortString};
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
