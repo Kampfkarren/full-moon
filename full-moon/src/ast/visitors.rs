@@ -9,8 +9,8 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 // Then visitors will visit this as `()foo`.
 // This is fixed for structs with `#[visit(contains = "...")], but this is not supported on enums.
 
-impl<'a> Visit<'a> for Field<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for Field {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_field(self);
         match self {
             Field::ExpressionKey {
@@ -41,8 +41,8 @@ impl<'a> Visit<'a> for Field<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for Field<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for Field {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_field(self);
         self = match self {
             Field::ExpressionKey {
@@ -78,8 +78,8 @@ impl<'a> VisitMut<'a> for Field<'a> {
     }
 }
 
-impl<'a> Visit<'a> for Expression<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for Expression {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_expression(self);
         match self {
             Expression::BinaryOperator { lhs, binop, rhs } => {
@@ -115,8 +115,8 @@ impl<'a> Visit<'a> for Expression<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for Expression<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for Expression {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_expression(self);
         self = match self {
             Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
@@ -160,8 +160,8 @@ impl<'a> VisitMut<'a> for Expression<'a> {
     }
 }
 
-impl<'a> Visit<'a> for Index<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for Index {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_index(self);
         match self {
             Index::Brackets {
@@ -182,8 +182,8 @@ impl<'a> Visit<'a> for Index<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for Index<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for Index {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_index(self);
         self = match self {
             Index::Brackets {
@@ -211,8 +211,8 @@ impl<'a> VisitMut<'a> for Index<'a> {
     }
 }
 
-impl<'a> Visit<'a> for FunctionArgs<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for FunctionArgs {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_function_args(self);
         match self {
             FunctionArgs::Parentheses {
@@ -235,8 +235,8 @@ impl<'a> Visit<'a> for FunctionArgs<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for FunctionArgs<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for FunctionArgs {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_args(self);
         self = match self {
             FunctionArgs::Parentheses {
@@ -263,8 +263,8 @@ impl<'a> VisitMut<'a> for FunctionArgs<'a> {
 }
 
 // The following contain type signatures, which are addendums to previous identities
-impl<'a> Visit<'a> for FunctionBody<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for FunctionBody {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_function_body(self);
         self.parameters_parentheses.tokens.0.visit(visitor);
 
@@ -297,8 +297,8 @@ impl<'a> Visit<'a> for FunctionBody<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for FunctionBody<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for FunctionBody {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_body(self);
         self.parameters_parentheses.tokens.0 =
             self.parameters_parentheses.tokens.0.visit_mut(visitor);
@@ -355,8 +355,8 @@ impl<'a> VisitMut<'a> for FunctionBody<'a> {
     }
 }
 
-impl<'a> Visit<'a> for LocalAssignment<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for LocalAssignment {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_local_assignment(self);
         self.local_token.visit(visitor);
 
@@ -384,8 +384,8 @@ impl<'a> Visit<'a> for LocalAssignment<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for LocalAssignment<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for LocalAssignment {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_local_assignment(self);
         self.local_token = self.local_token.visit_mut(visitor);
 
@@ -432,8 +432,8 @@ impl<'a> VisitMut<'a> for LocalAssignment<'a> {
     }
 }
 
-impl<'a> Visit<'a> for GenericFor<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for GenericFor {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_generic_for(self);
         self.for_token.visit(visitor);
 
@@ -465,8 +465,8 @@ impl<'a> Visit<'a> for GenericFor<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for GenericFor<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for GenericFor {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_generic_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
 
@@ -517,8 +517,8 @@ impl<'a> VisitMut<'a> for GenericFor<'a> {
     }
 }
 
-impl<'a> Visit<'a> for NumericFor<'a> {
-    fn visit<V: Visitor<'a>>(&self, visitor: &mut V) {
+impl Visit for NumericFor {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_numeric_for(self);
         self.for_token.visit(visitor);
         self.index_variable.visit(visitor);
@@ -540,8 +540,8 @@ impl<'a> Visit<'a> for NumericFor<'a> {
     }
 }
 
-impl<'a> VisitMut<'a> for NumericFor<'a> {
-    fn visit_mut<V: VisitorMut<'a>>(mut self, visitor: &mut V) -> Self {
+impl VisitMut for NumericFor {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_numeric_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
         self.index_variable = self.index_variable.visit_mut(visitor);

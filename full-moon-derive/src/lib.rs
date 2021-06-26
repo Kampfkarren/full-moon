@@ -4,7 +4,6 @@ extern crate proc_macro;
 
 mod derive;
 mod node;
-mod owned;
 mod symbols;
 mod visit;
 
@@ -20,11 +19,6 @@ pub fn derive_visit(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Node, attributes(node))]
 pub fn derive_node(input: TokenStream) -> TokenStream {
     node::NodeGenerator::derive(input)
-}
-
-#[proc_macro_derive(Owned)]
-pub fn derive_owned(input: TokenStream) -> TokenStream {
-    owned::OwnedGenerator::derive(input)
 }
 
 #[proc_macro]

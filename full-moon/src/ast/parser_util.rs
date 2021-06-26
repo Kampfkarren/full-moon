@@ -9,18 +9,18 @@ use crate::{
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(Clone, Copy, PartialEq)]
-pub struct ParserState<'a, 'b> {
+pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
-    pub tokens: &'b [TokenReference<'a>],
+    pub tokens: &'a [TokenReference],
 }
 
-impl<'a, 'b> ParserState<'a, 'b> {
-    pub fn new(tokens: &'b [TokenReference<'a>]) -> ParserState<'a, 'b> {
+impl<'a> ParserState<'a> {
+    pub fn new(tokens: &'a [TokenReference]) -> ParserState<'a> {
         ParserState {
             index: 0,
             len: tokens.len(),
@@ -28,7 +28,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
         }
     }
 
-    pub fn advance(self) -> Option<ParserState<'a, 'b>> {
+    pub fn advance(self) -> Option<ParserState<'a>> {
         if self.index + 1 == self.len {
             None
         } else {
@@ -42,7 +42,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
     // TODO: This is bad, containing a mandatory clone on every call so that everything is
     // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
     // to tackle lifetimes.
-    pub fn peek(&self) -> &TokenReference<'a> {
+    pub fn peek(&self) -> &TokenReference {
         if self.index >= self.len {
             panic!("peek failed, when there should always be an eof");
         }
@@ -53,7 +53,7 @@ impl<'a, 'b> ParserState<'a, 'b> {
     }
 }
 
-impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
+impl<'a> fmt::Debug for ParserState<'a> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -64,29 +64,28 @@ impl<'a, 'b> fmt::Debug for ParserState<'a, 'b> {
     }
 }
 
-pub(crate) trait Parser<'a>: Sized {
+pub(crate) trait Parser: Sized {
     type Item;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        state: ParserState<'a, 'b>,
-    ) -> Result<(ParserState<'a, 'b>, Self::Item), InternalAstError<'a>>;
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Self::Item), InternalAstError>;
 }
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Owned, Node, Visit)]
+        #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[non_exhaustive]
         $(#[$outer])*
         #[display(fmt = "{}")]
-        pub enum $enum<'a> {
-            #[cfg_attr(feature = "serde", serde(borrow))]
+        pub enum $enum {
             $(
                 #[allow(missing_docs)]
-                $operator(TokenReference<'a>),
+                $operator(TokenReference),
             )+
         }
     };
@@ -96,20 +95,20 @@ macro_rules! make_op {
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ty, $node:ty, |_, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |_, mut $state: ParserState<'a, 'b>| $body}
+        define_parser! {$parser, $node, |_, mut $state: ParserState<'a>| $body}
     };
     ($parser:ty, $node:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body}
+        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a>| $body}
     };
     ($parser:ty, $node:ty, $body:expr) => {
-        impl<'a> Parser<'a> for $parser {
+        impl Parser for $parser {
             type Item = $node;
 
             #[allow(unused_mut)]
-            fn parse<'b>(
+            fn parse<'a>(
                 &self,
-                state: ParserState<'a, 'b>,
-            ) -> Result<(ParserState<'a, 'b>, $node), InternalAstError<'a>> {
+                state: ParserState<'a>,
+            ) -> Result<(ParserState<'a>, $node), InternalAstError> {
                 $body(self, state)
             }
         }
@@ -156,7 +155,7 @@ macro_rules! expect {
             Err(InternalAstError::NoMatch) => {
                 return Err(InternalAstError::UnexpectedToken {
                     token: $state.peek().clone(),
-                    additional: Some($error),
+                    additional: Some(Cow::from($error)),
                 });
             }
             Err(other) => return Err(other),
@@ -180,9 +179,9 @@ macro_rules! keep_going {
 #[doc(hidden)]
 #[macro_export]
 #[rustfmt::skip]
-macro_rules! define_roblox_parser { 
+macro_rules! define_roblox_parser {
     ($parser:ident, $node:ty, $mock_ty:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a, 'b>| $body);
+        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a>| $body);
     };
     ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
         cfg_if::cfg_if! {
@@ -215,28 +214,27 @@ macro_rules! define_lua52_parser {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub enum InternalAstError<'a> {
+pub enum InternalAstError {
     NoMatch,
     UnexpectedToken {
-        #[cfg_attr(feature = "serde", serde(borrow))]
-        token: TokenReference<'a>,
-        additional: Option<&'a str>,
+        token: TokenReference,
+        additional: Option<Cow<'static, str>>,
     },
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroOrMore<P>(pub P);
 
-impl<'a, P, T> Parser<'a> for ZeroOrMore<P>
+impl<P, T> Parser for ZeroOrMore<P>
 where
-    P: Parser<'a, Item = T>,
+    P: Parser<Item = T>,
 {
     type Item = Vec<T>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        mut state: ParserState<'a, 'b>,
-    ) -> Result<(ParserState<'a, 'b>, Vec<T>), InternalAstError<'a>> {
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Vec<T>), InternalAstError> {
         let mut nodes = Vec::new();
         loop {
             match self.0.parse(state) {
@@ -284,18 +282,18 @@ pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<'a, ItemParser, Delimiter, T> Parser<'a> for ZeroOrMoreDelimited<ItemParser, Delimiter>
+impl<ItemParser, Delimiter, T> Parser for ZeroOrMoreDelimited<ItemParser, Delimiter>
 where
-    ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
-    T: Node<'a> + Visit<'a> + VisitMut<'a>,
+    ItemParser: Parser<Item = T>,
+    Delimiter: Parser<Item = TokenReference>,
+    T: Node + Visit + VisitMut,
 {
-    type Item = Punctuated<'a, T>;
+    type Item = Punctuated<T>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        mut state: ParserState<'a, 'b>,
-    ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, T>), InternalAstError<'a>> {
+        mut state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Punctuated<T>), InternalAstError> {
         let mut nodes = Punctuated::new();
 
         if let Ok((new_state, node)) = keep_going!(self.0.parse(state)) {
@@ -323,7 +321,7 @@ where
                     } else {
                         return Err(InternalAstError::UnexpectedToken {
                             token: state.peek().clone(),
-                            additional: Some("trailing character"),
+                            additional: Some(Cow::from("trailing character")),
                         });
                     }
                 }
@@ -352,18 +350,18 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<'a, ItemParser, Delimiter: Parser<'a>, T> Parser<'a> for OneOrMore<ItemParser, Delimiter>
+impl<ItemParser, Delimiter: Parser, T> Parser for OneOrMore<ItemParser, Delimiter>
 where
-    ItemParser: Parser<'a, Item = T>,
-    Delimiter: Parser<'a, Item = TokenReference<'a>>,
-    T: Node<'a> + Visit<'a> + VisitMut<'a>,
+    ItemParser: Parser<Item = T>,
+    Delimiter: Parser<Item = TokenReference>,
+    T: Node + Visit + VisitMut,
 {
-    type Item = Punctuated<'a, ItemParser::Item>;
+    type Item = Punctuated<ItemParser::Item>;
 
-    fn parse<'b>(
+    fn parse<'a>(
         &self,
-        state: ParserState<'a, 'b>,
-    ) -> Result<(ParserState<'a, 'b>, Punctuated<'a, ItemParser::Item>), InternalAstError<'a>> {
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Punctuated<ItemParser::Item>), InternalAstError> {
         let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));

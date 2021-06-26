@@ -8,7 +8,7 @@ use std::fmt;
 /// Used to represent nodes such as tokens or function definitions
 ///
 /// This trait is sealed and cannot be implemented for types outside of `full-moon`
-pub trait Node<'ast>: private::Sealed {
+pub trait Node: private::Sealed {
     /// The start position of a node. None if can't be determined
     fn start_position(&self) -> Option<Position>;
 
@@ -21,7 +21,7 @@ pub trait Node<'ast>: private::Sealed {
         Self: Sized;
 
     /// The token references that comprise a node
-    fn tokens<'b>(&'b self) -> Tokens<'ast, 'b>;
+    fn tokens(&self) -> Tokens;
 
     /// The full range of a node, if it has both start and end positions
     fn range(&self) -> Option<(Position, Position)> {
@@ -31,7 +31,7 @@ pub trait Node<'ast>: private::Sealed {
     /// The tokens surrounding a node that are ignored and not accessible through the node's own accessors.
     /// Use this if you want to get surrounding comments or whitespace.
     /// Returns a tuple of the leading and trailing trivia.
-    fn surrounding_trivia<'b>(&'b self) -> (Vec<&'b Token<'ast>>, Vec<&'b Token<'ast>>) {
+    fn surrounding_trivia(&self) -> (Vec<&Token>, Vec<&Token>) {
         let mut tokens = self.tokens();
         let leading = tokens.next();
         let trailing = tokens.next_back();
@@ -49,12 +49,12 @@ pub trait Node<'ast>: private::Sealed {
     }
 }
 
-pub(crate) enum TokenItem<'ast, 'b> {
-    MoreTokens(&'b dyn Node<'ast>),
-    TokenReference(&'b TokenReference<'ast>),
+pub(crate) enum TokenItem<'a> {
+    MoreTokens(&'a dyn Node),
+    TokenReference(&'a TokenReference),
 }
 
-impl fmt::Debug for TokenItem<'_, '_> {
+impl fmt::Debug for TokenItem<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),
@@ -66,12 +66,12 @@ impl fmt::Debug for TokenItem<'_, '_> {
 /// An iterator that iterates over the tokens of a node
 /// Returned by [`Node::tokens`]
 #[derive(Default)]
-pub struct Tokens<'ast, 'b> {
-    pub(crate) items: Vec<TokenItem<'ast, 'b>>,
+pub struct Tokens<'a> {
+    pub(crate) items: Vec<TokenItem<'a>>,
 }
 
-impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
-    type Item = &'b TokenReference<'ast>;
+impl<'a> Iterator for Tokens<'a> {
+    type Item = &'a TokenReference;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.items.is_empty() {
@@ -90,7 +90,7 @@ impl<'ast, 'b> Iterator for Tokens<'ast, 'b> {
     }
 }
 
-impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
+impl<'a> DoubleEndedIterator for Tokens<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.items.is_empty() {
             return None;
@@ -107,7 +107,7 @@ impl<'ast, 'b> DoubleEndedIterator for Tokens<'ast, 'b> {
     }
 }
 
-impl<'a> Node<'a> for Ast<'a> {
+impl Node for Ast {
     fn start_position(&self) -> Option<Position> {
         self.nodes().start_position()
     }
@@ -120,12 +120,12 @@ impl<'a> Node<'a> for Ast<'a> {
         self.nodes().similar(other.nodes())
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         self.nodes().tokens()
     }
 }
 
-impl<'a, T: Node<'a>> Node<'a> for Box<T> {
+impl<T: Node> Node for Box<T> {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }
@@ -138,12 +138,12 @@ impl<'a, T: Node<'a>> Node<'a> for Box<T> {
         (**self).similar(other)
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
 
-impl<'a, T: Node<'a>> Node<'a> for &T {
+impl<T: Node> Node for &T {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }
@@ -156,12 +156,12 @@ impl<'a, T: Node<'a>> Node<'a> for &T {
         (**self).similar(other)
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
 
-impl<'a, T: Node<'a>> Node<'a> for &mut T {
+impl<T: Node> Node for &mut T {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
     }
@@ -174,12 +174,12 @@ impl<'a, T: Node<'a>> Node<'a> for &mut T {
         (**self).similar(other)
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         (**self).tokens()
     }
 }
 
-impl<'a> Node<'a> for TokenReference<'a> {
+impl Node for TokenReference {
     fn start_position(&self) -> Option<Position> {
         Some((**self).start_position())
     }
@@ -192,14 +192,14 @@ impl<'a> Node<'a> for TokenReference<'a> {
         *self.token_type() == *other.token_type()
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         Tokens {
             items: vec![TokenItem::TokenReference(&self)],
         }
     }
 }
 
-impl<'a, T: Node<'a>> Node<'a> for Option<T> {
+impl<T: Node> Node for Option<T> {
     fn start_position(&self) -> Option<Position> {
         self.as_ref().and_then(Node::start_position)
     }
@@ -216,7 +216,7 @@ impl<'a, T: Node<'a>> Node<'a> for Option<T> {
         }
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         match self {
             Some(node) => node.tokens(),
             None => Tokens::default(),
@@ -224,7 +224,7 @@ impl<'a, T: Node<'a>> Node<'a> for Option<T> {
     }
 }
 
-impl<'a, T: Node<'a>> Node<'a> for Vec<T> {
+impl<T: Node> Node for Vec<T> {
     fn start_position(&self) -> Option<Position> {
         self.first()?.start_position()
     }
@@ -241,7 +241,7 @@ impl<'a, T: Node<'a>> Node<'a> for Vec<T> {
         }
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         Tokens {
             items: self
                 .iter()
@@ -252,7 +252,7 @@ impl<'a, T: Node<'a>> Node<'a> for Vec<T> {
     }
 }
 
-impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
+impl<'a, A: Node, B: Node> Node for (A, B) {
     fn start_position(&self) -> Option<Position> {
         match (self.0.start_position(), self.1.start_position()) {
             (Some(x), Some(y)) => Some(std::cmp::min(x, y)),
@@ -275,7 +275,7 @@ impl<'a, A: Node<'a>, B: Node<'a>> Node<'a> for (A, B) {
         self.0.similar(&other.0) && self.1.similar(&other.1)
     }
 
-    fn tokens<'b>(&'b self) -> Tokens<'a, 'b> {
+    fn tokens(&self) -> Tokens {
         let mut items = self.0.tokens().items;
         items.extend(self.1.tokens().items.drain(..));
 

@@ -19,9 +19,11 @@ pub mod tokenizer;
 pub mod visitors;
 
 mod private;
+mod short_string;
 mod util;
 
-use full_moon_derive::Owned;
+pub use short_string::ShortString;
+
 use std::fmt;
 
 #[cfg(all(test, not(feature = "serde")))]
@@ -29,15 +31,15 @@ compile_error!("Serde feature must be enabled for tests");
 
 /// An error type that consists of both [`AstError`](ast::AstError) and [`TokenizerError`](tokenizer::TokenizerError)
 /// Used by [`parse`]
-#[derive(Clone, Debug, PartialEq, Owned)]
-pub enum Error<'a> {
+#[derive(Clone, Debug, PartialEq)]
+pub enum Error {
     /// Triggered if there's an issue creating an AST, but tokenizing must have succeeded
-    AstError(ast::AstError<'a>),
+    AstError(ast::AstError),
     /// Triggered if there's an issue when tokenizing, and an AST can't be made
     TokenizerError(tokenizer::TokenizerError),
 }
 
-impl<'a> fmt::Display for Error<'a> {
+impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Error::AstError(error) => {
@@ -50,7 +52,7 @@ impl<'a> fmt::Display for Error<'a> {
     }
 }
 
-impl<'a> std::error::Error for Error<'a> {}
+impl std::error::Error for Error {}
 
 /// Creates an [`Ast`](ast::Ast) from Lua code
 ///

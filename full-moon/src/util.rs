@@ -11,13 +11,11 @@ pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
     }
 }
 
-pub fn display_optional_punctuated<T: Display>(pair: &(T, Option<TokenReference<'_>>)) -> String {
+pub fn display_optional_punctuated<T: Display>(pair: &(T, Option<TokenReference>)) -> String {
     format!("{}{}", pair.0, display_option(&pair.1))
 }
 
-pub fn display_optional_punctuated_vec<T: Display>(
-    vec: &[(T, Option<TokenReference<'_>>)],
-) -> String {
+pub fn display_optional_punctuated_vec<T: Display>(vec: &[(T, Option<TokenReference>)]) -> String {
     let mut string = String::new();
 
     for pair in vec {
@@ -39,7 +37,7 @@ pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
 
 #[cfg(feature = "roblox")]
 pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2: Display>(
-    parameters: &Punctuated<'_, T1>,
+    parameters: &Punctuated<T1>,
     type_specifiers: I,
 ) -> String {
     let mut string = String::new();

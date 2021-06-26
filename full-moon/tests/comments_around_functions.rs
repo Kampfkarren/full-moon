@@ -1,7 +1,6 @@
 // This is code from a real life usage of full-moon
 
 use full_moon::{self, ast::*, node::Node, tokenizer::TokenKind, visitors::Visitor};
-use owned::Owned;
 use std::error::Error;
 
 const CODE: &str = r#"
@@ -30,8 +29,8 @@ struct MemberVisitor {
     comments: Vec<String>,
 }
 
-impl Visitor<'static> for MemberVisitor {
-    fn visit_function_declaration(&mut self, function: &FunctionDeclaration<'static>) {
+impl Visitor for MemberVisitor {
+    fn visit_function_declaration(&mut self, function: &FunctionDeclaration) {
         let (tokens, _) = function.surrounding_trivia();
         let mut tokens = tokens.clone();
         tokens.retain(|t| t.token_kind() == TokenKind::MultiLineComment);
@@ -45,7 +44,7 @@ impl Visitor<'static> for MemberVisitor {
 }
 
 fn generate() -> Result<(), Box<dyn Error>> {
-    let ast = full_moon::parse(CODE)?.owned();
+    let ast = full_moon::parse(CODE)?;
 
     let mut visitor = MemberVisitor {
         comments: Vec::new(),
