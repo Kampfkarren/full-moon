@@ -1,6 +1,6 @@
 [package]
 name = "full_moon"
-version = "0.12.1"
+version = "0.13.0"
 authors = ["Kampfkarren <kampfkarren@gmail.com>"]
 description = "A lossless Lua 5.1 parser"
 license = "MPL-2.0"
@@ -23,7 +23,7 @@ no-source-tests = []
 bytecount = "0.5"
 cfg-if = "1.0"
 derive_more = "0.99"
-full_moon_derive = { path = "../full-moon-derive", version = "=0.7.0" }
+full_moon_derive = { path = "../full-moon-derive", version = "=0.8.0" }
 paste = "0.1"
 peg = "0.7.0"
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
