@@ -29,9 +29,6 @@ pub mod types;
 #[cfg(feature = "roblox")]
 use types::*;
 
-#[cfg(feature = "roblox")]
-mod type_visitors;
-
 #[cfg(feature = "lua52")]
 pub mod lua52;
 #[cfg(feature = "lua52")]
@@ -1343,9 +1340,9 @@ impl fmt::Display for FunctionBody {
         write!(
             formatter,
             "{}{}{}{}{}{}",
-            self.parameters_parentheses.tokens().0,
-            join_type_specifiers(&self.parameters, self.type_specifiers()),
-            self.parameters_parentheses.tokens().1,
+            self.parameters.start,
+            join_type_specifiers(self.parameters.inner(), self.type_specifiers()),
+            self.parameters.end,
             display_option(self.return_type.as_ref()),
             self.block,
             self.end_token

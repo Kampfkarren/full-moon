@@ -5,7 +5,7 @@ use crate::{util::display_option, ShortString};
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum TypeInfo {
@@ -107,7 +107,7 @@ pub enum TypeInfo {
 }
 
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum IndexedTypeInfo {
@@ -181,7 +181,7 @@ impl TypeField {
 }
 
 /// A key in a [`TypeField`]. Can either be a name or an index signature.
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum TypeFieldKey {
@@ -359,12 +359,16 @@ impl GenericDeclaration {
 
     /// Returns a new GenericDeclaration with the given arrows containing the types
     pub fn with_arrows(self, arrows: (TokenReference, TokenReference)) -> Self {
-        Self { generics: self.generics.with_tokens(arrows) }
+        Self {
+            generics: self.generics.with_tokens(arrows),
+        }
     }
 
     /// Returns a new TypeDeclaration with the given names of the generics
     pub fn with_generics(self, generics: Punctuated<TokenReference>) -> Self {
-        Self { generics: self.generics.with_inner(generics) }
+        Self {
+            generics: self.generics.with_inner(generics),
+        }
     }
 }
 
