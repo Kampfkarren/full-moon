@@ -30,21 +30,6 @@ fn token_getter(
     }
 }
 
-#[derive(PartialEq)]
-enum NodeHint {
-    FullRange,
-}
-
-impl Hint for NodeHint {
-    fn unit(name: String) -> Option<Self> {
-        if name == "full_range" {
-            Some(NodeHint::FullRange)
-        } else {
-            None
-        }
-    }
-}
-
 pub struct NodeGenerator;
 
 impl DeriveGenerator for NodeGenerator {
@@ -122,41 +107,29 @@ impl StructGenerator for StructRangeGenerator {
             .map(|field| field.ident.as_ref().unwrap())
             .collect::<Vec<_>>();
 
-        let full_range = strukt
-            .fields
-            .iter()
-            .find(|field| search_hint("node", &field.attrs) == Some(NodeHint::FullRange));
+        let (mut start_position, mut end_position) = (
+            Vec::with_capacity(fields.len()),
+            Vec::with_capacity(fields.len()),
+        );
 
-        if let Some(full_range) = full_range {
-            let ident = full_range.ident.as_ref().unwrap();
-            quote! {
-                self.#ident.range()
-            }
-        } else {
-            let (mut start_position, mut end_position) = (
-                Vec::with_capacity(fields.len()),
-                Vec::with_capacity(fields.len()),
-            );
+        for field in &fields {
+            start_position.push(quote! {
+                .or_else(|| {
+                    self.#field.start_position()
+                })
+            });
+        }
 
-            for field in &fields {
-                start_position.push(quote! {
-                    .or_else(|| {
-                        self.#field.start_position()
-                    })
-                });
-            }
+        for field in fields.iter().rev() {
+            end_position.push(quote! {
+                .or_else(|| {
+                    self.#field.end_position()
+                })
+            });
+        }
 
-            for field in fields.iter().rev() {
-                end_position.push(quote! {
-                    .or_else(|| {
-                        self.#field.end_position()
-                    })
-                });
-            }
-
-            quote! {
-                Some((None#(#start_position)*?, None#(#end_position)*?))
-            }
+        quote! {
+            Some((None#(#start_position)*?, None#(#end_position)*?))
         }
     }
 }
@@ -238,17 +211,7 @@ impl MatchEnumGenerator for EnumRangeGenerator {
             .map(|field| field.ident.as_ref().unwrap())
             .collect::<Vec<_>>();
 
-        let full_range = named
-            .named
-            .iter()
-            .find(|field| search_hint("node", &field.attrs) == Some(NodeHint::FullRange));
-
-        let body = if let Some(full_range) = full_range {
-            let ident = full_range.ident.as_ref().unwrap();
-            quote! {
-                #ident.range()
-            }
-        } else {
+        let body = {
             let (mut start_position, mut end_position) = (
                 Vec::with_capacity(fields.len()),
                 Vec::with_capacity(fields.len()),
