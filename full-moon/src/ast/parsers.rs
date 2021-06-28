@@ -154,8 +154,7 @@ define_parser!(ParseField, Field, |_, state| {
         return Ok((
             state,
             Field::ExpressionKey {
-                brackets: ContainedSpan::new(start_bracket, end_bracket),
-                key,
+                key: ContainedSpan::new(start_bracket, key, end_bracket),
                 equal,
                 value,
             },
@@ -210,8 +209,7 @@ define_parser!(ParseTableConstructor, TableConstructor, |_, state| {
     Ok((
         state,
         TableConstructor {
-            braces: ContainedSpan::new(start_brace, end_brace),
-            fields,
+            fields: ContainedSpan::new(start_brace, fields, end_brace),
         },
     ))
 });
@@ -244,10 +242,11 @@ define_parser!(ParseParenExpression, Expression, |_, state| {
 
     Ok((
         state,
-        Expression::Parentheses {
-            contained: ContainedSpan::new(left_paren, right_paren),
-            expression: Box::new(expression),
-        },
+        Expression::Parentheses(ContainedSpan::new(
+            left_paren,
+            Box::new(expression),
+            right_paren,
+        )),
     ))
 });
 
@@ -410,10 +409,7 @@ define_parser!(
         );
         Ok((
             state,
-            Index::Brackets {
-                brackets: ContainedSpan::new(start_bracket, end_bracket),
-                expression,
-            },
+            Index::Brackets(ContainedSpan::new(start_bracket, expression, end_bracket)),
         ))
     } else if let Ok((state, dot)) = ParseSymbol(Symbol::Dot).parse(state) {
         let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
@@ -443,10 +439,7 @@ define_parser!(
         );
         Ok((
             state,
-            FunctionArgs::Parentheses {
-                arguments,
-                parentheses: ContainedSpan::new(left_paren, right_paren),
-            },
+            FunctionArgs::Parentheses(ContainedSpan::new(left_paren, arguments, right_paren)),
         ))
     } else if let Ok((state, table_constructor)) = keep_going!(ParseTableConstructor.parse(state)) {
         Ok((state, FunctionArgs::TableConstructor(table_constructor)))
@@ -836,8 +829,7 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
     Ok((
         state,
         FunctionBody {
-            parameters_parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-            parameters,
+            parameters: ContainedSpan::new(start_parenthese, parameters, end_parenthese),
             block,
             end_token,
             #[cfg(feature = "roblox")]
