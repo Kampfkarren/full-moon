@@ -156,7 +156,7 @@ impl Default for Return {
 }
 
 /// Fields of a [`TableConstructor`]
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Field {
@@ -221,7 +221,7 @@ impl TableConstructor {
     /// Returns a new TableConstructor with the given braces
     pub fn with_braces(self, braces: (TokenReference, TokenReference)) -> Self {
         Self {
-            fields: self.fields.with_braces(braces),
+            fields: self.fields.with_tokens(braces),
         }
     }
 
@@ -240,7 +240,7 @@ impl Default for TableConstructor {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 #[non_exhaustive]
@@ -396,7 +396,7 @@ pub enum Prefix {
 
 /// The indexing of something, such as `x.y` or `x["y"]`
 /// Values of variants are the keys, such as `"y"`
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Index {
@@ -416,7 +416,7 @@ pub enum Index {
 }
 
 /// Arguments used for a function
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum FunctionArgs {
@@ -1356,12 +1356,8 @@ impl fmt::Display for FunctionBody {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
-            "{}{}{}{}{}",
-            self.parameters_parentheses.tokens().0,
-            self.parameters,
-            self.parameters_parentheses.tokens().1,
-            self.block,
-            self.end_token
+            "{}{}{}",
+            self.parameters, self.block, self.end_token
         )
     }
 }

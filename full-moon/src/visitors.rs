@@ -1,5 +1,5 @@
 use crate::{
-    ast::{span::ContainedSpan, *},
+    ast::*,
     private::Sealed,
     tokenizer::{Token, TokenReference},
 };
