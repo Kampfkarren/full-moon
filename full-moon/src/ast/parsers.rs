@@ -1165,8 +1165,7 @@ define_roblox_parser!(
         Ok((
             state,
             GenericDeclaration {
-                arrows: ContainedSpan::new(start_arrow, end_arrow),
-                generics,
+                generics: ContainedSpan::new(start_arrow, generics, end_arrow),
             },
         ))
     }
@@ -1291,8 +1290,7 @@ cfg_if::cfg_if! {
                         state,
                         IndexedTypeInfo::Generic {
                             base: identifier,
-                            arrows: ContainedSpan::new(start_arrow, end_arrow),
-                            generics,
+                            generics: ContainedSpan::new(start_arrow, generics, end_arrow),
                         },
                     )
                 } else {
@@ -1318,10 +1316,7 @@ cfg_if::cfg_if! {
             let mut types = Punctuated::new();
             types.push(Pair::new(type_info, None));
 
-            Ok((state, TypeInfo::Tuple {
-                parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
-                types,
-            }))
+            Ok((state, TypeInfo::Tuple (ContainedSpan::new(this.0.clone(), types, end_parenthese))))
         });
 
         #[derive(Clone, Debug, PartialEq)]
@@ -1380,8 +1375,7 @@ cfg_if::cfg_if! {
             Ok((
                 state,
                 TypeInfo::Callback {
-                    arguments: types,
-                    parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
+                    arguments: ContainedSpan::new(this.0.clone(), types, end_parenthese),
                     arrow,
                     return_type: Box::new(return_value),
                 },
@@ -1420,8 +1414,7 @@ cfg_if::cfg_if! {
                         state,
                         TypeInfo::Typeof {
                             typeof_token: identifier,
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            inner: Box::new(expression),
+                            expression: ContainedSpan::new(start_parenthese, Box::new(expression), end_parenthese),
                         },
                     )
                 } else if let Ok((state, punctuation)) = ParseSymbol(Symbol::Dot).parse(state)
@@ -1458,8 +1451,7 @@ cfg_if::cfg_if! {
                         state,
                         TypeInfo::Generic {
                             base: identifier,
-                            arrows: ContainedSpan::new(start_arrow, end_arrow),
-                            generics,
+                            generics: ContainedSpan::new(start_arrow, generics, end_arrow),
                         },
                     )
                 } else {
@@ -1472,16 +1464,16 @@ cfg_if::cfg_if! {
                     // Single token lookahead: see if we have a `->` ahead. If we do, we need to parse this
                     // as a callback type, using what we already have from the parentheses type
                     if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                        // Unwrap the parsed parentheses type into its parentheses and its enclosed type
-                        let (parentheses, arguments) = match parentheses_type {
-                            TypeInfo::Tuple { parentheses, types } => {
-                                // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
+                        let arguments = match parentheses_type {
+                            TypeInfo::Tuple (types) => {
+                                // `types.inner()` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
                                 // where each argument has no name.
-                                let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
+                                let arguments = types.inner.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
                                     name: None,
                                     type_info
                                 })).collect::<Punctuated<_>>();
-                                (parentheses, arguments)
+
+                                ContainedSpan::new(types.start, arguments, types.end)
                             },
                             _ => unreachable!("parsed a non-tuple as a parentheses type"),
                         };
@@ -1496,7 +1488,6 @@ cfg_if::cfg_if! {
                             state,
                             TypeInfo::Callback {
                                 arguments,
-                                parentheses,
                                 arrow,
                                 return_type: Box::new(return_value),
                             },
@@ -1519,10 +1510,7 @@ cfg_if::cfg_if! {
 
                     (
                         state,
-                        TypeInfo::Table {
-                            braces: ContainedSpan::new(start_brace, end_brace),
-                            fields,
-                        },
+                        TypeInfo::Table (ContainedSpan::new(start_brace, fields, end_brace))
                     )
                 } else {
                     let (state, type_info) = expect!(
@@ -1539,10 +1527,7 @@ cfg_if::cfg_if! {
 
                     (
                         state,
-                        TypeInfo::Array {
-                            braces: ContainedSpan::new(start_brace, end_brace),
-                            type_info: Box::new(type_info)
-                        },
+                        TypeInfo::Array (ContainedSpan::new(start_brace, Box::new(type_info), end_brace))
                     )
                 }
             } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
@@ -1612,8 +1597,7 @@ cfg_if::cfg_if! {
                     Ok((
                         state,
                         TypeInfo::Callback {
-                            arguments,
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
+                            arguments: ContainedSpan::new(start_parenthese, arguments, end_parenthese),
                             arrow,
                             return_type: Box::new(return_value),
                         },
@@ -1621,10 +1605,7 @@ cfg_if::cfg_if! {
                 } else {
                     Ok((
                         state,
-                        TypeInfo::Tuple {
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            types,
-                        },
+                        TypeInfo::Tuple (ContainedSpan::new(start_parenthese, types, end_parenthese))
                     ))
                 }
             } else {
@@ -1736,10 +1717,7 @@ cfg_if::cfg_if! {
 
                 Ok((
                     state,
-                    TypeFieldKey::IndexSignature {
-                        brackets: ContainedSpan::new(start_bracket, end_bracket),
-                        inner,
-                    },
+                    TypeFieldKey::IndexSignature (ContainedSpan::new(start_bracket, inner, end_bracket))
                 ))
             } else {
                 Err(InternalAstError::NoMatch)
