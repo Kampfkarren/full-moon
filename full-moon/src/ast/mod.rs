@@ -161,19 +161,10 @@ impl Default for Return {
 #[non_exhaustive]
 pub enum Field {
     /// A key in the format of `[expression] = value`
-    #[display(
-        fmt = "{}{}{}{}{}",
-        "brackets.tokens().0",
-        "key",
-        "brackets.tokens().1",
-        "equal",
-        "value"
-    )]
+    #[display(fmt = "{}{}{}", "key", "equal", "value")]
     ExpressionKey {
-        /// The `[...]` part of `[expression] = value`
-        brackets: ContainedSpan,
-        /// The `expression` part of `[expression] = value`
-        key: Expression,
+        /// The `[expression]` part of `[expression] = value`
+        key: ContainedSpan<Expression>,
         /// The `=` part of `[expression] = value`
         equal: TokenReference,
         /// The `value` part of `[expression] = value`
@@ -199,12 +190,9 @@ pub enum Field {
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "braces.tokens().0", "fields", "braces.tokens().1")]
+#[display(fmt = "{}", "fields")]
 pub struct TableConstructor {
-    #[node(full_range)]
-    #[visit(contains = "fields")]
-    braces: ContainedSpan,
-    fields: Punctuated<Field>,
+    fields: ContainedSpan<Punctuated<Field>>,
 }
 
 impl TableConstructor {
@@ -212,32 +200,36 @@ impl TableConstructor {
     /// Brace tokens are followed by spaces, such that { `fields` }
     pub fn new() -> Self {
         Self {
-            braces: ContainedSpan::new(
+            fields: ContainedSpan::new(
                 TokenReference::symbol("{ ").unwrap(),
+                Punctuated::new(),
                 TokenReference::symbol(" }").unwrap(),
             ),
-            fields: Punctuated::new(),
         }
     }
 
     /// The braces of the constructor
-    pub fn braces(&self) -> &ContainedSpan {
-        &self.braces
+    pub fn braces(&self) -> (&TokenReference, &TokenReference) {
+        self.fields.tokens()
     }
 
     /// Returns the [`Punctuated`] sequence of the fields used to create the table
     pub fn fields(&self) -> &Punctuated<Field> {
-        &self.fields
+        self.fields.inner()
     }
 
     /// Returns a new TableConstructor with the given braces
-    pub fn with_braces(self, braces: ContainedSpan) -> Self {
-        Self { braces, ..self }
+    pub fn with_braces(self, braces: (TokenReference, TokenReference)) -> Self {
+        Self {
+            fields: self.fields.with_braces(braces),
+        }
     }
 
     /// Returns a new TableConstructor with the given fields
     pub fn with_fields(self, fields: Punctuated<Field>) -> Self {
-        Self { fields, ..self }
+        Self {
+            fields: self.fields.with_inner(fields),
+        }
     }
 }
 
@@ -265,19 +257,8 @@ pub enum Expression {
     },
 
     /// A statement in parentheses, such as `(#list)`
-    #[display(
-        fmt = "{}{}{}",
-        "contained.tokens().0",
-        "expression",
-        "contained.tokens().1"
-    )]
-    Parentheses {
-        /// The parentheses of the `ParenExpression`
-        #[node(full_range)]
-        contained: ContainedSpan,
-        /// The expression inside the parentheses
-        expression: Box<Expression>,
-    },
+    #[display(fmt = "{}", "_0")]
+    Parentheses(ContainedSpan<Box<Expression>>),
 
     /// A unary operation, such as `#list`
     #[display(fmt = "{}{}", "unop", "expression")]
@@ -420,18 +401,9 @@ pub enum Prefix {
 #[non_exhaustive]
 pub enum Index {
     /// Indexing in the form of `x["y"]`
-    #[display(
-        fmt = "{}{}{}",
-        "brackets.tokens().0",
-        "expression",
-        "brackets.tokens().1"
-    )]
-    Brackets {
-        /// The `[...]` part of `["y"]`
-        brackets: ContainedSpan,
-        /// The `"y"` part of `["y"]`
-        expression: Expression,
-    },
+    /// The `["y"]` part of the index.
+    #[display(fmt = "{}", "_0")]
+    Brackets(ContainedSpan<Expression>),
 
     /// Indexing in the form of `x.y`
     #[display(fmt = "{}{}", "dot", "name")]
@@ -449,19 +421,8 @@ pub enum Index {
 #[non_exhaustive]
 pub enum FunctionArgs {
     /// Used when a function is called in the form of `call(1, 2, 3)`
-    #[display(
-        fmt = "{}{}{}",
-        "parentheses.tokens().0",
-        "arguments",
-        "parentheses.tokens().1"
-    )]
-    Parentheses {
-        /// The `(...) part of (1, 2, 3)`
-        #[node(full_range)]
-        parentheses: ContainedSpan,
-        /// The `1, 2, 3` part of `1, 2, 3`
-        arguments: Punctuated<Expression>,
-    },
+    #[display(fmt = "{}", "_0")]
+    Parentheses(ContainedSpan<Punctuated<Expression>>),
     /// Used when a function is called in the form of `call "foobar"`
     #[display(fmt = "{}", "_0")]
     String(TokenReference),
@@ -1266,8 +1227,7 @@ pub enum Call {
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody {
-    parameters_parentheses: ContainedSpan,
-    parameters: Punctuated<Parameter>,
+    parameters: ContainedSpan<Punctuated<Parameter>>,
 
     #[cfg(feature = "roblox")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
@@ -1284,11 +1244,11 @@ impl FunctionBody {
     /// Returns a new empty FunctionBody
     pub fn new() -> Self {
         Self {
-            parameters_parentheses: ContainedSpan::new(
+            parameters: ContainedSpan::new(
                 TokenReference::symbol("(").unwrap(),
+                Punctuated::new(),
                 TokenReference::symbol(")").unwrap(),
             ),
-            parameters: Punctuated::new(),
 
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
@@ -1302,13 +1262,13 @@ impl FunctionBody {
     }
 
     /// The parentheses of the parameters
-    pub fn parameters_parentheses(&self) -> &ContainedSpan {
-        &self.parameters_parentheses
+    pub fn parameters_parentheses(&self) -> (&TokenReference, &TokenReference) {
+        self.parameters.tokens()
     }
 
     /// Returns the [`Punctuated`] sequence of the parameters for the function declaration
     pub fn parameters(&self) -> &Punctuated<Parameter> {
-        &self.parameters
+        self.parameters.inner()
     }
 
     /// The code of a function body
@@ -1337,16 +1297,8 @@ impl FunctionBody {
         self.return_type.as_ref()
     }
 
-    /// Returns a new FunctionBody with the given parentheses for the parameters
-    pub fn with_parameters_parentheses(self, parameters_parentheses: ContainedSpan) -> Self {
-        Self {
-            parameters_parentheses,
-            ..self
-        }
-    }
-
     /// Returns a new FunctionBody with the given parameters
-    pub fn with_parameters(self, parameters: Punctuated<Parameter>) -> Self {
+    pub fn with_parameters(self, parameters: ContainedSpan<Punctuated<Parameter>>) -> Self {
         Self { parameters, ..self }
     }
 
@@ -1838,13 +1790,11 @@ impl FunctionCall {
         FunctionCall {
             prefix,
             suffixes: vec![Suffix::Call(Call::AnonymousCall(
-                FunctionArgs::Parentheses {
-                    arguments: Punctuated::new(),
-                    parentheses: ContainedSpan::new(
-                        TokenReference::symbol("(").unwrap(),
-                        TokenReference::symbol(")").unwrap(),
-                    ),
-                },
+                FunctionArgs::Parentheses(ContainedSpan::new(
+                    TokenReference::symbol("(").unwrap(),
+                    Punctuated::new(),
+                    TokenReference::symbol(")").unwrap(),
+                )),
             ))],
         }
     }
@@ -2378,10 +2328,11 @@ mod tests {
         LocalFunction::new(token.clone());
         MethodCall::new(
             token.clone(),
-            FunctionArgs::Parentheses {
-                arguments: Punctuated::new(),
-                parentheses: ContainedSpan::new(token.clone(), token.clone()),
-            },
+            FunctionArgs::Parentheses(ContainedSpan::new(
+                token.clone(),
+                Punctuated::new(),
+                token.clone(),
+            )),
         );
         NumericFor::new(token.clone(), expression.clone(), expression.clone());
         Repeat::new(expression.clone());

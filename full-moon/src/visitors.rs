@@ -219,7 +219,6 @@ create_visitor!(ast: {
     visit_assignment => Assignment,
     visit_block => Block,
     visit_call => Call,
-    visit_contained_span => ContainedSpan,
     visit_do => Do,
     visit_else_if => ElseIf,
     visit_eof => TokenReference,
