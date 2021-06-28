@@ -10,32 +10,18 @@ use derive_more::Display;
 #[non_exhaustive]
 pub enum TypeInfo {
     /// A shorthand type annotating the structure of an array: { number }
-    #[display(fmt = "{}{}{}", "braces.tokens().0", "type_info", "braces.tokens().1")]
-    Array {
-        /// The braces (`{}`) containing the type info.
-        braces: ContainedSpan,
-        /// The type info for the values in the Array
-        type_info: Box<TypeInfo>,
-    },
+    #[display(fmt = "{}", "_0")]
+    Array(ContainedSpan<Box<TypeInfo>>),
 
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
     Basic(TokenReference),
 
     /// A callback type, such as `(string, number) => boolean`.
-    #[display(
-        fmt = "{}{}{}{}{}",
-        "parentheses.tokens().0",
-        "arguments",
-        "parentheses.tokens().1",
-        "arrow",
-        "return_type"
-    )]
+    #[display(fmt = "{}{}{}", "arguments", "arrow", "return_type")]
     Callback {
-        /// The parentheses for the arguments.
-        parentheses: ContainedSpan,
         /// The argument types: `(string, number)`.
-        arguments: Punctuated<TypeArgument>,
+        arguments: ContainedSpan<Punctuated<TypeArgument>>,
         /// The "thin arrow" (`->`) in between the arguments and the return type.
         arrow: TokenReference,
         /// The return type: `boolean`.
@@ -43,20 +29,12 @@ pub enum TypeInfo {
     },
 
     /// A type using generics, such as `map<number, string>`.
-    #[display(
-        fmt = "{}{}{}{}",
-        "base",
-        "arrows.tokens().0",
-        "generics",
-        "arrows.tokens().1"
-    )]
+    #[display(fmt = "{}{}", "base", "generics")]
     Generic {
         /// The type that has generics: `map`.
         base: TokenReference,
-        /// The arrows (`<>`) containing the type parameters.
-        arrows: ContainedSpan,
-        /// The type parameters: `number, string`.
-        generics: Punctuated<TypeInfo>,
+        /// The type parameters: `<number, string>`.
+        generics: ContainedSpan<Punctuated<TypeInfo>>,
     },
 
     /// An intersection type: `string & number`, denoting both types.
@@ -91,44 +69,21 @@ pub enum TypeInfo {
     },
 
     /// A type annotating the structure of a table: { foo: number, bar: string }
-    #[display(fmt = "{}{}{}", "braces.tokens().0", "fields", "braces.tokens().1")]
-    Table {
-        /// The braces (`{}`) containing the fields.
-        braces: ContainedSpan,
-        /// The fields: `foo: number, bar: string`.
-        fields: Punctuated<TypeField>,
-    },
+    #[display(fmt = "{}", "_0")]
+    Table(ContainedSpan<Punctuated<TypeField>>),
 
     /// A type in the form of `typeof(foo)`.
-    #[display(
-        fmt = "{}{}{}{}",
-        "typeof_token",
-        "parentheses.tokens().0",
-        "inner",
-        "parentheses.tokens().1"
-    )]
+    #[display(fmt = "{}{}", "typeof_token", "expression")]
     Typeof {
         /// The token `typeof`.
         typeof_token: TokenReference,
-        /// The parentheses used to contain the expression.
-        parentheses: ContainedSpan,
-        /// The inner expression: `foo`.
-        inner: Box<Expression>,
+        /// The expression: `(foo)`.
+        expression: ContainedSpan<Box<Expression>>,
     },
 
     /// A tuple expression: `(string, number)`.
-    #[display(
-        fmt = "{}{}{}",
-        "parentheses.tokens().0",
-        "types",
-        "parentheses.tokens().1"
-    )]
-    Tuple {
-        /// The parentheses used to contain the types
-        parentheses: ContainedSpan,
-        /// The types: `(string, number)`.
-        types: Punctuated<TypeInfo>,
-    },
+    #[display(fmt = "{}", "_0")]
+    Tuple(ContainedSpan<Punctuated<TypeInfo>>),
 
     /// A union type: `string | number`, denoting one or the other.
     #[display(fmt = "{}{}{}", "left", "pipe", "right")]
@@ -161,20 +116,12 @@ pub enum IndexedTypeInfo {
     Basic(TokenReference),
 
     /// A type using generics, such as `map<number, string>`.
-    #[display(
-        fmt = "{}{}{}{}",
-        "base",
-        "arrows.tokens().0",
-        "generics",
-        "arrows.tokens().1"
-    )]
+    #[display(fmt = "{}{}", "base", "generics")]
     Generic {
         /// The type that has generics: `map`.
         base: TokenReference,
-        /// The arrows (`<>`) containing the type parameters.
-        arrows: ContainedSpan,
-        /// The type parameters: `number, string`.
-        generics: Punctuated<TypeInfo>,
+        /// The type parameters: `<number, string>`.
+        generics: ContainedSpan<Punctuated<TypeInfo>>,
     },
 }
 
@@ -243,14 +190,8 @@ pub enum TypeFieldKey {
     Name(TokenReference),
 
     /// An index signature, such as `[number]`.
-    #[display(fmt = "{}{}{}", "brackets.tokens().0", "inner", "brackets.tokens().1")]
-    IndexSignature {
-        /// The brackets (`[]`) used to contain the type.
-        brackets: ContainedSpan,
-
-        /// The type for the index signature, `number` in `[number]`.
-        inner: TypeInfo,
-    },
+    #[display(fmt = "{}", "_0")]
+    IndexSignature(ContainedSpan<TypeInfo>),
 }
 
 /// A type assertion using `::`, such as `:: number`.
@@ -389,43 +330,41 @@ impl TypeDeclaration {
 /// The generics used in a [`TypeDeclaration`].
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "arrows.tokens().0", "generics", "arrows.tokens().1")]
+#[display(fmt = "{}", "generics")]
 pub struct GenericDeclaration {
-    #[visit(contains = "generics")]
-    pub(crate) arrows: ContainedSpan,
-    pub(crate) generics: Punctuated<TokenReference>,
+    pub(crate) generics: ContainedSpan<Punctuated<TokenReference>>,
 }
 
 impl GenericDeclaration {
     /// Creates a new GenericDeclaration
     pub fn new() -> Self {
         Self {
-            arrows: ContainedSpan::new(
+            generics: ContainedSpan::new(
                 TokenReference::symbol("<").unwrap(),
+                Punctuated::new(),
                 TokenReference::symbol(">").unwrap(),
             ),
-            generics: Punctuated::new(),
         }
     }
 
     /// The arrows (`<>`) containing the types.
-    pub fn arrows(&self) -> &ContainedSpan {
-        &self.arrows
+    pub fn arrows(&self) -> (&TokenReference, &TokenReference) {
+        self.generics.tokens()
     }
 
     /// The names of the generics: `T, U` in `<T, U>`.
     pub fn generics(&self) -> &Punctuated<TokenReference> {
-        &self.generics
+        self.generics.inner()
     }
 
     /// Returns a new GenericDeclaration with the given arrows containing the types
-    pub fn with_arrows(self, arrows: ContainedSpan) -> Self {
-        Self { arrows, ..self }
+    pub fn with_arrows(self, arrows: (TokenReference, TokenReference)) -> Self {
+        Self { generics: self.generics.with_tokens(arrows) }
     }
 
     /// Returns a new TypeDeclaration with the given names of the generics
     pub fn with_generics(self, generics: Punctuated<TokenReference>) -> Self {
-        Self { generics, ..self }
+        Self { generics: self.generics.with_inner(generics) }
     }
 }
 
