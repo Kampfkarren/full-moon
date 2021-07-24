@@ -1332,6 +1332,32 @@ cfg_if::cfg_if! {
             }))
         });
 
+        /// A type array atom, such as `{ string }`.
+        /// An opening brace should have already been consumed, and is passed to this struct.
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseTypeArray(TokenReference);
+        define_parser!(ParseTypeArray, TypeInfo, |this, state| {
+            let (state, type_info) = expect!(
+                state,
+                ParseTypeInfo(TypeInfoContext::None).parse(state),
+                "expected type in array"
+            );
+
+            let (state, end_brace) = expect!(
+                state,
+                ParseSymbol(Symbol::RightBrace).parse(state),
+                "expected `}` to match `{`"
+            );
+
+            Ok((
+                state,
+                TypeInfo::Array {
+                    braces: ContainedSpan::new(this.0.clone(), end_brace),
+                    type_info: Box::new(type_info)
+                },
+            ))
+        });
+
         #[derive(Clone, Debug, PartialEq)]
         struct ParseTypeArgument;
         define_parser!(ParseTypeArgument, TypeArgument, |_, state| {
@@ -1394,6 +1420,47 @@ cfg_if::cfg_if! {
                     return_type: Box::new(return_value),
                 },
             ))
+        });
+
+        /// A type table atom, such as `{ foo: string, bar: number }`.
+        /// An opening brace should have already been consumed, and is passed to this struct.
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseTypeTable(TokenReference);
+        define_parser!(ParseTypeTable, TypeInfo, |this, state| {
+            let mut state = state;
+            let mut fields = Punctuated::new();
+
+            while let Ok((new_state, field)) = keep_going!(ParseTypeField.parse(state)) {
+                let field_sep = if let Ok((new_state, separator)) =
+                    ParseSymbol(Symbol::Comma).parse(new_state)
+                {
+                    state = new_state;
+                    Some(separator)
+                } else if let Ok((new_state, separator)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
+                    state = new_state;
+                    Some(separator)
+                } else {
+                    state = new_state;
+                    None
+                };
+
+                let is_end = field_sep.is_none();
+                fields.push(Pair::new(field, field_sep));
+                if is_end {
+                    break;
+                }
+            }
+
+            let (state, end_brace) = expect!(
+                state,
+                ParseSymbol(Symbol::RightBrace).parse(state),
+                "expected `}` to match `{`"
+            );
+
+            Ok((state, TypeInfo::Table {
+                braces: ContainedSpan::new(this.0.clone(), end_brace),
+                fields,
+            }))
         });
 
         // A type info atom, excluding compound types such as Union and Intersection
@@ -1516,42 +1583,10 @@ cfg_if::cfg_if! {
                     ParseCallbackTypeInfo(start_parenthese).parse(state)?
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
-                if let Ok((state, fields)) = ZeroOrMoreDelimited(ParseTypeField, ParseSymbol(Symbol::Comma), true)
-                        .parse(state)
-                {
-                    let (state, end_brace) = expect!(
-                        state,
-                        ParseSymbol(Symbol::RightBrace).parse(state),
-                        "expected `}` to match `{`"
-                    );
-
-                    (
-                        state,
-                        TypeInfo::Table {
-                            braces: ContainedSpan::new(start_brace, end_brace),
-                            fields,
-                        },
-                    )
+                if let Ok((state, type_array)) = ParseTypeArray(start_brace.clone()).parse(state) {
+                    (state, type_array)
                 } else {
-                    let (state, type_info) = expect!(
-                        state,
-                        ParseTypeInfo(TypeInfoContext::None).parse(state),
-                        "expected type in array"
-                    );
-
-                    let (state, end_brace) = expect!(
-                        state,
-                        ParseSymbol(Symbol::RightBrace).parse(state),
-                        "expected `}` to match `{`"
-                    );
-
-                    (
-                        state,
-                        TypeInfo::Array {
-                            braces: ContainedSpan::new(start_brace, end_brace),
-                            type_info: Box::new(type_info)
-                        },
-                    )
+                    ParseTypeTable(start_brace).parse(state)?
                 }
             } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
                 // Only allow variadic type annotation for a return type or a tuple type
