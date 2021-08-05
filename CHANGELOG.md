@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- Fixed semicolon used as delimeters in Luau type tables leading to a syntax error under the `roblox` feature flag
+- Fixed nested type arrays failing to parse under the `roblox` feature flag
+
 ## [0.13.0] - 2021-06-26
 ### Changed
 - **[BREAKING CHANGE]** The ast lifetime has been removed from practically everything.
