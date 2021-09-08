@@ -127,7 +127,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         }
 
         impl<'input> ParseSymbol<'input> for &'input str {
-            fn parse_symbol(self: Self, pos: usize) -> peg::RuleResult<Symbol> {
+            fn parse_symbol(self, pos: usize) -> peg::RuleResult<Symbol> {
                 for (symbol, string) in &[#(#operator_array,)*] {
                     if self[pos..].starts_with(string) {
                         return peg::RuleResult::Matched(pos + string.len(), *symbol);
