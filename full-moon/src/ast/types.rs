@@ -594,8 +594,13 @@ impl CompoundOp {
     /// The token assiociated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
-            PlusEqual(token) | MinusEqual(token) | StarEqual(token) | SlashEqual(token)
-            | PercentEqual(token) | CaretEqual(token) | TwoDotsEqual(token) => token,
+            Self::PlusEqual(token)
+            | Self::MinusEqual(token)
+            | Self::StarEqual(token)
+            | Self::SlashEqual(token)
+            | Self::PercentEqual(token)
+            | Self::CaretEqual(token)
+            | Self::TwoDotsEqual(token) => token,
         }
     }
 }
