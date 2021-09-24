@@ -590,6 +590,21 @@ make_op!(CompoundOp,
     }
 );
 
+impl CompoundOp {
+    /// The token associated with the operator
+    pub fn token(&self) -> &TokenReference {
+        match self {
+            Self::PlusEqual(token)
+            | Self::MinusEqual(token)
+            | Self::StarEqual(token)
+            | Self::SlashEqual(token)
+            | Self::PercentEqual(token)
+            | Self::CaretEqual(token)
+            | Self::TwoDotsEqual(token) => token,
+        }
+    }
+}
+
 /// A Compound Assignment statement, such as `x += 1` or `x -= 1`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

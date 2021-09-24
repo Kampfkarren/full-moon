@@ -2055,6 +2055,27 @@ impl BinOp {
     pub fn is_right_associative(&self) -> bool {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
     }
+
+    /// The token associated with the operator
+    pub fn token(&self) -> &TokenReference {
+        match self {
+            BinOp::And(token)
+            | BinOp::Caret(token)
+            | BinOp::GreaterThan(token)
+            | BinOp::GreaterThanEqual(token)
+            | BinOp::LessThan(token)
+            | BinOp::LessThanEqual(token)
+            | BinOp::Minus(token)
+            | BinOp::Or(token)
+            | BinOp::Percent(token)
+            | BinOp::Plus(token)
+            | BinOp::Slash(token)
+            | BinOp::Star(token)
+            | BinOp::TildeEqual(token)
+            | BinOp::TwoDots(token)
+            | BinOp::TwoEqual(token) => token,
+        }
+    }
 }
 
 make_op!(UnOp,
@@ -2071,6 +2092,13 @@ impl UnOp {
     /// See more at http://www.lua.org/manual/5.1/manual.html#2.5.6
     pub fn precedence(&self) -> u8 {
         7
+    }
+
+    /// The token associated with the operator
+    pub fn token(&self) -> &TokenReference {
+        match self {
+            UnOp::Minus(token) | UnOp::Not(token) | UnOp::Hash(token) => token,
+        }
     }
 }
 
