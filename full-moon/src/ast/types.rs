@@ -591,7 +591,7 @@ make_op!(CompoundOp,
 );
 
 impl CompoundOp {
-    /// The token assiociated with the operator
+    /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
             Self::PlusEqual(token)

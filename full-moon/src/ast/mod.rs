@@ -2056,7 +2056,7 @@ impl BinOp {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
     }
 
-    /// The token assiociated with the operator
+    /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
             BinOp::And(token)
@@ -2094,7 +2094,7 @@ impl UnOp {
         7
     }
 
-    /// The token assiociated with the operator
+    /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
             UnOp::Minus(token) | UnOp::Not(token) | UnOp::Hash(token) => token,

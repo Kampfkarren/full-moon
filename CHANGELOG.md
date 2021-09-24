@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased changes
 ### Added
-- Added `token()` methods on `BinOp`, `UnOp` and `CompoundOp` to get the token associated with the operator ()
+- Added `token()` methods on `BinOp`, `UnOp` and `CompoundOp` to get the token associated with the operator
 
 ## [0.13.1] - 2021-07-07
 ### Fixed
