@@ -98,6 +98,13 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
+    fn test_parse_code_with_utf8_BOM() {
+        assert!(parse(str_with_BOM("local x = 1").as_str()).is_ok());
+        assert!(parse(str_with_BOM("\nlocal x = 1").as_str()).is_ok());
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
     fn test_skip_utf8_BOM() {
         assert_eq!(skip_utf8_BOM(str_with_BOM("123").as_str()), "123");
         assert_eq!(skip_utf8_BOM(str_with_BOM("").as_str()), "");
