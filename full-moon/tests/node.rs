@@ -26,8 +26,8 @@ fn test_similar() {
 #[test]
 fn test_tokens_collect() {
     let source = parse("local abcd = 1").unwrap();
-    let tokens = source.nodes().tokens().collect::<Vec<_>>();
-    assert_eq!(tokens.len(), 4);
+    let tokens = source.nodes().tokens();
+    assert_eq!(tokens.count(), 4);
 }
 
 #[test]

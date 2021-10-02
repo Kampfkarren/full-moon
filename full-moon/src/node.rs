@@ -82,7 +82,7 @@ impl<'a> Iterator for Tokens<'a> {
             TokenItem::TokenReference(reference) => Some(reference),
             TokenItem::MoreTokens(node) => {
                 let mut tokens = node.tokens();
-                tokens.items.extend(self.items.drain(..));
+                tokens.items.append(&mut self.items);
                 self.items = tokens.items;
                 self.next()
             }
@@ -100,7 +100,7 @@ impl<'a> DoubleEndedIterator for Tokens<'a> {
             TokenItem::TokenReference(reference) => Some(reference),
             TokenItem::MoreTokens(node) => {
                 let mut tokens = node.tokens();
-                self.items.extend(tokens.items.drain(..));
+                self.items.append(&mut tokens.items);
                 self.next_back()
             }
         }
@@ -194,7 +194,7 @@ impl Node for TokenReference {
 
     fn tokens(&self) -> Tokens {
         Tokens {
-            items: vec![TokenItem::TokenReference(&self)],
+            items: vec![TokenItem::TokenReference(self)],
         }
     }
 }
@@ -277,7 +277,7 @@ impl<'a, A: Node, B: Node> Node for (A, B) {
 
     fn tokens(&self) -> Tokens {
         let mut items = self.0.tokens().items;
-        items.extend(self.1.tokens().items.drain(..));
+        items.append(&mut self.1.tokens().items);
 
         Tokens { items }
     }

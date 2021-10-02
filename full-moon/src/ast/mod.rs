@@ -2411,10 +2411,10 @@ mod tests {
                 parentheses: ContainedSpan::new(token.clone(), token.clone()),
             },
         );
-        NumericFor::new(token.clone(), expression.clone(), expression.clone());
+        NumericFor::new(token, expression.clone(), expression.clone());
         Repeat::new(expression.clone());
         Return::new();
         TableConstructor::new();
-        While::new(expression.clone());
+        While::new(expression);
     }
 }

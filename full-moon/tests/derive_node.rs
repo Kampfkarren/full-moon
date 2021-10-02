@@ -11,15 +11,15 @@ fn test_position_min_max() {
             self.0 = true;
             assert_eq!(
                 MIN_MAX_CODE
-                    .bytes()
-                    .nth(constructor.start_position().unwrap().bytes()),
-                Some(b'{')
+                    .as_bytes()
+                    .get(constructor.start_position().unwrap().bytes()),
+                Some(&b'{')
             );
             assert_eq!(
                 MIN_MAX_CODE
-                    .bytes()
-                    .nth(constructor.end_position().unwrap().bytes() - 1),
-                Some(b'}')
+                    .as_bytes()
+                    .get(constructor.end_position().unwrap().bytes() - 1),
+                Some(&b'}')
             );
         }
     }
