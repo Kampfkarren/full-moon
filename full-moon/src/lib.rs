@@ -66,7 +66,6 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
-    let code = skip_utf8_BOM(code);
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)
 }
@@ -74,44 +73,4 @@ pub fn parse(code: &str) -> Result<ast::Ast, Error> {
 /// Prints back Lua code from an [`Ast`](ast::Ast)
 pub fn print(ast: &ast::Ast) -> String {
     format!("{}{}", ast.nodes(), ast.eof())
-}
-
-/// Clean UTF8 BOM(byte order mark https://en.wikipedia.org/wiki/Byte_order_mark).
-///
-/// IMPORTANT: It doesn't handle UTF16 BOM see wiki.
-///
-/// Original LUA interpretator does this as well.
-/// https://github.com/lua/lua/blob/439e45a2f69549b674d6a6e2023e8debfa00a2b8/lauxlib.c#L742-L753
-#[allow(non_snake_case)]
-fn skip_utf8_BOM(code: &str) -> &str {
-  const BOM: &[u8; 3] = b"\xEF\xBB\xBF";
-  if code.as_bytes().starts_with(BOM) {
-      &code[3..]
-  } else {
-      code
-  }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[allow(non_snake_case)]
-    fn test_parse_code_with_utf8_BOM() {
-        assert!(parse(str_with_BOM("local x = 1").as_str()).is_ok());
-        assert!(parse(str_with_BOM("\nlocal x = 1").as_str()).is_ok());
-    }
-
-    #[test]
-    #[allow(non_snake_case)]
-    fn test_skip_utf8_BOM() {
-        assert_eq!(skip_utf8_BOM(str_with_BOM("123").as_str()), "123");
-        assert_eq!(skip_utf8_BOM(str_with_BOM("").as_str()), "");
-    }
-
-    #[allow(non_snake_case)]
-    fn str_with_BOM(s: &str) -> String {
-        format!("{}{}", String::from_utf8(b"\xEF\xBB\xBF".to_vec()).unwrap(), s)
-    }
 }
