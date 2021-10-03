@@ -47,9 +47,7 @@ impl<'a> ParserState<'a> {
             panic!("peek failed, when there should always be an eof");
         }
 
-        let result = self.tokens.get(self.index).expect("couldn't peek, no eof?");
-
-        &result
+        self.tokens.get(self.index).expect("couldn't peek, no eof?")
     }
 }
 
