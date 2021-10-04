@@ -781,7 +781,7 @@ peg::parser! {
                       body.insert(0, shebang)
                   }
                   if let Some(bom) = bom {
-                    body.insert(0, bom)
+                      body.insert(0, bom)
                   }
                   body
               }
