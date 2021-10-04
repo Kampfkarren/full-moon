@@ -702,6 +702,10 @@ peg::parser! {
             = line:$("#!" (!line_ending() [_])* line_ending())
               {TokenType::Shebang{line:line.into()}.into()}
 
+        pub(super) rule utf8_bom() -> RawToken
+            = chars:$("\u{feff}") // A BOM sequence in UTF8 "\xEF\xBB\xBF"
+            { TokenType::Whitespace { characters:chars.into() }.into() }
+
         pub(super) rule identifier() -> RawToken
             = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
               { match parse_keyword(id) {
@@ -768,12 +772,16 @@ peg::parser! {
             / identifier()
 
         pub(crate) rule tokens() -> Vec<(RawToken, usize)>
-            = shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
+            = bom:(bom:utf8_bom() pos:position!() {(bom,pos)})?
+              shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
               body:( token:token() pos:position!() {(token,pos)})*
               {
                   let mut body = body;
                   if let Some(shebang) = shebang {
                       body.insert(0, shebang)
+                  }
+                  if let Some(bom) = bom {
+                      body.insert(0, bom)
                   }
                   body
               }
@@ -1176,6 +1184,22 @@ mod tests {
         test_rule!(
             " #!/usr/bin/env lua\n",
             TokenizerErrorType::UnexpectedShebang
+        );
+    }
+
+    #[test]
+    fn test_rule_bom() {
+        let bom = String::from_utf8(b"\xEF\xBB\xBF".to_vec()).unwrap();
+        test_rule!(
+            utf8_bom(&bom),
+            TokenType::Whitespace {
+                characters: ShortString::new(&bom),
+            }
+        );
+        // Don't recognize if not in the beggining.
+        test_rule!(
+            &format!("#!/usr/bin/env lua\n {}", bom),
+            TokenizerErrorType::UnexpectedToken('\u{feff}')
         );
     }
 
