@@ -10,3 +10,6 @@ export type Foo = {
 		b: nil | number | boolean
 	) -> T,
 }
+
+baz = function<T>(a: T, b: number | boolean | nil): T
+end
