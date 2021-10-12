@@ -951,8 +951,8 @@ stmts:
                       identifier: bar
                   trailing_trivia: []
           colon_name: ~
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -1416,8 +1416,8 @@ stmts:
                   type: Identifier
                   identifier: f
               trailing_trivia: []
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -1903,7 +1903,8 @@ stmts:
                                     type: Symbol
                                     symbol: function
                                 trailing_trivia: []
-                              - parameters_parentheses:
+                              - generics: ~
+                                parameters_parentheses:
                                   tokens:
                                     - leading_trivia: []
                                       token:
@@ -2007,7 +2008,8 @@ stmts:
                                                           type: Symbol
                                                           symbol: function
                                                       trailing_trivia: []
-                                                    - parameters_parentheses:
+                                                    - generics: ~
+                                                      parameters_parentheses:
                                                         tokens:
                                                           - leading_trivia: []
                                                             token:

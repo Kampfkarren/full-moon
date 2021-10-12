@@ -633,8 +633,8 @@ stmts:
               type: Identifier
               identifier: foo
           trailing_trivia: []
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
