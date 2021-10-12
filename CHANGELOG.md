@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `token()` methods on `BinOp`, `UnOp` and `CompoundOp` to get the token associated with the operator
 - Added handling of UTF8 BOM(Byte order mark)
+- Added support for generic declarations in callback type specifiers under the `roblox` feature flag
+- Added support for generic declarations for anonymous functions under the `roblox` feature flag
+
+### Changed
+- **[BREAKING CHANGE]** `generics` has been removed from `FunctionDeclaration` and `LocalFunction`, and is now available in one place under `FunctionBody`.
 
 ## [0.13.1] - 2021-07-07
 ### Fixed
