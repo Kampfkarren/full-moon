@@ -1135,6 +1135,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1332,6 +1333,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1572,6 +1574,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1887,6 +1890,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1976,6 +1980,7 @@ stmts:
                     characters: " "
             return_type:
               Callback:
+                generics: ~
                 parentheses:
                   tokens:
                     - leading_trivia: []

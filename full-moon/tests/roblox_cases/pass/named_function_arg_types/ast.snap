@@ -86,6 +86,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -389,6 +390,7 @@ stmts:
                     characters: " "
             type_info:
               Callback:
+                generics: ~
                 parentheses:
                   tokens:
                     - leading_trivia: []
@@ -721,6 +723,7 @@ stmts:
                       characters: " "
               type_info:
                 Callback:
+                  generics: ~
                   parentheses:
                     tokens:
                       - leading_trivia: []
