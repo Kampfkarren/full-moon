@@ -1389,7 +1389,7 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         /// A callback type info atom, such as `(count: number) -> string` in `type Foo = (count: number) -> string`.
         /// An opening parentheses should have already been consumed, and is passed to this struct.
-        struct ParseCallbackTypeInfo(TokenReference);
+        struct ParseCallbackTypeInfo(TokenReference, Option<GenericDeclaration>);
         define_parser!(ParseCallbackTypeInfo, TypeInfo, |this, state| {
             let (state, types) = expect!(
                 state,
@@ -1414,6 +1414,7 @@ cfg_if::cfg_if! {
             Ok((
                 state,
                 TypeInfo::Callback {
+                    generics: this.1.clone(),
                     arguments: types,
                     parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
                     arrow,
@@ -1540,6 +1541,10 @@ cfg_if::cfg_if! {
                 } else {
                     (state, TypeInfo::Basic(identifier))
                 }
+            } else if let Ok((state, generics)) = ParseGenericDeclaration.parse(state) {
+                // Callback with a generic type
+                let (state, start_parenthese) = ParseSymbol(Symbol::LeftParen).parse(state)?;
+                ParseCallbackTypeInfo(start_parenthese, Some(generics)).parse(state)?
             } else if let Ok((state, start_parenthese)) =
                 ParseSymbol(Symbol::LeftParen).parse(state)
             {
@@ -1570,6 +1575,7 @@ cfg_if::cfg_if! {
                         (
                             state,
                             TypeInfo::Callback {
+                                generics: None,
                                 arguments,
                                 parentheses,
                                 arrow,
@@ -1580,7 +1586,7 @@ cfg_if::cfg_if! {
                         (state, parentheses_type)
                     }
                 } else {
-                    ParseCallbackTypeInfo(start_parenthese).parse(state)?
+                    ParseCallbackTypeInfo(start_parenthese, None).parse(state)?
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 if let Ok((state, type_array)) = ParseTypeArray(start_brace.clone()).parse(state) {
@@ -1655,6 +1661,7 @@ cfg_if::cfg_if! {
                     Ok((
                         state,
                         TypeInfo::Callback {
+                            generics: None,
                             arguments,
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             arrow,
