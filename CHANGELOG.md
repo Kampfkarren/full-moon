@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `token()` methods on `BinOp`, `UnOp` and `CompoundOp` to get the token associated with the operator
 - Added handling of UTF8 BOM(Byte order mark)
 
+### Fixed
+- Fixed the parsing of `goto` as an identifier when the `lua52` flag is *not* enabled
+
 ## [0.13.1] - 2021-07-07
 ### Fixed
 - Fixed semicolon used as delimeters in Luau type tables leading to a syntax error under the `roblox` feature flag
