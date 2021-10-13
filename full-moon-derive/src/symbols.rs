@@ -7,12 +7,12 @@ use quote::quote;
 use syn::{
     self,
     parse::{Parse, ParseStream},
-    parse_macro_input, Ident, LitStr, Token,
+    parse_macro_input, Attribute, Ident, LitStr, Token,
 };
 
 #[derive(Debug)]
 struct SymbolsInput {
-    symbols: IndexMap<Ident, LitStr>,
+    symbols: IndexMap<Ident, (Option<Attribute>, LitStr)>,
 }
 
 #[derive(Debug)]
@@ -26,12 +26,19 @@ enum ParseState {
 impl Parse for SymbolsInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut looking_for = ParseState::Ident;
+        let mut attribute = None;
         let mut current_ident = None;
         let mut symbols = IndexMap::new();
 
         while !input.is_empty() {
             looking_for = match looking_for {
                 ParseState::Ident => {
+                    // Optionally look for an attribute first
+                    attribute = input
+                        .call(Attribute::parse_outer)
+                        .ok()
+                        .map(|vec| vec.into_iter().nth(0))
+                        .flatten();
                     current_ident = Some(input.parse()?);
                     ParseState::Arrow
                 }
@@ -42,7 +49,10 @@ impl Parse for SymbolsInput {
                 }
 
                 ParseState::String => {
-                    symbols.insert(current_ident.take().unwrap(), input.parse::<LitStr>()?);
+                    symbols.insert(
+                        current_ident.take().unwrap(),
+                        (attribute.take(), input.parse::<LitStr>()?),
+                    );
                     ParseState::Comma
                 }
 
@@ -60,10 +70,10 @@ impl Parse for SymbolsInput {
 pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let symbols = parse_macro_input!(input as SymbolsInput).symbols;
 
-    let string: Vec<_> = symbols.values().collect();
+    let (attribute, string): (Vec<_>, Vec<_>) = symbols.values().cloned().unzip();
     let ident: Vec<_> = symbols.keys().collect();
     let symbols: Vec<_> = symbols.iter().collect();
-    let (keywords, operators): (Vec<_>, Vec<_>) = symbols.iter().partition(|(_, string)| {
+    let (keywords, operators): (Vec<_>, Vec<_>) = symbols.iter().partition(|(_, (_, string))| {
         // Note this doesn't handle the case of keywords with digits
         // which doesn't currently occur.
         string
@@ -74,12 +84,12 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let identifier_match: Vec<_> = keywords
         .iter()
-        .map(|(symbol, string)| quote!(#string => Symbol::#symbol,))
+        .map(|(symbol, (attr, string))| quote!(#attr #string => Symbol::#symbol,))
         .collect();
 
     let operator_array: Vec<_> = operators
         .iter()
-        .map(|(symbol, string)| quote!((Symbol::#symbol, #string)))
+        .map(|(symbol, (attr, string))| quote!(#attr { (Symbol::#symbol, #string) }))
         .collect();
 
     let output = quote! {
@@ -91,6 +101,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             #(
                 #[cfg_attr(feature = "serde", serde(rename = #string))]
                 #[allow(missing_docs)]
+                #attribute
                 #ident,
             )*
         }
@@ -98,7 +109,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         impl<'a> fmt::Display for Symbol {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match *self {
-                    #(Symbol::#ident => #string,)*
+                    #(#attribute Symbol::#ident => #string,)*
                 }
                 .fmt(formatter)
             }
@@ -109,7 +120,7 @@ pub fn parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
             fn from_str(string: &str) -> Result<Self, Self::Err> {
                 Ok(match string {
-                    #(#string => Symbol::#ident,)*
+                    #(#attribute #string => Symbol::#ident,)*
                     _ => return Err(()),
                 })
             }
