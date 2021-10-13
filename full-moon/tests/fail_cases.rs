@@ -81,3 +81,19 @@ fn test_lua52_parser_fail_cases() {
         }
     })
 }
+
+#[test]
+#[cfg(feature = "lua52")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua52_tokenizer_fail_cases() {
+    run_test_folder("./tests/lua52_cases/fail/tokenizer", |path| {
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        match tokenizer::tokens(&source) {
+            Ok(_) => panic!("fail case passed for {:?}", path),
+            Err(error) => {
+                assert_yaml_snapshot!("error", error);
+            }
+        }
+    })
+}
