@@ -798,7 +798,7 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
 
                 // Parse ellipse type if in Luau
                 if cfg!(feature = "roblox") {
-                    if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::None).parse(state) {
+                    if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::VarArgSpecifier).parse(state) {
                         state = new_state;
                         type_specifiers.push(Some(type_specifier));
                     } else {
@@ -813,7 +813,7 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
 
         // Parse ellipse type if in Luau
         if cfg!(feature = "roblox") {
-            if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::None).parse(state) {
+            if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::VarArgSpecifier).parse(state) {
                 state = new_state;
                 type_specifiers.push(Some(type_specifier));
             } else {
@@ -1096,6 +1096,9 @@ enum TypeInfoContext {
     /// The return type of a function declaration or callback type, such as `function foo(bar) -> number`.
     /// This is the only location where Tuple types are allowed. Variadic type infos are also allowed here
     ReturnType,
+    /// A type specifier for the variadic argument `...` in a function definition parameter list
+    /// In these cases, we are allowed a generic variadic pack `T...` to be specified
+    VarArgSpecifier,
 }
 
 // Roblox Types
@@ -1144,6 +1147,26 @@ define_roblox_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
+struct ParseGenericDeclarationParameter;
+define_roblox_parser!(
+    ParseGenericDeclarationParameter,
+    GenericDeclarationParameter,
+    TokenReference,
+    |_, state| {
+        let (state, name) = ParseIdentifier.parse(state)?;
+
+        if let Ok((state, ellipse)) = keep_going!(ParseSymbol(Symbol::Ellipse).parse(state)) {
+            Ok((
+                state,
+                GenericDeclarationParameter::Variadic { name, ellipse },
+            ))
+        } else {
+            Ok((state, GenericDeclarationParameter::Name(name)))
+        }
+    }
+);
+
+#[derive(Clone, Debug, PartialEq)]
 struct ParseGenericDeclaration;
 define_roblox_parser!(
     ParseGenericDeclaration,
@@ -1153,7 +1176,12 @@ define_roblox_parser!(
         let (state, start_arrow) = ParseSymbol(Symbol::LessThan).parse(state)?;
         let (state, generics) = expect!(
             state,
-            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
+            OneOrMore(
+                ParseGenericDeclarationParameter,
+                ParseSymbol(Symbol::Comma),
+                false
+            )
+            .parse(state),
             "expected type parameters"
         );
         let (state, end_arrow) = expect!(
@@ -1530,6 +1558,16 @@ cfg_if::cfg_if! {
                             generics,
                         },
                     )
+                } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType | TypeInfoContext::VarArgSpecifier) {
+                    // Check for a variadic type pack
+                    if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+                        (state, TypeInfo::GenericVariadic {
+                            name: identifier,
+                            ellipse
+                        })
+                    } else {
+                        (state, TypeInfo::Basic(identifier))
+                    }
                 } else {
                     (state, TypeInfo::Basic(identifier))
                 }

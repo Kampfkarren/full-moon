@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `token()` methods on `BinOp`, `UnOp` and `CompoundOp` to get the token associated with the operator
 - Added handling of UTF8 BOM(Byte order mark)
+- Added support for variadic generics and generic variadic type packs under the `roblox` feature flag (`type Foo<T...> = () -> T...`)
 - Added support for generic declarations in callback type specifiers under the `roblox` feature flag
 - Added support for generic declarations for anonymous functions under the `roblox` feature flag
 

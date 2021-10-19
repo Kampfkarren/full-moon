@@ -62,6 +62,16 @@ pub enum TypeInfo {
         generics: Punctuated<TypeInfo>,
     },
 
+    /// A generic variadic pack: `T...`.
+    /// Note, these are only available as return types, or when annotating a vararg (`...`) in a function parameter.
+    #[display(fmt = "{}{}", "name", "ellipse")]
+    GenericVariadic {
+        /// The name of the type that is variadic: `T`.
+        name: TokenReference,
+        /// The ellipse: `...`.
+        ellipse: TokenReference,
+    },
+
     /// An intersection type: `string & number`, denoting both types.
     #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
     Intersection {
@@ -389,6 +399,25 @@ impl TypeDeclaration {
     }
 }
 
+/// A generic declaration parameter used in [`GenericDeclaration`]. Can either be a name or a variadic pack.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[non_exhaustive]
+pub enum GenericDeclarationParameter {
+    /// A name, such as `foo`.
+    #[display(fmt = "{}", "_0")]
+    Name(TokenReference),
+
+    /// A variadic type pack: `T...`.
+    #[display(fmt = "{}{}", "name", "ellipse")]
+    Variadic {
+        /// The name of the type that is variadic: `T`.
+        name: TokenReference,
+        /// The ellipse: `...`.
+        ellipse: TokenReference,
+    },
+}
+
 /// The generics used in a [`TypeDeclaration`].
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -396,7 +425,7 @@ impl TypeDeclaration {
 pub struct GenericDeclaration {
     #[visit(contains = "generics")]
     pub(crate) arrows: ContainedSpan,
-    pub(crate) generics: Punctuated<TokenReference>,
+    pub(crate) generics: Punctuated<GenericDeclarationParameter>,
 }
 
 impl GenericDeclaration {
@@ -417,7 +446,7 @@ impl GenericDeclaration {
     }
 
     /// The names of the generics: `T, U` in `<T, U>`.
-    pub fn generics(&self) -> &Punctuated<TokenReference> {
+    pub fn generics(&self) -> &Punctuated<GenericDeclarationParameter> {
         &self.generics
     }
 
@@ -427,7 +456,7 @@ impl GenericDeclaration {
     }
 
     /// Returns a new TypeDeclaration with the given names of the generics
-    pub fn with_generics(self, generics: Punctuated<TokenReference>) -> Self {
+    pub fn with_generics(self, generics: Punctuated<GenericDeclarationParameter>) -> Self {
         Self { generics, ..self }
     }
 }
