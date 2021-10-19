@@ -42,6 +42,10 @@ impl Visit for TypeInfo {
                 generics.visit(visitor);
                 arrows.tokens.1.visit(visitor);
             }
+            TypeInfo::GenericVariadic { name, ellipse } => {
+                name.visit(visitor);
+                ellipse.visit(visitor);
+            }
             TypeInfo::Module {
                 module,
                 punctuation,
@@ -151,6 +155,16 @@ impl VisitMut for TypeInfo {
                     base,
                     generics,
                 }
+            }
+
+            TypeInfo::GenericVariadic {
+                mut name,
+                mut ellipse,
+            } => {
+                name = name.visit_mut(visitor);
+                ellipse = ellipse.visit_mut(visitor);
+
+                TypeInfo::GenericVariadic { name, ellipse }
             }
 
             TypeInfo::Module {
