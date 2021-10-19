@@ -84,20 +84,21 @@ stmts:
           generics:
             pairs:
               - Punctuated:
-                  - leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 13
-                        line: 1
-                        character: 14
-                      end_position:
-                        bytes: 14
-                        line: 1
-                        character: 15
-                      token_type:
-                        type: Identifier
-                        identifier: x
-                    trailing_trivia: []
+                  - Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 13
+                          line: 1
+                          character: 14
+                        end_position:
+                          bytes: 14
+                          line: 1
+                          character: 15
+                        token_type:
+                          type: Identifier
+                          identifier: x
+                      trailing_trivia: []
                   - leading_trivia: []
                     token:
                       start_position:
@@ -124,20 +125,21 @@ stmts:
                           type: Whitespace
                           characters: " "
               - End:
-                  leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 16
-                      line: 1
-                      character: 17
-                    end_position:
-                      bytes: 17
-                      line: 1
-                      character: 18
-                    token_type:
-                      type: Identifier
-                      identifier: y
-                  trailing_trivia: []
+                  Name:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 16
+                        line: 1
+                        character: 17
+                      end_position:
+                        bytes: 17
+                        line: 1
+                        character: 18
+                      token_type:
+                        type: Identifier
+                        identifier: y
+                    trailing_trivia: []
         body:
           parameters_parentheses:
             tokens:
@@ -325,20 +327,21 @@ stmts:
           generics:
             pairs:
               - End:
-                  leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 45
-                      line: 4
-                      character: 20
-                    end_position:
-                      bytes: 46
-                      line: 4
-                      character: 21
-                    token_type:
-                      type: Identifier
-                      identifier: x
-                  trailing_trivia: []
+                  Name:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 45
+                        line: 4
+                        character: 20
+                      end_position:
+                        bytes: 46
+                        line: 4
+                        character: 21
+                      token_type:
+                        type: Identifier
+                        identifier: x
+                    trailing_trivia: []
         body:
           parameters_parentheses:
             tokens:
