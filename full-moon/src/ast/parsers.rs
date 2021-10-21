@@ -1603,7 +1603,7 @@ cfg_if::cfg_if! {
             {
                 // Parse types encapsulated in parentheses as an atom. If we are in a return type, this could be a
                 // tuple, otherwise this can only be a singular type specified within parentheses.
-                let atom = 
+                let atom =
                     if matches!(this.0, TypeInfoContext::ReturnType) {
                         ParseTupleTypeInfo(start_parenthese.clone()).parse(state)
                     } else {
