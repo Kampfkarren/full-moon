@@ -1682,20 +1682,9 @@ cfg_if::cfg_if! {
         });
 
         #[derive(Clone, Debug, PartialEq)]
-        /// Similar to [`ParseSingleTypeInfo`], except it allows parsing of tuple types `(x, y)`.
-        /// Should only be used when parsing a return type from a function
-        struct ParseSingleReturnTypeInfo;
-        define_parser!(ParseSingleReturnTypeInfo, TypeInfo, |_, state| {
-            ParseSingleTypeInfo(TypeInfoContext::ReturnType).parse(state)
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
         struct ParseSingleTypeInfoAtom(TypeInfoContext);
         define_parser!(ParseSingleTypeInfoAtom, TypeInfo, |this, state| {
-            let (mut state, mut base_type) = match this.0 {
-                TypeInfoContext::ReturnType => ParseSingleReturnTypeInfo.parse(state)?,
-                _ => ParseSingleTypeInfo(this.0).parse(state)?,
-            };
+            let (mut state, mut base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
 
             if let Ok((new_state, question_mark)) = ParseSymbol(Symbol::QuestionMark).parse(state) {
                 base_type = TypeInfo::Optional {
