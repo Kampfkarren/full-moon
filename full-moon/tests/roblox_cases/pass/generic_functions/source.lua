@@ -11,5 +11,12 @@ export type Foo = {
 	) -> T,
 }
 
+export type Foo = {
+	bar: <T>(
+		a: T,
+		b: nil | number | boolean
+	) -> ((arg0: T) -> ())?,
+}
+
 baz = function<T>(a: T, b: number | boolean | nil): T
 end
