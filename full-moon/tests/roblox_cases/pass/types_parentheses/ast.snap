@@ -79,8 +79,8 @@ stmts:
                       identifier: new
                   trailing_trivia: []
           colon_name: ~
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -227,6 +227,7 @@ stmts:
                         pairs:
                           - End:
                               Callback:
+                                generics: ~
                                 parentheses:
                                   tokens:
                                     - leading_trivia: []
@@ -689,6 +690,7 @@ stmts:
                     pairs:
                       - End:
                           Callback:
+                            generics: ~
                             parentheses:
                               tokens:
                                 - leading_trivia: []
@@ -1106,6 +1108,7 @@ stmts:
                               characters: " "
                       value:
                         Callback:
+                          generics: ~
                           parentheses:
                             tokens:
                               - leading_trivia: []
@@ -1224,6 +1227,7 @@ stmts:
                                                   pairs:
                                                     - End:
                                                         Callback:
+                                                          generics: ~
                                                           parentheses:
                                                             tokens:
                                                               - leading_trivia: []
@@ -1593,6 +1597,7 @@ stmts:
                                             pairs:
                                               - End:
                                                   Callback:
+                                                    generics: ~
                                                     parentheses:
                                                       tokens:
                                                         - leading_trivia: []
@@ -2055,8 +2060,8 @@ stmts:
                       identifier: new
                   trailing_trivia: []
           colon_name: ~
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -2774,6 +2779,7 @@ stmts:
                                                 characters: " "
                                         right:
                                           Callback:
+                                            generics: ~
                                             parentheses:
                                               tokens:
                                                 - leading_trivia: []

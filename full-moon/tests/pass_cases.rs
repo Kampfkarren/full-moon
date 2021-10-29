@@ -55,6 +55,7 @@ fn test_pass_case(path: &Path) {
 
 #[test]
 #[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
+#[cfg_attr(feature = "lua52", ignore)] // Lua 5.2 collides with this implementation
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     run_test_folder("./tests/cases/pass", test_pass_case);

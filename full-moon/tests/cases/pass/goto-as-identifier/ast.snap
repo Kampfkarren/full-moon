@@ -1,0 +1,133 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+
+---
+stmts:
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia:
+              - start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 48
+                  line: 1
+                  character: 49
+                token_type:
+                  type: SingleLineComment
+                  comment: " goto as an identifier is permitted in lua 5.1"
+              - start_position:
+                  bytes: 48
+                  line: 1
+                  character: 49
+                end_position:
+                  bytes: 49
+                  line: 1
+                  character: 49
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+            token:
+              start_position:
+                bytes: 49
+                line: 2
+                character: 1
+              end_position:
+                bytes: 53
+                line: 2
+                character: 5
+              token_type:
+                type: Identifier
+                identifier: self
+            trailing_trivia: []
+        suffixes:
+          - Index:
+              Dot:
+                dot:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 53
+                      line: 2
+                      character: 5
+                    end_position:
+                      bytes: 54
+                      line: 2
+                      character: 6
+                    token_type:
+                      type: Symbol
+                      symbol: "."
+                  trailing_trivia: []
+                name:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 54
+                      line: 2
+                      character: 6
+                    end_position:
+                      bytes: 58
+                      line: 2
+                      character: 10
+                    token_type:
+                      type: Identifier
+                      identifier: goto
+                  trailing_trivia: []
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 58
+                            line: 2
+                            character: 10
+                          end_position:
+                            bytes: 59
+                            line: 2
+                            character: 11
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 64
+                            line: 2
+                            character: 16
+                          end_position:
+                            bytes: 65
+                            line: 2
+                            character: 17
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia: []
+                  arguments:
+                    pairs:
+                      - End:
+                          value:
+                            String:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 59
+                                  line: 2
+                                  character: 11
+                                end_position:
+                                  bytes: 64
+                                  line: 2
+                                  character: 16
+                                token_type:
+                                  type: StringLiteral
+                                  literal: foo
+                                  quote_type: Double
+                              trailing_trivia: []
+    - ~
+

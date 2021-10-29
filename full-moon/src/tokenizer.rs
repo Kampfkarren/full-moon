@@ -30,10 +30,10 @@ symbols!(
     True => "true",
     Until => "until",
     While => "while",
-    // TODO: This only is valid in Lua 5.2
+    #[cfg(feature = "lua52")]
     Goto => "goto",
 
-    // TODO: This only is valid in Roblox
+    #[cfg(feature = "roblox")]
     PlusEqual => "+=",
     MinusEqual => "-=",
     StarEqual => "*=",
@@ -41,11 +41,11 @@ symbols!(
     PercentEqual => "%=",
     CaretEqual => "^=",
     TwoDotsEqual => "..=",
-    // TODO: This only is valid in Roblox
+    #[cfg(feature = "roblox")]
     Ampersand => "&",
-    // TODO: This only is valid in Roblox
+    #[cfg(feature = "roblox")]
     ThinArrow => "->",
-    // TODO: This only is valid in Roblox and Lua 5.2
+    #[cfg(any(feature = "roblox", feature = "lua52"))]
     TwoColons => "::",
     Caret => "^",
     Colon => ":",
@@ -65,10 +65,10 @@ symbols!(
     LessThan => "<",
     Minus => "-",
     Percent => "%",
-    // TODO: This only is valid in Roblox
+    #[cfg(feature = "roblox")]
     Pipe => "|",
     Plus => "+",
-    // TODO: This only is valid in Roblox
+    #[cfg(feature = "roblox")]
     QuestionMark => "?",
     RightBrace => "}",
     RightBracket => "]",

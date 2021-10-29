@@ -24,7 +24,8 @@ pub enum TypeInfo {
 
     /// A callback type, such as `(string, number) => boolean`.
     #[display(
-        fmt = "{}{}{}{}{}",
+        fmt = "{}{}{}{}{}{}",
+        "display_option(generics)",
         "parentheses.tokens().0",
         "arguments",
         "parentheses.tokens().1",
@@ -32,6 +33,8 @@ pub enum TypeInfo {
         "return_type"
     )]
     Callback {
+        /// Optional generics provided for the arguments, such as in `<T>(T) -> string`
+        generics: Option<GenericDeclaration>,
         /// The parentheses for the arguments.
         parentheses: ContainedSpan,
         /// The argument types: `(string, number)`.

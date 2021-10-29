@@ -1137,6 +1137,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1334,6 +1335,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1574,6 +1576,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1889,6 +1892,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -1978,6 +1982,7 @@ stmts:
                     characters: " "
             return_type:
               Callback:
+                generics: ~
                 parentheses:
                   tokens:
                     - leading_trivia: []
@@ -4247,8 +4252,8 @@ stmts:
                       identifier: foo
                   trailing_trivia: []
           colon_name: ~
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -4562,8 +4567,8 @@ stmts:
                       identifier: foo
                   trailing_trivia: []
           colon_name: ~
-        generics: ~
         body:
+          generics: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -4933,7 +4938,8 @@ stmts:
                           type: Symbol
                           symbol: function
                       trailing_trivia: []
-                    - parameters_parentheses:
+                    - generics: ~
+                      parameters_parentheses:
                         tokens:
                           - leading_trivia: []
                             token:
@@ -5298,7 +5304,8 @@ stmts:
                           type: Symbol
                           symbol: function
                       trailing_trivia: []
-                    - parameters_parentheses:
+                    - generics: ~
+                      parameters_parentheses:
                         tokens:
                           - leading_trivia: []
                             token:
