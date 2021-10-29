@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **[BREAKING CHANGE]** `generics` has been removed from `FunctionDeclaration` and `LocalFunction`, and is now available in one place under `FunctionBody`.
 
+### Fixed
+- Fixed the parsing of `goto` as an identifier when the `lua52` flag is *not* enabled
+
 ## [0.13.1] - 2021-07-07
 ### Fixed
 - Fixed semicolon used as delimeters in Luau type tables leading to a syntax error under the `roblox` feature flag
