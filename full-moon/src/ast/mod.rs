@@ -1266,6 +1266,9 @@ pub enum Call {
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody {
+    #[cfg(feature = "roblox")]
+    generics: Option<GenericDeclaration>,
+
     parameters_parentheses: ContainedSpan,
     parameters: Punctuated<Parameter>,
 
@@ -1284,6 +1287,9 @@ impl FunctionBody {
     /// Returns a new empty FunctionBody
     pub fn new() -> Self {
         Self {
+            #[cfg(feature = "roblox")]
+            generics: None,
+
             parameters_parentheses: ContainedSpan::new(
                 TokenReference::symbol("(").unwrap(),
                 TokenReference::symbol(")").unwrap(),
@@ -1321,6 +1327,14 @@ impl FunctionBody {
         &self.end_token
     }
 
+    /// The generics declared for the function body.
+    /// The `<T, U>` part of `function x<T, U>() end`
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    pub fn generics(&self) -> Option<&GenericDeclaration> {
+        self.generics.as_ref()
+    }
+
     /// The type specifiers of the variables, in the order that they were assigned.
     /// `(foo: number, bar, baz: boolean)` returns an iterator containing:
     /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
@@ -1348,6 +1362,12 @@ impl FunctionBody {
     /// Returns a new FunctionBody with the given parameters
     pub fn with_parameters(self, parameters: Punctuated<Parameter>) -> Self {
         Self { parameters, ..self }
+    }
+
+    /// Returns a new FunctionBody with the given generics declaration
+    #[cfg(feature = "roblox")]
+    pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
+        Self { generics, ..self }
     }
 
     /// Returns a new FunctionBody with the given type specifiers
@@ -1390,7 +1410,8 @@ impl fmt::Display for FunctionBody {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
-            "{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}",
+            display_option(self.generics.as_ref()),
             self.parameters_parentheses.tokens().0,
             join_type_specifiers(&self.parameters, self.type_specifiers()),
             self.parameters_parentheses.tokens().1,
@@ -1556,21 +1577,12 @@ impl Assignment {
 )]
 #[cfg_attr(
     feature = "roblox",
-    display(
-        fmt = "{}{}{}{}{}",
-        "local_token",
-        "function_token",
-        "name",
-        "display_option(self.generics())",
-        "body"
-    )
+    display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")
 )]
 pub struct LocalFunction {
     local_token: TokenReference,
     function_token: TokenReference,
     name: TokenReference,
-    #[cfg(feature = "roblox")]
-    generics: Option<GenericDeclaration>,
     body: FunctionBody,
 }
 
@@ -1581,8 +1593,6 @@ impl LocalFunction {
             local_token: TokenReference::symbol("local ").unwrap(),
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
-            #[cfg(feature = "roblox")]
-            generics: None,
             body: FunctionBody::new(),
         }
     }
@@ -1607,12 +1617,6 @@ impl LocalFunction {
         &self.name
     }
 
-    /// Any generics declared for the function, the `<T, U>` part of `local function x<T, U>() end`
-    #[cfg(feature = "roblox")]
-    pub fn generics(&self) -> Option<&GenericDeclaration> {
-        self.generics.as_ref()
-    }
-
     /// Returns a new LocalFunction with the given `local` token
     pub fn with_local_token(self, local_token: TokenReference) -> Self {
         Self {
@@ -1632,12 +1636,6 @@ impl LocalFunction {
     /// Returns a new LocalFunction with the given name
     pub fn with_name(self, name: TokenReference) -> Self {
         Self { name, ..self }
-    }
-
-    /// Returns a new LocalFunction with the given generics
-    #[cfg(feature = "roblox")]
-    pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
-        Self { generics, ..self }
     }
 
     /// Returns a new LocalFunction with the given function body
@@ -1934,19 +1932,11 @@ impl FunctionName {
 )]
 #[cfg_attr(
     feature = "roblox",
-    display(
-        fmt = "{}{}{}{}",
-        "function_token",
-        "name",
-        "display_option(self.generics())",
-        "body"
-    )
+    display(fmt = "{}{}{}", "function_token", "name", "body")
 )]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
-    #[cfg(feature = "roblox")]
-    generics: Option<GenericDeclaration>,
     body: FunctionBody,
 }
 
@@ -1956,8 +1946,6 @@ impl FunctionDeclaration {
         Self {
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
-            #[cfg(feature = "roblox")]
-            generics: None,
             body: FunctionBody::new(),
         }
     }
@@ -1977,12 +1965,6 @@ impl FunctionDeclaration {
         &self.name
     }
 
-    /// Any generics declared for the function
-    #[cfg(feature = "roblox")]
-    pub fn generics(&self) -> Option<&GenericDeclaration> {
-        self.generics.as_ref()
-    }
-
     /// Returns a new FunctionDeclaration with the given `function` token
     pub fn with_function_token(self, function_token: TokenReference) -> Self {
         Self {
@@ -1994,12 +1976,6 @@ impl FunctionDeclaration {
     /// Returns a new FunctionDeclaration with the given function name
     pub fn with_name(self, name: FunctionName) -> Self {
         Self { name, ..self }
-    }
-
-    /// Returns a new FunctionDeclaration with the given generics
-    #[cfg(feature = "roblox")]
-    pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
-        Self { generics, ..self }
     }
 
     /// Returns a new FunctionDeclaration with the given function body

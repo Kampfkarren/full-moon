@@ -266,6 +266,10 @@ impl VisitMut for FunctionArgs {
 impl Visit for FunctionBody {
     fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_function_body(self);
+
+        #[cfg(feature = "roblox")]
+        self.generics.visit(visitor);
+
         self.parameters_parentheses.tokens.0.visit(visitor);
 
         let mut type_specifiers;
@@ -300,6 +304,12 @@ impl Visit for FunctionBody {
 impl VisitMut for FunctionBody {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_body(self);
+
+        #[cfg(feature = "roblox")]
+        {
+            self.generics = self.generics.visit_mut(visitor);
+        }
+
         self.parameters_parentheses.tokens.0 =
             self.parameters_parentheses.tokens.0.visit_mut(visitor);
 

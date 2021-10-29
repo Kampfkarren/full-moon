@@ -1238,8 +1238,8 @@ stmts:
                                 identifier: debug
                             trailing_trivia: []
                     colon_name: ~
-                  generics: ~
                   body:
+                    generics: ~
                     parameters_parentheses:
                       tokens:
                         - leading_trivia: []
@@ -1563,8 +1563,8 @@ stmts:
                                 identifier: debug
                             trailing_trivia: []
                     colon_name: ~
-                  generics: ~
                   body:
+                    generics: ~
                     parameters_parentheses:
                       tokens:
                         - leading_trivia: []
@@ -1734,7 +1734,8 @@ last_stmt:
                         type: Symbol
                         symbol: function
                     trailing_trivia: []
-                  - parameters_parentheses:
+                  - generics: ~
+                    parameters_parentheses:
                       tokens:
                         - leading_trivia: []
                           token:

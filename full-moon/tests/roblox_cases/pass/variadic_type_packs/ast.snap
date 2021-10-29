@@ -50,72 +50,72 @@ stmts:
                       identifier: foo
                   trailing_trivia: []
           colon_name: ~
-        generics:
-          arrows:
-            tokens:
-              - leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 12
-                    line: 1
-                    character: 13
-                  end_position:
-                    bytes: 13
-                    line: 1
-                    character: 14
-                  token_type:
-                    type: Symbol
-                    symbol: "<"
-                trailing_trivia: []
-              - leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 17
-                    line: 1
-                    character: 18
-                  end_position:
-                    bytes: 18
-                    line: 1
-                    character: 19
-                  token_type:
-                    type: Symbol
-                    symbol: ">"
-                trailing_trivia: []
-          generics:
-            pairs:
-              - End:
-                  Variadic:
-                    name:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 13
-                          line: 1
-                          character: 14
-                        end_position:
-                          bytes: 14
-                          line: 1
-                          character: 15
-                        token_type:
-                          type: Identifier
-                          identifier: T
-                      trailing_trivia: []
-                    ellipse:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 14
-                          line: 1
-                          character: 15
-                        end_position:
-                          bytes: 17
-                          line: 1
-                          character: 18
-                        token_type:
-                          type: Symbol
-                          symbol: "..."
-                      trailing_trivia: []
         body:
+          generics:
+            arrows:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 12
+                      line: 1
+                      character: 13
+                    end_position:
+                      bytes: 13
+                      line: 1
+                      character: 14
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 17
+                      line: 1
+                      character: 18
+                    end_position:
+                      bytes: 18
+                      line: 1
+                      character: 19
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
+            generics:
+              pairs:
+                - End:
+                    Variadic:
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 13
+                            line: 1
+                            character: 14
+                          end_position:
+                            bytes: 14
+                            line: 1
+                            character: 15
+                          token_type:
+                            type: Identifier
+                            identifier: T
+                        trailing_trivia: []
+                      ellipse:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 14
+                            line: 1
+                            character: 15
+                          end_position:
+                            bytes: 17
+                            line: 1
+                            character: 18
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -204,6 +204,7 @@ stmts:
                       characters: " "
               type_info:
                 Callback:
+                  generics: ~
                   parentheses:
                     tokens:
                       - leading_trivia: []
@@ -491,6 +492,7 @@ stmts:
                 characters: " "
         declare_as:
           Callback:
+            generics: ~
             parentheses:
               tokens:
                 - leading_trivia: []
@@ -661,72 +663,72 @@ stmts:
                       identifier: bar
                   trailing_trivia: []
           colon_name: ~
-        generics:
-          arrows:
-            tokens:
-              - leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 84
-                    line: 6
-                    character: 13
-                  end_position:
-                    bytes: 85
-                    line: 6
-                    character: 14
-                  token_type:
-                    type: Symbol
-                    symbol: "<"
-                trailing_trivia: []
-              - leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 89
-                    line: 6
-                    character: 18
-                  end_position:
-                    bytes: 90
-                    line: 6
-                    character: 19
-                  token_type:
-                    type: Symbol
-                    symbol: ">"
-                trailing_trivia: []
-          generics:
-            pairs:
-              - End:
-                  Variadic:
-                    name:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 85
-                          line: 6
-                          character: 14
-                        end_position:
-                          bytes: 86
-                          line: 6
-                          character: 15
-                        token_type:
-                          type: Identifier
-                          identifier: T
-                      trailing_trivia: []
-                    ellipse:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 86
-                          line: 6
-                          character: 15
-                        end_position:
-                          bytes: 89
-                          line: 6
-                          character: 18
-                        token_type:
-                          type: Symbol
-                          symbol: "..."
-                      trailing_trivia: []
         body:
+          generics:
+            arrows:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 84
+                      line: 6
+                      character: 13
+                    end_position:
+                      bytes: 85
+                      line: 6
+                      character: 14
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 89
+                      line: 6
+                      character: 18
+                    end_position:
+                      bytes: 90
+                      line: 6
+                      character: 19
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
+            generics:
+              pairs:
+                - End:
+                    Variadic:
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 85
+                            line: 6
+                            character: 14
+                          end_position:
+                            bytes: 86
+                            line: 6
+                            character: 15
+                          token_type:
+                            type: Identifier
+                            identifier: T
+                        trailing_trivia: []
+                      ellipse:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 86
+                            line: 6
+                            character: 15
+                          end_position:
+                            bytes: 89
+                            line: 6
+                            character: 18
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
           parameters_parentheses:
             tokens:
               - leading_trivia: []

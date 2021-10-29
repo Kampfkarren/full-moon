@@ -21,11 +21,13 @@ impl Visit for TypeInfo {
                 __self_0.visit(visitor);
             }
             TypeInfo::Callback {
+                generics,
                 parentheses,
                 arguments,
                 arrow,
                 return_type,
             } => {
+                generics.visit(visitor);
                 parentheses.tokens.0.visit(visitor);
                 arguments.visit(visitor);
                 parentheses.tokens.1.visit(visitor);
@@ -121,11 +123,13 @@ impl VisitMut for TypeInfo {
             }
             TypeInfo::Basic(__self_0) => TypeInfo::Basic(__self_0.visit_mut(visitor)),
             TypeInfo::Callback {
+                mut generics,
                 mut parentheses,
                 mut arguments,
                 mut arrow,
                 mut return_type,
             } => {
+                generics = generics.visit_mut(visitor);
                 parentheses.tokens.0 = parentheses.tokens.0.visit_mut(visitor);
                 arguments = arguments.visit_mut(visitor);
                 parentheses.tokens.1 = parentheses.tokens.1.visit_mut(visitor);
@@ -133,6 +137,7 @@ impl VisitMut for TypeInfo {
                 return_type = return_type.visit_mut(visitor);
 
                 TypeInfo::Callback {
+                    generics,
                     parentheses,
                     arguments,
                     arrow,

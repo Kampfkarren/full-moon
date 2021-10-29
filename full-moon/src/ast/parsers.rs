@@ -741,6 +741,14 @@ define_parser!(ParseCall, Call, |_, state| parse_first_of!(state, {
 struct ParseFunctionBody;
 #[rustfmt::skip]
 define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
+    #[cfg(feature = "roblox")]
+    let (state, generics) =
+        if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
+            (state, Some(generics))
+        } else {
+            (state, None)
+        };
+
     let (mut state, start_parenthese) = expect!(
         state,
         ParseSymbol(Symbol::LeftParen).parse(state),
@@ -836,6 +844,8 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
     Ok((
         state,
         FunctionBody {
+            #[cfg(feature = "roblox")]
+            generics,
             parameters_parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
             parameters,
             block,
@@ -914,13 +924,6 @@ define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
     let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-    #[cfg(feature = "roblox")]
-    let (state, generics) =
-        if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
-            (state, Some(generics))
-        } else {
-            (state, None)
-        };
     let (state, body) = ParseFunctionBody.parse(state)?;
     Ok((
         state,
@@ -928,8 +931,6 @@ define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
             local_token,
             function_token,
             name,
-            #[cfg(feature = "roblox")]
-            generics,
             body,
         },
     ))
@@ -1055,13 +1056,6 @@ define_parser!(ParseFunctionDeclaration, FunctionDeclaration, |_, state| {
         ParseFunctionName.parse(state),
         "expected function name"
     );
-    #[cfg(feature = "roblox")]
-    let (state, generics) =
-        if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
-            (state, Some(generics))
-        } else {
-            (state, None)
-        };
     let (state, body) = expect!(
         state,
         ParseFunctionBody.parse(state),
@@ -1072,8 +1066,6 @@ define_parser!(ParseFunctionDeclaration, FunctionDeclaration, |_, state| {
         FunctionDeclaration {
             function_token,
             name,
-            #[cfg(feature = "roblox")]
-            generics,
             body,
         },
     ))
@@ -1417,7 +1409,7 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         /// A callback type info atom, such as `(count: number) -> string` in `type Foo = (count: number) -> string`.
         /// An opening parentheses should have already been consumed, and is passed to this struct.
-        struct ParseCallbackTypeInfo(TokenReference);
+        struct ParseCallbackTypeInfo(TokenReference, Option<GenericDeclaration>);
         define_parser!(ParseCallbackTypeInfo, TypeInfo, |this, state| {
             let (state, types) = expect!(
                 state,
@@ -1442,6 +1434,7 @@ cfg_if::cfg_if! {
             Ok((
                 state,
                 TypeInfo::Callback {
+                    generics: this.1.clone(),
                     arguments: types,
                     parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
                     arrow,
@@ -1578,6 +1571,10 @@ cfg_if::cfg_if! {
                 } else {
                     (state, TypeInfo::Basic(identifier))
                 }
+            } else if let Ok((state, generics)) = ParseGenericDeclaration.parse(state) {
+                // Callback with a generic type
+                let (state, start_parenthese) = ParseSymbol(Symbol::LeftParen).parse(state)?;
+                ParseCallbackTypeInfo(start_parenthese, Some(generics)).parse(state)?
             } else if let Ok((state, start_parenthese)) =
                 ParseSymbol(Symbol::LeftParen).parse(state)
             {
@@ -1608,6 +1605,7 @@ cfg_if::cfg_if! {
                         (
                             state,
                             TypeInfo::Callback {
+                                generics: None,
                                 arguments,
                                 parentheses,
                                 arrow,
@@ -1618,7 +1616,7 @@ cfg_if::cfg_if! {
                         (state, parentheses_type)
                     }
                 } else {
-                    ParseCallbackTypeInfo(start_parenthese).parse(state)?
+                    ParseCallbackTypeInfo(start_parenthese, None).parse(state)?
                 }
             } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
                 if let Ok((state, type_array)) = ParseTypeArray(start_brace.clone()).parse(state) {
@@ -1693,6 +1691,7 @@ cfg_if::cfg_if! {
                     Ok((
                         state,
                         TypeInfo::Callback {
+                            generics: None,
                             arguments,
                             parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
                             arrow,
