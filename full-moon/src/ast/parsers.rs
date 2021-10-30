@@ -1240,8 +1240,30 @@ cfg_if::cfg_if! {
                 let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
                 let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
                 let (state, then_token) = expect!(state, ParseSymbol(Symbol::Then).parse(state), "expected `then`");
-                let (state, if_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
-                // TODO: elseif
+                let (mut state, if_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
+
+                let mut else_if_expressions = Vec::new();
+                while let Ok((new_state, else_if_token)) = ParseSymbol(Symbol::ElseIf).parse(state) {
+                    let (new_state, condition) = expect!(
+                        state,
+                        ParseExpression.parse(new_state),
+                        "expected condition"
+                    );
+                    let (new_state, then_token) = expect!(
+                        state,
+                        ParseSymbol(Symbol::Then).parse(new_state),
+                        "expected 'then'"
+                    );
+                    let (new_state, expression) = expect!(state, ParseExpression.parse(new_state), "expected expression");
+                    state = new_state;
+                    else_if_expressions.push(ElseIfExpression {
+                        else_if_token,
+                        condition,
+                        then_token,
+                        expression,
+                    });
+                }
+
                 let (state, else_token) = expect!(state, ParseSymbol(Symbol::Else).parse(state), "expected `else` in if expression");
                 let (state, else_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
 
@@ -1252,6 +1274,7 @@ cfg_if::cfg_if! {
                         condition,
                         then_token,
                         if_expression,
+                        else_if_expressions: if else_if_expressions.is_empty() { None } else { Some(else_if_expressions) },
                         else_token,
                         else_expression,
                     },

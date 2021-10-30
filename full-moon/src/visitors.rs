@@ -256,6 +256,7 @@ create_visitor!(ast: {
     #[cfg(feature = "roblox")] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
+        visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_generic_declaration => GenericDeclaration,
         visit_generic_declaration_parameter => GenericDeclarationParameter,
