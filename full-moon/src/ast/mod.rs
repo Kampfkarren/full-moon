@@ -316,6 +316,11 @@ pub enum Value {
     /// A call of a function, such as `call()`
     #[display(fmt = "{}", "_0")]
     FunctionCall(FunctionCall),
+    /// An if expression, such as `if foo then true else false`.
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    #[display(fmt = "{}", "_0")]
+    IfExpression(IfExpression),
     /// A table constructor, such as `{ 1, 2, 3 }`
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor),

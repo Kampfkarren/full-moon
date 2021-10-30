@@ -361,6 +361,8 @@ define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
     ParseFunctionCall => Value::FunctionCall,
     ParseVar => Value::Var,
     ParseParenExpression => Value::ParenthesesExpression,
+    #[cfg(feature = "roblox")]
+    ParseIfExpression => Value::IfExpression,
 }));
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1223,6 +1225,35 @@ cfg_if::cfg_if! {
                         lhs,
                         compound_operator,
                         rhs,
+                    },
+                ))
+            }
+        );
+
+        // Roblox If Expression
+        #[derive(Clone, Debug, Default, PartialEq)]
+        struct ParseIfExpression;
+        define_parser!(
+            ParseIfExpression,
+            IfExpression,
+            |_, state| {
+                let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
+                let (state, condition) = ParseExpression.parse(state)?;
+                let (state, then_token) = ParseSymbol(Symbol::Then).parse(state)?;
+                let (state, if_expression) = ParseExpression.parse(state)?;
+                // TODO: elseif
+                let (state, else_token) = ParseSymbol(Symbol::Else).parse(state)?;
+                let (state, else_expression) = ParseExpression.parse(state)?;
+
+                Ok((
+                    state,
+                    IfExpression {
+                        if_token,
+                        condition,
+                        then_token,
+                        if_expression,
+                        else_token,
+                        else_expression,
                     },
                 ))
             }
