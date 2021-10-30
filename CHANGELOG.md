@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for variadic generics and generic variadic type packs under the `roblox` feature flag (`type Foo<T...> = () -> T...`)
 - Added support for generic declarations in callback type specifiers under the `roblox` feature flag
 - Added support for generic declarations for anonymous functions under the `roblox` feature flag
+- Added support for [if expression](https://github.com/Roblox/luau/blob/master/rfcs/syntax-if-expression.md) syntax under the `roblox` feature flag
 
 ### Changed
 - **[BREAKING CHANGE]** `generics` has been removed from `FunctionDeclaration` and `LocalFunction`, and is now available in one place under `FunctionBody`.
