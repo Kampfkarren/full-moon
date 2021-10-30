@@ -1238,12 +1238,12 @@ cfg_if::cfg_if! {
             IfExpression,
             |_, state| {
                 let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
-                let (state, condition) = ParseExpression.parse(state)?;
-                let (state, then_token) = ParseSymbol(Symbol::Then).parse(state)?;
-                let (state, if_expression) = ParseExpression.parse(state)?;
+                let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
+                let (state, then_token) = expect!(state, ParseSymbol(Symbol::Then).parse(state), "expected `then`");
+                let (state, if_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
                 // TODO: elseif
-                let (state, else_token) = ParseSymbol(Symbol::Else).parse(state)?;
-                let (state, else_expression) = ParseExpression.parse(state)?;
+                let (state, else_token) = expect!(state, ParseSymbol(Symbol::Else).parse(state), "expected `else` in if expression");
+                let (state, else_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
 
                 Ok((
                     state,
