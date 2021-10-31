@@ -1088,6 +1088,7 @@ define_parser!(ParseIdentifier, TokenReference, |_, state| {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum TypeInfoContext {
     /// A standard type info, with no context
+    #[cfg(feature = "roblox")]
     None,
     /// A type inside of parentheses, either for the parameters in a `TypeInfo::Callback`, or for a `TypeInfo::Tuple`
     /// Variadic type infos are only permitted inside of here
