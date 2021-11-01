@@ -6,3 +6,6 @@ end
 
 local function bar(x: (number)?): (baz: string) -> string
 end
+
+local function bar(x: (number)?): (baz: string) -> ((names: Array<string>) -> ...any)
+end
