@@ -702,7 +702,7 @@ impl CompoundAssignment {
     "if_expression",
     "display_option(else_if_expressions.as_ref().map(join_vec))",
     "else_token",
-    "else_expression",
+    "else_expression"
 )]
 pub struct IfExpression {
     pub(crate) if_token: TokenReference,
@@ -716,7 +716,11 @@ pub struct IfExpression {
 
 impl IfExpression {
     /// Creates a new If from the given condition
-    pub fn new(condition: Expression, if_expression: Expression, else_expression: Expression) -> Self {
+    pub fn new(
+        condition: Expression,
+        if_expression: Expression,
+        else_expression: Expression,
+    ) -> Self {
         Self {
             if_token: TokenReference::symbol("if ").unwrap(),
             condition,
@@ -781,12 +785,18 @@ impl IfExpression {
 
     /// Returns a new IfExpression with the given if expression
     pub fn with_if_expression(self, if_expression: Expression) -> Self {
-        Self { if_expression, ..self }
+        Self {
+            if_expression,
+            ..self
+        }
     }
 
     /// Returns a new If with the given list of `elseif` expressions
     pub fn with_else_if(self, else_if_expressions: Option<Vec<ElseIfExpression>>) -> Self {
-        Self { else_if_expressions, ..self }
+        Self {
+            else_if_expressions,
+            ..self
+        }
     }
 
     /// Returns a new IfExpression with the given `else` token
@@ -796,14 +806,23 @@ impl IfExpression {
 
     /// Returns a new IfExpression with the given `else` expression
     pub fn with_else(self, else_expression: Expression) -> Self {
-        Self { else_expression, ..self }
+        Self {
+            else_expression,
+            ..self
+        }
     }
 }
 
 /// An elseif expression in a bigger [`IfExpression`] expression
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "expression")]
+#[display(
+    fmt = "{}{}{}{}",
+    "else_if_token",
+    "condition",
+    "then_token",
+    "expression"
+)]
 pub struct ElseIfExpression {
     pub(crate) else_if_token: TokenReference,
     pub(crate) condition: Expression,
