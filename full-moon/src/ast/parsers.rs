@@ -361,7 +361,7 @@ define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
     ParseFunctionCall => Value::FunctionCall,
     ParseVar => Value::Var,
     ParseParenExpression => Value::ParenthesesExpression,
-    #[cfg(feature = "roblox")]
+    @#[cfg(feature = "roblox")]
     ParseIfExpression => Value::IfExpression,
 }));
 
