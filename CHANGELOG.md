@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed semicolon used as delimeters in Luau type tables leading to a syntax error under the `roblox` feature flag
 - Fixed nested type arrays failing to parse under the `roblox` feature flag
+- Fixed parsing of callback types as return types when they contained named parameters under the `roblox` feature flag
 
 ## [0.13.0] - 2021-06-26
 ### Changed
