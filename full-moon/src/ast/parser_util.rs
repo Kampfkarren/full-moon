@@ -144,7 +144,7 @@ macro_rules! expect {
                 });
             }
             Err(other) => return Err(other),
-        };
+        }
     };
 
     ($state:ident, $parsed:expr, $error:tt) => {
@@ -157,7 +157,7 @@ macro_rules! expect {
                 });
             }
             Err(other) => return Err(other),
-        };
+        }
     };
 }
 
