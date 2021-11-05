@@ -1,6 +1,6 @@
 [package]
 name = "full_moon"
-version = "0.13.1"
+version = "0.14.0"
 authors = ["Kampfkarren <kampfkarren@gmail.com>"]
 description = "A lossless Lua 5.1 parser"
 license = "MPL-2.0"
