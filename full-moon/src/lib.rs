@@ -11,6 +11,8 @@ pub mod ast;
 /// Contains the `Node` trait, implemented on all nodes
 pub mod node;
 
+pub mod plugins;
+
 /// Used for tokenizing, the process of converting the code to individual tokens.
 /// Useful for getting symbols and manually tokenizing without going using an AST.
 pub mod tokenizer;
@@ -22,6 +24,7 @@ mod private;
 mod short_string;
 mod util;
 
+use plugins::DefaultPlugin;
 pub use short_string::ShortString;
 
 use std::fmt;
@@ -65,7 +68,7 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = 1").is_ok());
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
-pub fn parse(code: &str) -> Result<ast::Ast, Error> {
+pub fn parse(code: &str) -> Result<ast::Ast<DefaultPlugin>, Error> {
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)
 }

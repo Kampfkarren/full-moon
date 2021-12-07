@@ -12,7 +12,7 @@ use super::lua52::*;
 
 use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
-use std::borrow::Cow;
+use std::{borrow::Cow, marker::PhantomData};
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseSymbol(Symbol);
@@ -90,6 +90,7 @@ define_parser!(ParseBlock, Block, |_, state| {
             Block {
                 stmts,
                 last_stmt: Some((last_stmt, semicolon)),
+                plugin_info: (),
             },
         ))
     } else {
@@ -98,6 +99,7 @@ define_parser!(ParseBlock, Block, |_, state| {
             Block {
                 stmts,
                 last_stmt: None,
+                plugin_info: (),
             },
         ))
     }
@@ -115,7 +117,14 @@ define_parser!(
             "return values"
         );
 
-        Ok((state, LastStmt::Return(Return { token, returns })))
+        Ok((
+            state,
+            LastStmt::Return(Return {
+                token,
+                returns,
+                plugin_info: (),
+            }),
+        ))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
         Ok((state, LastStmt::Break(token)))
     } else {
@@ -635,6 +644,7 @@ define_parser!(ParseIf, If, |_, state| {
             condition,
             then_token,
             block,
+            plugin_info: (),
         });
     }
 
@@ -1046,7 +1056,14 @@ define_parser!(ParseFunctionName, FunctionName, |_, state| {
         (state, None)
     };
 
-    Ok((state, FunctionName { names, colon_name }))
+    Ok((
+        state,
+        FunctionName {
+            names,
+            colon_name,
+            _phantom: PhantomData,
+        },
+    ))
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]

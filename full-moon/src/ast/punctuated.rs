@@ -16,6 +16,7 @@
 //! ```
 use crate::{
     node::{Node, TokenItem, Tokens},
+    plugins::Plugin,
     private::Sealed,
     tokenizer::{Position, TokenReference},
     util,
@@ -194,14 +195,14 @@ impl<T: Node> Node for Punctuated<T> {
     }
 }
 
-impl<T: Visit> Visit for Punctuated<T> {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for Punctuated<T> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         self.pairs.visit(visitor);
     }
 }
 
-impl<T: VisitMut> VisitMut for Punctuated<T> {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Punctuated<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         Punctuated {
             pairs: self.pairs.visit_mut(visitor),
         }
@@ -435,8 +436,8 @@ impl<T: Node> Node for Pair<T> {
     }
 }
 
-impl<T: Visit> Visit for Pair<T> {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for Pair<T> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         match self {
             Pair::End(value) => value.visit(visitor),
             Pair::Punctuated(value, punctuation) => {
@@ -447,8 +448,8 @@ impl<T: Visit> Visit for Pair<T> {
     }
 }
 
-impl<T: VisitMut> VisitMut for Pair<T> {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Pair<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         match self {
             Pair::End(value) => Pair::End(value.visit_mut(visitor)),
             Pair::Punctuated(value, punctuation) => {

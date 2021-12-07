@@ -7,6 +7,7 @@ use std::borrow::Cow;
 
 pub trait Sealed {}
 
+impl Sealed for () {}
 impl<T> Sealed for &T {}
 impl<T> Sealed for &mut T {}
 impl<T: ToOwned> Sealed for Cow<'_, T> {}
@@ -21,3 +22,4 @@ impl<T> Sealed for Box<T> {}
 impl<T> Sealed for Option<T> {}
 impl<T> Sealed for Vec<T> {}
 impl<A, B> Sealed for (A, B) {}
+impl<T> Sealed for std::marker::PhantomData<T> {}

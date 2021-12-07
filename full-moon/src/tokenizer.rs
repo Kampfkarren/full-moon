@@ -1,4 +1,5 @@
 use crate::{
+    plugins::Plugin,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -338,8 +339,8 @@ impl PartialOrd for Token {
     }
 }
 
-impl Visit for Token {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for Token {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
         match self.token_kind() {
@@ -356,8 +357,8 @@ impl Visit for Token {
     }
 }
 
-impl VisitMut for Token {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for Token {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         let token = visitor.visit_token(self);
 
         match token.token_kind() {
@@ -531,8 +532,8 @@ impl PartialOrd for TokenReference {
     }
 }
 
-impl Visit for TokenReference {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for TokenReference {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_token(self);
 
         if matches!(self.token().token_kind(), TokenKind::Eof) {
@@ -545,8 +546,8 @@ impl Visit for TokenReference {
     }
 }
 
-impl VisitMut for TokenReference {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for TokenReference {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         let mut token_reference = visitor.visit_token_reference(self);
 
         if matches!(token_reference.token().token_kind(), TokenKind::Eof) {

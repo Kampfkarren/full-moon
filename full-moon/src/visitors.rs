@@ -1,5 +1,6 @@
 use crate::{
     ast::{span::ContainedSpan, *},
+    plugins::{DefaultPlugin, Plugin},
     private::Sealed,
     tokenizer::{Token, TokenReference},
 };
@@ -11,10 +12,10 @@ use crate::ast::types::*;
 
 macro_rules! create_visitor {
     (ast: {
-        $($visit_name:ident => $ast_type:ident,)+
+        $($visit_name:ident => $ast_type:ty,)+
 
         $(#[$meta:meta] {
-            $($meta_visit_name:ident => $meta_ast_type:ident,)+
+            $($meta_visit_name:ident => $meta_ast_type:ty,)+
         })+
     }, token: {
         $($visit_token:ident,)+
@@ -44,9 +45,9 @@ macro_rules! create_visitor {
         /// # Ok(())
         /// # }
         /// ```
-        pub trait Visitor {
+        pub trait Visitor<P: Plugin = DefaultPlugin> {
             /// Visit the nodes of an [`Ast`](crate::ast::Ast)
-            fn visit_ast(&mut self, ast: &Ast) where Self: Sized {
+            fn visit_ast(&mut self, ast: &Ast<P>) where Self: Sized {
                 ast.nodes().visit(self);
                 ast.eof().visit(self);
             }
@@ -79,9 +80,9 @@ macro_rules! create_visitor {
 
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`Visitor`], nodes/tokens passed are mutable.
-        pub trait VisitorMut {
+        pub trait VisitorMut<P: Plugin = DefaultPlugin> {
             /// Visit the nodes of an [`Ast`](crate::ast::Ast)
-            fn visit_ast(&mut self, ast: Ast) -> Ast where Self: Sized {
+            fn visit_ast(&mut self, ast: Ast<P>) -> Ast<P> where Self: Sized {
                 // TODO: Visit tokens?
                 let eof = ast.eof().to_owned();
                 let nodes = ast.nodes.visit_mut(self);
@@ -135,122 +136,132 @@ macro_rules! create_visitor {
 }
 
 #[doc(hidden)]
-pub trait Visit: Sealed {
-    fn visit<V: Visitor>(&self, visitor: &mut V);
+pub trait Visit<P: Plugin = DefaultPlugin>: Sealed {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V);
 }
 
 #[doc(hidden)]
-pub trait VisitMut: Sealed
+pub trait VisitMut<P: Plugin = DefaultPlugin>: Sealed
 where
     Self: Sized,
 {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self;
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self;
 }
 
-impl<T: Visit> Visit for &T {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for &T {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<T: Visit> Visit for &mut T {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for &mut T {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<T: Visit> Visit for Vec<T> {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for Vec<T> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         for item in self {
             item.visit(visitor);
         }
     }
 }
 
-impl<T: VisitMut> VisitMut for Vec<T> {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Vec<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         self.into_iter()
             .map(|item| item.visit_mut(visitor))
             .collect()
     }
 }
 
-impl<T: Visit> Visit for Option<T> {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for Option<T> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         if let Some(item) = self {
             item.visit(visitor);
         }
     }
 }
 
-impl<T: VisitMut> VisitMut for Option<T> {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Option<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         self.map(|item| item.visit_mut(visitor))
     }
 }
 
-impl<A: Visit, B: Visit> Visit for (A, B) {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, A: Visit<P>, B: Visit<P>> Visit<P> for (A, B) {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         self.0.visit(visitor);
         self.1.visit(visitor);
     }
 }
 
-impl<A: VisitMut, B: VisitMut> VisitMut for (A, B) {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, A: VisitMut<P>, B: VisitMut<P>> VisitMut<P> for (A, B) {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         (self.0.visit_mut(visitor), self.1.visit_mut(visitor))
     }
 }
 
-impl<T: Visit> Visit for Box<T> {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin, T: Visit<P>> Visit<P> for Box<T> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         (**self).visit(visitor);
     }
 }
 
-impl<T: VisitMut> VisitMut for Box<T> {
-    fn visit_mut<V: VisitorMut>(self, visitor: &mut V) -> Self {
+impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Box<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, visitor: &mut V) -> Self {
         Box::new((*self).visit_mut(visitor))
     }
 }
 
+impl<T, P: Plugin> Visit<P> for std::marker::PhantomData<T> {
+    fn visit<V: Visitor<P>>(&self, _visitor: &mut V) {}
+}
+
+impl<T, P: Plugin> VisitMut<P> for std::marker::PhantomData<T> {
+    fn visit_mut<V: VisitorMut<P>>(self, _visitor: &mut V) -> Self {
+        self
+    }
+}
+
 create_visitor!(ast: {
-    visit_anonymous_call => FunctionArgs,
-    visit_assignment => Assignment,
-    visit_block => Block,
-    visit_call => Call,
+    visit_anonymous_call => FunctionArgs<P>,
+    visit_assignment => Assignment<P>,
+    visit_block => Block<P>,
+    visit_call => Call<P>,
     visit_contained_span => ContainedSpan,
-    visit_do => Do,
-    visit_else_if => ElseIf,
+    visit_do => Do<P>,
+    visit_else_if => ElseIf<P>,
     visit_eof => TokenReference,
-    visit_expression => Expression,
-    visit_field => Field,
-    visit_function_args => FunctionArgs,
-    visit_function_body => FunctionBody,
-    visit_function_call => FunctionCall,
-    visit_function_declaration => FunctionDeclaration,
-    visit_function_name => FunctionName,
-    visit_generic_for => GenericFor,
-    visit_if => If,
-    visit_index => Index,
-    visit_local_assignment => LocalAssignment,
-    visit_local_function => LocalFunction,
-    visit_last_stmt => LastStmt,
-    visit_method_call => MethodCall,
-    visit_numeric_for => NumericFor,
-    visit_parameter => Parameter,
-    visit_prefix => Prefix,
-    visit_return => Return,
-    visit_repeat => Repeat,
-    visit_stmt => Stmt,
-    visit_suffix => Suffix,
-    visit_table_constructor => TableConstructor,
+    visit_expression => Expression<P>,
+    visit_field => Field<P>,
+    visit_function_args => FunctionArgs<P>,
+    visit_function_body => FunctionBody<P>,
+    visit_function_call => FunctionCall<P>,
+    visit_function_declaration => FunctionDeclaration<P>,
+    visit_function_name => FunctionName<P>,
+    visit_generic_for => GenericFor<P>,
+    visit_if => If<P>,
+    visit_index => Index<P>,
+    visit_local_assignment => LocalAssignment<P>,
+    visit_local_function => LocalFunction<P>,
+    visit_last_stmt => LastStmt<P>,
+    visit_method_call => MethodCall<P>,
+    visit_numeric_for => NumericFor<P>,
+    visit_parameter => Parameter<P>,
+    visit_prefix => Prefix<P>,
+    visit_repeat => Repeat<P>,
+    visit_return => Return<P>,
+    visit_stmt => Stmt<P>,
+    visit_suffix => Suffix<P>,
+    visit_table_constructor => TableConstructor<P>,
     visit_token_reference => TokenReference,
     visit_un_op => UnOp,
-    visit_value => Value,
-    visit_var => Var,
-    visit_var_expression => VarExpression,
-    visit_while => While,
+    visit_value => Value<P>,
+    visit_var => Var<P>,
+    visit_var_expression => VarExpression<P>,
+    visit_while => While<P>,
 
     // Types
     #[cfg(feature = "roblox")] {

@@ -9,8 +9,8 @@ use crate::visitors::{Visit, VisitMut, Visitor, VisitorMut};
 // Then visitors will visit this as `()foo`.
 // This is fixed for structs with `#[visit(contains = "...")], but this is not supported on enums.
 
-impl Visit for Field {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for Field<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_field(self);
         match self {
             Field::ExpressionKey {
@@ -35,14 +35,18 @@ impl Visit for Field {
             Field::NoKey(__self_0) => {
                 __self_0.visit(visitor);
             }
+
+            Field::Plugin(__self_0) => {
+                unimplemented!("visit(Field::Plugin)");
+            }
         };
 
         visitor.visit_field_end(self);
     }
 }
 
-impl VisitMut for Field {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for Field<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_field(self);
         self = match self {
             Field::ExpressionKey {
@@ -71,6 +75,8 @@ impl VisitMut for Field {
             },
 
             Field::NoKey(__self_0) => Field::NoKey(__self_0.visit_mut(visitor)),
+
+            Field::Plugin(__self_0) => unimplemented!("visit_mut(Field::Plugin)"),
         };
 
         self = visitor.visit_field_end(self);
@@ -78,8 +84,8 @@ impl VisitMut for Field {
     }
 }
 
-impl Visit for Expression {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for Expression<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_expression(self);
         match self {
             Expression::BinaryOperator { lhs, binop, rhs } => {
@@ -109,14 +115,16 @@ impl Visit for Expression {
                 #[cfg(feature = "roblox")]
                 type_assertion.visit(visitor);
             }
+
+            Expression::Plugin(__self_0) => unimplemented!("visit(Expression::Plugin)"),
         };
 
         visitor.visit_expression_end(self);
     }
 }
 
-impl VisitMut for Expression {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for Expression<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_expression(self);
         self = match self {
             Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
@@ -153,6 +161,8 @@ impl VisitMut for Expression {
                 #[cfg(feature = "roblox")]
                 type_assertion: type_assertion.visit_mut(visitor),
             },
+
+            Expression::Plugin(__self_0) => unimplemented!("visit_mut(Expression::Plugin)"),
         };
 
         self = visitor.visit_expression_end(self);
@@ -160,8 +170,8 @@ impl VisitMut for Expression {
     }
 }
 
-impl Visit for Index {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for Index<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_index(self);
         match self {
             Index::Brackets {
@@ -176,14 +186,16 @@ impl Visit for Index {
                 dot.visit(visitor);
                 name.visit(visitor);
             }
+
+            Index::Plugin(__self_0) => unimplemented!("visit(Index::Plugin)"),
         };
 
         visitor.visit_index_end(self);
     }
 }
 
-impl VisitMut for Index {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for Index<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_index(self);
         self = match self {
             Index::Brackets {
@@ -204,6 +216,8 @@ impl VisitMut for Index {
                 dot: dot.visit_mut(visitor),
                 name: name.visit_mut(visitor),
             },
+
+            Index::Plugin(__self_0) => unimplemented!("visit_mut(Index::Plugin)"),
         };
 
         self = visitor.visit_index_end(self);
@@ -211,8 +225,8 @@ impl VisitMut for Index {
     }
 }
 
-impl Visit for FunctionArgs {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for FunctionArgs<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_function_args(self);
         match self {
             FunctionArgs::Parentheses {
@@ -229,14 +243,15 @@ impl Visit for FunctionArgs {
             FunctionArgs::TableConstructor(__self_0) => {
                 __self_0.visit(visitor);
             }
+            FunctionArgs::Plugin(__self_0) => unimplemented!("visit(FunctionArgs::Plugin)"),
         };
 
         visitor.visit_function_args_end(self);
     }
 }
 
-impl VisitMut for FunctionArgs {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for FunctionArgs<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_args(self);
         self = match self {
             FunctionArgs::Parentheses {
@@ -255,6 +270,7 @@ impl VisitMut for FunctionArgs {
             FunctionArgs::TableConstructor(__self_0) => {
                 FunctionArgs::TableConstructor(__self_0.visit_mut(visitor))
             }
+            FunctionArgs::Plugin(__self_0) => unimplemented!("visit_mut(FunctionArgs::Plugin)"),
         };
 
         self = visitor.visit_function_args_end(self);
@@ -263,8 +279,8 @@ impl VisitMut for FunctionArgs {
 }
 
 // The following contain type signatures, which are addendums to previous identities
-impl Visit for FunctionBody {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for FunctionBody<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_function_body(self);
 
         #[cfg(feature = "roblox")]
@@ -281,7 +297,7 @@ impl Visit for FunctionBody {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement Visit for !
+            // TODO: Option<!>, and implement Visit<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -301,8 +317,8 @@ impl Visit for FunctionBody {
     }
 }
 
-impl VisitMut for FunctionBody {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for FunctionBody<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_body(self);
 
         #[cfg(feature = "roblox")]
@@ -322,7 +338,7 @@ impl VisitMut for FunctionBody {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement VisitMut for !
+            // TODO: Option<!>, and implement VisitMut<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -365,8 +381,8 @@ impl VisitMut for FunctionBody {
     }
 }
 
-impl Visit for LocalAssignment {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for LocalAssignment<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_local_assignment(self);
         self.local_token.visit(visitor);
 
@@ -379,7 +395,7 @@ impl Visit for LocalAssignment {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement Visit for !
+            // TODO: Option<!>, and implement Visit<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -394,8 +410,8 @@ impl Visit for LocalAssignment {
     }
 }
 
-impl VisitMut for LocalAssignment {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for LocalAssignment<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_local_assignment(self);
         self.local_token = self.local_token.visit_mut(visitor);
 
@@ -408,7 +424,7 @@ impl VisitMut for LocalAssignment {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement VisitMut for !
+            // TODO: Option<!>, and implement VisitMut<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -442,8 +458,8 @@ impl VisitMut for LocalAssignment {
     }
 }
 
-impl Visit for GenericFor {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for GenericFor<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_generic_for(self);
         self.for_token.visit(visitor);
 
@@ -456,7 +472,7 @@ impl Visit for GenericFor {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement Visit for !
+            // TODO: Option<!>, and implement Visit<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -475,8 +491,8 @@ impl Visit for GenericFor {
     }
 }
 
-impl VisitMut for GenericFor {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for GenericFor<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_generic_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
 
@@ -489,7 +505,7 @@ impl VisitMut for GenericFor {
 
         #[cfg(not(feature = "roblox"))]
         {
-            // TODO: Option<!>, and implement VisitMut for !
+            // TODO: Option<!>, and implement VisitMut<P> for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
@@ -527,8 +543,8 @@ impl VisitMut for GenericFor {
     }
 }
 
-impl Visit for NumericFor {
-    fn visit<V: Visitor>(&self, visitor: &mut V) {
+impl<P: Plugin> Visit<P> for NumericFor<P> {
+    fn visit<V: Visitor<P>>(&self, visitor: &mut V) {
         visitor.visit_numeric_for(self);
         self.for_token.visit(visitor);
         self.index_variable.visit(visitor);
@@ -550,8 +566,8 @@ impl Visit for NumericFor {
     }
 }
 
-impl VisitMut for NumericFor {
-    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+impl<P: Plugin> VisitMut<P> for NumericFor<P> {
+    fn visit_mut<V: VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_numeric_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
         self.index_variable = self.index_variable.visit_mut(visitor);

@@ -125,6 +125,27 @@ impl Node for Ast {
     }
 }
 
+impl Node for () {
+    fn start_position(&self) -> Option<Position> {
+        None
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        None
+    }
+
+    fn similar(&self, _other: &Self) -> bool
+    where
+        Self: Sized,
+    {
+        true
+    }
+
+    fn tokens(&self) -> Tokens {
+        Tokens { items: Vec::new() }
+    }
+}
+
 impl<T: Node> Node for Box<T> {
     fn start_position(&self) -> Option<Position> {
         (**self).start_position()
@@ -176,6 +197,27 @@ impl<T: Node> Node for &mut T {
 
     fn tokens(&self) -> Tokens {
         (**self).tokens()
+    }
+}
+
+impl<T> Node for std::marker::PhantomData<T> {
+    fn start_position(&self) -> Option<Position> {
+        None
+    }
+
+    fn end_position(&self) -> Option<Position> {
+        None
+    }
+
+    fn similar(&self, other: &Self) -> bool
+    where
+        Self: Sized,
+    {
+        true
+    }
+
+    fn tokens(&self) -> Tokens {
+        Tokens { items: Vec::new() }
     }
 }
 
