@@ -75,7 +75,7 @@ impl DeriveGenerator for NodeGenerator {
                 }
             }
 
-            impl #impl_generics crate::node::Node #impl_generics for #input_ident #ty_generics #where_clause {
+            impl #impl_generics crate::node::Node for #input_ident #ty_generics #where_clause {
                 fn start_position(&self) -> Option<crate::tokenizer::Position> {
                     Some(#macro_name!("range", { #tokens })?.0)
                 }

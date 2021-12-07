@@ -58,6 +58,14 @@ impl VisitGenerator {
         for field in data_fields
             .iter()
             .filter(|field| search_hint("visit", &field.attrs) != Some(VisitHint::Skip))
+            .filter(|field| {
+                field
+                    .ident
+                    .as_ref()
+                    .expect("field requires an ident")
+                    .to_string()
+                    != "plugin_info"
+            })
         {
             let ident = field.ident.as_ref().unwrap();
             let token_stream = quote! { #prefix#ident };
@@ -95,7 +103,7 @@ impl VisitGenerator {
 impl DeriveGenerator for VisitGenerator {
     fn complete(input: &syn::DeriveInput, tokens: TokenStream) -> TokenStream {
         let input_ident = &input.ident;
-        let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+        let (_, ty_generics, where_clause) = input.generics.split_for_impl();
 
         let (visit_self, visit_self_end) = match search_hint("visit", &input.attrs) {
             Some(VisitHint::SkipVisitSelf) => (quote! {}, quote! {}),
@@ -137,8 +145,8 @@ impl DeriveGenerator for VisitGenerator {
         };
 
         quote! {
-            impl #impl_generics crate::visitors::Visit for #input_ident #ty_generics #where_clause {
-                fn visit<V: crate::visitors::Visitor>(&self, visitor: &mut V) {
+            impl<P: crate::plugins::Plugin> crate::visitors::Visit<P> for #input_ident #ty_generics #where_clause {
+                fn visit<V: crate::visitors::Visitor<P>>(&self, visitor: &mut V) {
                     macro_rules! visit {
                         ($visit_what: expr, $visitor: expr) => {
                             $visit_what.visit($visitor);
@@ -171,8 +179,8 @@ impl DeriveGenerator for VisitGenerator {
                 }
             }
 
-            impl #impl_generics crate::visitors::VisitMut for #input_ident #ty_generics #where_clause {
-                fn visit_mut<V: crate::visitors::VisitorMut>(mut self, visitor: &mut V) -> Self {
+            impl<P: crate::plugins::Plugin> crate::visitors::VisitMut<P> for #input_ident #ty_generics #where_clause {
+                fn visit_mut<V: crate::visitors::VisitorMut<P>>(mut self, visitor: &mut V) -> Self {
                     macro_rules! visit {
                         ($visit_what: expr, $visitor: expr) => {
                             $visit_what = $visit_what.visit_mut($visitor);
@@ -225,6 +233,10 @@ impl MatchEnumGenerator for VisitGenerator {
         variant: &syn::Ident,
         named: &syn::FieldsNamed,
     ) -> TokenStream {
+        if variant.to_string() == "Plugin" {
+            return TokenStream::new();
+        }
+
         let fields: Vec<_> = named
             .named
             .iter()
@@ -255,6 +267,10 @@ impl MatchEnumGenerator for VisitGenerator {
         variant: &syn::Ident,
         fields: &syn::FieldsUnnamed,
     ) -> TokenStream {
+        if variant.to_string() == "Plugin" {
+            return TokenStream::new();
+        }
+
         let fields: Vec<_> = fields
             .unnamed
             .iter()
