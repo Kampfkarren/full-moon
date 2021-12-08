@@ -1,3 +1,6 @@
 **/target
 **/*.rs.bk
 Cargo.lock
+
+# I `cargo expand > EXPAND.rs` sometimes
+EXPAND.rs
