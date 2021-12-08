@@ -52,7 +52,7 @@ macro_rules! plugin_infos {
                 impl PluginMod<$type<DefaultPlugin>> for [<Default $type Info>] {
                     type NodeInfo = $node_info;
 
-                    fn display(_: $node_info) -> String {
+                    fn display(_: &$node_info) -> String {
                         unreachable!("DefaultPlugin info structs should not be being displayed");
                     }
                 }
@@ -69,19 +69,34 @@ macro_rules! plugin_infos {
 
 // Structs get (), enums get Never
 plugin_infos!({
+    Assignment: (),
     Block: (),
     Call: Never,
+    Do: (),
     ElseIf: (),
     Expression: Never,
     Field: Never,
     FunctionArgs: Never,
+    FunctionBody: (),
+    FunctionCall: (),
+    FunctionDeclaration: (),
+    FunctionName: (),
+    GenericFor: (),
+    If: (),
     Index: Never,
     LastStmt: Never,
+    LocalAssignment: (),
+    LocalFunction: (),
+    MethodCall: (),
+    NumericFor: (),
     Parameter: Never,
     Prefix: Never,
+    Repeat: (),
     Return: (),
     Stmt: Never,
     Suffix: Never,
     Value: Never,
     Var: Never,
+    VarExpression: (),
+    While: (),
 });

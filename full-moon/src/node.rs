@@ -200,27 +200,6 @@ impl<T: Node> Node for &mut T {
     }
 }
 
-impl<T> Node for std::marker::PhantomData<T> {
-    fn start_position(&self) -> Option<Position> {
-        None
-    }
-
-    fn end_position(&self) -> Option<Position> {
-        None
-    }
-
-    fn similar(&self, other: &Self) -> bool
-    where
-        Self: Sized,
-    {
-        true
-    }
-
-    fn tokens(&self) -> Tokens {
-        Tokens { items: Vec::new() }
-    }
-}
-
 impl Node for TokenReference {
     fn start_position(&self) -> Option<Position> {
         Some((**self).start_position())

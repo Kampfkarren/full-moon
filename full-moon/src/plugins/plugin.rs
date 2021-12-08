@@ -42,21 +42,36 @@ macro_rules! create_plugin {
 }
 
 create_plugin!({
+    Assignment,
     Block,
     Call,
+    Do,
     ElseIf,
     Expression,
     Field,
     FunctionArgs,
+    FunctionBody,
+    FunctionCall,
+    FunctionDeclaration,
+    FunctionName,
+    GenericFor,
+    If,
     Index,
     LastStmt,
+    LocalAssignment,
+    LocalFunction,
+    MethodCall,
+    NumericFor,
     Parameter,
     Prefix,
+    Repeat,
     Return,
     Stmt,
     Suffix,
+    While,
     Value,
     Var,
+    VarExpression,
 });
 
 // PLUGIN TODO: Relax Node restriction, and instead have them be functions on PluginMod itself
@@ -73,5 +88,5 @@ impl<T> PluginInfo for T where
 pub trait PluginMod<T> {
     type NodeInfo: PluginInfo;
 
-    fn display(node_info: Self::NodeInfo) -> String;
+    fn display(node_info: &Self::NodeInfo) -> String;
 }

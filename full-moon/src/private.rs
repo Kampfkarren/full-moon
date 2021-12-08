@@ -22,4 +22,3 @@ impl<T> Sealed for Box<T> {}
 impl<T> Sealed for Option<T> {}
 impl<T> Sealed for Vec<T> {}
 impl<A, B> Sealed for (A, B) {}
-impl<T> Sealed for std::marker::PhantomData<T> {}

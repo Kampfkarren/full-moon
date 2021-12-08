@@ -38,10 +38,10 @@ pub mod lua52;
 #[cfg(feature = "lua52")]
 use lua52::*;
 
-macro_rules! default_plugin_info {
-    ($type:tt<$generic:tt>) => {
+macro_rules! display_plugin_info {
+    ($type:ident<$plugin:ident>, $value:expr) => {
         paste::item! {
-            <<$generic as Plugin>::[<$type Mod>] as PluginMod<$type<$generic>>>::NodeInfo::default()
+            <<$plugin as Plugin>::[<$type Mod>] as PluginMod<$type<$plugin>>>::display($value)
         }
     };
 }
@@ -64,7 +64,7 @@ impl<P: Plugin> Block<P> {
         Self {
             stmts: Vec::new(),
             last_stmt: None,
-            plugin_info: default_plugin_info!(Block<P>),
+            plugin_info: Default::default(),
         }
     }
 
@@ -116,6 +116,7 @@ pub enum LastStmt<P: Plugin = DefaultPlugin> {
     /// A `return` statement
     Return(Return<P>),
 
+    #[display(fmt = "{}", "display_plugin_info!(LastStmt<P>, _0)")]
     Plugin(<<P as Plugin>::LastStmtMod as PluginMod<LastStmt<P>>>::NodeInfo),
 }
 
@@ -127,7 +128,6 @@ pub struct Return<P: Plugin = DefaultPlugin> {
     token: TokenReference,
     returns: Punctuated<Expression<P>>,
 
-    #[display(fmt = "PLUGIN TODO")]
     plugin_info: <<P as Plugin>::ReturnMod as PluginMod<Return<P>>>::NodeInfo,
 }
 
@@ -139,7 +139,7 @@ impl<P: Plugin> Return<P> {
             token: TokenReference::symbol("return ").unwrap(),
             returns: Punctuated::new(),
 
-            plugin_info: default_plugin_info!(Return<P>),
+            plugin_info: Default::default(),
         }
     }
 
@@ -210,7 +210,7 @@ pub enum Field<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     NoKey(Expression<P>),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Field<P>, _0)")]
     Plugin(<<P as Plugin>::FieldMod as PluginMod<Field<P>>>::NodeInfo),
 }
 
@@ -266,13 +266,12 @@ impl Default for TableConstructor {
 }
 
 /// An expression, mostly useful for getting values
-#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 #[non_exhaustive]
 pub enum Expression<P: Plugin = DefaultPlugin> {
     /// A binary operation, such as `1 + 3`
-    #[display(fmt = "{}{}{}", "lhs", "binop", "rhs")]
     BinaryOperator {
         /// The left hand side of the binary operation, the `1` part of `1 + 3`
         lhs: Box<Expression<P>>,
@@ -283,12 +282,6 @@ pub enum Expression<P: Plugin = DefaultPlugin> {
     },
 
     /// A statement in parentheses, such as `(#list)`
-    #[display(
-        fmt = "{}{}{}",
-        "contained.tokens().0",
-        "expression",
-        "contained.tokens().1"
-    )]
     Parentheses {
         /// The parentheses of the `ParenExpression`
         #[node(full_range)]
@@ -298,7 +291,6 @@ pub enum Expression<P: Plugin = DefaultPlugin> {
     },
 
     /// A unary operation, such as `#list`
-    #[display(fmt = "{}{}", "unop", "expression")]
     UnaryOperator {
         /// The unary operation, the `#` part of `#list`
         unop: UnOp,
@@ -307,11 +299,6 @@ pub enum Expression<P: Plugin = DefaultPlugin> {
     },
 
     /// A value, such as "strings"
-    #[cfg_attr(not(feature = "roblox"), display(fmt = "{}", value))]
-    #[cfg_attr(
-        feature = "roblox",
-        display(fmt = "{}{}", value, "display_option(type_assertion)")
-    )]
     Value {
         /// The value itself
         value: Box<Value<P>>,
@@ -323,8 +310,45 @@ pub enum Expression<P: Plugin = DefaultPlugin> {
         type_assertion: Option<TypeAssertion>,
     },
 
-    #[display(fmt = "PLUGIN TODO")]
     Plugin(<<P as Plugin>::ExpressionMod as PluginMod<Expression<P>>>::NodeInfo),
+}
+
+impl<P: Plugin> fmt::Display for Expression<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expression::BinaryOperator { lhs, binop, rhs } => write!(f, "{}{}{}", lhs, binop, rhs),
+
+            Expression::Parentheses {
+                contained,
+                expression,
+            } => write!(
+                f,
+                "{}{}{}",
+                contained.tokens().0,
+                expression,
+                contained.tokens().1
+            ),
+
+            Expression::UnaryOperator { unop, expression } => write!(f, "{}{}", unop, expression),
+
+            Expression::Value {
+                value,
+                #[cfg(feature = "roblox")]
+                type_assertion,
+            } => {
+                write!(f, "{}", value)?;
+
+                #[cfg(feature = "roblox")]
+                if let Some(type_assertion) = type_assertion {
+                    write!(f, "{}", type_assertion)?;
+                }
+
+                Ok(())
+            }
+
+            Expression::Plugin(info) => write!(f, "{}", display_plugin_info!(Expression<P>, info)),
+        }
+    }
 }
 
 /// Values that cannot be used standalone, but as part of things such as [`Stmt`]
@@ -361,7 +385,7 @@ pub enum Value<P: Plugin = DefaultPlugin> {
     /// A more complex value, such as `call().x`
     #[display(fmt = "{}", "_0")]
     Var(Var<P>),
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Value<P>, _0)")]
     Plugin(<<P as Plugin>::ValueMod as PluginMod<Value<P>>>::NodeInfo),
 }
 
@@ -427,7 +451,7 @@ pub enum Stmt<P: Plugin = DefaultPlugin> {
     #[cfg(feature = "lua52")]
     Label(Label),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Stmt<P>, _0)")]
     Plugin(<<P as Plugin>::StmtMod as PluginMod<Stmt<P>>>::NodeInfo),
 }
 
@@ -437,14 +461,15 @@ pub enum Stmt<P: Plugin = DefaultPlugin> {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Prefix<P: Plugin = DefaultPlugin> {
-    #[display(fmt = "{}", _0)]
     /// A complicated expression, such as `("foo")`
+    #[display(fmt = "{}", "_0")]
     Expression(Expression<P>),
-    #[display(fmt = "{}", _0)]
+
     /// Just a name, such as `foo`
+    #[display(fmt = "{}", "_0")]
     Name(TokenReference),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Prefix<P>, _0)")]
     Plugin(<<P as Plugin>::PrefixMod as PluginMod<Prefix<P>>>::NodeInfo),
 }
 
@@ -477,7 +502,7 @@ pub enum Index<P: Plugin = DefaultPlugin> {
         name: TokenReference,
     },
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Index<P>, _0)")]
     Plugin(<<P as Plugin>::IndexMod as PluginMod<Index<P>>>::NodeInfo),
 }
 
@@ -507,7 +532,7 @@ pub enum FunctionArgs<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<P>),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(FunctionArgs<P>, _0)")]
     Plugin(<<P as Plugin>::FunctionArgsMod as PluginMod<FunctionArgs<P>>>::NodeInfo),
 }
 
@@ -528,6 +553,7 @@ pub struct NumericFor<P: Plugin = DefaultPlugin> {
     end_token: TokenReference,
     #[cfg(feature = "roblox")]
     type_specifier: Option<TypeSpecifier>,
+    plugin_info: <<P as Plugin>::NumericForMod as PluginMod<NumericFor<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> NumericFor<P> {
@@ -545,6 +571,7 @@ impl<P: Plugin> NumericFor<P> {
             do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
             end_token: TokenReference::symbol("\nend").unwrap(),
+            plugin_info: Default::default(),
             #[cfg(feature = "roblox")]
             type_specifier: None,
         }
@@ -719,7 +746,21 @@ impl<P: Plugin> fmt::Display for NumericFor<P> {
 
     #[cfg(not(feature = "roblox"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!("PLUGIN TODO: NumericFor::Display")
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}{}{}{}{}",
+            self.for_token,
+            self.index_variable,
+            self.equal_token,
+            self.start,
+            self.start_end_comma,
+            self.end,
+            display_option(self.end_step_comma()),
+            display_option(self.step()),
+            self.do_token,
+            self.block,
+            self.end_token,
+        )
     }
 }
 
@@ -736,6 +777,7 @@ pub struct GenericFor<P: Plugin = DefaultPlugin> {
     end_token: TokenReference,
     #[cfg(feature = "roblox")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
+    plugin_info: <<P as Plugin>::GenericForMod as PluginMod<GenericFor<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> GenericFor<P> {
@@ -749,6 +791,7 @@ impl<P: Plugin> GenericFor<P> {
             do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
             end_token: TokenReference::symbol("\nend").unwrap(),
+            plugin_info: Default::default(),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
         }
@@ -864,7 +907,17 @@ impl<P: Plugin> fmt::Display for GenericFor<P> {
 
     #[cfg(not(feature = "roblox"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!("PLUGIN TODO: GenericFor display")
+        write!(
+            formatter,
+            "{}{}{}{}{}{}{}",
+            self.for_token,
+            self.names,
+            self.in_token,
+            self.expr_list,
+            self.do_token,
+            self.block,
+            self.end_token
+        )
     }
 }
 
@@ -877,7 +930,8 @@ impl<P: Plugin> fmt::Display for GenericFor<P> {
     "condition",
     "then_token",
     "block",
-    "display_option(else_if.as_ref().map(join_vec))",
+    "\"PLUGIN TODO\"",
+    // "display_option(else_if.as_ref().map(join_vec))",
     "display_option(else_token)",
     "display_option(r#else)",
     "end_token"
@@ -892,6 +946,7 @@ pub struct If<P: Plugin = DefaultPlugin> {
     #[cfg_attr(feature = "serde", serde(rename = "else"))]
     r#else: Option<Block<P>>,
     end_token: TokenReference,
+    plugin_info: <<P as Plugin>::IfMod as PluginMod<If<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> If<P> {
@@ -906,6 +961,7 @@ impl<P: Plugin> If<P> {
             else_token: None,
             r#else: None,
             end_token: TokenReference::symbol("\nend").unwrap(),
+            plugin_info: Default::default(),
         }
     }
 
@@ -995,6 +1051,7 @@ impl<P: Plugin> If<P> {
 /// An elseif block in a bigger [`If`] statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(bounds = "P: Plugin")]
 #[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
 pub struct ElseIf<P: Plugin = DefaultPlugin> {
     else_if_token: TokenReference,
@@ -1012,7 +1069,7 @@ impl<P: Plugin> ElseIf<P> {
             condition,
             then_token: TokenReference::symbol(" then\n").unwrap(),
             block: Block::new(),
-            plugin_info: default_plugin_info!(ElseIf<P>),
+            plugin_info: Default::default(),
         }
     }
 
@@ -1077,6 +1134,7 @@ pub struct While<P: Plugin = DefaultPlugin> {
     do_token: TokenReference,
     block: Block<P>,
     end_token: TokenReference,
+    plugin_info: <<P as Plugin>::WhileMod as PluginMod<While<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> While<P> {
@@ -1088,6 +1146,7 @@ impl<P: Plugin> While<P> {
             do_token: TokenReference::symbol(" do\n").unwrap(),
             block: Block::new(),
             end_token: TokenReference::symbol("end\n").unwrap(),
+            plugin_info: Default::default(),
         }
     }
 
@@ -1154,6 +1213,7 @@ pub struct Repeat<P: Plugin = DefaultPlugin> {
     block: Block<P>,
     until_token: TokenReference,
     until: Expression<P>,
+    plugin_info: <<P as Plugin>::RepeatMod as PluginMod<Repeat<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> Repeat<P> {
@@ -1164,6 +1224,7 @@ impl<P: Plugin> Repeat<P> {
             block: Block::new(),
             until_token: TokenReference::symbol("\nuntil ").unwrap(),
             until,
+            plugin_info: Default::default(),
         }
     }
 
@@ -1222,6 +1283,7 @@ pub struct MethodCall<P: Plugin = DefaultPlugin> {
     colon_token: TokenReference,
     name: TokenReference,
     args: FunctionArgs<P>,
+    plugin_info: <<P as Plugin>::MethodCallMod as PluginMod<MethodCall<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> MethodCall<P> {
@@ -1231,6 +1293,7 @@ impl<P: Plugin> MethodCall<P> {
             colon_token: TokenReference::symbol(":").unwrap(),
             name,
             args,
+            plugin_info: Default::default(),
         }
     }
 
@@ -1280,7 +1343,7 @@ pub enum Call<P: Plugin = DefaultPlugin> {
     /// A method call, such as `x:y()`
     MethodCall(MethodCall<P>),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Call<P>, _0)")]
     Plugin(<<P as Plugin>::CallMod as PluginMod<Call<P>>>::NodeInfo),
 }
 
@@ -1306,6 +1369,8 @@ pub struct FunctionBody<P: Plugin = DefaultPlugin> {
 
     block: Block<P>,
     end_token: TokenReference,
+
+    plugin_info: <<P as Plugin>::FunctionBodyMod as PluginMod<FunctionBody<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> FunctionBody<P> {
@@ -1329,6 +1394,8 @@ impl<P: Plugin> FunctionBody<P> {
 
             block: Block::new(),
             end_token: TokenReference::symbol("\nend").unwrap(),
+
+            plugin_info: Default::default(),
         }
     }
 
@@ -1470,7 +1537,7 @@ pub enum Parameter<P: Plugin = DefaultPlugin> {
     /// A name parameter, such as `function x(a, b, c)`
     Name(TokenReference),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Parameter<P>, _0)")]
     Plugin(<<P as Plugin>::ParameterMod as PluginMod<Parameter<P>>>::NodeInfo),
 }
 
@@ -1487,17 +1554,18 @@ pub enum Suffix<P: Plugin = DefaultPlugin> {
     /// An index, such as `x.y`
     Index(Index<P>),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Suffix<P>, _0)")]
     Plugin(<<P as Plugin>::SuffixMod as PluginMod<Suffix<P>>>::NodeInfo),
 }
 
 /// A complex expression used by [`Var`], consisting of both a prefix and suffixes
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "PLUGIN TODO: VarExpression display")]
 pub struct VarExpression<P: Plugin = DefaultPlugin> {
     prefix: Prefix<P>,
     suffixes: Vec<Suffix<P>>,
+    plugin_info: <<P as Plugin>::VarExpressionMod as PluginMod<VarExpression<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> VarExpression<P> {
@@ -1506,6 +1574,7 @@ impl<P: Plugin> VarExpression<P> {
         Self {
             prefix,
             suffixes: Vec::new(),
+            plugin_info: Default::default(),
         }
     }
 
@@ -1542,7 +1611,7 @@ pub enum Var<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     Name(TokenReference),
 
-    #[display(fmt = "PLUGIN TODO")]
+    #[display(fmt = "{}", "display_plugin_info!(Var<P>, _0)")]
     Plugin(<<P as Plugin>::VarMod as PluginMod<Var<P>>>::NodeInfo),
 }
 
@@ -1554,6 +1623,7 @@ pub struct Assignment<P: Plugin = DefaultPlugin> {
     var_list: Punctuated<Var<P>>,
     equal_token: TokenReference,
     expr_list: Punctuated<Expression<P>>,
+    plugin_info: <<P as Plugin>::AssignmentMod as PluginMod<Assignment<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> Assignment<P> {
@@ -1563,6 +1633,7 @@ impl<P: Plugin> Assignment<P> {
             var_list,
             equal_token: TokenReference::symbol(" = ").unwrap(),
             expr_list,
+            plugin_info: Default::default(),
         }
     }
 
@@ -1618,6 +1689,8 @@ pub struct LocalFunction<P: Plugin = DefaultPlugin> {
     function_token: TokenReference,
     name: TokenReference,
     body: FunctionBody<P>,
+
+    plugin_info: <<P as Plugin>::LocalFunctionMod as PluginMod<LocalFunction<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> LocalFunction<P> {
@@ -1628,6 +1701,7 @@ impl<P: Plugin> LocalFunction<P> {
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
             body: FunctionBody::new(),
+            plugin_info: Default::default(),
         }
     }
 
@@ -1688,6 +1762,8 @@ pub struct LocalAssignment<P: Plugin = DefaultPlugin> {
     name_list: Punctuated<TokenReference>,
     equal_token: Option<TokenReference>,
     expr_list: Punctuated<Expression<P>>,
+
+    plugin_info: <<P as Plugin>::LocalAssignmentMod as PluginMod<LocalAssignment<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> LocalAssignment<P> {
@@ -1700,6 +1776,8 @@ impl<P: Plugin> LocalAssignment<P> {
             name_list,
             equal_token: None,
             expr_list: Punctuated::new(),
+
+            plugin_info: Default::default(),
         }
     }
 
@@ -1785,7 +1863,14 @@ impl<P: Plugin> fmt::Display for LocalAssignment<P> {
 
     #[cfg(not(feature = "roblox"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!("PLUGIN TODO: LocalAssignment Display");
+        write!(
+            formatter,
+            "{}{}{}{}",
+            self.local_token,
+            self.name_list,
+            display_option(&self.equal_token),
+            self.expr_list
+        )
     }
 }
 
@@ -1798,6 +1883,8 @@ pub struct Do<P: Plugin = DefaultPlugin> {
     do_token: TokenReference,
     block: Block<P>,
     end_token: TokenReference,
+
+    plugin_info: <<P as Plugin>::DoMod as PluginMod<Do<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> Do<P> {
@@ -1807,6 +1894,7 @@ impl<P: Plugin> Do<P> {
             do_token: TokenReference::symbol("do\n").unwrap(),
             block: Block::new(),
             end_token: TokenReference::symbol("\nend").unwrap(),
+            plugin_info: Default::default(),
         }
     }
 
@@ -1854,6 +1942,8 @@ impl Default for Do {
 pub struct FunctionCall<P: Plugin = DefaultPlugin> {
     prefix: Prefix<P>,
     suffixes: Vec<Suffix<P>>,
+
+    plugin_info: <<P as Plugin>::FunctionCallMod as PluginMod<FunctionCall<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> FunctionCall<P> {
@@ -1871,6 +1961,8 @@ impl<P: Plugin> FunctionCall<P> {
                     ),
                 },
             ))],
+
+            plugin_info: Default::default(),
         }
     }
 
@@ -1908,7 +2000,7 @@ pub struct FunctionName<P: Plugin = DefaultPlugin> {
     names: Punctuated<TokenReference>,
     colon_name: Option<(TokenReference, TokenReference)>,
 
-    _phantom: std::marker::PhantomData<P>,
+    plugin_info: <<P as Plugin>::FunctionNameMod as PluginMod<FunctionName<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> FunctionName<P> {
@@ -1918,7 +2010,7 @@ impl<P: Plugin> FunctionName<P> {
             names,
             colon_name: None,
 
-            _phantom: std::marker::PhantomData,
+            plugin_info: Default::default(),
         }
     }
 
@@ -1969,6 +2061,9 @@ pub struct FunctionDeclaration<P: Plugin = DefaultPlugin> {
     function_token: TokenReference,
     name: FunctionName<P>,
     body: FunctionBody<P>,
+
+    plugin_info:
+        <<P as Plugin>::FunctionDeclarationMod as PluginMod<FunctionDeclaration<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> FunctionDeclaration<P> {
@@ -1978,6 +2073,8 @@ impl<P: Plugin> FunctionDeclaration<P> {
             function_token: TokenReference::symbol("function ").unwrap(),
             name,
             body: FunctionBody::new(),
+
+            plugin_info: Default::default(),
         }
     }
 

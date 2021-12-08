@@ -25,19 +25,15 @@ pub fn display_optional_punctuated_vec<T: Display>(vec: &[(T, Option<TokenRefere
     string
 }
 
-// TODO
-// pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
-//     let mut string = String::new();
+// PLUGIN TODO
+pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
+    let mut string = String::new();
 
-//     for item in vec.as_ref() {
-//         string.push_str(&item.to_string());
-//     }
+    for item in vec.as_ref() {
+        string.push_str(&item.to_string());
+    }
 
-//     string
-// }
-
-pub fn join_vec<T, V: AsRef<[T]>>(vec: V) -> String {
-    todo!("join_vec, Display bounds are fucked")
+    string
 }
 
 #[cfg(feature = "roblox")]

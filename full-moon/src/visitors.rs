@@ -215,16 +215,6 @@ impl<P: Plugin, T: VisitMut<P>> VisitMut<P> for Box<T> {
     }
 }
 
-impl<T, P: Plugin> Visit<P> for std::marker::PhantomData<T> {
-    fn visit<V: Visitor<P>>(&self, _visitor: &mut V) {}
-}
-
-impl<T, P: Plugin> VisitMut<P> for std::marker::PhantomData<T> {
-    fn visit_mut<V: VisitorMut<P>>(self, _visitor: &mut V) -> Self {
-        self
-    }
-}
-
 create_visitor!(ast: {
     visit_anonymous_call => FunctionArgs<P>,
     visit_assignment => Assignment<P>,

@@ -546,6 +546,7 @@ define_parser!(ParseNumericFor, NumericFor, |_, state| {
             end_token,
             #[cfg(feature = "roblox")]
             type_specifier,
+            plugin_info: (),
         },
     ))
 });
@@ -609,6 +610,7 @@ define_parser!(ParseGenericFor, GenericFor, |_, state| {
             end_token,
             #[cfg(feature = "roblox")]
             type_specifiers,
+            plugin_info: (),
         },
     ))
 });
@@ -677,6 +679,7 @@ define_parser!(ParseIf, If, |_, state| {
                 Some(else_ifs)
             },
             end_token,
+            plugin_info: (),
         },
     ))
 });
@@ -701,6 +704,8 @@ define_parser!(ParseWhile, While, |_, state| {
             do_token,
             block,
             end_token,
+
+            plugin_info: (),
         },
     ))
 });
@@ -723,6 +728,8 @@ define_parser!(ParseRepeat, Repeat, |_, state| {
             block,
             until_token,
             until,
+
+            plugin_info: (),
         },
     ))
 });
@@ -738,6 +745,8 @@ define_parser!(ParseMethodCall, MethodCall, |_, state| {
             colon_token,
             name,
             args,
+
+            plugin_info: (),
         },
     ))
 });
@@ -866,6 +875,8 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
             type_specifiers,
             #[cfg(feature = "roblox")]
             return_type,
+
+            plugin_info: (),
         },
     ))
 });
@@ -896,7 +907,15 @@ define_parser!(ParseVarExpression, VarExpression, |_, state| {
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Index(_)) = suffixes.last() {
-        Ok((state, VarExpression { prefix, suffixes }))
+        Ok((
+            state,
+            VarExpression {
+                prefix,
+                suffixes,
+
+                plugin_info: (),
+            },
+        ))
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -926,6 +945,8 @@ define_parser!(ParseAssignment, Assignment, |_, state| {
             var_list,
             equal_token,
             expr_list,
+
+            plugin_info: (),
         },
     ))
 });
@@ -944,6 +965,8 @@ define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
             function_token,
             name,
             body,
+
+            plugin_info: (),
         },
     ))
 });
@@ -1005,6 +1028,8 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
             name_list,
             equal_token,
             expr_list,
+
+            plugin_info: (),
         },
     ))
 });
@@ -1026,6 +1051,8 @@ define_parser!(ParseDo, Do, |_, state| {
             do_token,
             block,
             end_token,
+
+            plugin_info: (),
         },
     ))
 });
@@ -1037,7 +1064,15 @@ define_parser!(ParseFunctionCall, FunctionCall, |_, state| {
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Call(_)) = suffixes.last() {
-        Ok((state, FunctionCall { prefix, suffixes }))
+        Ok((
+            state,
+            FunctionCall {
+                prefix,
+                suffixes,
+
+                plugin_info: (),
+            },
+        ))
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -1061,7 +1096,8 @@ define_parser!(ParseFunctionName, FunctionName, |_, state| {
         FunctionName {
             names,
             colon_name,
-            _phantom: PhantomData,
+
+            plugin_info: (),
         },
     ))
 });
@@ -1086,6 +1122,8 @@ define_parser!(ParseFunctionDeclaration, FunctionDeclaration, |_, state| {
             function_token,
             name,
             body,
+
+            plugin_info: (),
         },
     ))
 });
