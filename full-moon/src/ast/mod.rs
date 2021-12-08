@@ -2394,33 +2394,37 @@ mod tests {
             Vec::new(),
         );
 
-        let expression = Expression::Value {
+        let expression: Expression = Expression::Value {
             value: Box::new(Value::Var(Var::Name(token.clone()))),
             #[cfg(feature = "roblox")]
             type_assertion: None,
         };
 
-        Assignment::new(Punctuated::new(), Punctuated::new());
-        Do::new();
-        ElseIf::new(expression.clone());
-        FunctionBody::new();
-        FunctionCall::new(Prefix::Name(token.clone()));
-        FunctionDeclaration::new(FunctionName::new(Punctuated::new()));
-        GenericFor::new(Punctuated::new(), Punctuated::new());
-        If::new(expression.clone());
-        LocalAssignment::new(Punctuated::new());
-        LocalFunction::new(token.clone());
-        MethodCall::new(
+        // TODO: `new` should not require a generic.
+        // Rust has a similar problem with HashMap::new() and RandomState.
+        // Creating a node with a plugin that's non-default should be a separate method.
+
+        let _: Assignment = Assignment::new(Punctuated::new(), Punctuated::new());
+        let _: Do = Do::new();
+        let _: ElseIf = ElseIf::new(expression.clone());
+        let _: FunctionBody = FunctionBody::new();
+        let _: FunctionCall = FunctionCall::new(Prefix::Name(token.clone()));
+        let _: FunctionDeclaration = FunctionDeclaration::new(FunctionName::new(Punctuated::new()));
+        let _: GenericFor = GenericFor::new(Punctuated::new(), Punctuated::new());
+        let _: If = If::new(expression.clone());
+        let _: LocalAssignment = LocalAssignment::new(Punctuated::new());
+        let _: LocalFunction = LocalFunction::new(token.clone());
+        let _: MethodCall = MethodCall::new(
             token.clone(),
             FunctionArgs::Parentheses {
                 arguments: Punctuated::new(),
                 parentheses: ContainedSpan::new(token.clone(), token.clone()),
             },
         );
-        NumericFor::new(token, expression.clone(), expression.clone());
-        Repeat::new(expression.clone());
-        Return::new();
-        TableConstructor::new();
-        While::new(expression);
+        let _: NumericFor = NumericFor::new(token, expression.clone(), expression.clone());
+        let _: Repeat = Repeat::new(expression.clone());
+        let _: Return = Return::new();
+        let _: TableConstructor = TableConstructor::new();
+        let _: While = While::new(expression);
     }
 }
