@@ -25,7 +25,6 @@ pub fn display_optional_punctuated_vec<T: Display>(vec: &[(T, Option<TokenRefere
     string
 }
 
-// PLUGIN TODO
 pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
     let mut string = String::new();
 
