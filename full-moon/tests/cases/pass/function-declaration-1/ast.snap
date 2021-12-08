@@ -51,6 +51,7 @@ stmts:
                       identifier: x
                   trailing_trivia: []
           colon_name: ~
+          plugin_info: ~
         body:
           parameters_parentheses:
             tokens:
@@ -172,7 +173,9 @@ stmts:
                                           characters: "\n"
                               arguments:
                                 pairs: []
+                    plugin_info: ~
                 - ~
+            plugin_info: ~
           end_token:
             leading_trivia: []
             token:
@@ -188,5 +191,8 @@ stmts:
                 type: Symbol
                 symbol: end
             trailing_trivia: []
+          plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

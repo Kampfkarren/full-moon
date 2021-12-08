@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/local-function-2
 
 ---
 stmts:
@@ -175,6 +176,7 @@ stmts:
                     trailing_trivia: []
           block:
             stmts: []
+            plugin_info: ~
           end_token:
             leading_trivia: []
             token:
@@ -201,6 +203,8 @@ stmts:
                 token_type:
                   type: Whitespace
                   characters: "\n"
+          plugin_info: ~
+        plugin_info: ~
     - ~
   - - LocalFunction:
         local_token:
@@ -332,6 +336,7 @@ stmts:
                     trailing_trivia: []
           block:
             stmts: []
+            plugin_info: ~
           end_token:
             leading_trivia: []
             token:
@@ -358,6 +363,8 @@ stmts:
                 token_type:
                   type: Whitespace
                   characters: "\n"
+          plugin_info: ~
+        plugin_info: ~
     - ~
   - - LocalFunction:
         local_token:
@@ -571,6 +578,7 @@ stmts:
                     trailing_trivia: []
           block:
             stmts: []
+            plugin_info: ~
           end_token:
             leading_trivia: []
             token:
@@ -586,5 +594,8 @@ stmts:
                 type: Symbol
                 symbol: end
             trailing_trivia: []
+          plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

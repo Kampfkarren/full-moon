@@ -163,5 +163,7 @@ stmts:
                         type: Symbol
                         symbol: "true"
                     trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

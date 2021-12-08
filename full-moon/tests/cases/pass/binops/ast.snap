@@ -149,6 +149,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -351,6 +352,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -662,6 +664,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -976,6 +979,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -1232,6 +1236,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -1491,6 +1496,7 @@ stmts:
                               token_type:
                                 type: Whitespace
                                 characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -1652,6 +1658,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: "\n"
+        plugin_info: ~
     - ~
   - - Assignment:
         var_list:
@@ -1843,5 +1850,7 @@ stmts:
                               type: Identifier
                               identifier: z
                           trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -98,6 +98,7 @@ stmts:
                                   literal: Hello world
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - leading_trivia: []
       token:
         start_position:
@@ -123,4 +124,5 @@ stmts:
           token_type:
             type: Whitespace
             characters: "\n"
+plugin_info: ~
 

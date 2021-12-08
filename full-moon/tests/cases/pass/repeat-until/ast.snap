@@ -109,7 +109,9 @@ stmts:
                                         characters: "\n"
                             arguments:
                               pairs: []
+                  plugin_info: ~
               - ~
+          plugin_info: ~
         until_token:
           leading_trivia: []
           token:
@@ -154,5 +156,7 @@ stmts:
                     type: Identifier
                     identifier: condition
                 trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

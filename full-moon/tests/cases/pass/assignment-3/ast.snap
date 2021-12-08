@@ -344,6 +344,7 @@ stmts:
                                       type: Number
                                       text: "1"
                                   trailing_trivia: []
+                    plugin_info: ~
                 - leading_trivia: []
                   token:
                     start_position:
@@ -454,6 +455,7 @@ stmts:
                                     trailing_trivia: []
                               arguments:
                                 pairs: []
+                          plugin_info: ~
                     - Index:
                         Dot:
                           dot:
@@ -602,6 +604,7 @@ stmts:
                                     trailing_trivia: []
                               arguments:
                                 pairs: []
+                          plugin_info: ~
                     - Index:
                         Brackets:
                           brackets:
@@ -663,6 +666,7 @@ stmts:
                                       type: Identifier
                                       identifier: m
                                   trailing_trivia: []
+                  plugin_info: ~
         equal_token:
           leading_trivia: []
           token:
@@ -834,5 +838,7 @@ stmts:
                         type: Number
                         text: "4"
                     trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

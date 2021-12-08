@@ -227,5 +227,7 @@ stmts:
                                       type: Number
                                       text: "3"
                                   trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

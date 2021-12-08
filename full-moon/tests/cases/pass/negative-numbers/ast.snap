@@ -151,6 +151,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: "\n"
+        plugin_info: ~
     - ~
   - - LocalAssignment:
         local_token:
@@ -309,6 +310,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: "\n"
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -442,5 +444,7 @@ stmts:
                                       type: Number
                                       text: "3"
                                   trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

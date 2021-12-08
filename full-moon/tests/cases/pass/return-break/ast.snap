@@ -103,7 +103,9 @@ stmts:
                                 token_type:
                                   type: Whitespace
                                   characters: "\n"
+                plugin_info: ~
             - ~
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -130,6 +132,7 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: "\n"
+        plugin_info: ~
     - ~
   - - Do:
         do_token:
@@ -210,6 +213,7 @@ stmts:
                       type: Whitespace
                       characters: "\n"
             - ~
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -236,6 +240,7 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: "\n"
+        plugin_info: ~
     - ~
 last_stmt:
   - Return:
@@ -344,5 +349,8 @@ last_stmt:
                                         characters: "\n"
                             arguments:
                               pairs: []
+                  plugin_info: ~
+      plugin_info: ~
   - ~
+plugin_info: ~
 

@@ -164,5 +164,7 @@ stmts:
                                         token_type:
                                           type: Whitespace
                                           characters: " "
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -267,7 +267,9 @@ stmts:
                                               type: Identifier
                                               identifier: index
                                           trailing_trivia: []
+                  plugin_info: ~
               - ~
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -294,6 +296,7 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: "\n"
+        plugin_info: ~
     - ~
   - - NumericFor:
         for_token:
@@ -477,6 +480,7 @@ stmts:
                 characters: " "
         block:
           stmts: []
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -503,6 +507,7 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: "\n"
+        plugin_info: ~
     - ~
   - - NumericFor:
         for_token:
@@ -725,6 +730,7 @@ stmts:
                 characters: " "
         block:
           stmts: []
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -740,5 +746,7 @@ stmts:
               type: Symbol
               symbol: end
           trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

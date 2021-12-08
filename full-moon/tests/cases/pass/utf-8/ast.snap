@@ -133,5 +133,7 @@ stmts:
                                       type: Identifier
                                       identifier: message
                                   trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

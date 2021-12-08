@@ -243,6 +243,7 @@ stmts:
                                                       trailing_trivia: []
                                                 arguments:
                                                   pairs: []
+                                      plugin_info: ~
                                 equal:
                                   leading_trivia: []
                                   token:
@@ -311,5 +312,7 @@ stmts:
                                   token_type:
                                     type: Whitespace
                                     characters: "\n"
+        plugin_info: ~
     - ~
+plugin_info: ~
 

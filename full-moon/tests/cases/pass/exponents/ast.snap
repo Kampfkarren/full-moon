@@ -116,6 +116,7 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: "\n"
+        plugin_info: ~
     - ~
   - - LocalAssignment:
         local_token:
@@ -228,6 +229,7 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: "\n"
+        plugin_info: ~
     - ~
   - - LocalAssignment:
         local_token:
@@ -329,5 +331,7 @@ stmts:
                         type: Number
                         text: "1e+5"
                     trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

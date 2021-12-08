@@ -5,4 +5,5 @@ input_file: full-moon/tests/cases/pass/mixed-indented-comments
 
 ---
 stmts: []
+plugin_info: ~
 

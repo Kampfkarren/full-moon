@@ -5,4 +5,5 @@ input_file: full-moon/tests/cases/pass/multi-line-comments-5
 
 ---
 stmts: []
+plugin_info: ~
 

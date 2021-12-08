@@ -212,6 +212,7 @@ stmts:
                                                 type: Identifier
                                                 identifier: list
                                             trailing_trivia: []
+                    plugin_info: ~
         do_token:
           leading_trivia: []
           token:
@@ -376,7 +377,9 @@ stmts:
                                               type: Identifier
                                               identifier: value
                                           trailing_trivia: []
+                  plugin_info: ~
               - ~
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -392,5 +395,7 @@ stmts:
               type: Symbol
               symbol: end
           trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

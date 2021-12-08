@@ -213,7 +213,9 @@ stmts:
                                                                     literal: bar
                                                                     quote_type: Double
                                                                 trailing_trivia: []
+                                          plugin_info: ~
                                       - ~
+                                  plugin_info: ~
                                 end_token:
                                   leading_trivia: []
                                   token:
@@ -229,5 +231,8 @@ stmts:
                                       type: Symbol
                                       symbol: end
                                   trailing_trivia: []
+                                plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -116,6 +116,7 @@ stmts:
                         token_type:
                           type: Whitespace
                           characters: "\n"
+        plugin_info: ~
     - ~
 last_stmt:
   - Return:
@@ -165,6 +166,7 @@ last_stmt:
                         type: Identifier
                         identifier: x
                     trailing_trivia: []
+      plugin_info: ~
   - leading_trivia: []
     token:
       start_position:
@@ -179,4 +181,5 @@ last_stmt:
         type: Symbol
         symbol: ;
     trailing_trivia: []
+plugin_info: ~
 

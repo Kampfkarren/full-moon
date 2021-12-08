@@ -139,6 +139,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: "\n"
+        plugin_info: ~
     - ~
   - - LocalAssignment:
         local_token:
@@ -285,6 +286,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: "\n"
+        plugin_info: ~
     - ~
   - - LocalAssignment:
         local_token:
@@ -398,6 +400,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: "\n"
+        plugin_info: ~
     - ~
   - - Do:
         do_token:
@@ -562,6 +565,7 @@ stmts:
                                     token_type:
                                       type: Whitespace
                                       characters: "\n"
+                  plugin_info: ~
               - ~
             - - LocalAssignment:
                   local_token:
@@ -719,7 +723,9 @@ stmts:
                                     token_type:
                                       type: Whitespace
                                       characters: "\n"
+                  plugin_info: ~
               - ~
+          plugin_info: ~
         end_token:
           leading_trivia: []
           token:
@@ -735,5 +741,7 @@ stmts:
               type: Symbol
               symbol: end
           trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

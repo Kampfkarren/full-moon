@@ -77,5 +77,7 @@ stmts:
                                   multi_line: 0
                                   quote_type: Brackets
                               trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

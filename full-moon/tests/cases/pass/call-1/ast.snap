@@ -69,6 +69,7 @@ stmts:
                               characters: "\n"
                   arguments:
                     pairs: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -151,6 +152,7 @@ stmts:
                                   type: Number
                                   text: "1"
                               trailing_trivia: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -264,5 +266,7 @@ stmts:
                                   type: Number
                                   text: "2"
                               trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -105,6 +105,7 @@ stmts:
                         type: Number
                         text: "1"
                     trailing_trivia: []
+        plugin_info: ~
     - leading_trivia: []
       token:
         start_position:
@@ -262,5 +263,7 @@ stmts:
                           type: Number
                           text: "1"
                       trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

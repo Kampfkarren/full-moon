@@ -119,6 +119,7 @@ stmts:
                                   literal: a
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -222,5 +223,8 @@ stmts:
                                     literal: b
                                     quote_type: Double
                                 trailing_trivia: []
+                plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

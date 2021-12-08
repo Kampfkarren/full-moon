@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/cases/pass/goto-as-identifier
 
 ---
 stmts:
@@ -129,5 +130,7 @@ stmts:
                                   literal: foo
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -134,5 +134,7 @@ stmts:
                           trailing_trivia: []
                     fields:
                       pairs: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

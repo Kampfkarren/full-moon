@@ -80,5 +80,7 @@ stmts:
                               comment: " This calls"
                   arguments:
                     pairs: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

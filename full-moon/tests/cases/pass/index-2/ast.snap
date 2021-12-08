@@ -194,5 +194,8 @@ stmts:
                                     type: Identifier
                                     identifier: b
                                 trailing_trivia: []
+                      plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

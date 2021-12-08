@@ -87,6 +87,7 @@ stmts:
                                   literal: double
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -170,6 +171,7 @@ stmts:
                                   literal: single
                                   quote_type: Single
                               trailing_trivia: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -253,6 +255,7 @@ stmts:
                                   literal: "foo\\nbar"
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -325,5 +328,7 @@ stmts:
                                   literal: ""
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

@@ -108,6 +108,7 @@ stmts:
                   type: Identifier
                   identifier: z
               trailing_trivia: []
+          plugin_info: ~
         body:
           parameters_parentheses:
             tokens:
@@ -154,6 +155,7 @@ stmts:
             pairs: []
           block:
             stmts: []
+            plugin_info: ~
           end_token:
             leading_trivia: []
             token:
@@ -169,5 +171,8 @@ stmts:
                 type: Symbol
                 symbol: end
             trailing_trivia: []
+          plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 

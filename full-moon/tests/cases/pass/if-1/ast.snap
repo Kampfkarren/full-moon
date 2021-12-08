@@ -164,7 +164,9 @@ stmts:
                                         characters: "\n"
                             arguments:
                               pairs: []
+                  plugin_info: ~
               - ~
+          plugin_info: ~
         else_if: ~
         else_token: ~
         else: ~
@@ -183,5 +185,7 @@ stmts:
               type: Symbol
               symbol: end
           trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

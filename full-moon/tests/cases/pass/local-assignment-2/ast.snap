@@ -105,5 +105,7 @@ stmts:
                         type: Number
                         text: "1"
                     trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

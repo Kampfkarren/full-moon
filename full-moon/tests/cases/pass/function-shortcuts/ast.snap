@@ -173,6 +173,7 @@ stmts:
                                       token_type:
                                         type: Whitespace
                                         characters: " "
+        plugin_info: ~
     - ~
   - - FunctionCall:
         prefix:
@@ -221,5 +222,7 @@ stmts:
                       literal: hello
                       quote_type: Double
                   trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

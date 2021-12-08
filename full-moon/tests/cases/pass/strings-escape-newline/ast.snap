@@ -87,5 +87,7 @@ stmts:
                                   literal: "foo\\\n\tbar"
                                   quote_type: Double
                               trailing_trivia: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

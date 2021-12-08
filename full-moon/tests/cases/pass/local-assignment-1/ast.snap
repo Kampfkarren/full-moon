@@ -52,5 +52,7 @@ stmts:
         equal_token: ~
         expr_list:
           pairs: []
+        plugin_info: ~
     - ~
+plugin_info: ~
 

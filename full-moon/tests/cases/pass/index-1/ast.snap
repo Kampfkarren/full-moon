@@ -173,5 +173,8 @@ stmts:
                                     type: Identifier
                                     identifier: c
                                 trailing_trivia: []
+                      plugin_info: ~
+        plugin_info: ~
     - ~
+plugin_info: ~
 
