@@ -49,7 +49,11 @@ macro_rules! display_plugin_info {
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "PLUGIN TODO: Display Block")]
+#[display(
+    fmt = "{}{}",
+    "display_optional_punctuated_vec(stmts)",
+    "display_option(&last_stmt.as_ref().map(display_optional_punctuated))"
+)]
 pub struct Block<P: Plugin = DefaultPlugin> {
     stmts: Vec<(Stmt<P>, Option<TokenReference>)>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
