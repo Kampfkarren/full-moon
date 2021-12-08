@@ -934,8 +934,7 @@ impl<P: Plugin> fmt::Display for GenericFor<P> {
     "condition",
     "then_token",
     "block",
-    "\"PLUGIN TODO\"",
-    // "display_option(else_if.as_ref().map(join_vec))",
+    "display_option(else_if.as_ref().map(join_vec))",
     "display_option(else_token)",
     "display_option(r#else)",
     "end_token"
