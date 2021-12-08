@@ -1,6 +1,6 @@
 use crate::{ast::*, node::Node, private};
 
-use super::{Plugin, PluginMod};
+use super::{Plugin, PluginInfo, PluginMod};
 
 use serde::{Deserialize, Serialize};
 
@@ -41,110 +41,47 @@ impl Node for Never {
     }
 }
 
-impl Plugin for DefaultPlugin {
-    type BlockMod = DefaultBlockInfo;
-    type CallMod = DefaultCallInfo;
-    type ElseIfMod = DefaultElseIfInfo;
-    type ExpressionMod = DefaultExpressionInfo;
-    type FieldMod = DefaultFieldInfo;
-    type FunctionArgsMod = DefaultFunctionArgsInfo;
-    type IndexMod = DefaultIndexInfo;
-    type LastStmtMod = DefaultLastStmtInfo;
-    type ParameterMod = DefaultParameterInfo;
-    type PrefixMod = DefaultPrefixInfo;
-    type ReturnMod = DefaultReturnInfo;
-    type StmtMod = DefaultStmtInfo;
-    type SuffixMod = DefaultSuffixInfo;
-    type ValueMod = DefaultValueInfo;
-    type VarMod = DefaultVarInfo;
+macro_rules! plugin_infos {
+    ({$(
+        $type:ty: $node_info:ty,
+    )+}) => {
+        paste::item! {
+            $(
+                pub struct [<Default $type Info>];
+
+                impl PluginMod<$type<DefaultPlugin>> for [<Default $type Info>] {
+                    type NodeInfo = $node_info;
+
+                    fn display(_: $node_info) -> String {
+                        unreachable!("DefaultPlugin info structs should not be being displayed");
+                    }
+                }
+            )+
+
+            impl Plugin for DefaultPlugin {
+                $(
+                    type [<$type Mod>] = [<Default $type Info>];
+                )+
+            }
+        }
+    };
 }
 
-pub struct DefaultBlockInfo;
-
-impl PluginMod<Block<DefaultPlugin>> for DefaultBlockInfo {
-    type NodeInfo = ();
-}
-
-pub struct DefaultCallInfo;
-
-impl PluginMod<Call<DefaultPlugin>> for DefaultCallInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultElseIfInfo;
-
-impl PluginMod<ElseIf<DefaultPlugin>> for DefaultElseIfInfo {
-    type NodeInfo = ();
-}
-
-pub struct DefaultExpressionInfo;
-
-impl PluginMod<Expression<DefaultPlugin>> for DefaultExpressionInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultFieldInfo;
-
-impl PluginMod<Field<DefaultPlugin>> for DefaultFieldInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultFunctionArgsInfo;
-
-impl PluginMod<FunctionArgs<DefaultPlugin>> for DefaultFunctionArgsInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultIndexInfo;
-
-impl PluginMod<Index<DefaultPlugin>> for DefaultIndexInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultLastStmtInfo;
-
-impl PluginMod<LastStmt<DefaultPlugin>> for DefaultLastStmtInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultParameterInfo;
-
-impl PluginMod<Parameter<DefaultPlugin>> for DefaultParameterInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultPrefixInfo;
-
-impl PluginMod<Prefix<DefaultPlugin>> for DefaultPrefixInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultReturnInfo;
-
-impl PluginMod<Return<DefaultPlugin>> for DefaultReturnInfo {
-    type NodeInfo = ();
-}
-
-pub struct DefaultStmtInfo;
-
-impl PluginMod<Stmt<DefaultPlugin>> for DefaultStmtInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultSuffixInfo;
-
-impl PluginMod<Suffix<DefaultPlugin>> for DefaultSuffixInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultValueInfo;
-
-impl PluginMod<Value<DefaultPlugin>> for DefaultValueInfo {
-    type NodeInfo = Never;
-}
-
-pub struct DefaultVarInfo;
-
-impl PluginMod<Var<DefaultPlugin>> for DefaultVarInfo {
-    type NodeInfo = Never;
-}
+// Structs get (), enums get Never
+plugin_infos!({
+    Block: (),
+    Call: Never,
+    ElseIf: (),
+    Expression: Never,
+    Field: Never,
+    FunctionArgs: Never,
+    Index: Never,
+    LastStmt: Never,
+    Parameter: Never,
+    Prefix: Never,
+    Return: (),
+    Stmt: Never,
+    Suffix: Never,
+    Value: Never,
+    Var: Never,
+});

@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::{ast::*, node::Node};
 
@@ -72,4 +72,6 @@ impl<T> PluginInfo for T where
 
 pub trait PluginMod<T> {
     type NodeInfo: PluginInfo;
+
+    fn display(node_info: Self::NodeInfo) -> String;
 }
