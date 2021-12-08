@@ -2400,7 +2400,7 @@ mod tests {
             type_assertion: None,
         };
 
-        // TODO: `new` should not require a generic.
+        // PLUGIN TODO: `new` should not require a generic.
         // Rust has a similar problem with HashMap::new() and RandomState.
         // Creating a node with a plugin that's non-default should be a separate method.
 

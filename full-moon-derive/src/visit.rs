@@ -236,8 +236,7 @@ impl MatchEnumGenerator for VisitGenerator {
         // Plugins should create their own visitors, there's no good way
         // to handle this generically.
         if *variant == "Plugin" {
-            // TODO: Remove this if impossible
-            unimplemented!("Plugin wasn't expected as a named variant");
+            panic!("Plugin wasn't expected as a named variant");
         }
 
         let fields: Vec<_> = named
@@ -278,7 +277,7 @@ impl MatchEnumGenerator for VisitGenerator {
                     // TODO: This is probably wrong
                     unimplemented!("Plugin variant should not be being matched, plugins need to handle their own visit behavior");
                 }
-            }
+            };
         }
 
         let fields: Vec<_> = fields
