@@ -33,8 +33,7 @@ use std::{fmt::Display, iter::FromIterator};
 #[derive(Clone, Debug, Default, Display, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(bound = "T: Display")]
-// #[display(fmt = "{}", "util::join_vec(pairs)")]
-#[display(fmt = "PLUGIN TODO")]
+#[display(fmt = "{}", "util::join_vec(pairs)")]
 pub struct Punctuated<T> {
     pairs: Vec<Pair<T>>,
 }
