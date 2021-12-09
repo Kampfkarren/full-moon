@@ -1,6 +1,6 @@
-use crate::{ast::*, node::Node, private};
+use crate::ast::*;
 
-use super::{Plugin, PluginInfo, PluginMod};
+use super::Never;
 
 use serde::{Deserialize, Serialize};
 
@@ -8,67 +8,41 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct DefaultPlugin;
 
-#[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub enum Never {}
-
-impl private::Sealed for Never {}
-
-impl Default for Never {
-    fn default() -> Self {
-        unreachable!()
-    }
-}
-
-impl Node for Never {
-    fn start_position(&self) -> Option<crate::tokenizer::Position> {
-        None
-    }
-
-    fn end_position(&self) -> Option<crate::tokenizer::Position> {
-        None
-    }
-
-    fn similar(&self, other: &Self) -> bool
-    where
-        Self: Sized,
-    {
-        true
-    }
-
-    fn tokens(&self) -> crate::node::Tokens {
-        crate::node::Tokens { items: Vec::new() }
-    }
-}
-
-macro_rules! plugin_infos {
-    ({$(
-        $type:ty: $node_info:ty,
-    )+}) => {
+#[macro_export]
+macro_rules! create_plugin {
+    ($plugin:ty, {$(
+        $arbitrary_stmt:stmt
+    )*}, {$(
+        $default_type:ty: $default_node_info:ty,
+    )*}) => {
         paste::item! {
             $(
-                pub struct [<Default $type Info>];
+                pub struct [<Default $default_type Info>];
 
-                impl PluginMod<$type<DefaultPlugin>> for [<Default $type Info>] {
-                    type NodeInfo = $node_info;
+                impl $crate::plugins::PluginMod<$default_type<$plugin>> for [<Default $default_type Info>] {
+                    type NodeInfo = $default_node_info;
 
-                    fn display(_: &$node_info) -> String {
+                    fn display(_: &$default_type<$plugin>) -> String {
                         unreachable!("DefaultPlugin info structs should not be being displayed");
                     }
                 }
-            )+
+            )*
 
-            impl Plugin for DefaultPlugin {
+            impl $crate::plugins::Plugin for $plugin {
                 $(
-                    type [<$type Mod>] = [<Default $type Info>];
-                )+
+                    $arbitrary_stmt
+                )*
+
+                $(
+                    type [<$default_type Mod>] = [<Default $default_type Info>];
+                )*
             }
         }
     };
 }
 
 // Structs get (), enums get Never
-plugin_infos!({
+create_plugin!(DefaultPlugin, {}, {
     Assignment: (),
     Block: (),
     Call: Never,

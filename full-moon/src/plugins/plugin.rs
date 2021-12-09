@@ -26,7 +26,7 @@ pub trait ConditionalDeserialize {}
 #[cfg(not(feature = "serde"))]
 impl<T> ConditionalDeserialize for T {}
 
-macro_rules! create_plugin {
+macro_rules! create_base_plugin_trait {
     ({
         $($type:ty,)+
     }) => {
@@ -41,7 +41,7 @@ macro_rules! create_plugin {
     };
 }
 
-create_plugin!({
+create_base_plugin_trait!({
     Assignment,
     Block,
     Call,
@@ -88,5 +88,5 @@ impl<T> PluginInfo for T where
 pub trait PluginMod<T> {
     type NodeInfo: PluginInfo;
 
-    fn display(node_info: &Self::NodeInfo) -> String;
+    fn display(node: &T) -> String;
 }

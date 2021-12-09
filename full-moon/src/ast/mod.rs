@@ -120,7 +120,7 @@ pub enum LastStmt<P: Plugin = DefaultPlugin> {
     /// A `return` statement
     Return(Return<P>),
 
-    #[display(fmt = "{}", "display_plugin_info!(LastStmt<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(LastStmt<P>, self)")]
     Plugin(<<P as Plugin>::LastStmtMod as PluginMod<LastStmt<P>>>::NodeInfo),
 }
 
@@ -214,7 +214,7 @@ pub enum Field<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     NoKey(Expression<P>),
 
-    #[display(fmt = "{}", "display_plugin_info!(Field<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Field<P>, self)")]
     Plugin(<<P as Plugin>::FieldMod as PluginMod<Field<P>>>::NodeInfo),
 }
 
@@ -350,7 +350,7 @@ impl<P: Plugin> fmt::Display for Expression<P> {
                 Ok(())
             }
 
-            Expression::Plugin(info) => write!(f, "{}", display_plugin_info!(Expression<P>, info)),
+            Expression::Plugin(_) => write!(f, "{}", display_plugin_info!(Expression<P>, self)),
         }
     }
 }
@@ -389,7 +389,7 @@ pub enum Value<P: Plugin = DefaultPlugin> {
     /// A more complex value, such as `call().x`
     #[display(fmt = "{}", "_0")]
     Var(Var<P>),
-    #[display(fmt = "{}", "display_plugin_info!(Value<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Value<P>, self)")]
     Plugin(<<P as Plugin>::ValueMod as PluginMod<Value<P>>>::NodeInfo),
 }
 
@@ -455,7 +455,7 @@ pub enum Stmt<P: Plugin = DefaultPlugin> {
     #[cfg(feature = "lua52")]
     Label(Label),
 
-    #[display(fmt = "{}", "display_plugin_info!(Stmt<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Stmt<P>, self)")]
     Plugin(<<P as Plugin>::StmtMod as PluginMod<Stmt<P>>>::NodeInfo),
 }
 
@@ -473,7 +473,7 @@ pub enum Prefix<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     Name(TokenReference),
 
-    #[display(fmt = "{}", "display_plugin_info!(Prefix<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Prefix<P>, self)")]
     Plugin(<<P as Plugin>::PrefixMod as PluginMod<Prefix<P>>>::NodeInfo),
 }
 
@@ -506,7 +506,7 @@ pub enum Index<P: Plugin = DefaultPlugin> {
         name: TokenReference,
     },
 
-    #[display(fmt = "{}", "display_plugin_info!(Index<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Index<P>, self)")]
     Plugin(<<P as Plugin>::IndexMod as PluginMod<Index<P>>>::NodeInfo),
 }
 
@@ -536,7 +536,7 @@ pub enum FunctionArgs<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor<P>),
 
-    #[display(fmt = "{}", "display_plugin_info!(FunctionArgs<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(FunctionArgs<P>, self)")]
     Plugin(<<P as Plugin>::FunctionArgsMod as PluginMod<FunctionArgs<P>>>::NodeInfo),
 }
 
@@ -1346,7 +1346,7 @@ pub enum Call<P: Plugin = DefaultPlugin> {
     /// A method call, such as `x:y()`
     MethodCall(MethodCall<P>),
 
-    #[display(fmt = "{}", "display_plugin_info!(Call<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Call<P>, self)")]
     Plugin(<<P as Plugin>::CallMod as PluginMod<Call<P>>>::NodeInfo),
 }
 
@@ -1540,7 +1540,7 @@ pub enum Parameter<P: Plugin = DefaultPlugin> {
     /// A name parameter, such as `function x(a, b, c)`
     Name(TokenReference),
 
-    #[display(fmt = "{}", "display_plugin_info!(Parameter<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Parameter<P>, self)")]
     Plugin(<<P as Plugin>::ParameterMod as PluginMod<Parameter<P>>>::NodeInfo),
 }
 
@@ -1557,7 +1557,7 @@ pub enum Suffix<P: Plugin = DefaultPlugin> {
     /// An index, such as `x.y`
     Index(Index<P>),
 
-    #[display(fmt = "{}", "display_plugin_info!(Suffix<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Suffix<P>, self)")]
     Plugin(<<P as Plugin>::SuffixMod as PluginMod<Suffix<P>>>::NodeInfo),
 }
 
@@ -1614,7 +1614,7 @@ pub enum Var<P: Plugin = DefaultPlugin> {
     #[display(fmt = "{}", "_0")]
     Name(TokenReference),
 
-    #[display(fmt = "{}", "display_plugin_info!(Var<P>, _0)")]
+    #[display(fmt = "{}", "display_plugin_info!(Var<P>, self)")]
     Plugin(<<P as Plugin>::VarMod as PluginMod<Var<P>>>::NodeInfo),
 }
 
