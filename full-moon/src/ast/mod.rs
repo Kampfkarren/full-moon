@@ -2273,7 +2273,7 @@ impl Ast<DefaultPlugin> {
             Err(AstError::NoEof)
         } else {
             let mut tokens = extract_token_references(tokens);
-            let mut state = ParserState::new(&tokens);
+            let mut state: ParserState<DefaultPlugin> = ParserState::new(&tokens);
 
             if tokens
                 .iter()
