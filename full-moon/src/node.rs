@@ -1,5 +1,6 @@
 use crate::{
     ast::Ast,
+    plugins::Plugin,
     private,
     tokenizer::{Position, Token, TokenReference},
 };
@@ -107,7 +108,7 @@ impl<'a> DoubleEndedIterator for Tokens<'a> {
     }
 }
 
-impl Node for Ast {
+impl<P: Plugin> Node for Ast<P> {
     fn start_position(&self) -> Option<Position> {
         self.nodes().start_position()
     }

@@ -1,5 +1,6 @@
 use crate::{
     ast::{Ast, AstError},
+    plugins::Plugin,
     tokenizer::{Token, TokenReference, TokenType, TokenizerError},
     Error,
 };
@@ -11,7 +12,7 @@ impl Sealed for () {}
 impl<T> Sealed for &T {}
 impl<T> Sealed for &mut T {}
 impl<T: ToOwned> Sealed for Cow<'_, T> {}
-impl Sealed for Ast {}
+impl<P: Plugin> Sealed for Ast<P> {}
 impl Sealed for AstError {}
 impl Sealed for Error {}
 impl Sealed for Token {}

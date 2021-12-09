@@ -4,81 +4,12 @@ use crate::{
     ShortString,
 };
 
-use full_moon_derive::symbols;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt, str::FromStr};
 
-symbols!(
-    And => "and",
-    Break => "break",
-    Do => "do",
-    ElseIf => "elseif",
-    Else => "else",
-    End => "end",
-    False => "false",
-    For => "for",
-    Function => "function",
-    If => "if",
-    In => "in",
-    Local => "local",
-    Nil => "nil",
-    Not => "not",
-    Or => "or",
-    Repeat => "repeat",
-    Return => "return",
-    Then => "then",
-    True => "true",
-    Until => "until",
-    While => "while",
-    #[cfg(feature = "lua52")]
-    Goto => "goto",
-
-    #[cfg(feature = "roblox")]
-    PlusEqual => "+=",
-    MinusEqual => "-=",
-    StarEqual => "*=",
-    SlashEqual => "/=",
-    PercentEqual => "%=",
-    CaretEqual => "^=",
-    TwoDotsEqual => "..=",
-    #[cfg(feature = "roblox")]
-    Ampersand => "&",
-    #[cfg(feature = "roblox")]
-    ThinArrow => "->",
-    #[cfg(any(feature = "roblox", feature = "lua52"))]
-    TwoColons => "::",
-    Caret => "^",
-    Colon => ":",
-    Comma => ",",
-    Ellipse => "...",
-    TwoDots => "..",
-    Dot => ".",
-    TwoEqual => "==",
-    Equal => "=",
-    GreaterThanEqual => ">=",
-    GreaterThan => ">",
-    Hash => "#",
-    LeftBrace => "{",
-    LeftBracket => "[",
-    LeftParen => "(",
-    LessThanEqual => "<=",
-    LessThan => "<",
-    Minus => "-",
-    Percent => "%",
-    #[cfg(feature = "roblox")]
-    Pipe => "|",
-    Plus => "+",
-    #[cfg(feature = "roblox")]
-    QuestionMark => "?",
-    RightBrace => "}",
-    RightBracket => "]",
-    RightParen => ")",
-    Semicolon => ";",
-    Slash => "/",
-    Star => "*",
-    TildeEqual => "~=",
-);
+use crate::symbols::parse_keyword;
+pub use crate::symbols::{ParseSymbol, Symbol};
 
 /// The possible errors that can happen while tokenizing.
 #[derive(Clone, Debug, PartialEq)]

@@ -63,7 +63,7 @@ define_parser!(ParseStringLiteral, TokenReference, |_, state| {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseBlock;
-define_parser!(ParseBlock, Block, |_, state| {
+define_parser!(ParseBlock, Block<P>, |_, state| {
     let mut stmts = Vec::new();
     while let Ok((new_state, stmt)) = keep_going!(ParseStmt.parse(state)) {
         state = new_state;
@@ -90,7 +90,7 @@ define_parser!(ParseBlock, Block, |_, state| {
             Block {
                 stmts,
                 last_stmt: Some((last_stmt, semicolon)),
-                plugin_info: (),
+                plugin_info: Default::default(),
             },
         ))
     } else {
@@ -99,7 +99,7 @@ define_parser!(ParseBlock, Block, |_, state| {
             Block {
                 stmts,
                 last_stmt: None,
-                plugin_info: (),
+                plugin_info: Default::default(),
             },
         ))
     }
@@ -109,7 +109,7 @@ define_parser!(ParseBlock, Block, |_, state| {
 struct ParseLastStmt;
 define_parser!(
     ParseLastStmt,
-    LastStmt,
+    LastStmt<P>,
     |_, state| if let Ok((state, token)) = ParseSymbol(Symbol::Return).parse(state) {
         let (state, returns) = expect!(
             state,
@@ -122,7 +122,7 @@ define_parser!(
             LastStmt::Return(Return {
                 token,
                 returns,
-                plugin_info: (),
+                plugin_info: Default::default(),
             }),
         ))
     } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
@@ -145,7 +145,7 @@ define_parser!(
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseField;
-define_parser!(ParseField, Field, |_, state| {
+define_parser!(ParseField, Field<P>, |_, state| {
     if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
         let (state, key) = expect!(state, ParseExpression.parse(state), "expected key");
         let (state, end_bracket) = expect!(
@@ -185,7 +185,7 @@ define_parser!(ParseField, Field, |_, state| {
 });
 
 struct ParseTableConstructor;
-define_parser!(ParseTableConstructor, TableConstructor, |_, state| {
+define_parser!(ParseTableConstructor, TableConstructor<P>, |_, state| {
     let (mut state, start_brace) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
     let mut fields = Punctuated::new();
 
@@ -227,7 +227,7 @@ define_parser!(ParseTableConstructor, TableConstructor, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseUnaryExpression;
-define_parser!(ParseUnaryExpression, Expression, |_, state| {
+define_parser!(ParseUnaryExpression, Expression<P>, |_, state| {
     let (state, unop) = keep_going!(ParseUnOp.parse(state))?;
     let (state, expression) = expect!(
         state,
@@ -241,7 +241,7 @@ define_parser!(ParseUnaryExpression, Expression, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseParenExpression;
-define_parser!(ParseParenExpression, Expression, |_, state| {
+define_parser!(ParseParenExpression, Expression<P>, |_, state| {
     let (state, left_paren) = ParseSymbol(Symbol::LeftParen).parse(state)?;
     let (state, expression) = expect!(state, ParseExpression.parse(state), "expected expression");
 
@@ -262,7 +262,7 @@ define_parser!(ParseParenExpression, Expression, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseValueExpression;
-define_parser!(ParseValueExpression, Expression, |_, state| {
+define_parser!(ParseValueExpression, Expression<P>, |_, state| {
     let (state, value) = keep_going!(ParseValue.parse(state))?;
     #[cfg(feature = "roblox")]
     let (state, type_assertion) =
@@ -286,7 +286,7 @@ define_parser!(ParseValueExpression, Expression, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParsePartExpression;
-define_parser!(ParsePartExpression, Expression, |_, state| {
+define_parser!(ParsePartExpression, Expression<P>, |_, state| {
     if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
         Ok((state, expression))
     } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
@@ -298,7 +298,7 @@ define_parser!(ParsePartExpression, Expression, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseExpressionAtPrecedence(u8);
-define_parser!(ParseExpressionAtPrecedence, Expression, |this, state| {
+define_parser!(ParseExpressionAtPrecedence, Expression<P>, |this, state| {
     let min_precedence = this.0;
     let (mut state, mut current_expr) = ParsePartExpression.parse(state)?;
 
@@ -332,7 +332,7 @@ define_parser!(ParseExpressionAtPrecedence, Expression, |this, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseExpression;
-define_parser!(ParseExpression, Expression, |_, state| {
+define_parser!(ParseExpression, Expression<P>, |_, state| {
     ParseExpressionAtPrecedence(1).parse(state)
 });
 
@@ -358,7 +358,7 @@ define_roblox_parser!(
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseValue;
-define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
+define_parser!(ParseValue, Value<P>, |_, state| parse_first_of!(state, {
     ParseSymbol(Symbol::Nil) => Value::Symbol,
     ParseSymbol(Symbol::False) => Value::Symbol,
     ParseSymbol(Symbol::True) => Value::Symbol,
@@ -376,7 +376,7 @@ define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseStmt;
-define_parser!(ParseStmt, Stmt, |_, state| parse_first_of!(state, {
+define_parser!(ParseStmt, Stmt<P>, |_, state| parse_first_of!(state, {
     ParseAssignment => Stmt::Assignment,
     ParseFunctionCall => Stmt::FunctionCall,
     ParseDo => Stmt::Do,
@@ -402,7 +402,7 @@ define_parser!(ParseStmt, Stmt, |_, state| parse_first_of!(state, {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParsePrefix;
-define_parser!(ParsePrefix, Prefix, |_, state| parse_first_of!(state, {
+define_parser!(ParsePrefix, Prefix<P>, |_, state| parse_first_of!(state, {
     ParseParenExpression => Prefix::Expression,
     ParseIdentifier => Prefix::Name,
 }));
@@ -438,7 +438,7 @@ define_parser!(
 struct ParseFunctionArgs;
 define_parser!(
     ParseFunctionArgs,
-    FunctionArgs,
+    FunctionArgs<P>,
     |_, state| if let Ok((state, left_paren)) =
         keep_going!(ParseSymbol(Symbol::LeftParen).parse(state))
     {
@@ -470,7 +470,7 @@ define_parser!(
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseNumericFor;
-define_parser!(ParseNumericFor, NumericFor, |_, state| {
+define_parser!(ParseNumericFor, NumericFor<P>, |_, state| {
     let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
 
     let index_variable;
@@ -546,14 +546,14 @@ define_parser!(ParseNumericFor, NumericFor, |_, state| {
             end_token,
             #[cfg(feature = "roblox")]
             type_specifier,
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseGenericFor;
-define_parser!(ParseGenericFor, GenericFor, |_, state| {
+define_parser!(ParseGenericFor, GenericFor<P>, |_, state| {
     let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
 
     let mut names;
@@ -610,14 +610,14 @@ define_parser!(ParseGenericFor, GenericFor, |_, state| {
             end_token,
             #[cfg(feature = "roblox")]
             type_specifiers,
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseIf;
-define_parser!(ParseIf, If, |_, state| {
+define_parser!(ParseIf, If<P>, |_, state| {
     let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
     let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
     let (state, then_token) = expect!(
@@ -646,7 +646,7 @@ define_parser!(ParseIf, If, |_, state| {
             condition,
             then_token,
             block,
-            plugin_info: (),
+            plugin_info: Default::default(),
         });
     }
 
@@ -679,14 +679,14 @@ define_parser!(ParseIf, If, |_, state| {
                 Some(else_ifs)
             },
             end_token,
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseWhile;
-define_parser!(ParseWhile, While, |_, state| {
+define_parser!(ParseWhile, While<P>, |_, state| {
     let (state, while_token) = ParseSymbol(Symbol::While).parse(state)?;
     let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
     let (state, do_token) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
@@ -705,14 +705,14 @@ define_parser!(ParseWhile, While, |_, state| {
             block,
             end_token,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseRepeat;
-define_parser!(ParseRepeat, Repeat, |_, state| {
+define_parser!(ParseRepeat, Repeat<P>, |_, state| {
     let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state)?;
     let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
     let (state, until_token) = expect!(
@@ -729,13 +729,13 @@ define_parser!(ParseRepeat, Repeat, |_, state| {
             until_token,
             until,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 struct ParseMethodCall;
-define_parser!(ParseMethodCall, MethodCall, |_, state| {
+define_parser!(ParseMethodCall, MethodCall<P>, |_, state| {
     let (state, colon_token) = ParseSymbol(Symbol::Colon).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected method");
     let (state, args) = expect!(state, ParseFunctionArgs.parse(state), "expected args");
@@ -746,14 +746,14 @@ define_parser!(ParseMethodCall, MethodCall, |_, state| {
             name,
             args,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseCall;
-define_parser!(ParseCall, Call, |_, state| parse_first_of!(state, {
+define_parser!(ParseCall, Call<P>, |_, state| parse_first_of!(state, {
     ParseFunctionArgs => Call::AnonymousCall,
     ParseMethodCall => Call::MethodCall,
 }));
@@ -761,7 +761,7 @@ define_parser!(ParseCall, Call, |_, state| parse_first_of!(state, {
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionBody;
 #[rustfmt::skip]
-define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
+define_parser!(ParseFunctionBody, FunctionBody<P>, |_, state| {
     #[cfg(feature = "roblox")]
     let (state, generics) =
         if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
@@ -876,33 +876,37 @@ define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
             #[cfg(feature = "roblox")]
             return_type,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunction;
-define_parser!(ParseFunction, (TokenReference, FunctionBody), |_, state| {
-    let (state, token) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, body) = expect!(
-        state,
-        ParseFunctionBody.parse(state),
-        "expected function body"
-    );
-    Ok((state, (token, body)))
-});
+define_parser!(
+    ParseFunction,
+    (TokenReference, FunctionBody<P>),
+    |_, state| {
+        let (state, token) = ParseSymbol(Symbol::Function).parse(state)?;
+        let (state, body) = expect!(
+            state,
+            ParseFunctionBody.parse(state),
+            "expected function body"
+        );
+        Ok((state, (token, body)))
+    }
+);
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseSuffix;
-define_parser!(ParseSuffix, Suffix, |_, state| parse_first_of!(state, {
+define_parser!(ParseSuffix, Suffix<P>, |_, state| parse_first_of!(state, {
     ParseCall => Suffix::Call,
     ParseIndex => Suffix::Index,
 }));
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseVarExpression;
-define_parser!(ParseVarExpression, VarExpression, |_, state| {
+define_parser!(ParseVarExpression, VarExpression<P>, |_, state| {
     let (state, prefix) = ParsePrefix.parse(state)?;
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
@@ -913,7 +917,7 @@ define_parser!(ParseVarExpression, VarExpression, |_, state| {
                 prefix,
                 suffixes,
 
-                plugin_info: (),
+                plugin_info: Default::default(),
             },
         ))
     } else {
@@ -923,14 +927,14 @@ define_parser!(ParseVarExpression, VarExpression, |_, state| {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseVar;
-define_parser!(ParseVar, Var, |_, state| parse_first_of!(state, {
+define_parser!(ParseVar, Var<P>, |_, state| parse_first_of!(state, {
     ParseVarExpression => Var::Expression,
     ParseIdentifier => Var::Name,
 }));
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseAssignment;
-define_parser!(ParseAssignment, Assignment, |_, state| {
+define_parser!(ParseAssignment, Assignment<P>, |_, state| {
     let (state, var_list) = OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
     let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state)?;
     let (state, expr_list) = expect!(
@@ -946,14 +950,14 @@ define_parser!(ParseAssignment, Assignment, |_, state| {
             equal_token,
             expr_list,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseLocalFunction;
-define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
+define_parser!(ParseLocalFunction, LocalFunction<P>, |_, state| {
     let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
     let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
     let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
@@ -966,14 +970,14 @@ define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
             name,
             body,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseLocalAssignment;
-define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
+define_parser!(ParseLocalAssignment, LocalAssignment<P>, |_, state| {
     let (mut state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
 
     let mut name_list;
@@ -1029,14 +1033,14 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
             equal_token,
             expr_list,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseDo;
-define_parser!(ParseDo, Do, |_, state| {
+define_parser!(ParseDo, Do<P>, |_, state| {
     let (state, do_token) = ParseSymbol(Symbol::Do).parse(state)?;
     let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
     let (state, end_token) = expect!(
@@ -1052,14 +1056,14 @@ define_parser!(ParseDo, Do, |_, state| {
             block,
             end_token,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionCall;
-define_parser!(ParseFunctionCall, FunctionCall, |_, state| {
+define_parser!(ParseFunctionCall, FunctionCall<P>, |_, state| {
     let (state, prefix) = ParsePrefix.parse(state)?;
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
@@ -1070,7 +1074,7 @@ define_parser!(ParseFunctionCall, FunctionCall, |_, state| {
                 prefix,
                 suffixes,
 
-                plugin_info: (),
+                plugin_info: Default::default(),
             },
         ))
     } else {
@@ -1080,7 +1084,7 @@ define_parser!(ParseFunctionCall, FunctionCall, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseFunctionName;
-define_parser!(ParseFunctionName, FunctionName, |_, state| {
+define_parser!(ParseFunctionName, FunctionName<P>, |_, state| {
     let (state, names) =
         OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
     let (state, colon_name) = if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(state) {
@@ -1097,36 +1101,40 @@ define_parser!(ParseFunctionName, FunctionName, |_, state| {
             names,
             colon_name,
 
-            plugin_info: (),
+            plugin_info: Default::default(),
         },
     ))
 });
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseFunctionDeclaration;
-define_parser!(ParseFunctionDeclaration, FunctionDeclaration, |_, state| {
-    let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, name) = expect!(
-        state,
-        ParseFunctionName.parse(state),
-        "expected function name"
-    );
-    let (state, body) = expect!(
-        state,
-        ParseFunctionBody.parse(state),
-        "expected function body"
-    );
-    Ok((
-        state,
-        FunctionDeclaration {
-            function_token,
-            name,
-            body,
+define_parser!(
+    ParseFunctionDeclaration,
+    FunctionDeclaration<P>,
+    |_, state| {
+        let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
+        let (state, name) = expect!(
+            state,
+            ParseFunctionName.parse(state),
+            "expected function name"
+        );
+        let (state, body) = expect!(
+            state,
+            ParseFunctionBody.parse(state),
+            "expected function body"
+        );
+        Ok((
+            state,
+            FunctionDeclaration {
+                function_token,
+                name,
+                body,
 
-            plugin_info: (),
-        },
-    ))
-});
+                plugin_info: Default::default(),
+            },
+        ))
+    }
+);
 
 #[derive(Clone, Debug, Default, PartialEq)]
 struct ParseIdentifier;

@@ -22,6 +22,7 @@ pub mod visitors;
 
 mod private;
 mod short_string;
+mod symbols;
 mod util;
 
 use plugins::DefaultPlugin;

@@ -3,7 +3,7 @@
 use super::punctuated::{Pair, Punctuated};
 use crate::{
     node::Node,
-    plugins::{DefaultPlugin, Plugin},
+    plugins::Plugin,
     tokenizer::TokenReference,
     visitors::{Visit, VisitMut},
 };
@@ -14,7 +14,7 @@ use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
 #[derive(PartialEq)]
-pub struct ParserState<'a, P: Plugin = DefaultPlugin> {
+pub struct ParserState<'a, P: Plugin> {
     pub index: usize,
     pub len: usize,
     pub tokens: &'a [TokenReference],
@@ -55,7 +55,7 @@ impl<'a, P: Plugin> ParserState<'a, P> {
     }
 }
 
-impl<'a> fmt::Debug for ParserState<'a> {
+impl<'a, P: Plugin> fmt::Debug for ParserState<'a, P> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -79,7 +79,7 @@ impl<'a, P: Plugin> Clone for ParserState<'a, P> {
 
 impl<'a, P: Plugin> Copy for ParserState<'a, P> {}
 
-pub(crate) trait Parser<P: Plugin = DefaultPlugin>: Sized {
+pub(crate) trait Parser<P: Plugin>: Sized {
     type Item;
 
     fn parse<'a>(
@@ -110,10 +110,10 @@ macro_rules! make_op {
 #[macro_export]
 macro_rules! define_parser {
     ($parser:ty, $node:ty, |_, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |_, mut $state: ParserState<'a, _>| $body}
+        define_parser! {$parser, $node, |_, mut $state: ParserState<'a, P>| $body}
     };
     ($parser:ty, $node:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, _>| $body}
+        define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, P>| $body}
     };
     ($parser:ty, $node:ty, $body:expr) => {
         impl<P: Plugin> Parser<P> for $parser {
@@ -196,7 +196,7 @@ macro_rules! keep_going {
 #[rustfmt::skip]
 macro_rules! define_roblox_parser {
     ($parser:ident, $node:ty, $mock_ty:ty, |$self:ident, $state:ident| $body:expr) => {
-        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a>| $body);
+        define_roblox_parser! ($parser, $node, $mock_ty, |$self:&$parser, mut $state: ParserState<'a, _>| $body);
     };
     ($parser:ident, $node:ty, $mock_ty:ty, $body:expr) => {
         cfg_if::cfg_if! {
@@ -367,7 +367,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<P, ItemParser, Delimiter: Parser, T> Parser<P> for OneOrMore<ItemParser, Delimiter>
+impl<P, ItemParser, Delimiter, T> Parser<P> for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<P, Item = T>,
     Delimiter: Parser<P, Item = TokenReference>,

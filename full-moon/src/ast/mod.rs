@@ -2257,7 +2257,7 @@ pub struct Ast<P: Plugin = DefaultPlugin> {
     pub(crate) eof: TokenReference,
 }
 
-impl Ast<DefaultPlugin> {
+impl<P: Plugin> Ast<P> {
     /// Create an Ast from the passed tokens. You probably want [`parse`](crate::parse)
     ///
     /// # Errors
@@ -2268,12 +2268,12 @@ impl Ast<DefaultPlugin> {
     ///
     /// More likely, if the tokens pass are invalid Lua 5.1 code, an
     /// UnexpectedToken error will be returned.
-    pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast<DefaultPlugin>, AstError> {
+    pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast<P>, AstError> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {
             let mut tokens = extract_token_references(tokens);
-            let mut state: ParserState<DefaultPlugin> = ParserState::new(&tokens);
+            let mut state: ParserState<P> = ParserState::new(&tokens);
 
             if tokens
                 .iter()
@@ -2326,9 +2326,7 @@ impl Ast<DefaultPlugin> {
             }
         }
     }
-}
 
-impl<P: Plugin> Ast<P> {
     /// Returns a new Ast with the given nodes
     pub fn with_nodes(self, nodes: Block<P>) -> Self {
         Self { nodes, ..self }
