@@ -1,22 +1,27 @@
 use crate::{
     ast::*,
-    parsers::{Parser, ParserState},
+    keep_going,
+    parsers::{self, InternalAstError, Parser, ParserResult, ParserState},
     tokenizer::TokenReference,
 };
+
+use std::borrow::Cow;
 
 use super::{Never, PluginMod};
 
 use derive_more::Display;
 use full_moon_derive::Node;
+use insta::assert_yaml_snapshot;
+use pretty_assertions::assert_eq;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq)]
+// PLUGIN TODO: Remove Deserialize, Serialize, and lift serde bounds
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct TestPlugin;
 
 pub struct LastStmtMod;
 
-#[derive(Clone, Debug, Display, PartialEq, Node)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[derive(Clone, Debug, Display, PartialEq, Node, Deserialize, Serialize)]
 pub struct CustomLastStmt {
     token: TokenReference,
 }
@@ -38,21 +43,27 @@ impl PluginMod<LastStmt<TestPlugin>> for LastStmtMod {
     }
 }
 
-pub struct ParseLastStmt;
-impl Parser<TestPlugin> for ParseLastStmt {
-    type Item = LastStmt<TestPlugin>;
-
-    fn parse<'a>(
-        &self,
-        state: ParserState<'a, TestPlugin>,
-    ) -> Result<(ParserState<'a, TestPlugin>, Self::Item), parsers::InternalAstError> {
-        todo!()
-    }
-}
-
 crate::create_plugin!(TestPlugin, {
     type LastStmtMod = LastStmtMod;
-    type LastStmtParser = ParseLastStmt;
+
+    fn parse_last_stmt<'a>(state: ParserState<'a, Self>) -> ParserResult<'a, Self, LastStmt<Self>> {
+        if let Ok((state, last_stmt)) = keep_going!(parsers::ParseLastStmt.parse(state)) {
+            return Ok((state, last_stmt));
+        }
+
+        let (state, identifier) = parsers::ParseIdentifier.parse(state)?;
+
+        if identifier.token().to_string() == "imdone" {
+            Ok((state, LastStmt::Plugin(CustomLastStmt {
+                token: identifier,
+            })))
+        } else {
+            Err(parsers::InternalAstError::UnexpectedToken {
+                token: identifier,
+                additional: Some(Cow::from("Expected identifier to be imdone")),
+            })
+        }
+    }
 }, {
     Assignment: (),
     Block: (),
@@ -84,3 +95,11 @@ crate::create_plugin!(TestPlugin, {
     VarExpression: (),
     While: (),
 });
+
+#[test]
+fn test_custom_parser_last_stmt() {
+    let ast = crate::parse_with_plugin::<TestPlugin>("imdone -- we're done").expect("parse failed");
+
+    assert_yaml_snapshot!("ast", ast.nodes());
+    assert_eq!(crate::print(&ast), "imdone -- we're done");
+}

@@ -79,13 +79,12 @@ impl<'a, P: Plugin> Clone for ParserState<'a, P> {
 
 impl<'a, P: Plugin> Copy for ParserState<'a, P> {}
 
+pub type ParserResult<'a, P, T> = Result<(ParserState<'a, P>, T), InternalAstError>;
+
 pub trait Parser<P: Plugin>: Sized {
     type Item;
 
-    fn parse<'a>(
-        &self,
-        state: ParserState<'a, P>,
-    ) -> Result<(ParserState<'a, P>, Self::Item), InternalAstError>;
+    fn parse<'a>(&self, state: ParserState<'a, P>) -> ParserResult<'a, P, Self::Item>;
 }
 
 #[doc(hidden)]

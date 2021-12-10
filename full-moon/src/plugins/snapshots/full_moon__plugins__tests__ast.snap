@@ -1,0 +1,48 @@
+---
+source: full-moon/src/plugins/tests.rs
+expression: ast.nodes()
+
+---
+stmts: []
+last_stmt:
+  - Plugin:
+      token:
+        leading_trivia: []
+        token:
+          start_position:
+            bytes: 0
+            line: 1
+            character: 1
+          end_position:
+            bytes: 6
+            line: 1
+            character: 7
+          token_type:
+            type: Identifier
+            identifier: imdone
+        trailing_trivia:
+          - start_position:
+              bytes: 6
+              line: 1
+              character: 7
+            end_position:
+              bytes: 7
+              line: 1
+              character: 8
+            token_type:
+              type: Whitespace
+              characters: " "
+          - start_position:
+              bytes: 7
+              line: 1
+              character: 8
+            end_position:
+              bytes: 20
+              line: 1
+              character: 21
+            token_type:
+              type: SingleLineComment
+              comment: " we're done"
+  - ~
+plugin_info: ~
+

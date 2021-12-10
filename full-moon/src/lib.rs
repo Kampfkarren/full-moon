@@ -26,7 +26,7 @@ mod symbols;
 mod util;
 
 pub use ast::parsers;
-use plugins::DefaultPlugin;
+use plugins::{DefaultPlugin, Plugin};
 pub use short_string::ShortString;
 
 use std::fmt;
@@ -71,11 +71,15 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 pub fn parse(code: &str) -> Result<ast::Ast<DefaultPlugin>, Error> {
+    parse_with_plugin::<DefaultPlugin>(code)
+}
+
+pub fn parse_with_plugin<P: Plugin>(code: &str) -> Result<ast::Ast<P>, Error> {
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)
 }
 
 /// Prints back Lua code from an [`Ast`](ast::Ast)
-pub fn print(ast: &ast::Ast) -> String {
+pub fn print<P: Plugin>(ast: &ast::Ast<P>) -> String {
     format!("{}{}", ast.nodes(), ast.eof())
 }

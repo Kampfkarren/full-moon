@@ -1,6 +1,6 @@
 use super::{span::ContainedSpan, *};
 
-pub use super::parser_util::{InternalAstError, Parser, ParserState};
+pub use super::parser_util::{InternalAstError, Parser, ParserResult, ParserState};
 
 #[cfg(feature = "roblox")]
 use super::types::*;
@@ -29,7 +29,7 @@ define_parser!(ParseSymbol, TokenReference, |this, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseNumber;
 
 define_parser!(ParseNumber, TokenReference, |_, state| {
@@ -44,7 +44,7 @@ define_parser!(ParseNumber, TokenReference, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseStringLiteral;
 
 define_parser!(ParseStringLiteral, TokenReference, |_, state| {
@@ -75,7 +75,7 @@ define_parser!(ParseBlock, Block<P>, |_, state| {
         stmts.push((stmt, semicolon));
     }
 
-    if let Ok((mut state, last_stmt)) = keep_going!(ParseLastStmt.parse(state)) {
+    if let Ok((mut state, last_stmt)) = keep_going!(P::parse_last_stmt(state)) {
         let mut semicolon = None;
 
         if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state) {
@@ -103,7 +103,7 @@ define_parser!(ParseBlock, Block<P>, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseLastStmt;
 define_parser!(
     ParseLastStmt,
@@ -128,7 +128,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseReturn;
 define_parser!(ParseReturn, Return<P>, |_, state| {
     let (state, token) = ParseSymbol(Symbol::Return).parse(state)?;
@@ -149,7 +149,7 @@ define_parser!(ParseReturn, Return<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseField;
 define_parser!(ParseField, Field<P>, |_, state| {
     if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
@@ -231,7 +231,7 @@ define_parser!(ParseTableConstructor, TableConstructor<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseUnaryExpression;
 define_parser!(ParseUnaryExpression, Expression<P>, |_, state| {
     let (state, unop) = keep_going!(ParseUnOp.parse(state))?;
@@ -245,7 +245,7 @@ define_parser!(ParseUnaryExpression, Expression<P>, |_, state| {
     Ok((state, Expression::UnaryOperator { unop, expression }))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseParenExpression;
 define_parser!(ParseParenExpression, Expression<P>, |_, state| {
     let (state, left_paren) = ParseSymbol(Symbol::LeftParen).parse(state)?;
@@ -266,7 +266,7 @@ define_parser!(ParseParenExpression, Expression<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseValueExpression;
 define_parser!(ParseValueExpression, Expression<P>, |_, state| {
     let (state, value) = keep_going!(ParseValue.parse(state))?;
@@ -290,7 +290,7 @@ define_parser!(ParseValueExpression, Expression<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParsePartExpression;
 define_parser!(ParsePartExpression, Expression<P>, |_, state| {
     if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
@@ -302,7 +302,7 @@ define_parser!(ParsePartExpression, Expression<P>, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseExpressionAtPrecedence(u8);
 define_parser!(ParseExpressionAtPrecedence, Expression<P>, |this, state| {
     let min_precedence = this.0;
@@ -336,13 +336,13 @@ define_parser!(ParseExpressionAtPrecedence, Expression<P>, |this, state| {
     Ok((state, current_expr))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseExpression;
 define_parser!(ParseExpression, Expression<P>, |_, state| {
     ParseExpressionAtPrecedence(1).parse(state)
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseTypeAssertion;
 
 #[rustfmt::skip]
@@ -362,7 +362,7 @@ define_roblox_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseValue;
 define_parser!(ParseValue, Value<P>, |_, state| parse_first_of!(state, {
     ParseSymbol(Symbol::Nil) => Value::Symbol,
@@ -406,13 +406,14 @@ define_parser!(ParseStmt, Stmt<P>, |_, state| parse_first_of!(state, {
     ParseLabel => Stmt::Label,
 }));
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParsePrefix;
 define_parser!(ParsePrefix, Prefix<P>, |_, state| parse_first_of!(state, {
     ParseParenExpression => Prefix::Expression,
     ParseIdentifier => Prefix::Name,
 }));
 
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseIndex;
 define_parser!(
     ParseIndex,
@@ -440,7 +441,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseFunctionArgs;
 define_parser!(
     ParseFunctionArgs,
@@ -474,7 +475,7 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseNumericFor;
 define_parser!(ParseNumericFor, NumericFor<P>, |_, state| {
     let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
@@ -557,7 +558,7 @@ define_parser!(ParseNumericFor, NumericFor<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseGenericFor;
 define_parser!(ParseGenericFor, GenericFor<P>, |_, state| {
     let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
@@ -621,7 +622,7 @@ define_parser!(ParseGenericFor, GenericFor<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseIf;
 define_parser!(ParseIf, If<P>, |_, state| {
     let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
@@ -674,7 +675,7 @@ define_parser!(ParseIf, If<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseElseIf;
 define_parser!(ParseElseIf, ElseIf<P>, |_, state| {
     let (state, else_if_token) = ParseSymbol(Symbol::ElseIf).parse(state)?;
@@ -698,7 +699,7 @@ define_parser!(ParseElseIf, ElseIf<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseWhile;
 define_parser!(ParseWhile, While<P>, |_, state| {
     let (state, while_token) = ParseSymbol(Symbol::While).parse(state)?;
@@ -724,7 +725,7 @@ define_parser!(ParseWhile, While<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseRepeat;
 define_parser!(ParseRepeat, Repeat<P>, |_, state| {
     let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state)?;
@@ -748,6 +749,7 @@ define_parser!(ParseRepeat, Repeat<P>, |_, state| {
     ))
 });
 
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseMethodCall;
 define_parser!(ParseMethodCall, MethodCall<P>, |_, state| {
     let (state, colon_token) = ParseSymbol(Symbol::Colon).parse(state)?;
@@ -765,14 +767,14 @@ define_parser!(ParseMethodCall, MethodCall<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseCall;
 define_parser!(ParseCall, Call<P>, |_, state| parse_first_of!(state, {
     ParseFunctionArgs => Call::AnonymousCall,
     ParseMethodCall => Call::MethodCall,
 }));
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseFunctionBody;
 #[rustfmt::skip]
 define_parser!(ParseFunctionBody, FunctionBody<P>, |_, state| {
@@ -848,7 +850,7 @@ define_parser!(ParseFunctionBody, FunctionBody<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseParameter;
 define_parser!(ParseParameter, Parameter<P>, |_, state| {
     // PLUGIN TODO: Luau, ParseNameWithType
@@ -861,7 +863,7 @@ define_parser!(ParseParameter, Parameter<P>, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseFunction;
 define_parser!(
     ParseFunction,
@@ -877,14 +879,14 @@ define_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseSuffix;
 define_parser!(ParseSuffix, Suffix<P>, |_, state| parse_first_of!(state, {
     ParseCall => Suffix::Call,
     ParseIndex => Suffix::Index,
 }));
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseVarExpression;
 define_parser!(ParseVarExpression, VarExpression<P>, |_, state| {
     let (state, prefix) = ParsePrefix.parse(state)?;
@@ -1018,7 +1020,7 @@ define_parser!(ParseLocalAssignment, LocalAssignment<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseDo;
 define_parser!(ParseDo, Do<P>, |_, state| {
     let (state, do_token) = ParseSymbol(Symbol::Do).parse(state)?;
@@ -1041,7 +1043,7 @@ define_parser!(ParseDo, Do<P>, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseFunctionCall;
 define_parser!(ParseFunctionCall, FunctionCall<P>, |_, state| {
     let (state, prefix) = ParsePrefix.parse(state)?;
@@ -1062,7 +1064,7 @@ define_parser!(ParseFunctionCall, FunctionCall<P>, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseFunctionName;
 define_parser!(ParseFunctionName, FunctionName<P>, |_, state| {
     let (state, names) =
@@ -1148,7 +1150,7 @@ enum TypeInfoContext {
 }
 
 // Roblox Types
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseNameWithType;
 define_roblox_parser!(
     ParseNameWithType,
@@ -1192,7 +1194,7 @@ define_roblox_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseGenericDeclarationParameter;
 define_roblox_parser!(
     ParseGenericDeclarationParameter,
@@ -1212,7 +1214,7 @@ define_roblox_parser!(
     }
 );
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseGenericDeclaration;
 define_roblox_parser!(
     ParseGenericDeclaration,
@@ -1326,7 +1328,7 @@ cfg_if::cfg_if! {
             }
         );
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeDeclaration;
         define_parser!(
             ParseTypeDeclaration,
@@ -1369,7 +1371,7 @@ cfg_if::cfg_if! {
             }
         );
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseExportedTypeDeclaration;
         define_parser!(
             ParseExportedTypeDeclaration,
@@ -1393,7 +1395,7 @@ cfg_if::cfg_if! {
             }
         );
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseIndexedTypeInfo;
         define_parser!(ParseIndexedTypeInfo, IndexedTypeInfo, |_, state| {
             let (state, base_type) = if let Ok((state, identifier)) = {
@@ -1431,7 +1433,7 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         /// A parentheses type info atom, such as `(string)` in `type Foo = (string)?`. This excludes parentheses used to indicate
         /// a return type, or arguments in a callback type. An opening parentheses should have already been consumed,
         /// and is passed to this struct.
@@ -1450,7 +1452,7 @@ cfg_if::cfg_if! {
             }))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         /// A tuple type info, such as `(string, foo)` in `(string) -> (string, foo)`.
         /// This is only used for return types. An opening parentheses should have already been consumed,
         /// and is passed to this struct.
@@ -1472,7 +1474,7 @@ cfg_if::cfg_if! {
 
         /// A type array atom, such as `{ string }`.
         /// An opening brace should have already been consumed, and is passed to this struct.
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeArray(TokenReference);
         define_parser!(ParseTypeArray, TypeInfo, |this, state| {
             let (state, type_info) = expect!(
@@ -1496,7 +1498,7 @@ cfg_if::cfg_if! {
             ))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeArgument;
         define_parser!(ParseTypeArgument, TypeArgument, |_, state| {
             // Attempt to parse an identifier and then a `:`
@@ -1524,7 +1526,7 @@ cfg_if::cfg_if! {
             ))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         /// A callback type info atom, such as `(count: number) -> string` in `type Foo = (count: number) -> string`.
         /// An opening parentheses should have already been consumed, and is passed to this struct.
         pub struct ParseCallbackTypeInfo(TokenReference, Option<GenericDeclaration>);
@@ -1563,7 +1565,7 @@ cfg_if::cfg_if! {
 
         /// A type table atom, such as `{ foo: string, bar: number }`.
         /// An opening brace should have already been consumed, and is passed to this struct.
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeTable(TokenReference);
         define_parser!(ParseTypeTable, TypeInfo, |this, state| {
             let mut state = state;
@@ -1603,7 +1605,7 @@ cfg_if::cfg_if! {
         });
 
         // A type info atom, excluding compound types such as Union and Intersection
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseSingleTypeInfo(TypeInfoContext);
         define_parser!(ParseSingleTypeInfo, TypeInfo, |this, state| {
             let (state, base_type) = if let Ok((state, identifier)) = {
@@ -1777,7 +1779,7 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseSingleTypeInfoAtom(TypeInfoContext);
         define_parser!(ParseSingleTypeInfoAtom, TypeInfo, |this, state| {
             let (mut state, mut base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
@@ -1794,7 +1796,7 @@ cfg_if::cfg_if! {
             Ok((state, base_type))
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeInfo(TypeInfoContext);
         define_parser!(ParseTypeInfo, TypeInfo, |this, state| {
             let (state, base_type) = ParseSingleTypeInfoAtom(this.0).parse(state)?;
@@ -1832,7 +1834,7 @@ cfg_if::cfg_if! {
             }
         });
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeField;
         define_parser!(
             ParseTypeField,
@@ -1856,7 +1858,7 @@ cfg_if::cfg_if! {
             }
         );
 
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(Clone, Debug, Default, PartialEq)]
         pub struct ParseTypeFieldKey;
         #[rustfmt::skip]
         define_parser!(ParseTypeFieldKey, TypeFieldKey, |_, state| {
@@ -1891,7 +1893,7 @@ cfg_if::cfg_if! {
 }
 
 // Lua 5.2 related syntax
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseGoto;
 define_lua52_parser!(ParseGoto, Goto, TokenReference, |_, state| {
     let (state, goto_token) = ParseSymbol(Symbol::Goto).parse(state)?;
@@ -1910,7 +1912,7 @@ define_lua52_parser!(ParseGoto, Goto, TokenReference, |_, state| {
     ))
 });
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ParseLabel;
 define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
     let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
@@ -1937,7 +1939,7 @@ define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
 
 macro_rules! make_op_parser {
 	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
-		#[derive(Clone, Debug, PartialEq)]
+		#[derive(Clone, Debug, Default, PartialEq)]
         struct $parser;
         define_parser!($parser, $enum, |_, state| {
             $(
