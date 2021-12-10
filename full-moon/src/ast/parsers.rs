@@ -410,7 +410,7 @@ define_parser!(ParsePrefix, Prefix<P>, |_, state| parse_first_of!(state, {
 struct ParseIndex;
 define_parser!(
     ParseIndex,
-    Index,
+    Index<P>,
     |_, state| if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
         let (state, expression) =
             expect!(state, ParseExpression.parse(state), "expected expression");

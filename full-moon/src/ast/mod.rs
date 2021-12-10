@@ -2268,7 +2268,7 @@ impl<P: Plugin> Ast<P> {
     ///
     /// More likely, if the tokens pass are invalid Lua 5.1 code, an
     /// UnexpectedToken error will be returned.
-    pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast<P>, AstError> {
+    pub fn from_tokens(tokens: Vec<Token>) -> Result<Self, AstError> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
             Err(AstError::NoEof)
         } else {

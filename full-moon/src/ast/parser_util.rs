@@ -303,7 +303,7 @@ where
     ItemParser: Parser<P, Item = T>,
     Delimiter: Parser<P, Item = TokenReference>,
     P: Plugin,
-    T: Node + Visit + VisitMut,
+    T: Node + Visit<P> + VisitMut<P>,
 {
     type Item = Punctuated<T>;
 
@@ -372,14 +372,14 @@ where
     ItemParser: Parser<P, Item = T>,
     Delimiter: Parser<P, Item = TokenReference>,
     P: Plugin,
-    T: Node + Visit + VisitMut,
+    T: Node + Visit<P> + VisitMut<P>,
 {
     type Item = Punctuated<ItemParser::Item>;
 
     fn parse<'a>(
         &self,
         state: ParserState<'a, P>,
-    ) -> Result<(ParserState<'a, P>, Punctuated<ItemParser::Item>), InternalAstError> {
+    ) -> Result<(ParserState<'a, P>, Self::Item), InternalAstError> {
         let mut nodes = Punctuated::new();
         let (mut state, node) = self.0.parse(state)?;
         nodes.push(Pair::End(node));

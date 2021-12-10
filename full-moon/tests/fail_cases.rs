@@ -1,4 +1,8 @@
-use full_moon::{ast, tokenizer};
+use full_moon::{
+    ast::{self, Ast},
+    plugins::DefaultPlugin,
+    tokenizer,
+};
 use insta::assert_yaml_snapshot;
 use std::fs;
 
@@ -15,7 +19,9 @@ fn test_parser_fail_cases() {
 
         assert_yaml_snapshot!("tokens", tokens);
 
-        match ast::Ast::from_tokens(tokens) {
+        let ast: Result<Ast<DefaultPlugin>, _> = ast::Ast::from_tokens(tokens);
+
+        match ast {
             Ok(_) => panic!("fail case passed for {:?}", path),
             Err(error) => {
                 println!("error {:#?}", error);

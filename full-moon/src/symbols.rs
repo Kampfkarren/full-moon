@@ -3,12 +3,17 @@ use std::{fmt, str::FromStr};
 use serde::{Deserialize, Serialize};
 
 macro_rules! symbols {
-    (
+    ({
 		$(
 			$(#[$attribute:meta])?
 			$name:ident => $string:expr,
 		)+
-	) => {
+    }, {
+        $(
+            $(#[$operator_attribute:meta])?
+			$operator_name:ident => $operator_string:expr,
+        )+
+	}) => {
 		/// A literal symbol, used for both words important to syntax (like while) and operators (like +)
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -20,12 +25,20 @@ macro_rules! symbols {
                 $(#[$attribute])?
                 $name,
             )+
+
+            $(
+                #[cfg_attr(feature = "serde", serde(rename = $operator_string))]
+                #[allow(missing_docs)]
+                $(#[$operator_attribute])?
+                $operator_name,
+            )+
         }
 
 		impl<'a> fmt::Display for Symbol {
             fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 match *self {
                     $($(#[$attribute])? Symbol::$name => $string,)+
+                    $($(#[$operator_attribute])? Symbol::$operator_name => $operator_string,)+
                 }
                 .fmt(formatter)
             }
@@ -37,6 +50,7 @@ macro_rules! symbols {
             fn from_str(string: &str) -> Result<Self, Self::Err> {
                 Ok(match string {
                     $($(#[$attribute])? $string => Symbol::$name,)*
+                    $($(#[$operator_attribute])? $operator_string => Symbol::$operator_name,)*
                     _ => return Err(()),
                 })
             }
@@ -53,9 +67,9 @@ macro_rules! symbols {
         impl<'input> ParseSymbol<'input> for &'input str {
             fn parse_symbol(self: Self, pos: usize) -> peg::RuleResult<Symbol> {
 				$(
-					$(#[$attribute])?
-					if self[pos..].starts_with($string) {
-						return peg::RuleResult::Matched(pos + $string.len(), Symbol::$name);
+					$(#[$operator_attribute])?
+					if self[pos..].starts_with($operator_string) {
+						return peg::RuleResult::Matched(pos + $operator_string.len(), Symbol::$operator_name);
 					}
 				)+
 
@@ -65,7 +79,7 @@ macro_rules! symbols {
 	};
 }
 
-symbols!(
+symbols!({
     And => "and",
     Break => "break",
     Do => "do",
@@ -89,7 +103,7 @@ symbols!(
     While => "while",
     #[cfg(feature = "lua52")]
     Goto => "goto",
-
+}, {
     #[cfg(feature = "roblox")]
     PlusEqual => "+=",
     MinusEqual => "-=",
@@ -134,4 +148,4 @@ symbols!(
     Slash => "/",
     Star => "*",
     TildeEqual => "~=",
-);
+});

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt, str::FromStr};
 
 use crate::symbols::parse_keyword;
-pub use crate::symbols::{ParseSymbol, Symbol};
+pub use crate::symbols::Symbol;
 
 /// The possible errors that can happen while tokenizing.
 #[derive(Clone, Debug, PartialEq)]
@@ -576,7 +576,7 @@ impl From<TokenizerErrorType> for RawToken {
 
 peg::parser! {
     grammar tokens() for str {
-        use super::ParseSymbol;
+        use crate::symbols::ParseSymbol;
         use peg::ParseLiteral;
         use super::StringLiteralQuoteType as QuoteType;
 
