@@ -1,4 +1,8 @@
-use crate::{ast::*, tokenizer::TokenReference};
+use crate::{
+    ast::*,
+    parsers::{Parser, ParserState},
+    tokenizer::TokenReference,
+};
 
 use super::{Never, PluginMod};
 
@@ -34,8 +38,21 @@ impl PluginMod<LastStmt<TestPlugin>> for LastStmtMod {
     }
 }
 
+pub struct ParseLastStmt;
+impl Parser<TestPlugin> for ParseLastStmt {
+    type Item = LastStmt<TestPlugin>;
+
+    fn parse<'a>(
+        &self,
+        state: ParserState<'a, TestPlugin>,
+    ) -> Result<(ParserState<'a, TestPlugin>, Self::Item), parsers::InternalAstError> {
+        todo!()
+    }
+}
+
 crate::create_plugin!(TestPlugin, {
     type LastStmtMod = LastStmtMod;
+    type LastStmtParser = ParseLastStmt;
 }, {
     Assignment: (),
     Block: (),

@@ -25,6 +25,7 @@ mod short_string;
 mod symbols;
 mod util;
 
+pub use ast::parsers;
 use plugins::DefaultPlugin;
 pub use short_string::ShortString;
 

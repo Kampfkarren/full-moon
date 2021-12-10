@@ -79,7 +79,7 @@ impl<'a, P: Plugin> Clone for ParserState<'a, P> {
 
 impl<'a, P: Plugin> Copy for ParserState<'a, P> {}
 
-pub(crate) trait Parser<P: Plugin>: Sized {
+pub trait Parser<P: Plugin>: Sized {
     type Item;
 
     fn parse<'a>(

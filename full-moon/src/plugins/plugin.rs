@@ -1,6 +1,6 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
-use crate::{ast::*, node::Node};
+use crate::{ast::*, node::Node, parsers::Parser};
 
 #[cfg(feature = "serde")]
 pub trait ConditionalSerialize: serde::Serialize {}
@@ -35,6 +35,10 @@ macro_rules! create_base_plugin_trait {
             paste::item! {
                 $(
                     type [<$type Mod>]: PluginMod<$type<Self>>;
+                )+
+
+                $(
+                    type [<$type Parser>]: Parser<Self, Item = $type<Self>>;
                 )+
             }
         }

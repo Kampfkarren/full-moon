@@ -1,6 +1,6 @@
 #[macro_use]
 mod parser_util;
-mod parsers;
+pub mod parsers;
 pub mod punctuated;
 pub mod span;
 mod update_positions;
