@@ -312,6 +312,7 @@ stmts:
                                   token_type:
                                     type: Whitespace
                                     characters: "\n"
+                    plugin_info: ~
         plugin_info: ~
     - ~
 plugin_info: ~

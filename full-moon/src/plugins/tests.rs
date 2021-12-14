@@ -102,6 +102,7 @@ crate::create_plugin!(TestPlugin, {
     Return: (),
     Stmt: Never,
     Suffix: Never,
+    TableConstructor: (),
     Value: Never,
     Var: Never,
     VarExpression: (),
