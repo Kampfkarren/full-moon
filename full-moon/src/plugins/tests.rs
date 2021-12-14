@@ -1,6 +1,6 @@
 use crate::{
     ast::*,
-    keep_going,
+    define_parser, keep_going,
     parsers::{self, InternalAstError, Parser, ParserResult, ParserState},
     tokenizer::TokenReference,
 };
@@ -43,10 +43,16 @@ impl PluginMod<LastStmt<TestPlugin>> for LastStmtMod {
     }
 }
 
-crate::create_plugin!(TestPlugin, {
-    type LastStmtMod = LastStmtMod;
+#[derive(Clone, Debug, Default)]
+pub struct ParseLastStmt;
 
-    fn parse_last_stmt<'a>(state: ParserState<'a, Self>) -> ParserResult<'a, Self, LastStmt<Self>> {
+impl Parser<TestPlugin> for ParseLastStmt {
+    type Item = LastStmt<TestPlugin>;
+
+    fn parse<'a>(
+        &self,
+        state: ParserState<'a, TestPlugin>,
+    ) -> ParserResult<'a, TestPlugin, Self::Item> {
         if let Ok((state, last_stmt)) = keep_going!(parsers::ParseLastStmt.parse(state)) {
             return Ok((state, last_stmt));
         }
@@ -54,9 +60,10 @@ crate::create_plugin!(TestPlugin, {
         let (state, identifier) = parsers::ParseIdentifier.parse(state)?;
 
         if identifier.token().to_string() == "imdone" {
-            Ok((state, LastStmt::Plugin(CustomLastStmt {
-                token: identifier,
-            })))
+            Ok((
+                state,
+                LastStmt::Plugin(CustomLastStmt { token: identifier }),
+            ))
         } else {
             Err(parsers::InternalAstError::UnexpectedToken {
                 token: identifier,
@@ -64,6 +71,11 @@ crate::create_plugin!(TestPlugin, {
             })
         }
     }
+}
+
+crate::create_plugin!(TestPlugin, {
+    type LastStmtMod = LastStmtMod;
+    type LastStmtParser = ParseLastStmt;
 }, {
     Assignment: (),
     Block: (),

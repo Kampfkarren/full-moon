@@ -115,14 +115,14 @@ macro_rules! define_parser {
         define_parser! {$parser, $node, |$self:&$parser, mut $state: ParserState<'a, P>| $body}
     };
     ($parser:ty, $node:ty, $body:expr) => {
-        impl<P: Plugin> Parser<P> for $parser {
+        impl<P: $crate::plugins::Plugin> $crate::parsers::Parser<P> for $parser {
             type Item = $node;
 
             #[allow(unused_mut)]
             fn parse<'a>(
                 &self,
-                state: ParserState<'a, P>,
-            ) -> Result<(ParserState<'a, P>, $node), InternalAstError> {
+                state: $crate::parsers::ParserState<'a, P>,
+            ) -> ParserResult<'a, P, Self::Item> {
                 $body(self, state)
             }
         }

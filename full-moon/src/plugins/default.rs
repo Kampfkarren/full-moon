@@ -35,6 +35,7 @@ macro_rules! create_plugin {
 
                 $(
                     type [<$default_type Mod>] = [<Default $default_type Info>];
+                    type [<$default_type Parser>] = $crate::parsers::[<Parse $default_type>];
                 )*
             }
         }

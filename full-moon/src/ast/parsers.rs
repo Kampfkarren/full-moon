@@ -12,6 +12,14 @@ use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 use std::borrow::Cow;
 
+// Returns a Parser object from an associated type on Plugin.
+// Instead of using ParseLastStmt, use p!(LastStmtParser), for instance.
+macro_rules! p {
+    ($parser:ident) => {
+        P::$parser::default()
+    };
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParseSymbol(Symbol);
 
@@ -75,7 +83,7 @@ define_parser!(ParseBlock, Block<P>, |_, state| {
         stmts.push((stmt, semicolon));
     }
 
-    if let Ok((mut state, last_stmt)) = keep_going!(P::parse_last_stmt(state)) {
+    if let Ok((mut state, last_stmt)) = keep_going!(p!(LastStmtParser).parse(state)) {
         let mut semicolon = None;
 
         if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state) {
