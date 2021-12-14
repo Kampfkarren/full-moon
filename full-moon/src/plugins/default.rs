@@ -70,6 +70,7 @@ create_plugin!(DefaultPlugin, {}, {
     Return: (),
     Stmt: Never,
     Suffix: Never,
+    TableConstructor: (),
     Value: Never,
     Var: Never,
     VarExpression: (),

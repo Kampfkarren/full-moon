@@ -73,6 +73,7 @@ create_base_plugin_trait!({
     Return,
     Stmt,
     Suffix,
+    TableConstructor,
     While,
     Value,
     Var,

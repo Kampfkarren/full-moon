@@ -227,6 +227,7 @@ pub struct TableConstructor<P: Plugin = DefaultPlugin> {
     #[visit(contains = "fields")]
     braces: ContainedSpan,
     fields: Punctuated<Field<P>>,
+    plugin_info: <<P as Plugin>::TableConstructorMod as PluginMod<TableConstructor<P>>>::NodeInfo,
 }
 
 impl<P: Plugin> TableConstructor<P> {
@@ -239,6 +240,7 @@ impl<P: Plugin> TableConstructor<P> {
                 TokenReference::symbol(" }").unwrap(),
             ),
             fields: Punctuated::new(),
+            plugin_info: Default::default(),
         }
     }
 
