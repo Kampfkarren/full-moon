@@ -2144,62 +2144,62 @@ impl Ast {
     /// UnexpectedToken error will be returned.
     pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast, AstError> {
         if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
-            Err(AstError::NoEof)
-        } else {
-            let mut tokens = extract_token_references(tokens);
-            let mut state = ParserState::new(&tokens);
+            return Err(AstError::NoEof);
+        }
 
-            if tokens
-                .iter()
-                .filter(|token| !token.token_type().is_trivia())
-                .count()
-                == 1
-            {
-                // Entirely comments/whitespace
-                return Ok(Ast {
-                    nodes: Block {
-                        stmts: Vec::new(),
-                        last_stmt: None,
-                    },
-                    eof: tokens.pop().expect(
-                        "(internal full-moon error) No EOF in tokens after checking for EOF.",
-                    ),
-                });
-            }
+        let mut tokens = extract_token_references(tokens);
+        let mut state = ParserState::new(&tokens);
 
-            // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-            if state.peek().token_type().is_trivia() {
-                state = state.advance().unwrap();
-            }
+        if tokens
+            .iter()
+            .filter(|token| !token.token_type().is_trivia())
+            .count()
+            == 1
+        {
+            // Entirely comments/whitespace
+            return Ok(Ast {
+                nodes: Block {
+                    stmts: Vec::new(),
+                    last_stmt: None,
+                },
+                eof: tokens
+                    .pop()
+                    .expect("(internal full-moon error) No EOF in tokens after checking for EOF."),
+            });
+        }
 
-            match parsers::ParseBlock.parse(state) {
-                Ok((state, block)) => {
-                    if state.index == tokens.len() - 1 {
-                        Ok(Ast {
-                            nodes: block,
-                            eof: tokens.pop().expect(
-                                "(internal full-moon error) No EOF in tokens after checking for EOF."
-                            ),
-                        })
-                    } else {
-                        Err(AstError::UnexpectedToken {
-                            token: state.peek().token.clone(),
-                            additional: Some(Cow::Borrowed("leftover token")),
-                        })
-                    }
-                }
+        // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
+        if state.peek().token_type().is_trivia() {
+            state = state.advance().unwrap();
+        }
 
-                Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                    token: state.peek().token.clone(),
-                    additional: None,
-                }),
-
-                Err(InternalAstError::UnexpectedToken { token, additional }) => {
+        match parsers::ParseBlock.parse(state) {
+            Ok((state, block)) => {
+                if state.index == tokens.len() - 1 {
+                    Ok(Ast {
+                        nodes: block,
+                        eof: tokens.pop().expect(
+                            "(internal full-moon error) No EOF in tokens after checking for EOF.",
+                        ),
+                    })
+                } else {
                     Err(AstError::UnexpectedToken {
-                        token: token.token,
-                        additional,
+                        token: state.peek().token.clone(),
+                        additional: Some(Cow::Borrowed("leftover token")),
                     })
                 }
+            }
+
+            Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
+                token: state.peek().token.clone(),
+                additional: None,
+            }),
+
+            Err(InternalAstError::UnexpectedToken { token, additional }) => {
+                Err(AstError::UnexpectedToken {
+                    token: token.token,
+                    additional,
+                })
             }
         }
     }

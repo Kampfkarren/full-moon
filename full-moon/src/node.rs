@@ -243,11 +243,7 @@ impl<T: Node> Node for Vec<T> {
 
     fn tokens(&self) -> Tokens {
         Tokens {
-            items: self
-                .iter()
-                .map(|node| node.tokens().items)
-                .flatten()
-                .collect(),
+            items: self.iter().flat_map(|node| node.tokens().items).collect(),
         }
     }
 }

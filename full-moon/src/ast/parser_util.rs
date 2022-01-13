@@ -43,9 +43,10 @@ impl<'a> ParserState<'a> {
     // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
     // to tackle lifetimes.
     pub fn peek(&self) -> &TokenReference {
-        if self.index >= self.len {
-            panic!("peek failed, when there should always be an eof");
-        }
+        assert!(
+            self.index < self.len,
+            "peek failed, when there should always be an eof"
+        );
 
         self.tokens.get(self.index).expect("couldn't peek, no eof?")
     }
@@ -316,12 +317,12 @@ where
                 Err(InternalAstError::NoMatch) => {
                     if self.2 {
                         break;
-                    } else {
-                        return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek().clone(),
-                            additional: Some(Cow::from("trailing character")),
-                        });
                     }
+
+                    return Err(InternalAstError::UnexpectedToken {
+                        token: state.peek().clone(),
+                        additional: Some(Cow::from("trailing character")),
+                    });
                 }
 
                 Err(other) => {
@@ -348,7 +349,7 @@ pub struct OneOrMore<ItemParser, Delimiter>(
 // False positive clippy lints
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::nonminimal_bool)]
-impl<ItemParser, Delimiter: Parser, T> Parser for OneOrMore<ItemParser, Delimiter>
+impl<ItemParser, Delimiter, T> Parser for OneOrMore<ItemParser, Delimiter>
 where
     ItemParser: Parser<Item = T>,
     Delimiter: Parser<Item = TokenReference>,
