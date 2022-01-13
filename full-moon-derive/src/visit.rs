@@ -79,12 +79,11 @@ impl VisitGenerator {
             }
         }
 
-        if !contains.is_empty() {
-            panic!(
-                "#[visit(contains = \"...\")] used in wrong order: {:?}",
-                contains
-            );
-        }
+        assert!(
+            contains.is_empty(),
+            "#[visit(contains = \"...\")] used in wrong order: {:?}",
+            contains
+        );
 
         quote! {
             #(visit!(#fields, visitor);)*

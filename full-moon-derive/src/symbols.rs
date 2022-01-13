@@ -37,8 +37,7 @@ impl Parse for SymbolsInput {
                     attribute = input
                         .call(Attribute::parse_outer)
                         .ok()
-                        .map(|vec| vec.into_iter().next())
-                        .flatten();
+                        .and_then(|vec| vec.into_iter().next());
                     current_ident = Some(input.parse()?);
                     ParseState::Arrow
                 }

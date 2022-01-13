@@ -778,10 +778,10 @@ peg::parser! {
               {
                   let mut body = body;
                   if let Some(shebang) = shebang {
-                      body.insert(0, shebang)
+                      body.insert(0, shebang);
                   }
                   if let Some(bom) = bom {
-                      body.insert(0, bom)
+                      body.insert(0, bom);
                   }
                   body
               }
