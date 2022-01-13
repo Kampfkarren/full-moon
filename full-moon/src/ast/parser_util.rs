@@ -317,12 +317,12 @@ where
                 Err(InternalAstError::NoMatch) => {
                     if self.2 {
                         break;
-                    } else {
-                        return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek().clone(),
-                            additional: Some(Cow::from("trailing character")),
-                        });
                     }
+
+                    return Err(InternalAstError::UnexpectedToken {
+                        token: state.peek().clone(),
+                        additional: Some(Cow::from("trailing character")),
+                    });
                 }
 
                 Err(other) => {

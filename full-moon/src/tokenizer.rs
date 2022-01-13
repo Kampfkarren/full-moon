@@ -424,11 +424,11 @@ impl TokenReference {
 
         let mut symbol_text = String::new();
         while let Some(character) = chars.peek() {
-            if !character.is_ascii_whitespace() {
-                symbol_text.push(chars.next().unwrap());
-            } else {
+            if character.is_ascii_whitespace() {
                 break;
             }
+
+            symbol_text.push(chars.next().unwrap());
         }
 
         let symbol = Symbol::from_str(&symbol_text)
