@@ -33,19 +33,18 @@ local _multiUnion: number | string | nil
 local _intersection: number & string
 local _multiIntersection: number & string & nil
 
-function _fn0(param: string) : string
+function _fn0(param: string): string
 	return param
 end
 
-function _fn2(a: string, b: string, ...)
-end
+function _fn2(a: string, b: string, ...) end
 
-local _fn3 = function() : number | nil
+local _fn3 = function(): number | nil
 	return 3
 end
 
-local _fn4 = function() : number & nil
-    if foo0 :: number then
-    	return 3
-    end
+local _fn4 = function(): number & nil
+	if foo0 :: number then
+		return 3
+	end
 end
