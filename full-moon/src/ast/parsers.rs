@@ -1567,6 +1567,10 @@ cfg_if::cfg_if! {
                 ParseIdentifier
                     .parse(state)
                     .or_else(|_| ParseSymbol(Symbol::Nil).parse(state))
+                    // A singleton type info, such as:
+                    // `"yes" | "no"` in `(string) -> "yes" | "no"`,
+                    // `"$$typeof"` in `{ ["$$typeof"]: number }`,
+                    // and `true` in `type X = Error & { handled: true }`
                     .or_else(|_| ParseSymbol(Symbol::True).parse(state))
                     .or_else(|_| ParseSymbol(Symbol::False).parse(state))
                     .or_else(|_| ParseStringLiteral.parse(state))
