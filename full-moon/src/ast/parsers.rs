@@ -1567,6 +1567,9 @@ cfg_if::cfg_if! {
                 ParseIdentifier
                     .parse(state)
                     .or_else(|_| ParseSymbol(Symbol::Nil).parse(state))
+                    .or_else(|_| ParseSymbol(Symbol::True).parse(state))
+                    .or_else(|_| ParseSymbol(Symbol::False).parse(state))
+                    .or_else(|_| ParseStringLiteral.parse(state))
             } {
                 if identifier.token().to_string() == "typeof" {
                     let (state, start_parenthese) = expect!(
