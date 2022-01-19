@@ -275,7 +275,7 @@ stmts:
                           type: Whitespace
                           characters: " "
                   return_type:
-                    GenericVariadic:
+                    GenericPack:
                       name:
                         leading_trivia: []
                         token:
@@ -563,7 +563,7 @@ stmts:
                     type: Whitespace
                     characters: " "
             return_type:
-              GenericVariadic:
+              GenericPack:
                 name:
                   leading_trivia: []
                   token:
@@ -816,7 +816,7 @@ stmts:
                       type: Whitespace
                       characters: " "
               type_info:
-                GenericVariadic:
+                GenericPack:
                   name:
                     leading_trivia: []
                     token:
@@ -1155,7 +1155,7 @@ stmts:
                             type: Whitespace
                             characters: " "
                 - End:
-                    GenericVariadic:
+                    GenericPack:
                       name:
                         leading_trivia: []
                         token:
@@ -1922,7 +1922,7 @@ stmts:
                 - End:
                     name: ~
                     type_info:
-                      GenericVariadic:
+                      GenericPack:
                         name:
                           leading_trivia: []
                           token:
@@ -1980,7 +1980,7 @@ stmts:
                     type: Whitespace
                     characters: " "
             return_type:
-              GenericVariadic:
+              GenericPack:
                 name:
                   leading_trivia: []
                   token:

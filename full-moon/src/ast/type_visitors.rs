@@ -44,7 +44,7 @@ impl Visit for TypeInfo {
                 generics.visit(visitor);
                 arrows.tokens.1.visit(visitor);
             }
-            TypeInfo::GenericVariadic { name, ellipse } => {
+            TypeInfo::GenericPack { name, ellipse } => {
                 name.visit(visitor);
                 ellipse.visit(visitor);
             }
@@ -166,14 +166,14 @@ impl VisitMut for TypeInfo {
                 }
             }
 
-            TypeInfo::GenericVariadic {
+            TypeInfo::GenericPack {
                 mut name,
                 mut ellipse,
             } => {
                 name = name.visit_mut(visitor);
                 ellipse = ellipse.visit_mut(visitor);
 
-                TypeInfo::GenericVariadic { name, ellipse }
+                TypeInfo::GenericPack { name, ellipse }
             }
 
             TypeInfo::Module {

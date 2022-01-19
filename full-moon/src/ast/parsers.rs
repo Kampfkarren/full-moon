@@ -1640,7 +1640,7 @@ cfg_if::cfg_if! {
                 } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType | TypeInfoContext::VarArgSpecifier | TypeInfoContext::GenericArgument) {
                     // Check for a generic type pack
                     if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                        (state, TypeInfo::GenericVariadic {
+                        (state, TypeInfo::GenericPack {
                             name: identifier,
                             ellipse
                         })
