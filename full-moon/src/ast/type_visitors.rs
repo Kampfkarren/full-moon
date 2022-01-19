@@ -102,6 +102,10 @@ impl Visit for TypeInfo {
                 ellipse.visit(visitor);
                 type_info.visit(visitor);
             }
+            TypeInfo::VariadicPack { ellipse, name } => {
+                ellipse.visit(visitor);
+                name.visit(visitor);
+            }
         };
         visitor.visit_type_info_end(self);
     }
@@ -254,6 +258,11 @@ impl VisitMut for TypeInfo {
             TypeInfo::Variadic { ellipse, type_info } => TypeInfo::Variadic {
                 ellipse: ellipse.visit_mut(visitor),
                 type_info: type_info.visit_mut(visitor),
+            },
+
+            TypeInfo::VariadicPack { ellipse, name } => TypeInfo::VariadicPack {
+                ellipse: ellipse.visit_mut(visitor),
+                name: name.visit_mut(visitor),
             },
         };
         self = visitor.visit_type_info_end(self);

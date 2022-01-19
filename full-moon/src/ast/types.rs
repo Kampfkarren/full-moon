@@ -72,15 +72,6 @@ pub enum TypeInfo {
         ellipse: TokenReference,
     },
 
-    /// A variadic type pack: `...T` in `Function<...T>`
-    #[display(fmt = "{}{}", "ellipse", "name")]
-    VariadicPack {
-        /// The ellipse: `...`
-        ellipse: TokenReference,
-        /// The name of the type that is variadic: `T`
-        name: TokenReference,
-    },
-
     /// An intersection type: `string & number`, denoting both types.
     #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
     Intersection {
@@ -170,6 +161,15 @@ pub enum TypeInfo {
         ellipse: TokenReference,
         /// The type that is variadic: `number`.
         type_info: Box<TypeInfo>,
+    },
+
+    /// A variadic type pack: `...T` in `Function<...T>`
+    #[display(fmt = "{}{}", "ellipse", "name")]
+    VariadicPack {
+        /// The ellipse: `...`
+        ellipse: TokenReference,
+        /// The name of the type that is variadic: `T`
+        name: TokenReference,
     },
 }
 
