@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 26
+      line: 1
+      character: 27
+    end_position:
+      bytes: 26
+      line: 1
+      character: 27
+    token_type:
+      type: Eof
+  additional: "expected `->` after `()` when parsing function type"
+
