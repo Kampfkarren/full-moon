@@ -1563,18 +1563,20 @@ cfg_if::cfg_if! {
         #[derive(Clone, Debug, PartialEq)]
         struct ParseSingleTypeInfo(TypeInfoContext);
         define_parser!(ParseSingleTypeInfo, TypeInfo, |this, state| {
-            let (state, base_type) = if let Ok((state, identifier)) = {
-                ParseIdentifier
+            // Singleton type info: `"yes" | "no"` in `(string) -> "yes" | "no"`, `"$$typeof"` in `{ ["$$typeof"]: number }`,
+            let (state, base_type) = if let Ok((state, string_singleton)) = ParseStringLiteral.parse(state) {
+                (state, TypeInfo::Basic(string_singleton))
+            // Singleton type info: `true` in `type X = Error & { handled: true }`
+            } else if let Ok((state, true_singleton)) = ParseSymbol(Symbol::True).parse(state) {
+                (state, TypeInfo::Basic(true_singleton))
+            } else if let Ok((state, false_singleton)) = ParseSymbol(Symbol::False).parse(state) {
+                (state, TypeInfo::Basic(false_singleton))
+            // Singleton type info: `nil` in `local function get(x: string, y: nil) end`
+            } else if let Ok((state, nil_singleton)) = ParseSymbol(Symbol::Nil).parse(state) {
+                (state, TypeInfo::Basic(nil_singleton))
+            } else if let Ok((state, identifier)) = ParseIdentifier
                     .parse(state)
-                    .or_else(|_| ParseSymbol(Symbol::Nil).parse(state))
-                    // A singleton type info, such as:
-                    // `"yes" | "no"` in `(string) -> "yes" | "no"`,
-                    // `"$$typeof"` in `{ ["$$typeof"]: number }`,
-                    // and `true` in `type X = Error & { handled: true }`
-                    .or_else(|_| ParseSymbol(Symbol::True).parse(state))
-                    .or_else(|_| ParseSymbol(Symbol::False).parse(state))
-                    .or_else(|_| ParseStringLiteral.parse(state))
-            } {
+            {
                 if identifier.token().to_string() == "typeof" {
                     let (state, start_parenthese) = expect!(
                         state,
