@@ -76,7 +76,7 @@ pub(crate) trait Parser: Sized {
 #[macro_export]
 macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+        #[automatically_derived]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[non_exhaustive]
         $(#[$outer])*
