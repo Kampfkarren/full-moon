@@ -1,7 +1,8 @@
 ---
 source: full-moon/tests/fail_cases.rs
+assertion_line: 58
 expression: error
-input_file: full-moon/tests/roblox_cases/fail/parser/invalid_types
+input_file: full-moon/tests/roblox_cases/fail/parser/nil_dot
 
 ---
 UnexpectedToken:
@@ -16,6 +17,6 @@ UnexpectedToken:
       character: 16
     token_type:
       type: Symbol
-      symbol: "<"
+      symbol: "."
   additional: leftover token
 
