@@ -1097,11 +1097,15 @@ enum TypeInfoContext {
     #[cfg(feature = "roblox")]
     ParenthesesType,
     /// The return type of a function declaration or callback type, such as `function foo(bar) -> number`.
-    /// This is the only location where Tuple types are allowed. Variadic type infos are also allowed here
+    /// In addition to standard types, type packs/variadic type packs are allowed here
     ReturnType,
     /// A type specifier for the variadic argument `...` in a function definition parameter list
     /// In these cases, we are allowed a generic variadic pack `T...` to be specified
     VarArgSpecifier,
+    /// An argument passed into a generic type, e.g. `string` or `...number` in `type X = Foo<string, ...number>`.
+    /// In these cases, generic type packs, variadic type packs, and explicit type packs (using parentheses) are allowed
+    #[cfg(feature = "roblox")]
+    GenericArgument,
 }
 
 // Roblox Types
@@ -1615,7 +1619,7 @@ cfg_if::cfg_if! {
                 {
                     let (state, generics) = expect!(
                         state,
-                        OneOrMore(ParseTypeInfo(TypeInfoContext::None), ParseSymbol(Symbol::Comma), false).parse(state),
+                        OneOrMore(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
                         "expected type parameters"
                     );
 
@@ -1633,10 +1637,10 @@ cfg_if::cfg_if! {
                             generics,
                         },
                     )
-                } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType | TypeInfoContext::VarArgSpecifier) {
-                    // Check for a variadic type pack
+                } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType | TypeInfoContext::VarArgSpecifier | TypeInfoContext::GenericArgument) {
+                    // Check for a generic type pack
                     if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                        (state, TypeInfo::GenericVariadic {
+                        (state, TypeInfo::GenericPack {
                             name: identifier,
                             ellipse
                         })
@@ -1653,10 +1657,10 @@ cfg_if::cfg_if! {
             } else if let Ok((state, start_parenthese)) =
                 ParseSymbol(Symbol::LeftParen).parse(state)
             {
-                // Parse types encapsulated in parentheses as an atom. If we are in a return type, this could be a
-                // tuple, otherwise this can only be a singular type specified within parentheses.
+                // Parse types encapsulated in parentheses as an atom. If we are allowing type packs (i.e. as a return type or a generic type argument),
+                // this could be a tuple, otherwise this can only be a singular type specified within parentheses.
                 let atom =
-                    if matches!(this.0, TypeInfoContext::ReturnType) {
+                    if matches!(this.0, TypeInfoContext::ReturnType | TypeInfoContext::GenericArgument) {
                         ParseTupleTypeInfo(start_parenthese.clone()).parse(state)
                     } else {
                         ParseParenthesesTypeInfo(start_parenthese.clone()).parse(state)
@@ -1707,6 +1711,20 @@ cfg_if::cfg_if! {
                     (state, type_array)
                 } else {
                     ParseTypeTable(start_brace).parse(state)?
+                }
+            } else if matches!(this.0, TypeInfoContext::GenericArgument) {
+                // Only allowed variadic type packs as a generic argument
+                // Note, this is `...T`, but `T` is a token, not a type info (e.g. `...string` is allowed but `...{}` is not)
+                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
+                    let (state, name) = expect!(
+                        state,
+                        ParseIdentifier.parse(state),
+                        "expected name after `...`"
+                    );
+
+                    (state, TypeInfo::VariadicPack { ellipse, name })
+                } else {
+                    return Err(InternalAstError::NoMatch);
                 }
             } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
                 // Only allow variadic type annotation for a return type or a tuple type

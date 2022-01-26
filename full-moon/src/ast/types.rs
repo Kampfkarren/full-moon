@@ -62,11 +62,11 @@ pub enum TypeInfo {
         generics: Punctuated<TypeInfo>,
     },
 
-    /// A generic variadic pack: `T...`.
-    /// Note, these are only available as return types, or when annotating a vararg (`...`) in a function parameter.
+    /// A generic pack: `T...`.
+    /// Note, these are only available as return types, when annotating a vararg (`...`) in a function parameter, or as a generic type argument.
     #[display(fmt = "{}{}", "name", "ellipse")]
-    GenericVariadic {
-        /// The name of the type that is variadic: `T`.
+    GenericPack {
+        /// The name of the type that is generic: `T`.
         name: TokenReference,
         /// The ellipse: `...`.
         ellipse: TokenReference,
@@ -161,6 +161,15 @@ pub enum TypeInfo {
         ellipse: TokenReference,
         /// The type that is variadic: `number`.
         type_info: Box<TypeInfo>,
+    },
+
+    /// A variadic type pack: `...T` in `Function<...T>`
+    #[display(fmt = "{}{}", "ellipse", "name")]
+    VariadicPack {
+        /// The ellipse: `...`
+        ellipse: TokenReference,
+        /// The name of the type that is variadic: `T`
+        name: TokenReference,
     },
 }
 
