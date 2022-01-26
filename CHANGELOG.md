@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [Unreleased]
 ### Added
+- Added support for parsing generic type packs, variadic type packs, and explicit type packs in generic arguments for a type under the `roblox` feature flag (`type X<S...> = Y<(string, number), ...string, S...>`)
 - Added support for string and boolean singleton types under the `roblox` feature flag (`type Element = { ["$$typeof"]: number, errorCaught: true, which: "Query" | "Mutation" | "Subscription" }`
+
+### Changed
+- **[BREAKING CHANGE]** renamed `TypeInfo::GenericVariadic` to `TypeInfo::GenericPack` to better represent its syntax (only affects `roblox` feature flag) 
 
 ## [0.14.0] - 2021-11-04
 ### Added

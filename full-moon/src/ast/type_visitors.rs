@@ -44,7 +44,7 @@ impl Visit for TypeInfo {
                 generics.visit(visitor);
                 arrows.tokens.1.visit(visitor);
             }
-            TypeInfo::GenericVariadic { name, ellipse } => {
+            TypeInfo::GenericPack { name, ellipse } => {
                 name.visit(visitor);
                 ellipse.visit(visitor);
             }
@@ -101,6 +101,10 @@ impl Visit for TypeInfo {
             TypeInfo::Variadic { ellipse, type_info } => {
                 ellipse.visit(visitor);
                 type_info.visit(visitor);
+            }
+            TypeInfo::VariadicPack { ellipse, name } => {
+                ellipse.visit(visitor);
+                name.visit(visitor);
             }
         };
         visitor.visit_type_info_end(self);
@@ -162,14 +166,14 @@ impl VisitMut for TypeInfo {
                 }
             }
 
-            TypeInfo::GenericVariadic {
+            TypeInfo::GenericPack {
                 mut name,
                 mut ellipse,
             } => {
                 name = name.visit_mut(visitor);
                 ellipse = ellipse.visit_mut(visitor);
 
-                TypeInfo::GenericVariadic { name, ellipse }
+                TypeInfo::GenericPack { name, ellipse }
             }
 
             TypeInfo::Module {
@@ -254,6 +258,11 @@ impl VisitMut for TypeInfo {
             TypeInfo::Variadic { ellipse, type_info } => TypeInfo::Variadic {
                 ellipse: ellipse.visit_mut(visitor),
                 type_info: type_info.visit_mut(visitor),
+            },
+
+            TypeInfo::VariadicPack { ellipse, name } => TypeInfo::VariadicPack {
+                ellipse: ellipse.visit_mut(visitor),
+                name: name.visit_mut(visitor),
             },
         };
         self = visitor.visit_type_info_end(self);
