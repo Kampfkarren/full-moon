@@ -1154,26 +1154,6 @@ define_roblox_parser!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseGenericDeclarationParameter;
-define_roblox_parser!(
-    ParseGenericDeclarationParameter,
-    GenericDeclarationParameter,
-    TokenReference,
-    |_, state| {
-        let (state, name) = ParseIdentifier.parse(state)?;
-
-        if let Ok((state, ellipse)) = keep_going!(ParseSymbol(Symbol::Ellipse).parse(state)) {
-            Ok((
-                state,
-                GenericDeclarationParameter::Variadic { name, ellipse },
-            ))
-        } else {
-            Ok((state, GenericDeclarationParameter::Name(name)))
-        }
-    }
-);
-
-#[derive(Clone, Debug, PartialEq)]
 struct ParseGenericDeclaration;
 define_roblox_parser!(
     ParseGenericDeclaration,
@@ -1181,19 +1161,86 @@ define_roblox_parser!(
     TokenReference,
     |_, state| {
         let (state, start_arrow) = ParseSymbol(Symbol::LessThan).parse(state)?;
-        let (state, generics) = expect!(
-            state,
-            OneOrMore(
-                ParseGenericDeclarationParameter,
-                ParseSymbol(Symbol::Comma),
-                false
-            )
-            .parse(state),
-            "expected type parameters"
-        );
+        let mut generics: Punctuated<GenericDeclarationParameter> = Punctuated::new();
+
+        let mut have_seen_pack = false; // We have seen a generic type pack parameter. We can only now accept generic type pack parameters
+        let mut have_seen_default = false; // We have seen a default type, all future parameters must define a default type
+
+        let mut loop_state = state;
+        loop {
+            let (state, name) = expect!(
+                loop_state,
+                ParseIdentifier.parse(loop_state),
+                "expected name"
+            );
+
+            // Look to see if is a type pack
+            let (state, ellipse) = if let Ok((state, ellipse)) =
+                keep_going!(ParseSymbol(Symbol::Ellipse).parse(state))
+            {
+                have_seen_pack = true;
+                (state, Some(ellipse))
+            } else {
+                // Must only be type packs after we have seen one
+                if have_seen_pack {
+                    return Err(InternalAstError::UnexpectedToken {
+                        token: state.peek().clone(),
+                        additional: Some("generic types come before generic type packs".into()),
+                    });
+                };
+
+                (state, None)
+            };
+
+            // Look to see if a default type has been sepcified
+            let (state, default) =
+                if let Ok((state, equals)) = keep_going!(ParseSymbol(Symbol::Equal).parse(state)) {
+                    have_seen_default = true;
+
+                    // If we are parsing a type pack, allow type pack default types
+                    let parse_context = if ellipse.is_some() {
+                        TypeInfoContext::GenericArgument
+                    } else {
+                        TypeInfoContext::None
+                    };
+
+                    let (state, type_info) = expect!(
+                        state,
+                        ParseTypeInfo(parse_context).parse(state),
+                        "expected type after `=`"
+                    );
+
+                    (state, Some((equals, type_info)))
+                } else {
+                    // Defaults must always be specified once one has been
+                    if have_seen_default {
+                        return Err(InternalAstError::UnexpectedToken {
+                            token: state.peek().clone(),
+                            additional: Some("expected default type after type name".into()),
+                        });
+                    }
+                    (state, None)
+                };
+
+            let parameter = match ellipse {
+                Some(ellipse) => GenericParameterInfo::Variadic { name, ellipse },
+                None => GenericParameterInfo::Name(name),
+            };
+            let declaration_parameter = GenericDeclarationParameter { parameter, default };
+
+            if let Ok((state, punctuation)) = keep_going!(ParseSymbol(Symbol::Comma).parse(state)) {
+                generics.push(Pair::Punctuated(declaration_parameter, punctuation));
+                loop_state = state;
+            } else {
+                generics.push(Pair::End(declaration_parameter));
+                loop_state = state;
+                break;
+            }
+        }
+
         let (state, end_arrow) = expect!(
-            state,
-            ParseSymbol(Symbol::GreaterThan).parse(state),
+            loop_state,
+            ParseSymbol(Symbol::GreaterThan).parse(loop_state),
             "expected `>` to match `<`"
         );
 

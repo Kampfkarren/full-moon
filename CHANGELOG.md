@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added support for parsing generic type packs, variadic type packs, and explicit type packs in generic arguments for a type under the `roblox` feature flag (`type X<S...> = Y<(string, number), ...string, S...>`)
+- Added support for default types in a generic type declaration under the `roblox` feature flag (`type Foo<X = string> = X`)
 
 ### Changed
 - **[BREAKING CHANGE]** renamed `TypeInfo::GenericVariadic` to `TypeInfo::GenericPack` to better represent its syntax (only affects `roblox` feature flag) 
+- **[BREAKING CHANGE]** replaced `GenericDeclarationParameter` to allow default types. The only `GenericDeclarationParameter` enum is now `GenericParameterInfo`, and `GenericDeclaratinoParameter` is a struct of a ParameterInfo and optional default type. (only affects `roblox` feature flag)
+
+### Fixed
+- Improved the parsing of generic type declarations to ensure generic types are always before generic type packs
 
 ## [0.14.0] - 2021-11-04
 ### Added
