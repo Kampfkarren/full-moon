@@ -21,6 +21,12 @@ pub enum TypeInfo {
     /// A standalone type, such as `string` or `Foo`.
     #[display(fmt = "{}", "_0")]
     Basic(TokenReference),
+    /// A string token, such as `"hello"`
+    #[display(fmt = "{}", "_0")]
+    String(TokenReference),
+    /// A boolean, such as `true`
+    #[display(fmt = "{}", "_0")]
+    Boolean(TokenReference),
 
     /// A callback type, such as `(string, number) => boolean`.
     #[display(

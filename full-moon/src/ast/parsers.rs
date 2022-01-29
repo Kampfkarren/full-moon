@@ -1616,12 +1616,12 @@ cfg_if::cfg_if! {
         define_parser!(ParseSingleTypeInfo, TypeInfo, |this, state| {
             // Singleton type info: `"yes" | "no"` in `(string) -> "yes" | "no"`, `"$$typeof"` in `{ ["$$typeof"]: number }`,
             let (state, base_type) = if let Ok((state, string_singleton)) = ParseStringLiteral.parse(state) {
-                (state, TypeInfo::Basic(string_singleton))
+                (state, TypeInfo::String(string_singleton))
             // Singleton type info: `true` in `type X = Error & { handled: true }`
             } else if let Ok((state, true_singleton)) = ParseSymbol(Symbol::True).parse(state) {
-                (state, TypeInfo::Basic(true_singleton))
+                (state, TypeInfo::Boolean(true_singleton))
             } else if let Ok((state, false_singleton)) = ParseSymbol(Symbol::False).parse(state) {
-                (state, TypeInfo::Basic(false_singleton))
+                (state, TypeInfo::Boolean(false_singleton))
             // Singleton type info: `nil` in `local function get(x: string, y: nil) end`
             } else if let Ok((state, nil_singleton)) = ParseSymbol(Symbol::Nil).parse(state) {
                 (state, TypeInfo::Basic(nil_singleton))
