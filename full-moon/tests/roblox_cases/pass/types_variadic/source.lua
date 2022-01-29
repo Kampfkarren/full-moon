@@ -4,7 +4,7 @@ type Baz = (string, ...Foo) -> ...Foo
 type Bar = (...number) -> (string, ...number) -> ...any
 type Boom = (..."hit" | "miss") -> (string, ...("critical" | "weak" | "normal")) -> ...("dead" | "alive")
 
-function bar(...: number): ...number | string end
+function _bar(...: number): ...number | string end
 
 local f: Boom = function(...)
 	return function(x, ...)
