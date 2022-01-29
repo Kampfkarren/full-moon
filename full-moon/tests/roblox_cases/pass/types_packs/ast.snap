@@ -85,37 +85,39 @@ stmts:
             generics:
               pairs:
                 - End:
-                    Variadic:
-                      name:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 13
-                            line: 1
-                            character: 14
-                          end_position:
-                            bytes: 14
-                            line: 1
-                            character: 15
-                          token_type:
-                            type: Identifier
-                            identifier: T
-                        trailing_trivia: []
-                      ellipse:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 14
-                            line: 1
-                            character: 15
-                          end_position:
-                            bytes: 17
-                            line: 1
-                            character: 18
-                          token_type:
-                            type: Symbol
-                            symbol: "..."
-                        trailing_trivia: []
+                    parameter:
+                      Variadic:
+                        name:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 13
+                              line: 1
+                              character: 14
+                            end_position:
+                              bytes: 14
+                              line: 1
+                              character: 15
+                            token_type:
+                              type: Identifier
+                              identifier: T
+                          trailing_trivia: []
+                        ellipse:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 14
+                              line: 1
+                              character: 15
+                            end_position:
+                              bytes: 17
+                              line: 1
+                              character: 18
+                            token_type:
+                              type: Symbol
+                              symbol: "..."
+                          trailing_trivia: []
+                    default: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -433,37 +435,39 @@ stmts:
           generics:
             pairs:
               - End:
-                  Variadic:
-                    name:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 52
-                          line: 4
-                          character: 10
-                        end_position:
-                          bytes: 53
-                          line: 4
-                          character: 11
-                        token_type:
-                          type: Identifier
-                          identifier: T
-                      trailing_trivia: []
-                    ellipse:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 53
-                          line: 4
-                          character: 11
-                        end_position:
-                          bytes: 56
-                          line: 4
-                          character: 14
-                        token_type:
-                          type: Symbol
-                          symbol: "..."
-                      trailing_trivia: []
+                  parameter:
+                    Variadic:
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 52
+                            line: 4
+                            character: 10
+                          end_position:
+                            bytes: 53
+                            line: 4
+                            character: 11
+                          token_type:
+                            type: Identifier
+                            identifier: T
+                        trailing_trivia: []
+                      ellipse:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 53
+                            line: 4
+                            character: 11
+                          end_position:
+                            bytes: 56
+                            line: 4
+                            character: 14
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
+                  default: ~
         equal_token:
           leading_trivia: []
           token:
@@ -698,37 +702,39 @@ stmts:
             generics:
               pairs:
                 - End:
-                    Variadic:
-                      name:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 85
-                            line: 6
-                            character: 14
-                          end_position:
-                            bytes: 86
-                            line: 6
-                            character: 15
-                          token_type:
-                            type: Identifier
-                            identifier: T
-                        trailing_trivia: []
-                      ellipse:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 86
-                            line: 6
-                            character: 15
-                          end_position:
-                            bytes: 89
-                            line: 6
-                            character: 18
-                          token_type:
-                            type: Symbol
-                            symbol: "..."
-                        trailing_trivia: []
+                    parameter:
+                      Variadic:
+                        name:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 85
+                              line: 6
+                              character: 14
+                            end_position:
+                              bytes: 86
+                              line: 6
+                              character: 15
+                            token_type:
+                              type: Identifier
+                              identifier: T
+                          trailing_trivia: []
+                        ellipse:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 86
+                              line: 6
+                              character: 15
+                            end_position:
+                              bytes: 89
+                              line: 6
+                              character: 18
+                            token_type:
+                              type: Symbol
+                              symbol: "..."
+                          trailing_trivia: []
+                    default: ~
           parameters_parentheses:
             tokens:
               - leading_trivia: []
@@ -974,37 +980,39 @@ stmts:
           generics:
             pairs:
               - End:
-                  Variadic:
-                    name:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 114
-                          line: 9
-                          character: 8
-                        end_position:
-                          bytes: 115
-                          line: 9
-                          character: 9
-                        token_type:
-                          type: Identifier
-                          identifier: S
-                      trailing_trivia: []
-                    ellipse:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 115
-                          line: 9
-                          character: 9
-                        end_position:
-                          bytes: 118
-                          line: 9
-                          character: 12
-                        token_type:
-                          type: Symbol
-                          symbol: "..."
-                      trailing_trivia: []
+                  parameter:
+                    Variadic:
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 114
+                            line: 9
+                            character: 8
+                          end_position:
+                            bytes: 115
+                            line: 9
+                            character: 9
+                          token_type:
+                            type: Identifier
+                            identifier: S
+                        trailing_trivia: []
+                      ellipse:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 115
+                            line: 9
+                            character: 9
+                          end_position:
+                            bytes: 118
+                            line: 9
+                            character: 12
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
+                  default: ~
         equal_token:
           leading_trivia: []
           token:
@@ -1759,37 +1767,39 @@ stmts:
           generics:
             pairs:
               - Punctuated:
-                  - Variadic:
-                      name:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 290
-                            line: 13
-                            character: 15
-                          end_position:
-                            bytes: 294
-                            line: 13
-                            character: 19
-                          token_type:
-                            type: Identifier
-                            identifier: Args
-                        trailing_trivia: []
-                      ellipse:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 294
-                            line: 13
-                            character: 19
-                          end_position:
-                            bytes: 297
-                            line: 13
-                            character: 22
-                          token_type:
-                            type: Symbol
-                            symbol: "..."
-                        trailing_trivia: []
+                  - parameter:
+                      Variadic:
+                        name:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 290
+                              line: 13
+                              character: 15
+                            end_position:
+                              bytes: 294
+                              line: 13
+                              character: 19
+                            token_type:
+                              type: Identifier
+                              identifier: Args
+                          trailing_trivia: []
+                        ellipse:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 294
+                              line: 13
+                              character: 19
+                            end_position:
+                              bytes: 297
+                              line: 13
+                              character: 22
+                            token_type:
+                              type: Symbol
+                              symbol: "..."
+                          trailing_trivia: []
+                    default: ~
                   - leading_trivia: []
                     token:
                       start_position:
@@ -1816,37 +1826,39 @@ stmts:
                           type: Whitespace
                           characters: " "
               - End:
-                  Variadic:
-                    name:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 299
-                          line: 13
-                          character: 24
-                        end_position:
-                          bytes: 305
-                          line: 13
-                          character: 30
-                        token_type:
-                          type: Identifier
-                          identifier: Return
-                      trailing_trivia: []
-                    ellipse:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 305
-                          line: 13
-                          character: 30
-                        end_position:
-                          bytes: 308
-                          line: 13
-                          character: 33
-                        token_type:
-                          type: Symbol
-                          symbol: "..."
-                      trailing_trivia: []
+                  parameter:
+                    Variadic:
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 299
+                            line: 13
+                            character: 24
+                          end_position:
+                            bytes: 305
+                            line: 13
+                            character: 30
+                          token_type:
+                            type: Identifier
+                            identifier: Return
+                        trailing_trivia: []
+                      ellipse:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 305
+                            line: 13
+                            character: 30
+                          end_position:
+                            bytes: 308
+                            line: 13
+                            character: 33
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
+                  default: ~
         equal_token:
           leading_trivia: []
           token:

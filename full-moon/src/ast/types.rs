@@ -412,7 +412,7 @@ impl TypeDeclaration {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
-pub enum GenericDeclarationParameter {
+pub enum GenericParameterInfo {
     /// A name, such as `foo`.
     #[display(fmt = "{}", "_0")]
     Name(TokenReference),
@@ -425,6 +425,54 @@ pub enum GenericDeclarationParameter {
         /// The ellipse: `...`.
         ellipse: TokenReference,
     },
+}
+/// A generic declaration parameter us in [`GenericDeclaration`]. Consists of a [`GenericParameterInfo`] and an optional default type.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    fmt = "{}{}{}",
+    "parameter",
+    "display_option(self.equals())",
+    "display_option(self.default_type())"
+)]
+pub struct GenericDeclarationParameter {
+    pub(crate) parameter: GenericParameterInfo,
+    pub(crate) default: Option<(TokenReference, TypeInfo)>,
+}
+
+impl GenericDeclarationParameter {
+    /// Creates a new GenericDeclarationParameter
+    pub fn new(parameter: GenericParameterInfo) -> Self {
+        Self {
+            parameter,
+            default: None,
+        }
+    }
+
+    /// The generic parameter
+    pub fn parameter(&self) -> &GenericParameterInfo {
+        &self.parameter
+    }
+
+    /// The equals symbol denoting a default type, if present
+    pub fn equals(&self) -> Option<&TokenReference> {
+        self.default.as_ref().map(|(equals, _)| equals)
+    }
+
+    /// The default type, if present
+    pub fn default_type(&self) -> Option<&TypeInfo> {
+        self.default.as_ref().map(|(_, default_type)| default_type)
+    }
+
+    /// Returns a new GenericDeclarationParameter with the given parameter info
+    pub fn with_parameter(self, parameter: GenericParameterInfo) -> Self {
+        Self { parameter, ..self }
+    }
+
+    /// Returns a new GenericDeclarationParameter with the given default type
+    pub fn with_default(self, default: Option<(TokenReference, TypeInfo)>) -> Self {
+        Self { default, ..self }
+    }
 }
 
 /// The generics used in a [`TypeDeclaration`].

@@ -91,21 +91,23 @@ stmts:
           generics:
             pairs:
               - End:
-                  Name:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 11
-                        line: 1
-                        character: 12
-                      end_position:
-                        bytes: 12
-                        line: 1
-                        character: 13
-                      token_type:
-                        type: Identifier
-                        identifier: T
-                    trailing_trivia: []
+                  parameter:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 11
+                          line: 1
+                          character: 12
+                        end_position:
+                          bytes: 12
+                          line: 1
+                          character: 13
+                        token_type:
+                          type: Identifier
+                          identifier: T
+                      trailing_trivia: []
+                  default: ~
         equal_token:
           leading_trivia: []
           token:
@@ -301,21 +303,23 @@ stmts:
           generics:
             pairs:
               - End:
-                  Name:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 33
-                        line: 2
-                        character: 12
-                      end_position:
-                        bytes: 34
-                        line: 2
-                        character: 13
-                      token_type:
-                        type: Identifier
-                        identifier: T
-                    trailing_trivia: []
+                  parameter:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 33
+                          line: 2
+                          character: 12
+                        end_position:
+                          bytes: 34
+                          line: 2
+                          character: 13
+                        token_type:
+                          type: Identifier
+                          identifier: T
+                      trailing_trivia: []
+                  default: ~
         equal_token:
           leading_trivia: []
           token:
