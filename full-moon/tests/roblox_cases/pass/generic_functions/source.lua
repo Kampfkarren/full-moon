@@ -11,7 +11,7 @@ export type Foo0 = {
 		b: nil | number | boolean
 	) -> T,
 }
-
+local _baz
 export type Foo1 = {
 	bar: <T>(
 		a: T,
@@ -20,4 +20,5 @@ export type Foo1 = {
 }
 
 _baz = function<T>(a: T, b: number | boolean | nil): nil | T
+    return nil
 end
