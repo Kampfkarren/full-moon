@@ -14,6 +14,7 @@ type Callback2 = (string, string) -> number
 type Callback3 = (string, string) -> (string, nil)
 type Callback3a = (string, "error" | "success") -> (string, "weasel" | "basilisk")
 type Callback4 = (string) -> (string) -> ()
+type NetworkError = { message: string? } & { handled: true }
 
 type Foo = {
 	bar: number,
@@ -43,8 +44,6 @@ local _fn3 = function(): number | nil
 	return 3
 end
 
-local _fn4 = function(): number & nil
-	if foo0 :: number then
-		return 3
-	end
+local function _concat<T, S>(source: Array<T>, ...: Array<S> | S): Array<T> & Array<S>
+    return (source :: any) :: Array<S> & Array<T>
 end

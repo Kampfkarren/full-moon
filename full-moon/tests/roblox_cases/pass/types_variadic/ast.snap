@@ -1,6 +1,5 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/types_variadic
 
@@ -1066,7 +1065,7 @@ stmts:
                                   symbol: "..."
                               trailing_trivia: []
                             type_info:
-                              Basic:
+                              String:
                                 leading_trivia: []
                                 token:
                                   start_position:
@@ -1120,7 +1119,7 @@ stmts:
                                 type: Whitespace
                                 characters: " "
                         right:
-                          Basic:
+                          String:
                             leading_trivia: []
                             token:
                               start_position:
@@ -1307,7 +1306,7 @@ stmts:
                                     - End:
                                         Union:
                                           left:
-                                            Basic:
+                                            String:
                                               leading_trivia: []
                                               token:
                                                 start_position:
@@ -1363,7 +1362,7 @@ stmts:
                                           right:
                                             Union:
                                               left:
-                                                Basic:
+                                                String:
                                                   leading_trivia: []
                                                   token:
                                                     start_position:
@@ -1417,7 +1416,7 @@ stmts:
                                                       type: Whitespace
                                                       characters: " "
                                               right:
-                                                Basic:
+                                                String:
                                                   leading_trivia: []
                                                   token:
                                                     start_position:
@@ -1524,7 +1523,7 @@ stmts:
                             - End:
                                 Union:
                                   left:
-                                    Basic:
+                                    String:
                                       leading_trivia: []
                                       token:
                                         start_position:
@@ -1578,7 +1577,7 @@ stmts:
                                           type: Whitespace
                                           characters: " "
                                   right:
-                                    Basic:
+                                    String:
                                       leading_trivia: []
                                       token:
                                         start_position:
