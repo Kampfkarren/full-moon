@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: error
+input_file: full-moon/tests/roblox_cases/fail/parser/invalid_types
+
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 14
+      line: 1
+      character: 15
+    end_position:
+      bytes: 15
+      line: 1
+      character: 16
+    token_type:
+      type: Symbol
+      symbol: "<"
+  additional: leftover token
+

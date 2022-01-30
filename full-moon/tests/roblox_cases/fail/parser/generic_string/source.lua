@@ -1,0 +1,1 @@
+type Foo = "bar"<number>

@@ -1,0 +1,140 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 52
+expression: tokens
+input_file: full-moon/tests/roblox_cases/fail/parser/generic_string
+
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 4
+    line: 1
+    character: 5
+  token_type:
+    type: Identifier
+    identifier: type
+- start_position:
+    bytes: 4
+    line: 1
+    character: 5
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: Foo
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 16
+    line: 1
+    character: 17
+  token_type:
+    type: StringLiteral
+    literal: bar
+    quote_type: Double
+- start_position:
+    bytes: 16
+    line: 1
+    character: 17
+  end_position:
+    bytes: 17
+    line: 1
+    character: 18
+  token_type:
+    type: Symbol
+    symbol: "<"
+- start_position:
+    bytes: 17
+    line: 1
+    character: 18
+  end_position:
+    bytes: 23
+    line: 1
+    character: 24
+  token_type:
+    type: Identifier
+    identifier: number
+- start_position:
+    bytes: 23
+    line: 1
+    character: 24
+  end_position:
+    bytes: 24
+    line: 1
+    character: 25
+  token_type:
+    type: Symbol
+    symbol: ">"
+- start_position:
+    bytes: 24
+    line: 1
+    character: 25
+  end_position:
+    bytes: 25
+    line: 1
+    character: 25
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 25
+    line: 2
+    character: 1
+  end_position:
+    bytes: 25
+    line: 2
+    character: 1
+  token_type:
+    type: Eof
+

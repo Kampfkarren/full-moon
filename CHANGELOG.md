@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added support for parsing generic type packs, variadic type packs, and explicit type packs in generic arguments for a type under the `roblox` feature flag (`type X<S...> = Y<(string, number), ...string, S...>`)
+- Added support for string and boolean singleton types under the `roblox` feature flag (`type Element = { ["$$typeof"]: number, errorCaught: true, which: "Query" | "Mutation" | "Subscription" }`
 - Added support for default types in a generic type declaration under the `roblox` feature flag (`type Foo<X = string> = X`)
 
 ### Changed

@@ -20,6 +20,12 @@ impl Visit for TypeInfo {
             TypeInfo::Basic(__self_0) => {
                 __self_0.visit(visitor);
             }
+            TypeInfo::String(__self_0) => {
+                __self_0.visit(visitor);
+            }
+            TypeInfo::Boolean(__self_0) => {
+                __self_0.visit(visitor);
+            }
             TypeInfo::Callback {
                 generics,
                 parentheses,
@@ -126,6 +132,8 @@ impl VisitMut for TypeInfo {
                 TypeInfo::Array { braces, type_info }
             }
             TypeInfo::Basic(__self_0) => TypeInfo::Basic(__self_0.visit_mut(visitor)),
+            TypeInfo::Boolean(__self_0) => TypeInfo::Boolean(__self_0.visit_mut(visitor)),
+            TypeInfo::String(__self_0) => TypeInfo::String(__self_0.visit_mut(visitor)),
             TypeInfo::Callback {
                 mut generics,
                 mut parentheses,

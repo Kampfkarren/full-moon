@@ -22,6 +22,14 @@ pub enum TypeInfo {
     #[display(fmt = "{}", "_0")]
     Basic(TokenReference),
 
+    /// A singleton string type, such as `"hello"`
+    #[display(fmt = "{}", "_0")]
+    String(TokenReference),
+
+    /// A singleton boolean type, such as `true`
+    #[display(fmt = "{}", "_0")]
+    Boolean(TokenReference),
+
     /// A callback type, such as `(string, number) => boolean`.
     #[display(
         fmt = "{}{}{}{}{}{}",
