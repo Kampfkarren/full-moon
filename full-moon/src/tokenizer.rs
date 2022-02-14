@@ -3,81 +3,446 @@ use crate::{
     ShortString,
 };
 
-use full_moon_derive::symbols;
+use logos::{Lexer, Logos};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{cmp::Ordering, fmt, str::FromStr};
+use std::{
+    cmp::Ordering,
+    fmt::{self, Display},
+};
 
-symbols!(
-    And => "and",
-    Break => "break",
-    Do => "do",
-    ElseIf => "elseif",
-    Else => "else",
-    End => "end",
-    False => "false",
-    For => "for",
-    Function => "function",
-    If => "if",
-    In => "in",
-    Local => "local",
-    Nil => "nil",
-    Not => "not",
-    Or => "or",
-    Repeat => "repeat",
-    Return => "return",
-    Then => "then",
-    True => "true",
-    Until => "until",
-    While => "while",
+fn test_bracket_head(slice: &str) -> Option<usize> {
+    // starts with `[`?
+    if !slice.starts_with('[') {
+        return None;
+    }
+
+    // how many `=` after `[`?
+    let count = slice.chars().skip(1).take_while(|&v| v == '=').count();
+
+    // ends with `[`?
+    if !matches!(slice.chars().nth(count + 1), Some('[')) {
+        return None;
+    }
+
+    Some(count)
+}
+
+fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
+    match test_bracket_head(slice) {
+        Some(count) => {
+            let trim = &slice[count + 2..slice.len() - count - 2];
+
+            (trim.into(), Some(count))
+        }
+        None => (slice.into(), None),
+    }
+}
+
+fn read_bracketed(lex: &mut Lexer<Symbol>, skips: usize) -> bool {
+    let num_eq = match lex.slice().get(skips..).and_then(test_bracket_head) {
+        Some(v) => v,
+        None => return false,
+    };
+
+    let mut search = false;
+    let mut num = 0;
+
+    for (i, v) in lex.remainder().char_indices() {
+        match (search, v) {
+            (true, '=') => num += 1,
+            (true, ']') if num_eq == num => {
+                lex.bump(i + 1);
+
+                return true;
+            }
+            (false, ']') => {
+                search = true;
+                num = 0;
+            }
+            _ => search = false,
+        }
+    }
+
+    false
+}
+
+#[allow(missing_docs)]
+#[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+pub enum Symbol {
+    #[token("and")]
+    And,
+
+    #[token("break")]
+    Break,
+
+    #[token("do")]
+    Do,
+
+    #[token("else")]
+    Else,
+
+    #[token("elseif")]
+    ElseIf,
+
+    #[token("end")]
+    End,
+
+    #[token("false")]
+    False,
+
+    #[token("for")]
+    For,
+
+    #[token("function")]
+    Function,
+
+    #[token("if")]
+    If,
+
+    #[token("in")]
+    In,
+
+    #[token("local")]
+    Local,
+
+    #[token("nil")]
+    Nil,
+
+    #[token("not")]
+    Not,
+
+    #[token("or")]
+    Or,
+
+    #[token("repeat")]
+    Repeat,
+
+    #[token("return")]
+    Return,
+
+    #[token("then")]
+    Then,
+
+    #[token("true")]
+    True,
+
+    #[token("until")]
+    Until,
+
+    #[token("while")]
+    While,
+
     #[cfg(feature = "lua52")]
-    Goto => "goto",
+    #[token("goto")]
+    Goto,
+
+    #[cfg_attr(feature = "serde", serde(rename = "+="))]
+    #[token("+=")]
+    PlusEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "-="))]
+    #[token("-=")]
+    MinusEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "*="))]
+    #[token("*=")]
+    StarEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "/="))]
+    #[token("/=")]
+    SlashEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "%="))]
+    #[token("%=")]
+    PercentEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "^="))]
+    #[token("^=")]
+    CaretEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "..="))]
+    #[token("..=")]
+    TwoDotsEqual,
 
     #[cfg(feature = "roblox")]
-    PlusEqual => "+=",
-    MinusEqual => "-=",
-    StarEqual => "*=",
-    SlashEqual => "/=",
-    PercentEqual => "%=",
-    CaretEqual => "^=",
-    TwoDotsEqual => "..=",
+    #[cfg_attr(feature = "serde", serde(rename = "&"))]
+    #[token("&")]
+    Ampersand,
+
     #[cfg(feature = "roblox")]
-    Ampersand => "&",
-    #[cfg(feature = "roblox")]
-    ThinArrow => "->",
+    #[cfg_attr(feature = "serde", serde(rename = "->"))]
+    #[token("->")]
+    ThinArrow,
+
     #[cfg(any(feature = "roblox", feature = "lua52"))]
-    TwoColons => "::",
-    Caret => "^",
-    Colon => ":",
-    Comma => ",",
-    Ellipse => "...",
-    TwoDots => "..",
-    Dot => ".",
-    TwoEqual => "==",
-    Equal => "=",
-    GreaterThanEqual => ">=",
-    GreaterThan => ">",
-    Hash => "#",
-    LeftBrace => "{",
-    LeftBracket => "[",
-    LeftParen => "(",
-    LessThanEqual => "<=",
-    LessThan => "<",
-    Minus => "-",
-    Percent => "%",
+    #[cfg_attr(feature = "serde", serde(rename = "::"))]
+    #[token("::")]
+    TwoColons,
+
+    #[cfg_attr(feature = "serde", serde(rename = "^"))]
+    #[token("^")]
+    Caret,
+
+    #[cfg_attr(feature = "serde", serde(rename = ":"))]
+    #[token(":")]
+    Colon,
+
+    #[cfg_attr(feature = "serde", serde(rename = ","))]
+    #[token(",")]
+    Comma,
+
+    #[cfg_attr(feature = "serde", serde(rename = "..."))]
+    #[token("...")]
+    Ellipse,
+
+    #[cfg_attr(feature = "serde", serde(rename = ".."))]
+    #[token("..")]
+    TwoDots,
+
+    #[cfg_attr(feature = "serde", serde(rename = "."))]
+    #[token(".")]
+    Dot,
+
+    #[cfg_attr(feature = "serde", serde(rename = "=="))]
+    #[token("==")]
+    TwoEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "="))]
+    #[token("=")]
+    Equal,
+
+    #[cfg_attr(feature = "serde", serde(rename = ">="))]
+    #[token(">=")]
+    GreaterThanEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = ">"))]
+    #[token(">")]
+    GreaterThan,
+
+    #[cfg_attr(feature = "serde", serde(rename = "#"))]
+    #[token("#")]
+    Hash,
+
+    #[cfg_attr(feature = "serde", serde(rename = "["))]
+    #[token("[")]
+    LeftBracket,
+
+    #[cfg_attr(feature = "serde", serde(rename = "{"))]
+    #[token("{")]
+    LeftBrace,
+
+    #[cfg_attr(feature = "serde", serde(rename = "("))]
+    #[token("(")]
+    LeftParen,
+
+    #[cfg_attr(feature = "serde", serde(rename = "<="))]
+    #[token("<=")]
+    LessThanEqual,
+
+    #[cfg_attr(feature = "serde", serde(rename = "<"))]
+    #[token("<")]
+    LessThan,
+
+    #[cfg_attr(feature = "serde", serde(rename = "-"))]
+    #[token("-")]
+    Minus,
+
+    #[cfg_attr(feature = "serde", serde(rename = "%"))]
+    #[token("%")]
+    Percent,
+
     #[cfg(feature = "roblox")]
-    Pipe => "|",
-    Plus => "+",
+    #[cfg_attr(feature = "serde", serde(rename = "|"))]
+    #[token("|")]
+    Pipe,
+
+    #[cfg_attr(feature = "serde", serde(rename = "+"))]
+    #[token("+")]
+    Plus,
+
     #[cfg(feature = "roblox")]
-    QuestionMark => "?",
-    RightBrace => "}",
-    RightBracket => "]",
-    RightParen => ")",
-    Semicolon => ";",
-    Slash => "/",
-    Star => "*",
-    TildeEqual => "~=",
-);
+    #[cfg_attr(feature = "serde", serde(rename = "?"))]
+    #[token("?")]
+    QuestionMark,
+
+    #[cfg_attr(feature = "serde", serde(rename = "}"))]
+    #[token("}")]
+    RightBrace,
+
+    #[cfg_attr(feature = "serde", serde(rename = "]"))]
+    #[token("]")]
+    RightBracket,
+
+    #[cfg_attr(feature = "serde", serde(rename = ")"))]
+    #[token(")")]
+    RightParen,
+
+    #[cfg_attr(feature = "serde", serde(rename = ";"))]
+    #[token(";")]
+    Semicolon,
+
+    #[cfg_attr(feature = "serde", serde(rename = "/"))]
+    #[token("/")]
+    Slash,
+
+    #[cfg_attr(feature = "serde", serde(rename = "*"))]
+    #[token("*")]
+    Star,
+
+    #[cfg_attr(feature = "serde", serde(rename = "~="))]
+    #[token("~=")]
+    TildeEqual,
+
+    #[regex(r"#!.*\n")]
+    Shebang,
+
+    #[token("\u{feff}")]
+    Bom,
+
+    #[regex(r"[_\p{L}][_\p{L}\p{N}]*")]
+    Identifier,
+
+    #[cfg(feature = "roblox")]
+    #[regex(r"0[bB][01_]+([eE][01_]+)?(\.[01_]*)?")]
+    #[regex(r"0[xX][0-9a-fA-F_]+")]
+    #[regex(r"\.[0-9][0-9_]*([eE][\+\-]?[0-9_]+)?")]
+    #[regex(r"[0-9][0-9_]*(\.[0-9_]*)?([eE][\+\-]?[0-9_]+)?")]
+    Number,
+
+    #[cfg(not(feature = "roblox"))]
+    #[regex(r"0[xX][0-9a-fA-F]+")]
+    #[regex(r"\.[0-9]+([eE][\+\-]?[0-9]+)?")]
+    #[regex(r"[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?")]
+    Number,
+
+    #[regex(r"'([^']|\\[\S\s])*'")]
+    ApostropheString,
+
+    #[regex(r#""([^"]|\\[\S\s])*""#)]
+    QuoteString,
+
+    #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
+    MultiLineString,
+
+    #[regex(r"--([^\n(\[=*\[)].*)?")]
+    SingleLineComment,
+
+    #[regex(r"--\[=*\[", |x| read_bracketed(x, 2))]
+    MultiLineComment,
+
+    #[regex(r"[ \t]*(\r?\n)?")]
+    Whitespace,
+
+    #[error]
+    Unknown,
+}
+
+impl Symbol {
+    fn is_variable(&self) -> bool {
+        matches!(
+            self,
+            Symbol::Shebang
+                | Symbol::Bom
+                | Symbol::Identifier
+                | Symbol::Number
+                | Symbol::ApostropheString
+                | Symbol::QuoteString
+                | Symbol::MultiLineString
+                | Symbol::SingleLineComment
+                | Symbol::MultiLineComment
+                | Symbol::Whitespace
+        )
+    }
+}
+
+impl Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Symbol::And => "and",
+            Symbol::Break => "break",
+            Symbol::Do => "do",
+            Symbol::Else => "else",
+            Symbol::ElseIf => "elseif",
+            Symbol::End => "end",
+            Symbol::False => "false",
+            Symbol::For => "for",
+            Symbol::Function => "function",
+            Symbol::If => "if",
+            Symbol::In => "in",
+            Symbol::Local => "local",
+            Symbol::Nil => "nil",
+            Symbol::Not => "not",
+            Symbol::Or => "or",
+            Symbol::Repeat => "repeat",
+            Symbol::Return => "return",
+            Symbol::Then => "then",
+            Symbol::True => "true",
+            Symbol::Until => "until",
+            Symbol::While => "while",
+            #[cfg(feature = "lua52")]
+            Symbol::Goto => "goto",
+            Symbol::PlusEqual => "+=",
+            Symbol::MinusEqual => "-=",
+            Symbol::StarEqual => "*=",
+            Symbol::SlashEqual => "/=",
+            Symbol::PercentEqual => "%=",
+            Symbol::CaretEqual => "^=",
+            Symbol::TwoDotsEqual => "..=",
+            #[cfg(feature = "roblox")]
+            Symbol::Ampersand => "&",
+            #[cfg(feature = "roblox")]
+            Symbol::ThinArrow => "->",
+            #[cfg(any(feature = "roblox", feature = "lua52"))]
+            Symbol::TwoColons => "::",
+            Symbol::Caret => "^",
+            Symbol::Colon => ":",
+            Symbol::Comma => ",",
+            Symbol::Ellipse => "...",
+            Symbol::TwoDots => "..",
+            Symbol::Dot => ".",
+            Symbol::TwoEqual => "==",
+            Symbol::Equal => "=",
+            Symbol::GreaterThanEqual => ">=",
+            Symbol::GreaterThan => ">",
+            Symbol::Hash => "#",
+            Symbol::LeftBracket => "[",
+            Symbol::LeftBrace => "{",
+            Symbol::LeftParen => "(",
+            Symbol::LessThanEqual => "<=",
+            Symbol::LessThan => "<",
+            Symbol::Minus => "-",
+            Symbol::Percent => "%",
+            #[cfg(feature = "roblox")]
+            Symbol::Pipe => "|",
+            Symbol::Plus => "+",
+            #[cfg(feature = "roblox")]
+            Symbol::QuestionMark => "?",
+            Symbol::RightBrace => "}",
+            Symbol::RightBracket => "]",
+            Symbol::RightParen => ")",
+            Symbol::Semicolon => ";",
+            Symbol::Slash => "/",
+            Symbol::Star => "*",
+            Symbol::TildeEqual => "~=",
+            Symbol::Bom => "bom",
+            Symbol::Shebang => "shebang",
+            Symbol::Identifier => "identifier",
+            Symbol::Number => "number",
+            Symbol::ApostropheString => "apostrophe string",
+            Symbol::QuoteString => "quote string",
+            Symbol::MultiLineString => "long string",
+            Symbol::SingleLineComment => "short comment",
+            Symbol::MultiLineComment => "long comment",
+            Symbol::Whitespace => "whitespace",
+            Symbol::Unknown => "unknown",
+        };
+
+        value.fmt(f)
+    }
+}
 
 /// The possible errors that can happen while tokenizing.
 #[derive(Clone, Debug, PartialEq)]
@@ -166,6 +531,16 @@ pub enum TokenType {
 }
 
 impl TokenType {
+    fn new_string(literal: &str, quote_type: StringLiteralQuoteType) -> Self {
+        let literal = literal.into();
+
+        Self::StringLiteral {
+            literal,
+            quote_type,
+            multi_line: None,
+        }
+    }
+
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
@@ -431,8 +806,10 @@ impl TokenReference {
             symbol_text.push(chars.next().unwrap());
         }
 
-        let symbol = Symbol::from_str(&symbol_text)
-            .map_err(|_| TokenizerErrorType::InvalidSymbol(symbol_text))?;
+        let symbol = match Symbol::lexer(&symbol_text).next() {
+            Some(v) if !v.is_variable() => v,
+            _ => return Err(TokenizerErrorType::InvalidSymbol(symbol_text)),
+        };
 
         let mut trailing_trivia = String::new();
         while let Some(character) = chars.peek() {
@@ -642,150 +1019,103 @@ impl From<TokenizerErrorType> for RawToken {
     }
 }
 
-peg::parser! {
-    grammar tokens() for str {
-        use super::ParseSymbol;
-        use peg::ParseLiteral;
-        use super::StringLiteralQuoteType as QuoteType;
+fn tokenize(lexer: &mut Lexer<Symbol>, token: Symbol) -> RawToken {
+    match token {
+        Symbol::Identifier => {
+            let identifier = lexer.slice().into();
 
-        rule line_ending()
-            = "\n" / "\r\n"
-        rule space()
-            = [' '|'\t']
+            Ok(TokenType::Identifier { identifier })
+        }
+        Symbol::MultiLineComment => {
+            let (comment, blocks) = trim_bracket_head(&lexer.slice()[2..]);
+            let blocks = blocks.unwrap();
 
-        pub(super) rule whitespace() -> RawToken
-            = chars:$( space()+ line_ending()? / line_ending() )
-              { TokenType::Whitespace { characters:chars.into() }.into() }
+            Ok(TokenType::MultiLineComment { blocks, comment })
+        }
+        Symbol::Number => {
+            let text = lexer.slice().into();
 
-        rule multi_line_start() -> &'input str
-            = "[" block:$("="*) "[" {block}
+            Ok(TokenType::Number { text })
+        }
+        Symbol::SingleLineComment => {
+            let comment = lexer.slice()[2..].into();
 
-        rule multi_line_end(block: &'input str)
-            = "]" ##parse_string_literal(block) "]"
+            Ok(TokenType::SingleLineComment { comment })
+        }
+        Symbol::MultiLineString => {
+            let (literal, multi_line) = trim_bracket_head(lexer.slice());
 
-        rule multi_line_block() -> (usize, &'input str)
-            = block:multi_line_start()
-              content:$((!multi_line_end(block) [_])*)
-              multi_line_end(block)
-              { (block.len(), content) }
+            Ok(TokenType::StringLiteral {
+                literal,
+                multi_line,
+                quote_type: StringLiteralQuoteType::Brackets,
+            })
+        }
+        Symbol::ApostropheString => Ok(TokenType::new_string(
+            lexer.slice().trim_matches('\''),
+            StringLiteralQuoteType::Single,
+        )),
+        Symbol::QuoteString => Ok(TokenType::new_string(
+            lexer.slice().trim_matches('"'),
+            StringLiteralQuoteType::Double,
+        )),
+        Symbol::Whitespace => {
+            let characters = lexer.slice().into();
 
-        rule multi_line_quote() -> RawToken
-            = v:multi_line_block() { TokenType::StringLiteral {
-                multi_line: Some(v.0),
-                literal:v.1.into(),
-                quote_type: QuoteType::Brackets,
-            }.into()}
-            / &multi_line_start() [_]+ { TokenizerErrorType::UnclosedString.into() }
+            Ok(TokenType::Whitespace { characters })
+        }
+        Symbol::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
+        Symbol::Unknown => {
+            let first = lexer.slice().chars().next().unwrap();
+            let what = match first {
+                '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
+                '-' => TokenizerErrorType::UnclosedComment,
+                other => TokenizerErrorType::UnexpectedToken(other),
+            };
 
-        rule escape()
-            = "\\" [_]
-
-        rule quote_char(quote: &str)
-            = !(##parse_string_literal(quote) / ['\r'|'\n'|'\\']) [_]
-
-        rule quoted(quote: &str, quote_type: QuoteType) -> RawToken
-            = ##parse_string_literal(quote)
-              literal:$((quote_char(quote) / escape())+ / )
-              ##parse_string_literal(quote)
-              { TokenType::StringLiteral { multi_line: None, literal:literal.into(), quote_type }.into() }
-            / ##parse_string_literal(quote) [_]* {TokenizerErrorType::UnclosedString.into() }
-
-        rule single_line_quote() -> RawToken
-            = quoted("\"", (QuoteType::Double))
-            / quoted("\'", (QuoteType::Single))
-
-        pub(super) rule string_literal() -> RawToken
-            = multi_line_quote()
-            / single_line_quote()
-
-        pub(super) rule shebang() -> RawToken
-            = line:$("#!" (!line_ending() [_])* line_ending())
-              {TokenType::Shebang{line:line.into()}.into()}
-
-        pub(super) rule utf8_bom() -> RawToken
-            = chars:$("\u{feff}") // A BOM sequence in UTF8 "\xEF\xBB\xBF"
-            { TokenType::Whitespace { characters:chars.into() }.into() }
-
-        pub(super) rule identifier() -> RawToken
-            = id:$(['_'|'a'..='z'|'A'..='Z'] ['_'|'a'..='z'|'A'..='Z'|'0'..='9']*)
-              { match parse_keyword(id) {
-                    Some(symbol) => TokenType::Symbol { symbol }.into(),
-                    None => TokenType::Identifier { identifier: id.into() }.into(),
-              }}
-            / expected!("identifier")
-
-        pub(super) rule comment() -> RawToken
-            = "--" v:multi_line_block()
-              { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
-            / "--" multi_line_start() [_]* { TokenizerErrorType::UnclosedComment.into() }
-            / "--" comment:$(([^ '\r'|'\n'])*)
-              { TokenType::SingleLineComment { comment: comment.into() }.into() }
-
-        rule roblox()
-            = {? if cfg!(feature = "roblox") {
-                Ok(())
-            } else {
-                Err("roblox not enabled")
-            }}
-
-        rule roblox_number() -> &'input str
-            = roblox() n:$(("0b"/"0B") ['0'|'1'|'_']+) {n}
-
-        rule hex_number() -> &'input str
-            = roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F'|'_']+) {n}
-            / !roblox() n:$(("0x"/"0X") ['0'..='9'|'a'..='f'|'A'..='F']+) {n}
-
-        rule digit_with_separator() -> &'input str
-            = roblox() n:$(['0'..='9'] ['0'..='9'|'_']*) {n}
-            / !roblox() n:$(['0'..='9']+) {n}
-
-        rule basic_number() -> &'input str
-            = $(
-                digit_with_separator()
-                ("." digit_with_separator()?)?
-                (['e'|'E'] ['-'|'+']? digit_with_separator())?
-            )
-
-        rule no_int_fractional_number() -> &'input str
-            = $(
-                "." digit_with_separator()
-                (['e'|'E'] ['-'|'+']? digit_with_separator())?
-            )
-
-        pub(super) rule number() -> RawToken
-            = n:(
-                roblox_number()
-              / hex_number()
-              / basic_number()
-              / no_int_fractional_number()
-            ) { TokenType::Number { text:n.into() }.into() }
-
-        pub(super) rule symbol() -> RawToken = symbol:##parse_symbol() { TokenType::Symbol{symbol}.into() }
-
-        rule token() -> RawToken
-            = whitespace()
-            / comment()
-            / number()
-            / string_literal()
-            / "#!" { TokenizerErrorType::UnexpectedShebang.into() }
-            / symbol()
-            / identifier()
-
-        pub(crate) rule tokens() -> Vec<(RawToken, usize)>
-            = bom:(bom:utf8_bom() pos:position!() {(bom,pos)})?
-              shebang:(shebang:shebang() pos:position!() {(shebang,pos)})?
-              body:( token:token() pos:position!() {(token,pos)})*
-              {
-                  let mut body = body;
-                  if let Some(shebang) = shebang {
-                      body.insert(0, shebang);
-                  }
-                  if let Some(bom) = bom {
-                      body.insert(0, bom);
-                  }
-                  body
-              }
+            Err(what)
+        }
+        symbol => Ok(TokenType::Symbol { symbol }),
     }
+}
+
+fn next_if(lexer: &mut Lexer<Symbol>, token: Symbol) -> Option<ShortString> {
+    if lexer.clone().next() == Some(token) {
+        lexer.next();
+
+        Some(lexer.slice().into())
+    } else {
+        None
+    }
+}
+
+fn tokenize_code(code: &str) -> Vec<(RawToken, usize)> {
+    let mut lexer = Symbol::lexer(code);
+    let mut list = Vec::new();
+
+    if let Some(characters) = next_if(&mut lexer, Symbol::Bom) {
+        let raw = (Ok(TokenType::Whitespace { characters }), lexer.span().end);
+
+        list.push(raw);
+    }
+
+    if let Some(line) = next_if(&mut lexer, Symbol::Shebang) {
+        let raw = (Ok(TokenType::Shebang { line }), lexer.span().end);
+
+        list.push(raw);
+    }
+
+    while let Some(token) = lexer.next() {
+        let span = lexer.span();
+        let raw = tokenize(&mut lexer, token);
+
+        list.push((raw, span.end));
+    }
+
+    let eof = (Ok(TokenType::Eof), lexer.span().end);
+
+    list.push(eof);
+    list
 }
 
 /// Information about an error that occurs while tokenizing
@@ -834,16 +1164,6 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
-impl From<peg::str::LineCol> for Position {
-    fn from(location: peg::str::LineCol) -> Position {
-        Position {
-            bytes: location.offset,
-            line: location.line,
-            character: location.column,
-        }
-    }
-}
-
 struct TokenCollector {
     result: Vec<Token>,
 }
@@ -884,19 +1204,6 @@ impl TokenCollector {
     }
 }
 
-fn from_parser_error(
-    code: &'_ str,
-) -> impl Fn(peg::error::ParseError<peg::str::LineCol>) -> TokenizerError + '_ {
-    move |err| TokenizerError {
-        error: TokenizerErrorType::UnexpectedToken(
-            code[err.location.offset..].chars().next().expect(
-                "(internal full-moon error) Text overflow while giving unexpected token error",
-            ),
-        ),
-        position: err.location.into(),
-    }
-}
-
 /// Returns a list of tokens.
 /// You probably want [`parse`](crate::parse) instead.
 ///
@@ -914,13 +1221,10 @@ fn from_parser_error(
 pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
     let mut tokens = TokenCollector::new();
 
-    let mut raw_tokens = tokens::tokens(code).map_err(from_parser_error(code))?;
-
-    // rust-peg lets us easily get the offset associated with
-    // (the end of) each token, but not the line or column
-    // information. We iterate over the characters to match
-    // up the tokens with the row/column information.
-    let mut raw_tokens = raw_tokens.drain(..);
+    // Logos provides token start and end information,
+    // but not the line or column. We iterate over the
+    // characters to retrieve this.
+    let mut raw_tokens = tokenize_code(code).into_iter();
 
     let mut position = Position {
         bytes: 0,
@@ -973,18 +1277,6 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     macro_rules! test_rule {
-        ($rule:ident($code:expr), $result:expr) => {
-            let code: &str = $code;
-            let result: RawToken = $result.into();
-
-            assert_eq!(
-                tokens::$rule(code)
-                    .map_err(|err| from_parser_error(code)(err).error)
-                    .and_then(|v| v),
-                result,
-            );
-            test_rule!(code, result)
-        };
         ($code:expr, $result:expr) => {
             let code: &str = $code;
             let result: RawToken = $result.into();
@@ -1008,14 +1300,14 @@ mod tests {
     #[test]
     fn test_rule_comment() {
         test_rule!(
-            comment("-- hello world"),
+            "-- hello world",
             TokenType::SingleLineComment {
                 comment: " hello world".into()
             }
         );
 
         test_rule!(
-            comment("--[[ hello world ]]"),
+            "--[[ hello world ]]",
             TokenType::MultiLineComment {
                 blocks: 0,
                 comment: " hello world ".into()
@@ -1023,26 +1315,23 @@ mod tests {
         );
 
         test_rule!(
-            comment("--[=[ hello world ]=]"),
+            "--[=[ hello world ]=]",
             TokenType::MultiLineComment {
                 blocks: 1,
                 comment: " hello world ".into()
             }
         );
-        test_rule!(
-            comment("--"),
-            TokenType::SingleLineComment { comment: "".into() }
-        );
+        test_rule!("--", TokenType::SingleLineComment { comment: "".into() });
     }
 
     #[test]
     fn test_rule_numbers() {
-        test_rule!(number("213"), TokenType::Number { text: "213".into() });
+        test_rule!("213", TokenType::Number { text: "213".into() });
 
-        test_rule!(number("1"), TokenType::Number { text: "1".into() });
+        test_rule!("1", TokenType::Number { text: "1".into() });
 
         test_rule!(
-            number("123.45"),
+            "123.45",
             TokenType::Number {
                 text: "123.45".into(),
             }
@@ -1053,7 +1342,7 @@ mod tests {
     #[cfg_attr(not(feature = "roblox"), ignore)]
     fn test_rule_binary_literals() {
         test_rule!(
-            number("0b101"),
+            "0b101",
             TokenType::Number {
                 text: "0b101".into(),
             }
@@ -1063,7 +1352,7 @@ mod tests {
     #[test]
     fn test_rule_identifier() {
         test_rule!(
-            identifier("hello"),
+            "hello",
             TokenType::Identifier {
                 identifier: "hello".into(),
             }
@@ -1077,19 +1366,17 @@ mod tests {
         );
 
         test_rule!(
-            identifier("hello___"),
+            "hello___",
             TokenType::Identifier {
                 identifier: "hello___".into(),
             }
         );
-
-        test_rule!(identifier("123"), TokenizerErrorType::UnexpectedToken('1'));
     }
 
     #[test]
     fn test_rule_symbols() {
         test_rule!(
-            identifier("local"),
+            "local",
             TokenType::Symbol {
                 symbol: Symbol::Local
             }
@@ -1130,7 +1417,7 @@ mod tests {
     #[test]
     fn test_rule_string_literal() {
         test_rule!(
-            string_literal("\"hello\""),
+            "\"hello\"",
             TokenType::StringLiteral {
                 literal: "hello".into(),
                 multi_line: None,
@@ -1139,7 +1426,7 @@ mod tests {
         );
 
         test_rule!(
-            string_literal("\"hello\\\nworld\""),
+            "\"hello\\\nworld\"",
             TokenType::StringLiteral {
                 literal: "hello\\\nworld".into(),
                 multi_line: None,
@@ -1147,17 +1434,14 @@ mod tests {
             }
         );
 
-        test_rule!(
-            string_literal("\"hello"),
-            TokenizerErrorType::UnclosedString
-        );
+        test_rule!("\"hello", TokenizerErrorType::UnclosedString);
     }
 
     #[test]
     fn test_symbols_within_symbols() {
         // "index" should not return "in"
         test_rule!(
-            identifier("index"),
+            "index",
             TokenType::Identifier {
                 identifier: "index".into()
             }
@@ -1165,7 +1449,7 @@ mod tests {
 
         // "<=" should not return "<"
         test_rule!(
-            symbol("<="),
+            "<=",
             TokenType::Symbol {
                 symbol: Symbol::LessThanEqual,
             }
@@ -1175,7 +1459,7 @@ mod tests {
     #[test]
     fn test_rule_shebang() {
         test_rule!(
-            shebang("#!/usr/bin/env lua\n"),
+            "#!/usr/bin/env lua\n",
             TokenType::Shebang {
                 line: "#!/usr/bin/env lua\n".into()
             }
@@ -1191,7 +1475,7 @@ mod tests {
     fn test_rule_bom() {
         let bom = String::from_utf8(b"\xEF\xBB\xBF".to_vec()).unwrap();
         test_rule!(
-            utf8_bom(&bom),
+            &bom,
             TokenType::Whitespace {
                 characters: ShortString::new(&bom),
             }
