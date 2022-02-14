@@ -3,7 +3,7 @@ use crate::{
     ShortString,
 };
 
-use logos::{Lexer, Logos};
+use logos::{Lexer, Logos, Span};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
@@ -541,6 +541,16 @@ impl TokenType {
         }
     }
 
+    fn is_extensive(&self) -> bool {
+        matches!(
+            self,
+            TokenType::MultiLineComment { .. }
+                | TokenType::Shebang { .. }
+                | TokenType::StringLiteral { .. }
+                | TokenType::Whitespace { .. }
+        )
+    }
+
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
@@ -1019,31 +1029,31 @@ impl From<TokenizerErrorType> for RawToken {
     }
 }
 
-fn tokenize(lexer: &mut Lexer<Symbol>, token: Symbol) -> RawToken {
+fn tokenize(token: Symbol, slice: &str) -> RawToken {
     match token {
         Symbol::Identifier => {
-            let identifier = lexer.slice().into();
+            let identifier = slice.into();
 
             Ok(TokenType::Identifier { identifier })
         }
         Symbol::MultiLineComment => {
-            let (comment, blocks) = trim_bracket_head(&lexer.slice()[2..]);
+            let (comment, blocks) = trim_bracket_head(&slice[2..]);
             let blocks = blocks.unwrap();
 
             Ok(TokenType::MultiLineComment { blocks, comment })
         }
         Symbol::Number => {
-            let text = lexer.slice().into();
+            let text = slice.into();
 
             Ok(TokenType::Number { text })
         }
         Symbol::SingleLineComment => {
-            let comment = lexer.slice()[2..].into();
+            let comment = slice[2..].into();
 
             Ok(TokenType::SingleLineComment { comment })
         }
         Symbol::MultiLineString => {
-            let (literal, multi_line) = trim_bracket_head(lexer.slice());
+            let (literal, multi_line) = trim_bracket_head(slice);
 
             Ok(TokenType::StringLiteral {
                 literal,
@@ -1052,21 +1062,21 @@ fn tokenize(lexer: &mut Lexer<Symbol>, token: Symbol) -> RawToken {
             })
         }
         Symbol::ApostropheString => Ok(TokenType::new_string(
-            lexer.slice().trim_matches('\''),
+            slice.trim_matches('\''),
             StringLiteralQuoteType::Single,
         )),
         Symbol::QuoteString => Ok(TokenType::new_string(
-            lexer.slice().trim_matches('"'),
+            slice.trim_matches('"'),
             StringLiteralQuoteType::Double,
         )),
         Symbol::Whitespace => {
-            let characters = lexer.slice().into();
+            let characters = slice.into();
 
             Ok(TokenType::Whitespace { characters })
         }
         Symbol::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
         Symbol::Unknown => {
-            let first = lexer.slice().chars().next().unwrap();
+            let first = slice.chars().next().unwrap();
             let what = match first {
                 '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
                 '-' => TokenizerErrorType::UnclosedComment,
@@ -1089,32 +1099,29 @@ fn next_if(lexer: &mut Lexer<Symbol>, token: Symbol) -> Option<ShortString> {
     }
 }
 
-fn tokenize_code(code: &str) -> Vec<(RawToken, usize)> {
+fn tokenize_code(code: &str) -> Vec<(RawToken, Span)> {
     let mut lexer = Symbol::lexer(code);
     let mut list = Vec::new();
 
     if let Some(characters) = next_if(&mut lexer, Symbol::Bom) {
-        let raw = (Ok(TokenType::Whitespace { characters }), lexer.span().end);
+        let raw = (Ok(TokenType::Whitespace { characters }), lexer.span());
 
         list.push(raw);
     }
 
     if let Some(line) = next_if(&mut lexer, Symbol::Shebang) {
-        let raw = (Ok(TokenType::Shebang { line }), lexer.span().end);
+        let raw = (Ok(TokenType::Shebang { line }), lexer.span());
 
         list.push(raw);
     }
 
     while let Some(token) = lexer.next() {
+        let raw = tokenize(token, lexer.slice());
         let span = lexer.span();
-        let raw = tokenize(&mut lexer, token);
 
-        list.push((raw, span.end));
+        list.push((raw, span));
     }
 
-    let eof = (Ok(TokenType::Eof), lexer.span().end);
-
-    list.push(eof);
     list
 }
 
@@ -1204,6 +1211,30 @@ impl TokenCollector {
     }
 }
 
+fn read_position(code: &str, position: &mut Position) -> bool {
+    let mut has_newline = false;
+
+    for c in code.chars() {
+        match c {
+            '\n' => {
+                has_newline = true;
+            }
+            _ => {
+                if has_newline {
+                    position.line += 1;
+                    position.character = 1;
+
+                    has_newline = false;
+                }
+
+                position.character += 1;
+            }
+        }
+    }
+
+    has_newline
+}
+
 /// Returns a list of tokens.
 /// You probably want [`parse`](crate::parse) instead.
 ///
@@ -1224,48 +1255,31 @@ pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
     // Logos provides token start and end information,
     // but not the line or column. We iterate over the
     // characters to retrieve this.
-    let mut raw_tokens = tokenize_code(code).into_iter();
-
     let mut position = Position {
         bytes: 0,
-        character: 1,
         line: 1,
+        character: 1,
     };
-    let mut next_is_new_line = false;
-    let mut start_position = position;
-    if let Some((mut token_type, mut token_offset)) = raw_tokens.next() {
-        for character in code.chars() {
-            if character == '\n' {
-                next_is_new_line = true;
-            } else {
-                position.character += 1;
-            }
 
-            position.bytes += character.len_utf8();
+    for (token, span) in tokenize_code(code) {
+        let start_position = position;
 
-            let end_position = position;
+        position.bytes = span.end;
 
-            if next_is_new_line {
-                next_is_new_line = false;
+        if token.as_ref().map(|v| v.is_extensive()).unwrap_or_default() {
+            let has_newline = read_position(&code[span.clone()], &mut position);
+
+            tokens.push(start_position, token, position)?;
+
+            if has_newline {
                 position.line += 1;
                 position.character = 1;
             }
+        } else {
+            position.character += span.len();
 
-            if token_offset == end_position.bytes {
-                tokens.push(start_position, token_type, end_position)?;
-                start_position = position;
-                if let Some((next_token_type, next_token_offset)) = raw_tokens.next() {
-                    token_type = next_token_type;
-                    token_offset = next_token_offset;
-                } else {
-                    break;
-                }
-            }
+            tokens.push(start_position, token, position)?;
         }
-    }
-
-    if let Some((token_type, token_offset)) = raw_tokens.next() {
-        panic!("(internal full-moon error) Found token {:?} with offset {:?} which is past the end of source", token_type, token_offset);
     }
 
     Ok(tokens.finish(position))
