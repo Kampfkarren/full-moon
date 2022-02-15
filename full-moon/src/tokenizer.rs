@@ -671,33 +671,32 @@ impl Token {
 }
 
 impl fmt::Display for Token {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
         match &*self.token_type() {
-            Eof => "".to_string(),
-            Number { text } => text.to_string(),
-            Identifier { identifier } => identifier.to_string(),
+            Eof => Ok(()),
+            Number { text } => text.fmt(f),
+            Identifier { identifier } => identifier.fmt(f),
             MultiLineComment { blocks, comment } => {
-                format!("--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
+                write!(f, "--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
             }
-            Shebang { line } => line.to_string(),
-            SingleLineComment { comment } => format!("--{}", comment),
+            Shebang { line } => line.fmt(f),
+            SingleLineComment { comment } => write!(f, "--{}", comment),
             StringLiteral {
                 literal,
                 multi_line,
                 quote_type,
             } => {
                 if let Some(blocks) = multi_line {
-                    format!("[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
+                    write!(f, "[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
                 } else {
-                    format!("{0}{1}{0}", quote_type.to_string(), literal)
+                    write!(f, "{0}{1}{0}", quote_type, literal)
                 }
             }
-            Symbol { symbol } => symbol.to_string(),
-            Whitespace { characters } => characters.to_string(),
+            Symbol { symbol } => symbol.fmt(f),
+            Whitespace { characters } => characters.fmt(f),
         }
-        .fmt(formatter)
     }
 }
 
@@ -881,15 +880,15 @@ impl std::ops::Deref for TokenReference {
 }
 
 impl fmt::Display for TokenReference {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for trivia in &self.leading_trivia {
-            formatter.write_str(&trivia.to_string())?;
+            trivia.fmt(f)?;
         }
 
-        formatter.write_str(&self.token.to_string())?;
+        self.token.fmt(f)?;
 
         for trivia in &self.trailing_trivia {
-            formatter.write_str(&trivia.to_string())?;
+            trivia.fmt(f)?;
         }
 
         Ok(())
@@ -999,13 +998,12 @@ pub enum StringLiteralQuoteType {
 }
 
 impl fmt::Display for StringLiteralQuoteType {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             StringLiteralQuoteType::Brackets => unreachable!(),
-            StringLiteralQuoteType::Double => "\"",
-            StringLiteralQuoteType::Single => "'",
+            StringLiteralQuoteType::Double => "\"".fmt(f),
+            StringLiteralQuoteType::Single => "'".fmt(f),
         }
-        .fmt(formatter)
     }
 }
 
@@ -1142,23 +1140,23 @@ impl TokenizerError {
 }
 
 impl fmt::Display for TokenizerError {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.error {
+            TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(f),
+            TokenizerErrorType::UnclosedString => "unclosed string".fmt(f),
+            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(f),
+            TokenizerErrorType::UnexpectedToken(character) => {
+                write!(f, "unexpected character {}", character)
+            }
+            TokenizerErrorType::InvalidSymbol(symbol) => {
+                write!(f, "invalid symbol {}", symbol)
+            }
+        }?;
+
         write!(
-            formatter,
-            "{} at line {}, column {}",
-            match &self.error {
-                TokenizerErrorType::UnclosedComment => "unclosed comment".to_string(),
-                TokenizerErrorType::UnclosedString => "unclosed string".to_string(),
-                TokenizerErrorType::UnexpectedShebang => "unexpected shebang".to_string(),
-                TokenizerErrorType::UnexpectedToken(character) => {
-                    format!("unexpected character {}", character)
-                }
-                TokenizerErrorType::InvalidSymbol(symbol) => {
-                    format!("invalid symbol {}", symbol)
-                }
-            },
-            self.position.line,
-            self.position.character,
+            f,
+            " at line {}, column {}",
+            self.position.line, self.position.character,
         )
     }
 }
