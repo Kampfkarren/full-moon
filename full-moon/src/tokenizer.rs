@@ -1074,6 +1074,7 @@ fn tokenize(token: Symbol, slice: &str) -> RawToken {
 
             Ok(TokenType::Whitespace { characters })
         }
+        Symbol::Bom => Err(TokenizerErrorType::UnexpectedToken('\u{feff}')),
         Symbol::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
         Symbol::Unknown => {
             let first = slice.chars().next().unwrap();
