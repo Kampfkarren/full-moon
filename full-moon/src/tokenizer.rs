@@ -1295,6 +1295,8 @@ mod tests {
                 Err(expected) => {
                     if let Err(TokenizerError { error, .. }) = tokens($code) {
                         assert_eq!(error, expected);
+                    } else {
+                        panic!("tokenization should fail");
                     }
                 }
             };
