@@ -811,47 +811,39 @@ impl TokenReference {
     /// # }
     /// ```
     pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        let mut chars = text.chars().peekable();
+        let mut lexer = Symbol::lexer(text).spanned().peekable();
 
-        let mut leading_trivia = String::new();
-        while let Some(character) = chars.peek() {
-            if character.is_ascii_whitespace() {
-                leading_trivia.push(chars.next().unwrap());
-            } else {
-                break;
-            }
+        let leading_trivia = lexer
+            .next_if(|v| v.0 == Symbol::Whitespace)
+            .map(|v| text[v.1].into())
+            .unwrap_or_default();
+
+        let (symbol, span) = lexer.next().unwrap();
+
+        if symbol.is_variable() {
+            let text = text[span].to_string();
+
+            return Err(TokenizerErrorType::InvalidSymbol(text));
         }
 
-        let mut symbol_text = String::new();
-        while let Some(character) = chars.peek() {
-            if character.is_ascii_whitespace() {
-                break;
-            }
+        let trailing_trivia = lexer
+            .next_if(|v| v.0 == Symbol::Whitespace)
+            .map(|v| text[v.1].into())
+            .unwrap_or_default();
 
-            symbol_text.push(chars.next().unwrap());
-        }
+        if let Some(v) = lexer.next() {
+            let ch = text[v.1].chars().next().unwrap();
 
-        let symbol = match Symbol::lexer(&symbol_text).next() {
-            Some(v) if !v.is_variable() => v,
-            _ => return Err(TokenizerErrorType::InvalidSymbol(symbol_text)),
-        };
-
-        let mut trailing_trivia = String::new();
-        while let Some(character) = chars.peek() {
-            if character.is_ascii_whitespace() {
-                trailing_trivia.push(chars.next().unwrap());
-            } else {
-                return Err(TokenizerErrorType::UnexpectedToken(*character));
-            }
+            return Err(TokenizerErrorType::UnexpectedToken(ch));
         }
 
         Ok(Self {
             leading_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: leading_trivia.into(),
+                characters: leading_trivia,
             })],
             token: Token::new(TokenType::Symbol { symbol }),
             trailing_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: trailing_trivia.into(),
+                characters: trailing_trivia,
             })],
         })
     }
