@@ -461,6 +461,22 @@ pub enum TokenizerErrorType {
     InvalidSymbol(String),
 }
 
+impl fmt::Display for TokenizerErrorType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(f),
+            TokenizerErrorType::UnclosedString => "unclosed string".fmt(f),
+            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(f),
+            TokenizerErrorType::UnexpectedToken(character) => {
+                write!(f, "unexpected character {}", character)
+            }
+            TokenizerErrorType::InvalidSymbol(symbol) => {
+                write!(f, "invalid symbol {}", symbol)
+            }
+        }
+    }
+}
+
 /// The type of tokens in parsed code
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -1141,22 +1157,10 @@ impl TokenizerError {
 
 impl fmt::Display for TokenizerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self.error {
-            TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(f),
-            TokenizerErrorType::UnclosedString => "unclosed string".fmt(f),
-            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(f),
-            TokenizerErrorType::UnexpectedToken(character) => {
-                write!(f, "unexpected character {}", character)
-            }
-            TokenizerErrorType::InvalidSymbol(symbol) => {
-                write!(f, "invalid symbol {}", symbol)
-            }
-        }?;
-
         write!(
             f,
-            " at line {}, column {}",
-            self.position.line, self.position.character,
+            "{} at line {}, column {}",
+            self.error, self.position.line, self.position.character,
         )
     }
 }
