@@ -341,7 +341,7 @@ pub enum Symbol {
 }
 
 impl Symbol {
-    fn is_variable(&self) -> bool {
+    fn is_variable(self) -> bool {
         matches!(
             self,
             Symbol::Shebang
@@ -985,12 +985,6 @@ impl PartialOrd for Position {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct TokenAdvancement {
-    pub advance: usize,
-    pub token_type: TokenType,
-}
-
 /// The types of quotes used in a Lua string
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -1215,20 +1209,17 @@ fn read_position(code: &str, position: &mut Position) -> bool {
     let mut has_newline = false;
 
     for c in code.chars() {
-        match c {
-            '\n' => {
-                has_newline = true;
-            }
-            _ => {
-                if has_newline {
-                    position.line += 1;
-                    position.character = 1;
+        if c == '\n' {
+            has_newline = true;
+        } else {
+            if has_newline {
+                position.line += 1;
+                position.character = 1;
 
-                    has_newline = false;
-                }
-
-                position.character += 1;
+                has_newline = false;
             }
+
+            position.character += 1;
         }
     }
 
@@ -1266,7 +1257,11 @@ pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
 
         position.bytes = span.end;
 
-        if token.as_ref().map(|v| v.is_extensive()).unwrap_or_default() {
+        if token
+            .as_ref()
+            .map(TokenType::is_extensive)
+            .unwrap_or_default()
+        {
             let has_newline = read_position(&code[span.clone()], &mut position);
 
             tokens.push(start_position, token, position)?;
