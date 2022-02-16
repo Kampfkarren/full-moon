@@ -166,8 +166,8 @@ pub enum Symbol {
 impl TryFrom<Atom> for Symbol {
     type Error = ();
 
-    fn try_from(v: Atom) -> Result<Self, Self::Error> {
-        let ok = match v {
+    fn try_from(value: Atom) -> Result<Self, Self::Error> {
+        Ok(match value {
             Atom::And => Symbol::And,
             Atom::Break => Symbol::Break,
             Atom::Do => Symbol::Do,
@@ -191,12 +191,19 @@ impl TryFrom<Atom> for Symbol {
             Atom::While => Symbol::While,
             #[cfg(feature = "lua52")]
             Atom::Goto => Symbol::Goto,
+            #[cfg(feature = "roblox")]
             Atom::PlusEqual => Symbol::PlusEqual,
+            #[cfg(feature = "roblox")]
             Atom::MinusEqual => Symbol::MinusEqual,
+            #[cfg(feature = "roblox")]
             Atom::StarEqual => Symbol::StarEqual,
+            #[cfg(feature = "roblox")]
             Atom::SlashEqual => Symbol::SlashEqual,
+            #[cfg(feature = "roblox")]
             Atom::PercentEqual => Symbol::PercentEqual,
+            #[cfg(feature = "roblox")]
             Atom::CaretEqual => Symbol::CaretEqual,
+            #[cfg(feature = "roblox")]
             Atom::TwoDotsEqual => Symbol::TwoDotsEqual,
             Atom::Caret => Symbol::Caret,
             Atom::Colon => Symbol::Colon,
@@ -237,9 +244,7 @@ impl TryFrom<Atom> for Symbol {
             _ => {
                 return Err(());
             }
-        };
-
-        Ok(ok)
+        })
     }
 }
 

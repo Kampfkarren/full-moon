@@ -2,7 +2,7 @@ use logos::{Lexer, Logos};
 
 use crate::ShortString;
 
-pub(crate) fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
+pub fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
     match test_bracket_head(slice) {
         Some(count) => {
             let trim = &slice[count + 2..slice.len() - count - 2];
@@ -29,26 +29,26 @@ fn test_bracket_head(slice: &str) -> Option<usize> {
 
 fn read_bracketed(lex: &mut Lexer<Atom>, skips: usize) -> bool {
     let num_eq = match lex.slice().get(skips..).and_then(test_bracket_head) {
-        Some(v) => v,
+        Some(value) => value,
         None => return false,
     };
 
-    let mut search = false;
+    let mut in_tail = false;
     let mut num = 0;
 
-    for (i, v) in lex.remainder().char_indices() {
-        match (search, v) {
+    for (pos, char) in lex.remainder().char_indices() {
+        match (in_tail, char) {
             (true, '=') => num += 1,
             (true, ']') if num_eq == num => {
-                lex.bump(i + 1);
+                lex.bump(pos + 1);
 
                 return true;
             }
             (false, ']') => {
-                search = true;
+                in_tail = true;
                 num = 0;
             }
-            _ => search = false,
+            _ => in_tail = false,
         }
     }
 
@@ -124,24 +124,31 @@ pub(crate) enum Atom {
     #[token("goto")]
     Goto,
 
+    #[cfg(feature = "roblox")]
     #[token("+=")]
     PlusEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("-=")]
     MinusEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("*=")]
     StarEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("/=")]
     SlashEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("%=")]
     PercentEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("^=")]
     CaretEqual,
 
+    #[cfg(feature = "roblox")]
     #[token("..=")]
     TwoDotsEqual,
 
