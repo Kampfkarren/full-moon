@@ -189,6 +189,8 @@ impl TryFrom<Atom> for Symbol {
             Atom::True => Symbol::True,
             Atom::Until => Symbol::Until,
             Atom::While => Symbol::While,
+            #[cfg(feature = "lua52")]
+            Atom::Goto => Symbol::Goto,
             Atom::PlusEqual => Symbol::PlusEqual,
             Atom::MinusEqual => Symbol::MinusEqual,
             Atom::StarEqual => Symbol::StarEqual,
@@ -201,6 +203,12 @@ impl TryFrom<Atom> for Symbol {
             Atom::Comma => Symbol::Comma,
             Atom::Ellipse => Symbol::Ellipse,
             Atom::TwoDots => Symbol::TwoDots,
+            #[cfg(feature = "roblox")]
+            Atom::Ampersand => Symbol::Ampersand,
+            #[cfg(feature = "roblox")]
+            Atom::ThinArrow => Symbol::ThinArrow,
+            #[cfg(any(feature = "roblox", feature = "lua52"))]
+            Atom::TwoColons => Symbol::TwoColons,
             Atom::Dot => Symbol::Dot,
             Atom::TwoEqual => Symbol::TwoEqual,
             Atom::Equal => Symbol::Equal,
@@ -214,6 +222,10 @@ impl TryFrom<Atom> for Symbol {
             Atom::LessThan => Symbol::LessThan,
             Atom::Minus => Symbol::Minus,
             Atom::Percent => Symbol::Percent,
+            #[cfg(feature = "roblox")]
+            Atom::Pipe => Symbol::Pipe,
+            #[cfg(feature = "roblox")]
+            Atom::QuestionMark => Symbol::QuestionMark,
             Atom::Plus => Symbol::Plus,
             Atom::RightBrace => Symbol::RightBrace,
             Atom::RightBracket => Symbol::RightBracket,
