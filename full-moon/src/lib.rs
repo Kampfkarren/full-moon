@@ -18,6 +18,7 @@ pub mod tokenizer;
 /// Used to create visitors that recurse through [`Ast`](ast::Ast) nodes.
 pub mod visitors;
 
+mod atom;
 mod private;
 mod short_string;
 mod util;

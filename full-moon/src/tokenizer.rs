@@ -1,4 +1,5 @@
 use crate::{
+    atom::{trim_bracket_head, Atom},
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -8,353 +9,225 @@ use logos::{Lexer, Logos, Span};
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::Ordering,
+    convert::{TryFrom, TryInto},
     fmt::{self, Display},
 };
 
-fn test_bracket_head(slice: &str) -> Option<usize> {
-    // starts with `[`?
-    if !slice.starts_with('[') {
-        return None;
-    }
-
-    // how many `=` after `[`?
-    let count = slice.chars().skip(1).take_while(|&v| v == '=').count();
-
-    // ends with `[`?
-    if !matches!(slice.chars().nth(count + 1), Some('[')) {
-        return None;
-    }
-
-    Some(count)
-}
-
-fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
-    match test_bracket_head(slice) {
-        Some(count) => {
-            let trim = &slice[count + 2..slice.len() - count - 2];
-
-            (trim.into(), Some(count))
-        }
-        None => (slice.into(), None),
-    }
-}
-
-fn read_bracketed(lex: &mut Lexer<Symbol>, skips: usize) -> bool {
-    let num_eq = match lex.slice().get(skips..).and_then(test_bracket_head) {
-        Some(v) => v,
-        None => return false,
-    };
-
-    let mut search = false;
-    let mut num = 0;
-
-    for (i, v) in lex.remainder().char_indices() {
-        match (search, v) {
-            (true, '=') => num += 1,
-            (true, ']') if num_eq == num => {
-                lex.bump(i + 1);
-
-                return true;
-            }
-            (false, ']') => {
-                search = true;
-                num = 0;
-            }
-            _ => search = false,
-        }
-    }
-
-    false
-}
-
-#[allow(missing_docs)]
-#[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[allow(missing_docs)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Symbol {
-    #[token("and")]
     And,
-
-    #[token("break")]
     Break,
-
-    #[token("do")]
     Do,
-
-    #[token("else")]
     Else,
-
-    #[token("elseif")]
     ElseIf,
-
-    #[token("end")]
     End,
-
-    #[token("false")]
     False,
-
-    #[token("for")]
     For,
-
-    #[token("function")]
     Function,
-
-    #[token("if")]
     If,
-
-    #[token("in")]
     In,
-
-    #[token("local")]
     Local,
-
-    #[token("nil")]
     Nil,
-
-    #[token("not")]
     Not,
-
-    #[token("or")]
     Or,
-
-    #[token("repeat")]
     Repeat,
-
-    #[token("return")]
     Return,
-
-    #[token("then")]
     Then,
-
-    #[token("true")]
     True,
-
-    #[token("until")]
     Until,
-
-    #[token("while")]
     While,
 
     #[cfg(feature = "lua52")]
-    #[token("goto")]
     Goto,
 
     #[cfg_attr(feature = "serde", serde(rename = "+="))]
-    #[token("+=")]
     PlusEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "-="))]
-    #[token("-=")]
     MinusEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "*="))]
-    #[token("*=")]
     StarEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "/="))]
-    #[token("/=")]
     SlashEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "%="))]
-    #[token("%=")]
     PercentEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "^="))]
-    #[token("^=")]
     CaretEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "..="))]
-    #[token("..=")]
     TwoDotsEqual,
 
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(rename = "&"))]
-    #[token("&")]
     Ampersand,
 
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(rename = "->"))]
-    #[token("->")]
     ThinArrow,
 
     #[cfg(any(feature = "roblox", feature = "lua52"))]
     #[cfg_attr(feature = "serde", serde(rename = "::"))]
-    #[token("::")]
     TwoColons,
 
     #[cfg_attr(feature = "serde", serde(rename = "^"))]
-    #[token("^")]
     Caret,
 
     #[cfg_attr(feature = "serde", serde(rename = ":"))]
-    #[token(":")]
     Colon,
 
     #[cfg_attr(feature = "serde", serde(rename = ","))]
-    #[token(",")]
     Comma,
 
     #[cfg_attr(feature = "serde", serde(rename = "..."))]
-    #[token("...")]
     Ellipse,
 
     #[cfg_attr(feature = "serde", serde(rename = ".."))]
-    #[token("..")]
     TwoDots,
 
     #[cfg_attr(feature = "serde", serde(rename = "."))]
-    #[token(".")]
     Dot,
 
     #[cfg_attr(feature = "serde", serde(rename = "=="))]
-    #[token("==")]
     TwoEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "="))]
-    #[token("=")]
     Equal,
 
     #[cfg_attr(feature = "serde", serde(rename = ">="))]
-    #[token(">=")]
     GreaterThanEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = ">"))]
-    #[token(">")]
     GreaterThan,
 
     #[cfg_attr(feature = "serde", serde(rename = "#"))]
-    #[token("#")]
     Hash,
 
     #[cfg_attr(feature = "serde", serde(rename = "["))]
-    #[token("[")]
     LeftBracket,
 
     #[cfg_attr(feature = "serde", serde(rename = "{"))]
-    #[token("{")]
     LeftBrace,
 
     #[cfg_attr(feature = "serde", serde(rename = "("))]
-    #[token("(")]
     LeftParen,
 
     #[cfg_attr(feature = "serde", serde(rename = "<="))]
-    #[token("<=")]
     LessThanEqual,
 
     #[cfg_attr(feature = "serde", serde(rename = "<"))]
-    #[token("<")]
     LessThan,
 
     #[cfg_attr(feature = "serde", serde(rename = "-"))]
-    #[token("-")]
     Minus,
 
     #[cfg_attr(feature = "serde", serde(rename = "%"))]
-    #[token("%")]
     Percent,
 
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(rename = "|"))]
-    #[token("|")]
     Pipe,
 
     #[cfg_attr(feature = "serde", serde(rename = "+"))]
-    #[token("+")]
     Plus,
 
     #[cfg(feature = "roblox")]
     #[cfg_attr(feature = "serde", serde(rename = "?"))]
-    #[token("?")]
     QuestionMark,
 
     #[cfg_attr(feature = "serde", serde(rename = "}"))]
-    #[token("}")]
     RightBrace,
 
     #[cfg_attr(feature = "serde", serde(rename = "]"))]
-    #[token("]")]
     RightBracket,
 
     #[cfg_attr(feature = "serde", serde(rename = ")"))]
-    #[token(")")]
     RightParen,
 
     #[cfg_attr(feature = "serde", serde(rename = ";"))]
-    #[token(";")]
     Semicolon,
 
     #[cfg_attr(feature = "serde", serde(rename = "/"))]
-    #[token("/")]
     Slash,
 
     #[cfg_attr(feature = "serde", serde(rename = "*"))]
-    #[token("*")]
     Star,
 
     #[cfg_attr(feature = "serde", serde(rename = "~="))]
-    #[token("~=")]
     TildeEqual,
-
-    #[regex(r"#!.*\n")]
-    Shebang,
-
-    #[token("\u{feff}")]
-    Bom,
-
-    #[regex(r"[_\p{L}][_\p{L}\p{N}]*")]
-    Identifier,
-
-    #[cfg(feature = "roblox")]
-    #[regex(r"0[bB][01_]+([eE][01_]+)?(\.[01_]*)?")]
-    #[regex(r"0[xX][0-9a-fA-F_]+")]
-    #[regex(r"\.[0-9][0-9_]*([eE][\+\-]?[0-9_]+)?")]
-    #[regex(r"[0-9][0-9_]*(\.[0-9_]*)?([eE][\+\-]?[0-9_]+)?")]
-    Number,
-
-    #[cfg(not(feature = "roblox"))]
-    #[regex(r"0[xX][0-9a-fA-F]+")]
-    #[regex(r"\.[0-9]+([eE][\+\-]?[0-9]+)?")]
-    #[regex(r"[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?")]
-    Number,
-
-    #[regex(r"'([^']|\\[\S\s])*'")]
-    ApostropheString,
-
-    #[regex(r#""([^"]|\\[\S\s])*""#)]
-    QuoteString,
-
-    #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
-    MultiLineString,
-
-    #[regex(r"--([^\n(\[=*\[)].*)?")]
-    SingleLineComment,
-
-    #[regex(r"--\[=*\[", |x| read_bracketed(x, 2))]
-    MultiLineComment,
-
-    #[regex(r"[ \t]*(\r?\n)?")]
-    Whitespace,
-
-    #[error]
-    Unknown,
 }
 
-impl Symbol {
-    fn is_variable(self) -> bool {
-        matches!(
-            self,
-            Symbol::Shebang
-                | Symbol::Bom
-                | Symbol::Identifier
-                | Symbol::Number
-                | Symbol::ApostropheString
-                | Symbol::QuoteString
-                | Symbol::MultiLineString
-                | Symbol::SingleLineComment
-                | Symbol::MultiLineComment
-                | Symbol::Whitespace
-        )
+impl TryFrom<Atom> for Symbol {
+    type Error = ();
+
+    fn try_from(v: Atom) -> Result<Self, Self::Error> {
+        let ok = match v {
+            Atom::And => Symbol::And,
+            Atom::Break => Symbol::Break,
+            Atom::Do => Symbol::Do,
+            Atom::Else => Symbol::Else,
+            Atom::ElseIf => Symbol::ElseIf,
+            Atom::End => Symbol::End,
+            Atom::False => Symbol::False,
+            Atom::For => Symbol::For,
+            Atom::Function => Symbol::Function,
+            Atom::If => Symbol::If,
+            Atom::In => Symbol::In,
+            Atom::Local => Symbol::Local,
+            Atom::Nil => Symbol::Nil,
+            Atom::Not => Symbol::Not,
+            Atom::Or => Symbol::Or,
+            Atom::Repeat => Symbol::Repeat,
+            Atom::Return => Symbol::Return,
+            Atom::Then => Symbol::Then,
+            Atom::True => Symbol::True,
+            Atom::Until => Symbol::Until,
+            Atom::While => Symbol::While,
+            Atom::PlusEqual => Symbol::PlusEqual,
+            Atom::MinusEqual => Symbol::MinusEqual,
+            Atom::StarEqual => Symbol::StarEqual,
+            Atom::SlashEqual => Symbol::SlashEqual,
+            Atom::PercentEqual => Symbol::PercentEqual,
+            Atom::CaretEqual => Symbol::CaretEqual,
+            Atom::TwoDotsEqual => Symbol::TwoDotsEqual,
+            Atom::Caret => Symbol::Caret,
+            Atom::Colon => Symbol::Colon,
+            Atom::Comma => Symbol::Comma,
+            Atom::Ellipse => Symbol::Ellipse,
+            Atom::TwoDots => Symbol::TwoDots,
+            Atom::Dot => Symbol::Dot,
+            Atom::TwoEqual => Symbol::TwoEqual,
+            Atom::Equal => Symbol::Equal,
+            Atom::GreaterThanEqual => Symbol::GreaterThanEqual,
+            Atom::GreaterThan => Symbol::GreaterThan,
+            Atom::Hash => Symbol::Hash,
+            Atom::LeftBracket => Symbol::LeftBracket,
+            Atom::LeftBrace => Symbol::LeftBrace,
+            Atom::LeftParen => Symbol::LeftParen,
+            Atom::LessThanEqual => Symbol::LessThanEqual,
+            Atom::LessThan => Symbol::LessThan,
+            Atom::Minus => Symbol::Minus,
+            Atom::Percent => Symbol::Percent,
+            Atom::Plus => Symbol::Plus,
+            Atom::RightBrace => Symbol::RightBrace,
+            Atom::RightBracket => Symbol::RightBracket,
+            Atom::RightParen => Symbol::RightParen,
+            Atom::Semicolon => Symbol::Semicolon,
+            Atom::Slash => Symbol::Slash,
+            Atom::Star => Symbol::Star,
+            Atom::TildeEqual => Symbol::TildeEqual,
+            _ => {
+                return Err(());
+            }
+        };
+
+        Ok(ok)
     }
 }
 
@@ -427,17 +300,6 @@ impl Display for Symbol {
             Symbol::Slash => "/",
             Symbol::Star => "*",
             Symbol::TildeEqual => "~=",
-            Symbol::Bom => "bom",
-            Symbol::Shebang => "shebang",
-            Symbol::Identifier => "identifier",
-            Symbol::Number => "number",
-            Symbol::ApostropheString => "apostrophe string",
-            Symbol::QuoteString => "quote string",
-            Symbol::MultiLineString => "long string",
-            Symbol::SingleLineComment => "short comment",
-            Symbol::MultiLineComment => "long comment",
-            Symbol::Whitespace => "whitespace",
-            Symbol::Unknown => "unknown",
         };
 
         value.fmt(f)
@@ -811,23 +673,22 @@ impl TokenReference {
     /// # }
     /// ```
     pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        let mut lexer = Symbol::lexer(text).spanned().peekable();
+        let mut lexer = Atom::lexer(text).spanned().peekable();
 
         let leading_trivia = lexer
-            .next_if(|v| v.0 == Symbol::Whitespace)
+            .next_if(|v| v.0 == Atom::Whitespace)
             .map(|v| text[v.1].into())
             .unwrap_or_default();
 
-        let (symbol, span) = lexer.next().unwrap();
-
-        if symbol.is_variable() {
+        let (atom, span) = lexer.next().unwrap();
+        let symbol = atom.try_into().map_err(|_| {
             let text = text[span].to_string();
 
-            return Err(TokenizerErrorType::InvalidSymbol(text));
-        }
+            TokenizerErrorType::InvalidSymbol(text)
+        })?;
 
         let trailing_trivia = lexer
-            .next_if(|v| v.0 == Symbol::Whitespace)
+            .next_if(|v| v.0 == Atom::Whitespace)
             .map(|v| text[v.1].into())
             .unwrap_or_default();
 
@@ -1029,30 +890,30 @@ impl From<TokenizerErrorType> for RawToken {
     }
 }
 
-fn tokenize(token: Symbol, slice: &str) -> RawToken {
+fn tokenize(token: Atom, slice: &str) -> RawToken {
     match token {
-        Symbol::Identifier => {
+        Atom::Identifier => {
             let identifier = slice.into();
 
             Ok(TokenType::Identifier { identifier })
         }
-        Symbol::MultiLineComment => {
+        Atom::MultiLineComment => {
             let (comment, blocks) = trim_bracket_head(&slice[2..]);
             let blocks = blocks.unwrap();
 
             Ok(TokenType::MultiLineComment { blocks, comment })
         }
-        Symbol::Number => {
+        Atom::Number => {
             let text = slice.into();
 
             Ok(TokenType::Number { text })
         }
-        Symbol::SingleLineComment => {
+        Atom::SingleLineComment => {
             let comment = slice[2..].into();
 
             Ok(TokenType::SingleLineComment { comment })
         }
-        Symbol::MultiLineString => {
+        Atom::MultiLineString => {
             let (literal, multi_line) = trim_bracket_head(slice);
 
             Ok(TokenType::StringLiteral {
@@ -1061,22 +922,22 @@ fn tokenize(token: Symbol, slice: &str) -> RawToken {
                 quote_type: StringLiteralQuoteType::Brackets,
             })
         }
-        Symbol::ApostropheString => Ok(TokenType::new_string(
+        Atom::ApostropheString => Ok(TokenType::new_string(
             slice.trim_matches('\''),
             StringLiteralQuoteType::Single,
         )),
-        Symbol::QuoteString => Ok(TokenType::new_string(
+        Atom::QuoteString => Ok(TokenType::new_string(
             slice.trim_matches('"'),
             StringLiteralQuoteType::Double,
         )),
-        Symbol::Whitespace => {
+        Atom::Whitespace => {
             let characters = slice.into();
 
             Ok(TokenType::Whitespace { characters })
         }
-        Symbol::Bom => Err(TokenizerErrorType::UnexpectedToken('\u{feff}')),
-        Symbol::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
-        Symbol::Unknown => {
+        Atom::Bom => Err(TokenizerErrorType::UnexpectedToken('\u{feff}')),
+        Atom::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
+        Atom::Unknown => {
             let first = slice.chars().next().unwrap();
             let what = match first {
                 '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
@@ -1086,12 +947,14 @@ fn tokenize(token: Symbol, slice: &str) -> RawToken {
 
             Err(what)
         }
-        symbol => Ok(TokenType::Symbol { symbol }),
+        token => Ok(TokenType::Symbol {
+            symbol: token.try_into().unwrap(),
+        }),
     }
 }
 
-fn next_if(lexer: &mut Lexer<Symbol>, token: Symbol) -> Option<ShortString> {
-    if lexer.clone().next() == Some(token) {
+fn next_if(lexer: &mut Lexer<Atom>, atom: Atom) -> Option<ShortString> {
+    if lexer.clone().next() == Some(atom) {
         lexer.next();
 
         Some(lexer.slice().into())
@@ -1101,26 +964,25 @@ fn next_if(lexer: &mut Lexer<Symbol>, token: Symbol) -> Option<ShortString> {
 }
 
 fn tokenize_code(code: &str) -> Vec<(RawToken, Span)> {
-    let mut lexer = Symbol::lexer(code);
+    let mut lexer = Atom::lexer(code);
     let mut list = Vec::new();
 
-    if let Some(characters) = next_if(&mut lexer, Symbol::Bom) {
+    if let Some(characters) = next_if(&mut lexer, Atom::Bom) {
         let raw = (Ok(TokenType::Whitespace { characters }), lexer.span());
 
         list.push(raw);
     }
 
-    if let Some(line) = next_if(&mut lexer, Symbol::Shebang) {
+    if let Some(line) = next_if(&mut lexer, Atom::Shebang) {
         let raw = (Ok(TokenType::Shebang { line }), lexer.span());
 
         list.push(raw);
     }
 
-    while let Some(token) = lexer.next() {
-        let raw = tokenize(token, lexer.slice());
-        let span = lexer.span();
+    while let Some(atom) = lexer.next() {
+        let raw = (tokenize(atom, lexer.slice()), lexer.span());
 
-        list.push((raw, span));
+        list.push(raw);
     }
 
     list
