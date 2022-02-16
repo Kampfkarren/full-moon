@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 38
 expression: tokens
-input_file: full-moon/tests/roblox_cases/pass/types_indexable
 
 ---
 - start_position:
@@ -704,9 +704,196 @@ input_file: full-moon/tests/roblox_cases/pass/types_indexable
     line: 4
     character: 27
   end_position:
-    bytes: 131
+    bytes: 132
     line: 4
     character: 27
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 132
+    line: 5
+    character: 1
+  end_position:
+    bytes: 137
+    line: 5
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 137
+    line: 5
+    character: 6
+  end_position:
+    bytes: 138
+    line: 5
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 138
+    line: 5
+    character: 7
+  end_position:
+    bytes: 139
+    line: 5
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 139
+    line: 5
+    character: 8
+  end_position:
+    bytes: 140
+    line: 5
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: ":"
+- start_position:
+    bytes: 140
+    line: 5
+    character: 9
+  end_position:
+    bytes: 141
+    line: 5
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 141
+    line: 5
+    character: 10
+  end_position:
+    bytes: 147
+    line: 5
+    character: 16
+  token_type:
+    type: Identifier
+    identifier: module
+- start_position:
+    bytes: 147
+    line: 5
+    character: 16
+  end_position:
+    bytes: 148
+    line: 5
+    character: 17
+  token_type:
+    type: Symbol
+    symbol: "."
+- start_position:
+    bytes: 148
+    line: 5
+    character: 17
+  end_position:
+    bytes: 151
+    line: 5
+    character: 20
+  token_type:
+    type: Identifier
+    identifier: Foo
+- start_position:
+    bytes: 151
+    line: 5
+    character: 20
+  end_position:
+    bytes: 152
+    line: 5
+    character: 21
+  token_type:
+    type: Symbol
+    symbol: "<"
+- start_position:
+    bytes: 152
+    line: 5
+    character: 21
+  end_position:
+    bytes: 158
+    line: 5
+    character: 27
+  token_type:
+    type: Identifier
+    identifier: string
+- start_position:
+    bytes: 158
+    line: 5
+    character: 27
+  end_position:
+    bytes: 161
+    line: 5
+    character: 30
+  token_type:
+    type: Symbol
+    symbol: "..."
+- start_position:
+    bytes: 161
+    line: 5
+    character: 30
+  end_position:
+    bytes: 162
+    line: 5
+    character: 31
+  token_type:
+    type: Symbol
+    symbol: ">"
+- start_position:
+    bytes: 162
+    line: 5
+    character: 31
+  end_position:
+    bytes: 163
+    line: 5
+    character: 32
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 163
+    line: 5
+    character: 32
+  end_position:
+    bytes: 164
+    line: 5
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 164
+    line: 5
+    character: 33
+  end_position:
+    bytes: 165
+    line: 5
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 165
+    line: 5
+    character: 34
+  end_position:
+    bytes: 168
+    line: 5
+    character: 37
+  token_type:
+    type: Symbol
+    symbol: nil
+- start_position:
+    bytes: 168
+    line: 5
+    character: 37
+  end_position:
+    bytes: 168
+    line: 5
+    character: 37
   token_type:
     type: Eof
 
