@@ -1320,11 +1320,11 @@ mod tests {
         );
 
         test_rule!(
-            "\"hello 'world' \\\"goodbye\\\"\"",
+            "'hello world \\'goodbye\\''",
             TokenType::StringLiteral {
-                literal: "hello 'world' \\\"goodbye\\\"".into(),
+                literal: "hello world \\'goodbye\\'".into(),
                 multi_line: None,
-                quote_type: StringLiteralQuoteType::Double,
+                quote_type: StringLiteralQuoteType::Single,
             }
         );
 
