@@ -14,15 +14,12 @@ pub(crate) fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
 }
 
 fn test_bracket_head(slice: &str) -> Option<usize> {
-    // starts with `[`?
     if !slice.starts_with('[') {
         return None;
     }
 
-    // how many `=` after `[`?
     let count = slice.chars().skip(1).take_while(|&v| v == '=').count();
 
-    // ends with `[`?
     if !matches!(slice.chars().nth(count + 1), Some('[')) {
         return None;
     }
