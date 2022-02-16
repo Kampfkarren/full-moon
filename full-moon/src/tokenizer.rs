@@ -940,11 +940,11 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
             })
         }
         Atom::ApostropheString => Ok(TokenType::new_string(
-            slice.trim_matches('\''),
+            &slice[1..slice.len() - 1],
             StringLiteralQuoteType::Single,
         )),
         Atom::QuoteString => Ok(TokenType::new_string(
-            slice.trim_matches('"'),
+            &slice[1..slice.len() - 1],
             StringLiteralQuoteType::Double,
         )),
         Atom::Whitespace => {
@@ -1314,6 +1314,15 @@ mod tests {
             "\"hello\\\nworld\"",
             TokenType::StringLiteral {
                 literal: "hello\\\nworld".into(),
+                multi_line: None,
+                quote_type: StringLiteralQuoteType::Double,
+            }
+        );
+
+        test_rule!(
+            "\"hello 'world' \\\"goodbye\\\"\"",
+            TokenType::StringLiteral {
+                literal: "hello 'world' \\\"goodbye\\\"".into(),
                 multi_line: None,
                 quote_type: StringLiteralQuoteType::Double,
             }
