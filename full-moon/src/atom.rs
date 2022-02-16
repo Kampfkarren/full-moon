@@ -272,10 +272,10 @@ pub(crate) enum Atom {
     #[regex(r"[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?")]
     Number,
 
-    #[regex(r"'([^']|\\[\S\s])*'")]
+    #[regex(r"'((\\')|[^'])*'")]
     ApostropheString,
 
-    #[regex(r#""([^"]|\\[\S\s])*""#)]
+    #[regex(r#""((\\")|[^"])*""#)]
     QuoteString,
 
     #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
