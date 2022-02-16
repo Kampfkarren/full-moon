@@ -814,23 +814,23 @@ expression: tokens
     line: 5
     character: 21
   end_position:
-    bytes: 158
+    bytes: 155
     line: 5
-    character: 27
+    character: 24
   token_type:
-    type: Identifier
-    identifier: string
+    type: Symbol
+    symbol: "..."
 - start_position:
-    bytes: 158
+    bytes: 155
     line: 5
-    character: 27
+    character: 24
   end_position:
     bytes: 161
     line: 5
     character: 30
   token_type:
-    type: Symbol
-    symbol: "..."
+    type: Identifier
+    identifier: string
 - start_position:
     bytes: 161
     line: 5
