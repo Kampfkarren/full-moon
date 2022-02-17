@@ -1192,7 +1192,7 @@ define_roblox_parser!(
                 (state, None)
             };
 
-            // Look to see if a default type has been sepcified
+            // Look to see if a default type has been specified
             let (state, default) =
                 if let Ok((state, equals)) = keep_going!(ParseSymbol(Symbol::Equal).parse(state)) {
                     have_seen_default = true;
@@ -1411,7 +1411,7 @@ cfg_if::cfg_if! {
                 {
                     let (state, generics) = expect!(
                         state,
-                        OneOrMore(ParseTypeInfo(TypeInfoContext::None), ParseSymbol(Symbol::Comma), false).parse(state),
+                        OneOrMore(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
                         "expected type parameters"
                     );
 
