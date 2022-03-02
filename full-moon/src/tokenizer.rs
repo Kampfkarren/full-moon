@@ -15,8 +15,10 @@ use std::{
 
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[non_exhaustive]
 #[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A literal symbol, used for both words important to syntax (like while) and operators (like +)
 pub enum Symbol {
     And,
     Break,
