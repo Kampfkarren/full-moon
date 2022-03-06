@@ -464,27 +464,12 @@ struct ParseNumericFor;
 define_parser!(ParseNumericFor, NumericFor, |_, state| {
     let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
 
-    let index_variable;
+    #[cfg(not(feature = "roblox"))]
+    let (state, index_variable) = expect!(state, ParseIdentifier.parse(state), "expected names");
 
     #[cfg(feature = "roblox")]
-    let type_specifier;
-
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "roblox")] {
-            let (new_state, (new_index_variable, new_type_specifier)) =
-                expect!(state, ParseNameWithType.parse(state), "expected names");
-
-            state = new_state;
-            index_variable = new_index_variable;
-            type_specifier = new_type_specifier;
-        } else {
-            let (new_state, new_index_variable) =
-                expect!(state, ParseIdentifier.parse(state), "expected names");
-
-            state = new_state;
-            index_variable = new_index_variable;
-        }
-    }
+    let (state, (index_variable, type_specifier)) =
+        expect!(state, ParseNameWithType.parse(state), "expected names");
 
     let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state)?; // Numeric fors run before generic fors, so we can't guarantee this
     let (state, start) = expect!(
