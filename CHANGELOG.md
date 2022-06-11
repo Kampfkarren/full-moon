@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Switched from using peg to logos for lexing.
 
+## [0.15.1] - 2022-02-17
+### Fixed
+- Fixed parsing of indexed type information that contains generic packs
+
 ## [0.15.0] - 2022-01-30
 ### Added
 - Added support for parsing generic type packs, variadic type packs, and explicit type packs in generic arguments for a type under the `roblox` feature flag (`type X<S...> = Y<(string, number), ...string, S...>`)

@@ -2013,7 +2013,7 @@ make_op!(BinOp,
 
 impl BinOp {
     /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
-    /// See more at http://www.lua.org/manual/5.1/manual.html#2.5.6
+    /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
     pub fn precedence(&self) -> u8 {
         match *self {
             BinOp::Caret(_) => 8,
@@ -2032,7 +2032,7 @@ impl BinOp {
     }
 
     /// Whether the operator is right associative. If not, it is left associative.
-    /// See more at https://www.lua.org/pil/3.5.html
+    /// See more at <https://www.lua.org/pil/3.5.html>
     pub fn is_right_associative(&self) -> bool {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
     }
@@ -2070,7 +2070,7 @@ make_op!(UnOp,
 
 impl UnOp {
     /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
-    /// See more at http://www.lua.org/manual/5.1/manual.html#2.5.6
+    /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
     pub fn precedence(&self) -> u8 {
         7
     }

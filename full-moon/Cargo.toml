@@ -1,6 +1,6 @@
 [package]
 name = "full_moon"
-version = "0.15.0"
+version = "0.15.1"
 authors = ["Kampfkarren <kampfkarren@gmail.com>"]
 description = "A lossless Lua 5.1 parser"
 license = "MPL-2.0"
@@ -11,7 +11,9 @@ keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
 [package.metadata.docs.rs]
+# Build Locally: RUSTDOCFLAGS="--cfg doc_cfg" cargo +nightly doc --features roblox,lua52  --no-deps --open
 features = ["roblox", "lua52"]
+rustdoc-args = ["--cfg", "doc_cfg"]
 
 [features]
 default = ["serde"]
