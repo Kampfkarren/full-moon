@@ -250,7 +250,7 @@ impl<T: Node> Node for Vec<T> {
     }
 }
 
-impl<'a, A: Node, B: Node> Node for (A, B) {
+impl<A: Node, B: Node> Node for (A, B) {
     fn start_position(&self) -> Option<Position> {
         match (self.0.start_position(), self.1.start_position()) {
             (Some(x), Some(y)) => Some(std::cmp::min(x, y)),
