@@ -55,10 +55,12 @@ pub(crate) enum TokenItem<'a> {
 }
 
 impl fmt::Debug for TokenItem<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TokenItem::MoreTokens(_) => write!(f, "TokenItem::MoreTokens"),
-            TokenItem::TokenReference(token) => write!(f, "TokenItem::TokenReference({})", token),
+            TokenItem::MoreTokens(_) => write!(formatter, "TokenItem::MoreTokens"),
+            TokenItem::TokenReference(token) => {
+                write!(formatter, "TokenItem::TokenReference({})", token)
+            }
         }
     }
 }
@@ -248,7 +250,7 @@ impl<T: Node> Node for Vec<T> {
     }
 }
 
-impl<'a, A: Node, B: Node> Node for (A, B) {
+impl<A: Node, B: Node> Node for (A, B) {
     fn start_position(&self) -> Option<Position> {
         match (self.0.start_position(), self.1.start_position()) {
             (Some(x), Some(y)) => Some(std::cmp::min(x, y)),
