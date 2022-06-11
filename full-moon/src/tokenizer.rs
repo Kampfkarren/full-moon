@@ -251,7 +251,7 @@ impl TryFrom<Atom> for Symbol {
 }
 
 impl Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
             Symbol::And => "and",
             Symbol::Break => "break",
@@ -321,7 +321,7 @@ impl Display for Symbol {
             Symbol::TildeEqual => "~=",
         };
 
-        value.fmt(f)
+        value.fmt(formatter)
     }
 }
 
@@ -343,16 +343,16 @@ pub enum TokenizerErrorType {
 }
 
 impl fmt::Display for TokenizerErrorType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(f),
-            TokenizerErrorType::UnclosedString => "unclosed string".fmt(f),
-            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(f),
+            TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(formatter),
+            TokenizerErrorType::UnclosedString => "unclosed string".fmt(formatter),
+            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(formatter),
             TokenizerErrorType::UnexpectedToken(character) => {
-                write!(f, "unexpected character {}", character)
+                write!(formatter, "unexpected character {}", character)
             }
             TokenizerErrorType::InvalidSymbol(symbol) => {
-                write!(f, "invalid symbol {}", symbol)
+                write!(formatter, "invalid symbol {}", symbol)
             }
         }
     }
@@ -568,31 +568,31 @@ impl Token {
 }
 
 impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
         match &*self.token_type() {
             Eof => Ok(()),
-            Number { text } => text.fmt(f),
-            Identifier { identifier } => identifier.fmt(f),
+            Number { text } => text.fmt(formatter),
+            Identifier { identifier } => identifier.fmt(formatter),
             MultiLineComment { blocks, comment } => {
-                write!(f, "--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
+                write!(formatter, "--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
             }
-            Shebang { line } => line.fmt(f),
-            SingleLineComment { comment } => write!(f, "--{}", comment),
+            Shebang { line } => line.fmt(formatter),
+            SingleLineComment { comment } => write!(formatter, "--{}", comment),
             StringLiteral {
                 literal,
                 multi_line,
                 quote_type,
             } => {
                 if let Some(blocks) = multi_line {
-                    write!(f, "[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
+                    write!(formatter, "[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
                 } else {
-                    write!(f, "{0}{1}{0}", quote_type, literal)
+                    write!(formatter, "{0}{1}{0}", quote_type, literal)
                 }
             }
-            Symbol { symbol } => symbol.fmt(f),
-            Whitespace { characters } => characters.fmt(f),
+            Symbol { symbol } => symbol.fmt(formatter),
+            Whitespace { characters } => characters.fmt(formatter),
         }
     }
 }
@@ -768,15 +768,15 @@ impl std::ops::Deref for TokenReference {
 }
 
 impl fmt::Display for TokenReference {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         for trivia in &self.leading_trivia {
-            trivia.fmt(f)?;
+            trivia.fmt(formatter)?;
         }
 
-        self.token.fmt(f)?;
+        self.token.fmt(formatter)?;
 
         for trivia in &self.trailing_trivia {
-            trivia.fmt(f)?;
+            trivia.fmt(formatter)?;
         }
 
         Ok(())
@@ -886,11 +886,11 @@ pub enum StringLiteralQuoteType {
 }
 
 impl fmt::Display for StringLiteralQuoteType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             StringLiteralQuoteType::Brackets => unreachable!(),
-            StringLiteralQuoteType::Double => "\"".fmt(f),
-            StringLiteralQuoteType::Single => "'".fmt(f),
+            StringLiteralQuoteType::Double => "\"".fmt(formatter),
+            StringLiteralQuoteType::Single => "'".fmt(formatter),
         }
     }
 }
@@ -1030,9 +1030,9 @@ impl TokenizerError {
 }
 
 impl fmt::Display for TokenizerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
-            f,
+            formatter,
             "{} at line {}, column {}",
             self.error, self.position.line, self.position.character,
         )
