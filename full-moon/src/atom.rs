@@ -30,11 +30,15 @@ fn test_bracket_head(slice: &str) -> Option<usize> {
 fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
     let mut escape = false;
     for char in lex.remainder().chars() {
-        if !escape && char == quote {
-            lex.bump(1);
-            return true;
+        match (escape, char) {
+            (true, ..) => escape = false,
+            (false, '\\') => escape = true,
+            (false, char) if char == quote => {
+                lex.bump(1);
+                return true;
+            }
+            _ => {}
         }
-        escape = char == '\\';
         lex.bump(char.len_utf8());
     }
     false
