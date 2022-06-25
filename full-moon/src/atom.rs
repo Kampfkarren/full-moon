@@ -33,7 +33,8 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
         match (escape, char) {
             (true, ..) => escape = false,
             (false, '\\') => escape = true,
-            (false, char) if char == quote => {
+            (false, '\n' | '\r') => break,
+            (false, ..) if char == quote => {
                 lex.bump(1);
                 return true;
             }
