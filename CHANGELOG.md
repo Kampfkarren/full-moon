@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Fixed
-- Fixed issue with lexing strings which it matches the wrong escape sequence.
+- Fixed issue with lexing strings when it matches the wrong escape sequence.
 
 ### Changed
 - Switched from using peg to logos for lexing.
