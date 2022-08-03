@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Fixed issue with lexing strings when it matches the wrong escape sequence.
+
 ### Changed
 - Switched from using peg to logos for lexing.
 
