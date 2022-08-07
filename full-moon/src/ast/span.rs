@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 
 /// A contained span with the beginning and ending bounds.
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, PartialEq, Visit)]
+#[derive(Clone, Debug, PartialEq, Eq, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ContainedSpan {
     pub(crate) tokens: (TokenReference, TokenReference),

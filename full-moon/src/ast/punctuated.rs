@@ -29,7 +29,7 @@ use std::{fmt::Display, iter::FromIterator};
 /// A punctuated sequence of node `T` separated by
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Default, Display, PartialEq)]
+#[derive(Clone, Debug, Default, Display, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(bound = "T: Display")]
 #[display(fmt = "{}", "util::join_vec(pairs)")]
@@ -300,7 +300,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 /// A node `T` followed by the possible trailing
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Display, PartialEq)]
+#[derive(Clone, Debug, Display, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Pair<T> {
     /// A node `T` with no trailing punctuation

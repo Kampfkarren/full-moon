@@ -2,6 +2,9 @@ use crate::tokenizer::TokenReference;
 use std::{borrow::Borrow, fmt::Display};
 
 #[cfg(feature = "roblox")]
+use std::fmt::Write;
+
+#[cfg(feature = "roblox")]
 use crate::ast::punctuated::Punctuated;
 
 pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
@@ -47,12 +50,13 @@ pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2:
             .into_iter()
             .chain(std::iter::repeat_with(|| None)),
     ) {
-        string.push_str(&format!(
+        let _ = write!(
+            string,
             "{}{}{}",
             parameter.value(),
             display_option(type_specifier),
             display_option(parameter.punctuation())
-        ));
+        );
     }
 
     string

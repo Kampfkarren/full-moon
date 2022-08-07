@@ -1441,7 +1441,7 @@ impl fmt::Display for FunctionBody {
 }
 
 /// A parameter in a function declaration
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Parameter {
@@ -1874,7 +1874,7 @@ impl FunctionCall {
 }
 
 /// A function name when being declared as [`FunctionDeclaration`]
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
     fmt = "{}{}{}",
@@ -2084,7 +2084,7 @@ impl UnOp {
 }
 
 /// An error that occurs when creating the ast *after* tokenizing
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum AstError {
     /// There were no tokens passed, which shouldn't happen normally
@@ -2252,7 +2252,7 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
                     // Take all trivia up to and including the newline character. If we see a newline character
                     // we should break once we have taken it in.
                     let should_break =
-                        if let TokenType::Whitespace { ref characters } = &*token.token_type() {
+                        if let TokenType::Whitespace { ref characters } = token.token_type() {
                             // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
                             characters.contains('\n')
                         } else {
