@@ -420,7 +420,7 @@ impl TypeDeclaration {
 }
 
 /// A generic declaration parameter used in [`GenericDeclaration`]. Can either be a name or a variadic pack.
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum GenericParameterInfo {

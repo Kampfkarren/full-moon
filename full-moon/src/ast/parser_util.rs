@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt};
 
 // This is cloned everywhere, so make sure cloning is as inexpensive as possible
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct ParserState<'a> {
     pub index: usize,
     pub len: usize,
@@ -76,7 +76,7 @@ pub(crate) trait Parser: Sized {
 #[macro_export]
 macro_rules! make_op {
     ($enum:ident, $(#[$outer:meta])* { $($operator:ident,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+        #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         #[non_exhaustive]
         $(#[$outer])*
@@ -211,7 +211,7 @@ macro_rules! define_lua52_parser {
     };
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum InternalAstError {
     NoMatch,
@@ -221,7 +221,7 @@ pub enum InternalAstError {
     },
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ZeroOrMore<P>(pub P);
 
 impl<P, T> Parser for ZeroOrMore<P>
@@ -271,7 +271,7 @@ macro_rules! test_pairs_logic {
     };
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ZeroOrMoreDelimited<ItemParser, Delimiter>(
     pub ItemParser, // What items to parse, what is actually returned in a vec
     pub Delimiter,  // Delimiter parser between one item and another
@@ -339,7 +339,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OneOrMore<ItemParser, Delimiter>(
     pub ItemParser, // What items to parse, what is actually returned in a vec
     pub Delimiter,  // Delimiter parser between one item and another
@@ -400,7 +400,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NoDelimiter;
 
 define_parser!(NoDelimiter, (), |_, state| Ok((state, ())));
