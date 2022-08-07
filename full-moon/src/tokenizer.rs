@@ -326,7 +326,7 @@ impl Display for Symbol {
 }
 
 /// The possible errors that can happen while tokenizing.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum TokenizerErrorType {
     /// An unclosed multi-line comment was found
@@ -571,7 +571,7 @@ impl fmt::Display for Token {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         use self::TokenType::*;
 
-        match &*self.token_type() {
+        match self.token_type() {
             Eof => Ok(()),
             Number { text } => text.fmt(formatter),
             Identifier { identifier } => identifier.fmt(formatter),
@@ -755,7 +755,7 @@ impl TokenReference {
 
 impl std::borrow::Borrow<Token> for &TokenReference {
     fn borrow(&self) -> &Token {
-        &**self
+        self
     }
 }
 
@@ -1008,7 +1008,7 @@ fn tokenize_code(code: &str) -> Vec<(RawToken, Span)> {
 }
 
 /// Information about an error that occurs while tokenizing
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenizerError {
     /// The type of error

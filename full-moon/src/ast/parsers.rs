@@ -61,7 +61,7 @@ define_parser!(ParseStringLiteral, TokenReference, |_, state| {
     }
 });
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ParseBlock;
 define_parser!(ParseBlock, Block, |_, state| {
     let mut stmts = Vec::new();

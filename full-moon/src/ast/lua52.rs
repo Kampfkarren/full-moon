@@ -9,7 +9,7 @@ use full_moon_derive::{Node, Visit};
 use serde::{Deserialize, Serialize};
 
 /// A goto statement, such as `goto label`.
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "goto_token", "label_name")]
 pub struct Goto {
@@ -48,7 +48,7 @@ impl Goto {
 }
 
 /// A label, such as `::label::`.
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}{}", "left_colons", "name", "right_colons")]
 pub struct Label {
