@@ -347,7 +347,11 @@ impl TypeDeclaration {
     /// Creates a new TypeDeclaration from the given type name and type declaration
     pub fn new(type_name: TokenReference, type_definition: TypeInfo) -> Self {
         Self {
-            type_token: TokenReference::symbol("type ").unwrap(),
+            type_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier { identifier: "type".into() }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
             base: type_name,
             generics: None,
             equal_token: TokenReference::symbol(" = ").unwrap(),
