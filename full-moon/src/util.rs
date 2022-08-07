@@ -1,8 +1,8 @@
 use crate::tokenizer::TokenReference;
-use std::{
-    borrow::Borrow,
-    fmt::{Display, Write},
-};
+use std::{borrow::Borrow, fmt::Display};
+
+#[cfg(feature = "roblox")]
+use std::fmt::Write;
 
 #[cfg(feature = "roblox")]
 use crate::ast::punctuated::Punctuated;
