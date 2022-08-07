@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fixed issue with lexing strings when it matches the wrong escape sequence.
+- Fixed panic when calling `TypeDeclaration::new()` under the `roblox` feature flag
 
 ### Changed
 - Switched from using peg to logos for lexing.
