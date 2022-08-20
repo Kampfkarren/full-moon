@@ -349,7 +349,9 @@ impl TypeDeclaration {
         Self {
             type_token: TokenReference::new(
                 Vec::new(),
-                Token::new(TokenType::Identifier { identifier: "type".into() }),
+                Token::new(TokenType::Identifier {
+                    identifier: "type".into(),
+                }),
                 vec![Token::new(TokenType::spaces(1))],
             ),
             base: type_name,
