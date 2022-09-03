@@ -2001,11 +2001,11 @@ make_op_parser!(BinOp, ParseBinOp,
         #[cfg(feature = "lua53")]
         DoubleSlash,
         #[cfg(feature = "lua53")]
-        LeftShift,
+        DoubleLessThan,
         #[cfg(feature = "lua53")]
         Pipe,
         #[cfg(feature = "lua53")]
-        RightShift,
+        DoubleGreaterThan,
         #[cfg(feature = "lua53")]
         Tilde,
     }

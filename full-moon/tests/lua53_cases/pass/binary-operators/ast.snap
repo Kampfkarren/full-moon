@@ -452,7 +452,7 @@ stmts:
                             type: Whitespace
                             characters: " "
                 binop:
-                  LeftShift:
+                  DoubleLessThan:
                     leading_trivia: []
                     token:
                       start_position:
@@ -620,7 +620,7 @@ stmts:
                             type: Whitespace
                             characters: " "
                 binop:
-                  RightShift:
+                  DoubleGreaterThan:
                     leading_trivia: []
                     token:
                       start_position:

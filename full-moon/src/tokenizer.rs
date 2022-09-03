@@ -110,7 +110,7 @@ pub enum Symbol {
 
     #[cfg(feature = "lua53")]
     #[cfg_attr(feature = "serde", serde(rename = ">>"))]
-    RightShift,
+    DoubleGreaterThan,
 
     #[cfg_attr(feature = "serde", serde(rename = "#"))]
     Hash,
@@ -132,7 +132,7 @@ pub enum Symbol {
 
     #[cfg(feature = "lua53")]
     #[cfg_attr(feature = "serde", serde(rename = "<<"))]
-    LeftShift,
+    DoubleLessThan,
 
     #[cfg_attr(feature = "serde", serde(rename = "-"))]
     Minus,
@@ -240,7 +240,7 @@ impl TryFrom<Atom> for Symbol {
             Atom::GreaterThanEqual => Symbol::GreaterThanEqual,
             Atom::GreaterThan => Symbol::GreaterThan,
             #[cfg(feature = "lua53")]
-            Atom::RightShift => Symbol::RightShift,
+            Atom::DoubleGreaterThan => Symbol::DoubleGreaterThan,
             Atom::Hash => Symbol::Hash,
             Atom::LeftBracket => Symbol::LeftBracket,
             Atom::LeftBrace => Symbol::LeftBrace,
@@ -248,7 +248,7 @@ impl TryFrom<Atom> for Symbol {
             Atom::LessThanEqual => Symbol::LessThanEqual,
             Atom::LessThan => Symbol::LessThan,
             #[cfg(feature = "lua53")]
-            Atom::LeftShift => Symbol::LeftShift,
+            Atom::DoubleLessThan => Symbol::DoubleLessThan,
             Atom::Minus => Symbol::Minus,
             Atom::Percent => Symbol::Percent,
             #[cfg(any(feature = "roblox", feature = "lua53"))]
@@ -324,7 +324,7 @@ impl Display for Symbol {
             Symbol::GreaterThanEqual => ">=",
             Symbol::GreaterThan => ">",
             #[cfg(feature = "lua53")]
-            Symbol::RightShift => ">>",
+            Symbol::DoubleGreaterThan => ">>",
             Symbol::Hash => "#",
             Symbol::LeftBracket => "[",
             Symbol::LeftBrace => "{",
@@ -332,7 +332,7 @@ impl Display for Symbol {
             Symbol::LessThanEqual => "<=",
             Symbol::LessThan => "<",
             #[cfg(feature = "lua53")]
-            Symbol::LeftShift => "<<",
+            Symbol::DoubleLessThan => "<<",
             Symbol::Minus => "-",
             Symbol::Percent => "%",
             #[cfg(any(feature = "roblox", feature = "lua53"))]

@@ -2013,11 +2013,11 @@ make_op!(BinOp,
         #[cfg(feature = "lua53")]
         DoubleSlash,
         #[cfg(feature = "lua53")]
-        LeftShift,
+        DoubleLessThan,
         #[cfg(feature = "lua53")]
         Pipe,
         #[cfg(feature = "lua53")]
-        RightShift,
+        DoubleGreaterThan,
         #[cfg(feature = "lua53")]
         Tilde,
     }
@@ -2053,7 +2053,7 @@ impl BinOp {
             BinOp::Star(_) | BinOp::Slash(_) | BinOp::DoubleSlash(_) | BinOp::Percent(_) => 10,
             BinOp::Plus(_) | BinOp::Minus(_) => 9,
             BinOp::TwoDots(_) => 8,
-            BinOp::LeftShift(_) | BinOp::RightShift(_) => 7,
+            BinOp::DoubleLessThan(_) | BinOp::DoubleGreaterThan(_) => 7,
             BinOp::Ampersand(_) => 6,
             BinOp::Tilde(_) => 5,
             BinOp::Pipe(_) => 4,
@@ -2095,9 +2095,9 @@ impl BinOp {
             #[cfg(feature = "lua53")]
             BinOp::Ampersand(token)
             | BinOp::DoubleSlash(token)
-            | BinOp::LeftShift(token)
+            | BinOp::DoubleLessThan(token)
             | BinOp::Pipe(token)
-            | BinOp::RightShift(token)
+            | BinOp::DoubleGreaterThan(token)
             | BinOp::Tilde(token) => token,
         }
     }

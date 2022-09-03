@@ -214,7 +214,7 @@ pub(crate) enum Atom {
 
     #[cfg(feature = "lua53")]
     #[token(">>")]
-    RightShift,
+    DoubleGreaterThan,
 
     #[token("#")]
     Hash,
@@ -236,7 +236,7 @@ pub(crate) enum Atom {
 
     #[cfg(feature = "lua53")]
     #[token("<<")]
-    LeftShift,
+    DoubleLessThan,
 
     #[token("-")]
     Minus,
