@@ -11,14 +11,15 @@ keywords = ["lua", "parser", "lua51"]
 edition = "2018"
 
 [package.metadata.docs.rs]
-# Build Locally: RUSTDOCFLAGS="--cfg doc_cfg" cargo +nightly doc --features roblox,lua52  --no-deps --open
-features = ["roblox", "lua52"]
+# Build Locally: RUSTDOCFLAGS="--cfg doc_cfg" cargo +nightly doc --features roblox,lua52,lua53  --no-deps --open
+features = ["roblox", "lua52", "lua53"]
 rustdoc-args = ["--cfg", "doc_cfg"]
 
 [features]
 default = ["serde"]
 roblox = []
 lua52 = []
+lua53 = ["lua52"]
 no-source-tests = []
 
 [dependencies]
