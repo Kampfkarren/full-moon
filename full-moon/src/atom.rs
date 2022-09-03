@@ -170,7 +170,7 @@ pub(crate) enum Atom {
     #[token("..=")]
     TwoDotsEqual,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[token("&")]
     Ampersand,
 
@@ -212,6 +212,10 @@ pub(crate) enum Atom {
     #[token(">")]
     GreaterThan,
 
+    #[cfg(feature = "lua53")]
+    #[token(">>")]
+    RightShift,
+
     #[token("#")]
     Hash,
 
@@ -230,13 +234,17 @@ pub(crate) enum Atom {
     #[token("<")]
     LessThan,
 
+    #[cfg(feature = "lua53")]
+    #[token("<<")]
+    LeftShift,
+
     #[token("-")]
     Minus,
 
     #[token("%")]
     Percent,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[token("|")]
     Pipe,
 
@@ -262,8 +270,16 @@ pub(crate) enum Atom {
     #[token("/")]
     Slash,
 
+    #[cfg(feature = "lua53")]
+    #[token("//")]
+    DoubleSlash,
+
     #[token("*")]
     Star,
+
+    #[cfg(feature = "lua53")]
+    #[token("~")]
+    Tilde,
 
     #[token("~=")]
     TildeEqual,
