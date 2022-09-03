@@ -1952,11 +1952,12 @@ define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
 });
 
 macro_rules! make_op_parser {
-	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
+	($enum:ident, $parser:ident, { $($(#[$inner:meta])* $operator:ident,)+ }) => {
 		#[derive(Clone, Debug, PartialEq)]
         struct $parser;
         define_parser!($parser, $enum, |_, state| {
             $(
+                $(#[$inner])*
                 if let Ok((state, operator)) = ParseSymbol(Symbol::$operator).parse(state) {
                     return Ok((state, $enum::$operator(operator)));
                 }
@@ -1967,6 +1968,7 @@ macro_rules! make_op_parser {
 			if let Some(x) = None {
 				match x {
 					$(
+                        $(#[$inner])*
 						$enum::$operator(_) => {},
 					)+
 				}
@@ -1994,6 +1996,18 @@ make_op_parser!(BinOp, ParseBinOp,
         TildeEqual,
         TwoDots,
         TwoEqual,
+        #[cfg(feature = "lua53")]
+        Ampersand,
+        #[cfg(feature = "lua53")]
+        DoubleSlash,
+        #[cfg(feature = "lua53")]
+        LeftShift,
+        #[cfg(feature = "lua53")]
+        Pipe,
+        #[cfg(feature = "lua53")]
+        RightShift,
+        #[cfg(feature = "lua53")]
+        Tilde,
     }
 );
 
@@ -2002,6 +2016,8 @@ make_op_parser!(UnOp, ParseUnOp,
         Minus,
         Not,
         Hash,
+        #[cfg(feature = "lua53")]
+        Tilde,
     }
 );
 
