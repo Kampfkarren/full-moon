@@ -1,0 +1,13 @@
+[package]
+name = "full-moon-lua-types"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+full_moon = { version = "0.15.1", path = "../full-moon" }
+mlua = { version = "0.8.3", features = ["luau"] }
+
+[features]
+luau = ["full_moon/roblox"]
