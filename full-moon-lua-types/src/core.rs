@@ -19,7 +19,7 @@ impl From<ast::Ast> for Ast {
 
 impl UserData for Ast {
     fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
-        fields.add_field_method_get("nodes", |_, Ast { nodes, .. }| Ok(nodes))
+        // fields.add_field_method_get("nodes", |_, Ast { nodes, .. }| Ok(nodes))
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
