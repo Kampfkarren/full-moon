@@ -6,6 +6,8 @@ use crate::{
 
 #[cfg(feature = "lua52")]
 use crate::ast::lua52::*;
+#[cfg(feature = "lua54")]
+use crate::ast::lua54::*;
 #[cfg(feature = "roblox")]
 use crate::ast::types::*;
 
@@ -276,6 +278,10 @@ create_visitor!(ast: {
     #[cfg(feature = "lua52")] {
         visit_goto => Goto,
         visit_label => Label,
+    }
+
+    #[cfg(feature = "lua54")] {
+        visit_attribute => Attribute,
     }
 }, token: {
     visit_identifier,

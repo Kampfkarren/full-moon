@@ -1,10 +1,10 @@
 use crate::tokenizer::TokenReference;
 use std::{borrow::Borrow, fmt::Display};
 
-#[cfg(feature = "roblox")]
+#[cfg(any(feature = "roblox", feature = "lua54"))]
 use std::fmt::Write;
 
-#[cfg(feature = "roblox")]
+#[cfg(any(feature = "roblox", feature = "lua54"))]
 use crate::ast::punctuated::Punctuated;
 
 pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
@@ -38,7 +38,7 @@ pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
     string
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(any(feature = "roblox", feature = "lua54"))]
 pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2: Display>(
     parameters: &Punctuated<T1>,
     type_specifiers: I,
