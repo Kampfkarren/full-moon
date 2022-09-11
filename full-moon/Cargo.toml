@@ -16,10 +16,11 @@ features = ["roblox", "lua52", "lua53"]
 rustdoc-args = ["--cfg", "doc_cfg"]
 
 [features]
-default = ["serde"]
+default = ["serde", "lua54"]
 roblox = []
 lua52 = []
 lua53 = ["lua52"]
+lua54 = ["lua53"]
 no-source-tests = []
 
 [dependencies]
