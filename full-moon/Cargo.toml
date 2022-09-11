@@ -34,7 +34,7 @@ smol_str = { version = "0.1.17", features = ["serde"] }
 
 [dev-dependencies]
 criterion = "0.2"
-insta = { version = "1.7.0", features = ["glob"] }
+insta = { version = "1.19.0", features = ["glob", "yaml"] }
 pretty_assertions = "0.6.1"
 
 [[bench]]
