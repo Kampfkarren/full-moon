@@ -2008,18 +2008,55 @@ make_op!(BinOp,
         TildeEqual,
         TwoDots,
         TwoEqual,
+        #[cfg(feature = "lua53")]
+        Ampersand,
+        #[cfg(feature = "lua53")]
+        DoubleSlash,
+        #[cfg(feature = "lua53")]
+        DoubleLessThan,
+        #[cfg(feature = "lua53")]
+        Pipe,
+        #[cfg(feature = "lua53")]
+        DoubleGreaterThan,
+        #[cfg(feature = "lua53")]
+        Tilde,
     }
 );
 
 impl BinOp {
     /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
+    #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
         match *self {
             BinOp::Caret(_) => 8,
             BinOp::Star(_) | BinOp::Slash(_) | BinOp::Percent(_) => 6,
             BinOp::Plus(_) | BinOp::Minus(_) => 5,
             BinOp::TwoDots(_) => 4,
+            BinOp::GreaterThan(_)
+            | BinOp::LessThan(_)
+            | BinOp::GreaterThanEqual(_)
+            | BinOp::LessThanEqual(_)
+            | BinOp::TildeEqual(_)
+            | BinOp::TwoEqual(_) => 3,
+            BinOp::And(_) => 2,
+            BinOp::Or(_) => 1,
+        }
+    }
+
+    /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
+    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
+    #[cfg(feature = "lua53")]
+    pub fn precedence(&self) -> u8 {
+        match *self {
+            BinOp::Caret(_) => 12,
+            BinOp::Star(_) | BinOp::Slash(_) | BinOp::DoubleSlash(_) | BinOp::Percent(_) => 10,
+            BinOp::Plus(_) | BinOp::Minus(_) => 9,
+            BinOp::TwoDots(_) => 8,
+            BinOp::DoubleLessThan(_) | BinOp::DoubleGreaterThan(_) => 7,
+            BinOp::Ampersand(_) => 6,
+            BinOp::Tilde(_) => 5,
+            BinOp::Pipe(_) => 4,
             BinOp::GreaterThan(_)
             | BinOp::LessThan(_)
             | BinOp::GreaterThanEqual(_)
@@ -2055,6 +2092,13 @@ impl BinOp {
             | BinOp::TildeEqual(token)
             | BinOp::TwoDots(token)
             | BinOp::TwoEqual(token) => token,
+            #[cfg(feature = "lua53")]
+            BinOp::Ampersand(token)
+            | BinOp::DoubleSlash(token)
+            | BinOp::DoubleLessThan(token)
+            | BinOp::Pipe(token)
+            | BinOp::DoubleGreaterThan(token)
+            | BinOp::Tilde(token) => token,
         }
     }
 }
@@ -2065,20 +2109,32 @@ make_op!(UnOp,
         Minus,
         Not,
         Hash,
+        #[cfg(feature = "lua53")]
+        Tilde,
     }
 );
 
 impl UnOp {
     /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
+    #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
         7
+    }
+
+    /// The precedence of the operator, from a scale of 1 to 11. The larger the number, the higher the precedence.
+    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
+    #[cfg(feature = "lua53")]
+    pub fn precedence(&self) -> u8 {
+        11
     }
 
     /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
             UnOp::Minus(token) | UnOp::Not(token) | UnOp::Hash(token) => token,
+            #[cfg(feature = "lua53")]
+            UnOp::Tilde(token) => token,
         }
     }
 }

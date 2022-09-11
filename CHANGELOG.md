@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added support for Lua 5.3 under the `lua53` feature flag. This adds in new binary and unary operators.
+
 ### Fixed
 - Fixed issue with lexing strings when it matches the wrong escape sequence.
 - Fixed panic when calling `TypeDeclaration::new()` under the `roblox` feature flag
