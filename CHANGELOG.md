@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added support for Lua 5.3 under the `lua53` feature flag. This adds in new binary and unary operators.
+- Added support for Lua 5.4 under the `lua54` feature flag. This adds in variable attributes.
 
 ### Fixed
 - Fixed issue with lexing strings when it matches the wrong escape sequence.
