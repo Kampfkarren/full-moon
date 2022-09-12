@@ -1981,9 +1981,8 @@ cfg_if::cfg_if! {
             Ok((
                 state,
                 Attribute {
-                    left_angle_bracket,
+                    brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
                     name,
-                    right_angle_bracket,
                 },
             ))
         });

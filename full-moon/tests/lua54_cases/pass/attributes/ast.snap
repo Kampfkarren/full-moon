@@ -1,5 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
 ---
 stmts:
@@ -59,21 +60,47 @@ stmts:
                       type: Whitespace
                       characters: " "
         attributes:
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 8
-                  line: 1
-                  character: 9
-                end_position:
-                  bytes: 9
-                  line: 1
-                  character: 10
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 8
+                      line: 1
+                      character: 9
+                    end_position:
+                      bytes: 9
+                      line: 1
+                      character: 10
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 14
+                      line: 1
+                      character: 15
+                    end_position:
+                      bytes: 15
+                      line: 1
+                      character: 16
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 15
+                        line: 1
+                        character: 16
+                      end_position:
+                        bytes: 16
+                        line: 1
+                        character: 17
+                      token_type:
+                        type: Whitespace
+                        characters: " "
             name:
               leading_trivia: []
               token:
@@ -89,32 +116,6 @@ stmts:
                   type: Identifier
                   identifier: const
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 14
-                  line: 1
-                  character: 15
-                end_position:
-                  bytes: 15
-                  line: 1
-                  character: 16
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia:
-                - start_position:
-                    bytes: 15
-                    line: 1
-                    character: 16
-                  end_position:
-                    bytes: 16
-                    line: 1
-                    character: 17
-                  token_type:
-                    type: Whitespace
-                    characters: " "
         equal_token:
           leading_trivia: []
           token:
@@ -228,21 +229,47 @@ stmts:
                       type: Whitespace
                       characters: " "
         attributes:
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 28
-                  line: 2
-                  character: 9
-                end_position:
-                  bytes: 29
-                  line: 2
-                  character: 10
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 28
+                      line: 2
+                      character: 9
+                    end_position:
+                      bytes: 29
+                      line: 2
+                      character: 10
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 34
+                      line: 2
+                      character: 15
+                    end_position:
+                      bytes: 35
+                      line: 2
+                      character: 16
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 35
+                        line: 2
+                        character: 16
+                      end_position:
+                        bytes: 36
+                        line: 2
+                        character: 16
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
             name:
               leading_trivia: []
               token:
@@ -258,32 +285,6 @@ stmts:
                   type: Identifier
                   identifier: close
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 34
-                  line: 2
-                  character: 15
-                end_position:
-                  bytes: 35
-                  line: 2
-                  character: 16
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia:
-                - start_position:
-                    bytes: 35
-                    line: 2
-                    character: 16
-                  end_position:
-                    bytes: 36
-                    line: 2
-                    character: 16
-                  token_type:
-                    type: Whitespace
-                    characters: "\n"
         equal_token: ~
         expr_list:
           pairs: []
@@ -395,21 +396,36 @@ stmts:
                       type: Whitespace
                       characters: " "
         attributes:
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 44
-                  line: 3
-                  character: 9
-                end_position:
-                  bytes: 45
-                  line: 3
-                  character: 10
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 44
+                      line: 3
+                      character: 9
+                    end_position:
+                      bytes: 45
+                      line: 3
+                      character: 10
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 50
+                      line: 3
+                      character: 15
+                    end_position:
+                      bytes: 51
+                      line: 3
+                      character: 16
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
             name:
               leading_trivia: []
               token:
@@ -425,36 +441,47 @@ stmts:
                   type: Identifier
                   identifier: const
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 50
-                  line: 3
-                  character: 15
-                end_position:
-                  bytes: 51
-                  line: 3
-                  character: 16
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia: []
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 55
-                  line: 3
-                  character: 20
-                end_position:
-                  bytes: 56
-                  line: 3
-                  character: 21
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 55
+                      line: 3
+                      character: 20
+                    end_position:
+                      bytes: 56
+                      line: 3
+                      character: 21
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 61
+                      line: 3
+                      character: 26
+                    end_position:
+                      bytes: 62
+                      line: 3
+                      character: 27
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 62
+                        line: 3
+                        character: 27
+                      end_position:
+                        bytes: 63
+                        line: 3
+                        character: 28
+                      token_type:
+                        type: Whitespace
+                        characters: " "
             name:
               leading_trivia: []
               token:
@@ -470,32 +497,6 @@ stmts:
                   type: Identifier
                   identifier: close
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 61
-                  line: 3
-                  character: 26
-                end_position:
-                  bytes: 62
-                  line: 3
-                  character: 27
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia:
-                - start_position:
-                    bytes: 62
-                    line: 3
-                    character: 27
-                  end_position:
-                    bytes: 63
-                    line: 3
-                    character: 28
-                  token_type:
-                    type: Whitespace
-                    characters: " "
         equal_token:
           leading_trivia: []
           token:
@@ -702,21 +703,36 @@ stmts:
                       type: Whitespace
                       characters: " "
         attributes:
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 78
-                  line: 4
-                  character: 9
-                end_position:
-                  bytes: 79
-                  line: 4
-                  character: 10
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 78
+                      line: 4
+                      character: 9
+                    end_position:
+                      bytes: 79
+                      line: 4
+                      character: 10
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 84
+                      line: 4
+                      character: 15
+                    end_position:
+                      bytes: 85
+                      line: 4
+                      character: 16
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
             name:
               leading_trivia: []
               token:
@@ -732,36 +748,47 @@ stmts:
                   type: Identifier
                   identifier: const
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 84
-                  line: 4
-                  character: 15
-                end_position:
-                  bytes: 85
-                  line: 4
-                  character: 16
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia: []
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 89
-                  line: 4
-                  character: 20
-                end_position:
-                  bytes: 90
-                  line: 4
-                  character: 21
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 89
+                      line: 4
+                      character: 20
+                    end_position:
+                      bytes: 90
+                      line: 4
+                      character: 21
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 95
+                      line: 4
+                      character: 26
+                    end_position:
+                      bytes: 96
+                      line: 4
+                      character: 27
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 96
+                        line: 4
+                        character: 27
+                      end_position:
+                        bytes: 97
+                        line: 4
+                        character: 27
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
             name:
               leading_trivia: []
               token:
@@ -777,32 +804,6 @@ stmts:
                   type: Identifier
                   identifier: close
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 95
-                  line: 4
-                  character: 26
-                end_position:
-                  bytes: 96
-                  line: 4
-                  character: 27
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia:
-                - start_position:
-                    bytes: 96
-                    line: 4
-                    character: 27
-                  end_position:
-                    bytes: 97
-                    line: 4
-                    character: 27
-                  token_type:
-                    type: Whitespace
-                    characters: "\n"
         equal_token: ~
         expr_list:
           pairs: []
@@ -954,21 +955,36 @@ stmts:
                       type: Whitespace
                       characters: " "
         attributes:
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 105
-                  line: 5
-                  character: 9
-                end_position:
-                  bytes: 106
-                  line: 5
-                  character: 10
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 105
+                      line: 5
+                      character: 9
+                    end_position:
+                      bytes: 106
+                      line: 5
+                      character: 10
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 111
+                      line: 5
+                      character: 15
+                    end_position:
+                      bytes: 112
+                      line: 5
+                      character: 16
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
             name:
               leading_trivia: []
               token:
@@ -984,37 +1000,37 @@ stmts:
                   type: Identifier
                   identifier: const
               trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 111
-                  line: 5
-                  character: 15
-                end_position:
-                  bytes: 112
-                  line: 5
-                  character: 16
-                token_type:
-                  type: Symbol
-                  symbol: ">"
-              trailing_trivia: []
           - ~
-          - left_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 119
-                  line: 5
-                  character: 23
-                end_position:
-                  bytes: 120
-                  line: 5
-                  character: 24
-                token_type:
-                  type: Symbol
-                  symbol: "<"
-              trailing_trivia: []
+          - brackets:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 119
+                      line: 5
+                      character: 23
+                    end_position:
+                      bytes: 120
+                      line: 5
+                      character: 24
+                    token_type:
+                      type: Symbol
+                      symbol: "<"
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 125
+                      line: 5
+                      character: 29
+                    end_position:
+                      bytes: 126
+                      line: 5
+                      character: 30
+                    token_type:
+                      type: Symbol
+                      symbol: ">"
+                  trailing_trivia: []
             name:
               leading_trivia: []
               token:
@@ -1029,21 +1045,6 @@ stmts:
                 token_type:
                   type: Identifier
                   identifier: close
-              trailing_trivia: []
-            right_angle_bracket:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 125
-                  line: 5
-                  character: 29
-                end_position:
-                  bytes: 126
-                  line: 5
-                  character: 30
-                token_type:
-                  type: Symbol
-                  symbol: ">"
               trailing_trivia: []
         equal_token: ~
         expr_list:
