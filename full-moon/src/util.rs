@@ -1,11 +1,8 @@
 use crate::tokenizer::TokenReference;
 use std::{borrow::Borrow, fmt::Display};
 
-#[cfg(any(feature = "roblox", feature = "lua54"))]
-use std::fmt::Write;
-
-#[cfg(any(feature = "roblox", feature = "lua54"))]
 use crate::ast::punctuated::Punctuated;
+use std::fmt::Write;
 
 pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
     match option.borrow() {
@@ -38,7 +35,7 @@ pub fn join_vec<T: Display, V: AsRef<[T]>>(vec: V) -> String {
     string
 }
 
-#[cfg(any(feature = "roblox", feature = "lua54"))]
+#[cfg(feature = "roblox")]
 pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2: Display>(
     parameters: &Punctuated<T1>,
     type_specifiers: I,
@@ -56,6 +53,37 @@ pub fn join_type_specifiers<I: IntoIterator<Item = Option<T2>>, T1: Display, T2:
             parameter.value(),
             display_option(type_specifier),
             display_option(parameter.punctuation())
+        );
+    }
+
+    string
+}
+
+pub fn join_iterators<
+    I1: IntoIterator<Item = Option<T2>>,
+    I2: IntoIterator<Item = Option<T3>>,
+    T1: Display,
+    T2: Display,
+    T3: Display,
+>(
+    parameters: &Punctuated<T1>,
+    first_iterator: I1,
+    second_iterator: I2,
+) -> String {
+    let mut string = String::new();
+
+    for ((name, item1), item2) in parameters
+        .pairs()
+        .zip(first_iterator.into_iter())
+        .zip(second_iterator.into_iter())
+    {
+        let _ = write!(
+            string,
+            "{}{}{}{}",
+            name.value(),
+            display_option(item1),
+            display_option(item2),
+            display_option(name.punctuation())
         );
     }
 

@@ -1767,37 +1767,21 @@ impl LocalAssignment {
 }
 
 impl fmt::Display for LocalAssignment {
-    #[cfg(feature = "roblox")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "{}{}{}{}",
-            self.local_token,
-            join_type_specifiers(&self.name_list, self.type_specifiers()),
-            display_option(&self.equal_token),
-            self.expr_list
-        )
-    }
+        #[cfg(feature = "lua54")]
+        let attributes = self.attributes();
+        #[cfg(not(feature = "lua54"))]
+        let attributes = std::iter::repeat_with(|| None::<TokenReference>);
+        #[cfg(feature = "roblox")]
+        let type_specifiers = self.type_specifiers();
+        #[cfg(not(feature = "roblox"))]
+        let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
-    #[cfg(feature = "lua54")]
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
             "{}{}{}{}",
             self.local_token,
-            join_type_specifiers(&self.name_list, self.attributes()),
-            display_option(&self.equal_token),
-            self.expr_list
-        )
-    }
-
-    #[cfg(not(any(feature = "roblox", feature = "lua54")))]
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "{}{}{}{}",
-            self.local_token,
-            self.name_list,
+            join_iterators(&self.name_list, attributes, type_specifiers),
             display_option(&self.equal_token),
             self.expr_list
         )
