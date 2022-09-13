@@ -9,7 +9,7 @@ use mlua::{MetaMethod, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
-    mlua_util::{add_core_meta_methods, add_to_string_display},
+    mlua_util::{add_core_meta_methods, add_print, add_to_string_display},
 };
 
 pub struct ContainedSpan {
@@ -145,6 +145,13 @@ impl CreateAstNode for Token {
 
     fn create_ast_node(&self) -> Option<Self::Node> {
         Some(tokenizer::Token::new(self.token_type.0.clone()))
+    }
+}
+
+impl UserData for Token {
+    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
+        add_core_meta_methods("Token", methods);
+        add_print(methods);
     }
 }
 

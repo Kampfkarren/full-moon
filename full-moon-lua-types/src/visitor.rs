@@ -10,9 +10,17 @@ use paste::paste;
 
 macro_rules! create_visitor {
     (
-		$(
-			($name:ident: $type:ty, $converter:expr),
-		)+
+		ast: {
+			$(
+				($name:ident: $type:ty, $converter:expr),
+			)+
+		},
+
+		tokens: {
+			$(
+				$token_name:ident,
+			)+
+		}
 	) => {
 		paste! {
 			#[derive(Clone, Debug, Default)]
@@ -20,6 +28,10 @@ macro_rules! create_visitor {
 				$(
 					$name: Option<mlua::Function<'lua>>,
 					[< $name _end >]: Option<mlua::Function<'lua>>,
+				)+
+
+				$(
+					$token_name: Option<mlua::Function<'lua>>,
 				)+
 			}
 
@@ -44,6 +56,15 @@ macro_rules! create_visitor {
 								continue;
 							} else if key == format!("{pascal_cased_name}End") {
 								visitor_table.[< $name _end >] = Some(value);
+								continue;
+							}
+						)+
+
+						$(
+							let pascal_cased_name = pascal_case_name(stringify!($token_name));
+
+							if key == pascal_cased_name {
+								visitor_table.$token_name = Some(value);
 								continue;
 							}
 						)+
@@ -95,12 +116,26 @@ macro_rules! create_visitor {
 						}
 					}
 				)+
+
+				$(
+					fn $token_name(&mut self, token: &tokenizer::Token) {
+						if self.existing_error.is_some() {
+							return;
+						}
+
+						if let Some(function) = &self.visitor_table.$token_name {
+							if let Err(error) = function.call::<_, ()>(shared::Token::from(token)) {
+								self.existing_error = Some(error);
+							}
+						}
+					}
+				)+
 			}
 		}
 	};
 }
 
-create_visitor! {
+create_visitor!(ast: {
     (visit_anonymous_call: ast::FunctionArgs, core::FunctionArgs::new),
     (visit_assignment: ast::Assignment, core::Assignment::new),
     (visit_block: ast::Block, core::Block::new),
@@ -137,7 +172,16 @@ create_visitor! {
     (visit_var: ast::Var, core::Var::new),
     (visit_var_expression: ast::VarExpression, core::VarExpression::new),
     (visit_while: ast::While, core::While::new),
-}
+}, tokens: {
+    visit_identifier,
+    visit_multi_line_comment,
+    visit_number,
+    visit_single_line_comment,
+    visit_string_literal,
+    visit_symbol,
+    visit_token,
+    visit_whitespace,
+});
 
 fn pascal_case_name(name: &str) -> String {
     let mut pascal_case_name = String::new();

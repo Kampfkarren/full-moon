@@ -265,6 +265,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         		crate::mlua_util::add_core_metamethods_no_tostring(stringify!(#input_ident), methods);
                 crate::mlua_util::add_print(methods);
+                crate::mlua_util::add_visit(methods);
 
         		methods.add_meta_method(mlua::MetaMethod::ToString, |_, this, _: ()| {
         			Ok(#match_to_string)

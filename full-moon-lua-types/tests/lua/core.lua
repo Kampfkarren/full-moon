@@ -58,3 +58,16 @@ assertEq(assignments[1], "x, y = 1, 2")
 
 assertEq(#assignmentEnds, 1)
 assertEq(assignmentEnds[1], "x, y = 1, 2")
+
+-- Test non-AST visiting
+local numbers = {}
+
+stmt:visit({
+	Number = function(token)
+		table.insert(numbers, token:print())
+	end,
+})
+
+assertEq(#numbers, 2)
+assertEq(numbers[1], "1")
+assertEq(numbers[2], "2")
