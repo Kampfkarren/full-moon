@@ -62,6 +62,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+    // TODO: Error for invalid names
     let match_match = {
         let mut cases = Vec::with_capacity(input_enum.variants.len());
 
@@ -254,6 +255,84 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     };
 
+    // TODO: This is copy-paste from match_match
+    let match_expect = {
+        let mut cases = Vec::with_capacity(input_enum.variants.len());
+
+        for variant in &input_enum.variants {
+            let variant_ident = &variant.ident;
+
+            match &variant.fields {
+                syn::Fields::Named(fields) => {
+                    let fields = fields
+                        .named
+                        .iter()
+                        .map(|field| &field.ident)
+                        .collect::<Vec<_>>();
+
+                    cases.push(quote! {
+                        #input_ident::#variant_ident { #(#fields),* } => {
+                            let mut table = lua.create_table()?;
+
+                            #(
+                                table.set(stringify!(#fields), #fields.prepare_for_lua(lua)?)?;
+                            )*
+
+                            (stringify!(#variant_ident), table.to_lua_multi(lua)?)
+                        }
+                    });
+                }
+
+                syn::Fields::Unnamed(fields) => {
+                    let fields = fields
+                        .unnamed
+                        .iter()
+                        .enumerate()
+                        .map(|(index, _)| format_ident!("_{index}"))
+                        .collect::<Vec<_>>();
+
+                    cases.push(quote! {
+                        #input_ident::#variant_ident(#(#fields),*) => {
+                            let mut fields = Vec::new();
+
+                            #(
+                                fields.push(#fields.prepare_for_lua(lua)?);
+                            )*
+
+                            (stringify!(#variant_ident), mlua::MultiValue::from_vec(fields))
+                        }
+                    });
+                }
+
+                syn::Fields::Unit => {
+                    cases.push(quote! {
+                        #input_ident::#variant_ident => {
+                            (stringify!(#variant_ident), ().to_lua_multi(lua)?)
+                        }
+                    });
+                }
+            }
+        }
+
+        quote! {
+            use mlua::ToLuaMulti;
+
+            let (function_name, args) = match this {
+                #(#cases,)*
+            };
+
+            if function_name == variant {
+                Ok(args)
+            } else {
+                Err(mlua::Error::external(format!(
+                    "expected {}, got {}",
+                    variant,
+                    function_name,
+                )))
+            }
+        }
+    };
+
     quote! {
         impl mlua::UserData for #input_ident {
 			fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
@@ -270,6 +349,10 @@ pub fn derive(input: TokenStream) -> TokenStream {
         		methods.add_meta_method(mlua::MetaMethod::ToString, |_, this, _: ()| {
         			Ok(#match_to_string)
         		});
+
+                methods.add_method("expect", |lua, this, variant: String| {
+                    #match_expect
+                });
 
 				methods.add_method("match", |lua, this, table: mlua::Table| {
 					#match_match

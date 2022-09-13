@@ -71,3 +71,21 @@ stmt:visit({
 assertEq(#numbers, 2)
 assertEq(numbers[1], "1")
 assertEq(numbers[2], "2")
+
+assert(not pcall(function()
+	return stmt:expect("While")
+end), "stmt:expect should have thrown")
+
+local assignment = stmt:expect("Assignment")
+assertEq(#assignment.var_list, 2)
+assertEq(#assignment.var_list:to_table(), 2)
+
+local iters = {}
+
+for i, v in assignment.var_list do
+	iters[i] = v:print()
+end
+
+assertEq(#iters, 2)
+assertEq(iters[1], "x")
+assertEq(iters[2], "y ")

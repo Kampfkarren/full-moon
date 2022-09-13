@@ -34,6 +34,7 @@ impl From<ast::Ast> for Ast {
 
 impl UserData for Ast {
     fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("eof", |_, Ast { eof, .. }| Ok(eof.clone()));
         fields.add_field_method_get("nodes", |_, Ast { nodes, .. }| Ok(nodes.clone()));
     }
 
@@ -61,22 +62,42 @@ impl CreateAstNode for Ast {
 }
 
 pub struct Assignment {
-    var_list: Punctuated<Var>,
-    equal_token: TokenReference,
-    expr_list: Punctuated<Expression>,
+    var_list: ArcLocked<Punctuated<Var>>,
+    equal_token: ArcLocked<TokenReference>,
+    expr_list: ArcLocked<Punctuated<Expression>>,
 }
 
 impl Assignment {
     pub fn new(assignment: &ast::Assignment) -> Self {
         Assignment {
-            var_list: Punctuated::map_from_punctuated(assignment.variables(), Var::new),
-            equal_token: TokenReference::new(assignment.equal_token()),
-            expr_list: Punctuated::map_from_punctuated(assignment.expressions(), Expression::new),
+            var_list: l(Punctuated::map_from_punctuated(
+                assignment.variables(),
+                Var::new,
+            )),
+            equal_token: l(TokenReference::new(assignment.equal_token())),
+            expr_list: l(Punctuated::map_from_punctuated(
+                assignment.expressions(),
+                Expression::new,
+            )),
         }
     }
 }
 
 impl UserData for Assignment {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("var_list", |_, Assignment { var_list, .. }| {
+            Ok(var_list.clone())
+        });
+
+        fields.add_field_method_get("equal_token", |_, Assignment { equal_token, .. }| {
+            Ok(equal_token.clone())
+        });
+
+        fields.add_field_method_get("expr_list", |_, Assignment { expr_list, .. }| {
+            Ok(expr_list.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Assignment", methods);
         add_print(methods);
@@ -97,7 +118,7 @@ impl CreateAstNode for Assignment {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum BinOp {
     And(ArcLocked<TokenReference>),
     Caret(ArcLocked<TokenReference>),
@@ -143,6 +164,7 @@ impl BinOp {
     }
 }
 
+#[derive(Clone)]
 pub struct Block {
     stmts: Vec<(ArcLocked<Stmt>, Option<ArcLocked<TokenReference>>)>,
     last_stmt: Option<(ArcLocked<LastStmt>, Option<ArcLocked<TokenReference>>)>,
@@ -182,6 +204,10 @@ impl UserData for Block {
                 .map(|(stmt, _)| stmt.clone())
                 .collect::<Vec<_>>())
         });
+
+        fields.add_field_method_get("last_stmt", |_, Block { last_stmt, .. }| {
+            Ok(last_stmt.as_ref().map(|(last_stmt, _)| last_stmt.clone()))
+        });
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
@@ -210,7 +236,7 @@ impl CreateAstNode for Block {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Call {
     AnonymousCall(ArcLocked<FunctionArgs>),
     MethodCall(ArcLocked<MethodCall>),
@@ -228,6 +254,7 @@ impl Call {
     }
 }
 
+#[derive(Clone)]
 pub struct Do {
     do_token: TokenReference,
     block: Block,
@@ -263,6 +290,7 @@ impl CreateAstNode for Do {
     }
 }
 
+#[derive(Clone)]
 pub struct ElseIf {
     else_if_token: TokenReference,
     condition: Expression,
@@ -354,7 +382,7 @@ impl Expression {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum FunctionArgs {
     Parentheses {
         parentheses: ArcLocked<ContainedSpan>,
@@ -388,6 +416,7 @@ impl FunctionArgs {
     }
 }
 
+#[derive(Clone)]
 pub struct FunctionBody {
     parameters_parentheses: ContainedSpan,
     parameters: Punctuated<Parameter>,
@@ -428,7 +457,7 @@ impl CreateAstNode for FunctionBody {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum LastStmt {
     Break(ArcLocked<TokenReference>),
     #[cfg(feature = "luau")]
@@ -455,7 +484,7 @@ impl LastStmt {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Field {
     ExpressionKey {
         brackets: ArcLocked<ContainedSpan>,
@@ -501,6 +530,7 @@ impl Field {
     }
 }
 
+#[derive(Clone)]
 pub struct FunctionCall {
     prefix: Prefix,
     suffixes: Vec<Suffix>,
@@ -536,6 +566,7 @@ impl CreateAstNode for FunctionCall {
     }
 }
 
+#[derive(Clone)]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
@@ -570,6 +601,7 @@ impl CreateAstNode for FunctionDeclaration {
     }
 }
 
+#[derive(Clone)]
 pub struct FunctionName {
     names: Punctuated<TokenReference>,
     colon_name: Option<(TokenReference, TokenReference)>,
@@ -612,6 +644,7 @@ impl CreateAstNode for FunctionName {
     }
 }
 
+#[derive(Clone)]
 pub struct GenericFor {
     for_token: TokenReference,
     names: Punctuated<TokenReference>,
@@ -660,6 +693,7 @@ impl CreateAstNode for GenericFor {
     }
 }
 
+#[derive(Clone)]
 pub struct If {
     if_token: TokenReference,
     condition: Expression,
@@ -721,7 +755,7 @@ impl CreateAstNode for If {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Index {
     Brackets {
         brackets: ArcLocked<ContainedSpan>,
@@ -755,6 +789,7 @@ impl Index {
     }
 }
 
+#[derive(Clone)]
 pub struct LocalAssignment {
     local_token: TokenReference,
     name_list: Punctuated<TokenReference>,
@@ -798,6 +833,7 @@ impl CreateAstNode for LocalAssignment {
     }
 }
 
+#[derive(Clone)]
 pub struct LocalFunction {
     local_token: TokenReference,
     function_token: TokenReference,
@@ -835,6 +871,7 @@ impl CreateAstNode for LocalFunction {
     }
 }
 
+#[derive(Clone)]
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
@@ -868,6 +905,7 @@ impl CreateAstNode for MethodCall {
     }
 }
 
+#[derive(Clone)]
 pub struct NumericFor {
     for_token: TokenReference,
     index_variable: TokenReference,
@@ -928,7 +966,7 @@ impl CreateAstNode for NumericFor {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Parameter {
     Ellipse(ArcLocked<TokenReference>),
     Name(ArcLocked<TokenReference>),
@@ -948,7 +986,7 @@ impl Parameter {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Prefix {
     Expression(ArcLocked<Expression>),
     Name(ArcLocked<TokenReference>),
@@ -964,6 +1002,7 @@ impl Prefix {
     }
 }
 
+#[derive(Clone)]
 pub struct Return {
     token: TokenReference,
     returns: Punctuated<Expression>,
@@ -996,6 +1035,7 @@ impl CreateAstNode for Return {
     }
 }
 
+#[derive(Clone)]
 pub struct Repeat {
     repeat_token: TokenReference,
     block: Block,
@@ -1033,7 +1073,7 @@ impl CreateAstNode for Repeat {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Stmt {
     Assignment(ArcLocked<Assignment>),
     Do(ArcLocked<Do>),
@@ -1079,7 +1119,7 @@ impl Stmt {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Suffix {
     Call(ArcLocked<Call>),
     Index(ArcLocked<Index>),
@@ -1095,6 +1135,7 @@ impl Suffix {
     }
 }
 
+#[derive(Clone)]
 pub struct TableConstructor {
     braces: ContainedSpan,
     fields: Punctuated<Field>,
@@ -1127,7 +1168,7 @@ impl CreateAstNode for TableConstructor {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum UnOp {
     Minus(ArcLocked<TokenReference>),
     Not(ArcLocked<TokenReference>),
@@ -1145,7 +1186,7 @@ impl UnOp {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Value {
     #[lua(
         create_ast_node = "ast::Value::Function((_0.create_ast_node()?, _1.create_ast_node()?))"
@@ -1192,7 +1233,7 @@ impl Value {
     }
 }
 
-#[derive(LuaUserData)]
+#[derive(Clone, LuaUserData)]
 pub enum Var {
     Expression(ArcLocked<VarExpression>),
     Name(ArcLocked<TokenReference>),
@@ -1208,6 +1249,7 @@ impl Var {
     }
 }
 
+#[derive(Clone)]
 pub struct VarExpression {
     prefix: Prefix,
     suffixes: Vec<Suffix>,
@@ -1246,6 +1288,7 @@ impl CreateAstNode for VarExpression {
     }
 }
 
+#[derive(Clone)]
 pub struct While {
     while_token: TokenReference,
     condition: Expression,

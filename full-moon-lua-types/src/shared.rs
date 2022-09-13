@@ -12,6 +12,7 @@ use crate::{
     mlua_util::{add_core_meta_methods, add_print, add_to_string_display},
 };
 
+#[derive(Clone)]
 pub struct ContainedSpan {
     start: TokenReference,
     end: TokenReference,
@@ -45,8 +46,10 @@ impl CreateAstNode for ContainedSpan {
     }
 }
 
+#[derive(Clone)]
 pub struct Position(tokenizer::Position);
 
+#[derive(Clone)]
 pub struct Punctuated<T>(ast::punctuated::Punctuated<T>);
 
 impl<T> Punctuated<T> {
@@ -98,6 +101,10 @@ impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
         methods.add_meta_method(MetaMethod::Len, |_, Punctuated(punctuated), _: ()| {
             Ok(punctuated.len())
         });
+
+        methods.add_method("to_table", |lua, this, _: ()| {
+            this.to_table(lua).map_err(mlua::Error::external)
+        });
     }
 }
 
@@ -122,8 +129,10 @@ impl<T: CreateAstNode> CreateAstNode for Punctuated<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct TokenType(tokenizer::TokenType);
 
+#[derive(Clone)]
 pub struct Token {
     start_position: Position,
     end_position: Position,
@@ -155,6 +164,7 @@ impl UserData for Token {
     }
 }
 
+#[derive(Clone)]
 pub struct TokenReference {
     leading_trivia: Vec<Token>,
     token: Token,
