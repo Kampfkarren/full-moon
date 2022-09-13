@@ -7,5 +7,6 @@ mod lua;
 mod mlua_util;
 mod prepare_for_lua;
 mod shared;
+mod visitor;
 
 pub use lua::create_lua;

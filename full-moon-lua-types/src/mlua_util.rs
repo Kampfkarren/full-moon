@@ -1,8 +1,10 @@
 use std::sync::{Arc, RwLock};
 
-use mlua::{ToLua, UserData, UserDataFields};
+use mlua::{ToLua, UserData};
 
 use crate::create_ast_node::CreateAstNode;
+
+pub use crate::visitor::add_visit;
 
 pub type ArcLocked<T> = Arc<RwLock<T>>;
 

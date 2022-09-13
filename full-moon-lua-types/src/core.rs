@@ -7,7 +7,8 @@ use mlua::{Table, UserData};
 use crate::{
     create_ast_node::CreateAstNode,
     mlua_util::{
-        add_core_meta_methods, add_newindex_block, add_print, add_to_string_display, ArcLocked,
+        add_core_meta_methods, add_newindex_block, add_print, add_to_string_display, add_visit,
+        ArcLocked,
     },
     prepare_for_lua::PrepareForLua,
     shared::*,
@@ -38,6 +39,24 @@ impl UserData for Ast {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Ast", methods);
+
+        crate::visitor::add_visit_with_visitor(methods, |ast, visitor| {
+            use full_moon::visitors::Visitor;
+            visitor.visit_ast(&ast);
+        });
+    }
+}
+
+impl CreateAstNode for Ast {
+    type Node = ast::Ast;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Ast::from_tokens(vec![tokenizer::Token::new(tokenizer::TokenType::Eof)])
+                .unwrap()
+                .with_eof(self.eof.create_ast_node()?)
+                .with_nodes(self.nodes.create_ast_node()?),
+        )
     }
 }
 
@@ -48,7 +67,7 @@ pub struct Assignment {
 }
 
 impl Assignment {
-    fn new(assignment: &ast::Assignment) -> Self {
+    pub fn new(assignment: &ast::Assignment) -> Self {
         Assignment {
             var_list: Punctuated::map_from_punctuated(assignment.variables(), Var::new),
             equal_token: TokenReference::new(assignment.equal_token()),
@@ -98,7 +117,7 @@ pub enum BinOp {
 }
 
 impl BinOp {
-    fn new(bin_op: &ast::BinOp) -> Self {
+    pub fn new(bin_op: &ast::BinOp) -> Self {
         match bin_op {
             ast::BinOp::And(token) => BinOp::And(l(TokenReference::new(&token))),
             ast::BinOp::Caret(token) => BinOp::Caret(l(TokenReference::new(&token))),
@@ -130,7 +149,7 @@ pub struct Block {
 }
 
 impl Block {
-    fn new(block: &ast::Block) -> Self {
+    pub fn new(block: &ast::Block) -> Self {
         Block {
             stmts: block
                 .stmts_with_semicolon()
@@ -184,9 +203,9 @@ impl CreateAstNode for Block {
                         })
                         .collect::<Option<Vec<_>>>()?,
                 )
-                .with_last_stmt(self.last_stmt.as_ref().map(|(last_stmt, token)| {
+                .with_last_stmt(self.last_stmt.as_ref().and_then(|(last_stmt, token)| {
                     Some((last_stmt.create_ast_node()?, token.create_ast_node()))
-                })?),
+                })),
         )
     }
 }
@@ -198,7 +217,7 @@ pub enum Call {
 }
 
 impl Call {
-    fn new(call: &ast::Call) -> Self {
+    pub fn new(call: &ast::Call) -> Self {
         match call {
             ast::Call::AnonymousCall(function_args) => {
                 Call::AnonymousCall(l(FunctionArgs::new(function_args)))
@@ -216,7 +235,7 @@ pub struct Do {
 }
 
 impl Do {
-    fn new(do_: &ast::Do) -> Self {
+    pub fn new(do_: &ast::Do) -> Self {
         Do {
             do_token: TokenReference::new(do_.do_token()),
             block: Block::new(do_.block()),
@@ -252,7 +271,7 @@ pub struct ElseIf {
 }
 
 impl ElseIf {
-    fn new(else_if: &ast::ElseIf) -> Self {
+    pub fn new(else_if: &ast::ElseIf) -> Self {
         ElseIf {
             else_if_token: TokenReference::new(else_if.else_if_token()),
             condition: Expression::new(else_if.condition()),
@@ -305,7 +324,7 @@ pub enum Expression {
 }
 
 impl Expression {
-    fn new(expression: &ast::Expression) -> Self {
+    pub fn new(expression: &ast::Expression) -> Self {
         match expression {
             ast::Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
                 lhs: Box::new(l(Expression::new(lhs))),
@@ -348,7 +367,7 @@ pub enum FunctionArgs {
 }
 
 impl FunctionArgs {
-    fn new(function_args: &ast::FunctionArgs) -> Self {
+    pub fn new(function_args: &ast::FunctionArgs) -> Self {
         match function_args {
             ast::FunctionArgs::Parentheses {
                 parentheses,
@@ -377,7 +396,7 @@ pub struct FunctionBody {
 }
 
 impl FunctionBody {
-    fn new(function_body: &ast::FunctionBody) -> Self {
+    pub fn new(function_body: &ast::FunctionBody) -> Self {
         FunctionBody {
             parameters_parentheses: ContainedSpan::new(function_body.parameters_parentheses()),
 
@@ -418,7 +437,7 @@ pub enum LastStmt {
 }
 
 impl LastStmt {
-    fn new(last_stmt: &ast::LastStmt) -> Self {
+    pub fn new(last_stmt: &ast::LastStmt) -> Self {
         match last_stmt {
             ast::LastStmt::Break(break_token) => {
                 LastStmt::Break(l(TokenReference::new(break_token)))
@@ -455,7 +474,7 @@ pub enum Field {
 }
 
 impl Field {
-    fn new(field: &ast::Field) -> Self {
+    pub fn new(field: &ast::Field) -> Self {
         match field {
             ast::Field::ExpressionKey {
                 brackets,
@@ -488,7 +507,7 @@ pub struct FunctionCall {
 }
 
 impl FunctionCall {
-    fn new(function_call: &ast::FunctionCall) -> Self {
+    pub fn new(function_call: &ast::FunctionCall) -> Self {
         FunctionCall {
             prefix: Prefix::new(function_call.prefix()),
             suffixes: function_call.suffixes().map(Suffix::new).collect(),
@@ -524,7 +543,7 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn new(function_declaration: &ast::FunctionDeclaration) -> Self {
+    pub fn new(function_declaration: &ast::FunctionDeclaration) -> Self {
         FunctionDeclaration {
             function_token: TokenReference::new(function_declaration.function_token()),
             name: FunctionName::new(function_declaration.name()),
@@ -557,7 +576,7 @@ pub struct FunctionName {
 }
 
 impl FunctionName {
-    fn new(function_name: &ast::FunctionName) -> Self {
+    pub fn new(function_name: &ast::FunctionName) -> Self {
         FunctionName {
             names: Punctuated::map_from_punctuated(function_name.names(), TokenReference::new),
 
@@ -604,7 +623,7 @@ pub struct GenericFor {
 }
 
 impl GenericFor {
-    fn new(generic_for: &ast::GenericFor) -> Self {
+    pub fn new(generic_for: &ast::GenericFor) -> Self {
         GenericFor {
             for_token: TokenReference::new(generic_for.for_token()),
             names: Punctuated::map_from_punctuated(generic_for.names(), TokenReference::new),
@@ -653,7 +672,7 @@ pub struct If {
 }
 
 impl If {
-    fn new(if_node: &ast::If) -> Self {
+    pub fn new(if_node: &ast::If) -> Self {
         If {
             if_token: TokenReference::new(if_node.if_token()),
             condition: Expression::new(if_node.condition()),
@@ -716,7 +735,7 @@ pub enum Index {
 }
 
 impl Index {
-    fn new(index: &ast::Index) -> Self {
+    pub fn new(index: &ast::Index) -> Self {
         match index {
             ast::Index::Brackets {
                 brackets,
@@ -744,7 +763,7 @@ pub struct LocalAssignment {
 }
 
 impl LocalAssignment {
-    fn new(local_assignment: &ast::LocalAssignment) -> Self {
+    pub fn new(local_assignment: &ast::LocalAssignment) -> Self {
         LocalAssignment {
             local_token: TokenReference::new(local_assignment.local_token()),
             name_list: Punctuated::map_from_punctuated(
@@ -787,7 +806,7 @@ pub struct LocalFunction {
 }
 
 impl LocalFunction {
-    fn new(local_function: &ast::LocalFunction) -> Self {
+    pub fn new(local_function: &ast::LocalFunction) -> Self {
         LocalFunction {
             local_token: TokenReference::new(local_function.local_token()),
             function_token: TokenReference::new(local_function.function_token()),
@@ -823,7 +842,7 @@ pub struct MethodCall {
 }
 
 impl MethodCall {
-    fn new(method_call: &ast::MethodCall) -> Self {
+    pub fn new(method_call: &ast::MethodCall) -> Self {
         MethodCall {
             colon_token: TokenReference::new(method_call.colon_token()),
             name: TokenReference::new(method_call.name()),
@@ -864,7 +883,7 @@ pub struct NumericFor {
 }
 
 impl NumericFor {
-    fn new(numeric_for: &ast::NumericFor) -> Self {
+    pub fn new(numeric_for: &ast::NumericFor) -> Self {
         NumericFor {
             for_token: TokenReference::new(numeric_for.for_token()),
             index_variable: TokenReference::new(numeric_for.index_variable()),
@@ -916,7 +935,7 @@ pub enum Parameter {
 }
 
 impl Parameter {
-    fn new(parameter: &ast::Parameter) -> Self {
+    pub fn new(parameter: &ast::Parameter) -> Self {
         match parameter {
             ast::Parameter::Ellipse(ellipse_token) => {
                 Parameter::Ellipse(l(TokenReference::new(ellipse_token)))
@@ -936,7 +955,7 @@ pub enum Prefix {
 }
 
 impl Prefix {
-    fn new(prefix: &ast::Prefix) -> Self {
+    pub fn new(prefix: &ast::Prefix) -> Self {
         match prefix {
             ast::Prefix::Expression(expr) => Prefix::Expression(l(Expression::new(expr))),
             ast::Prefix::Name(name) => Prefix::Name(l(TokenReference::new(name))),
@@ -951,7 +970,7 @@ pub struct Return {
 }
 
 impl Return {
-    fn new(return_token: &ast::Return) -> Self {
+    pub fn new(return_token: &ast::Return) -> Self {
         Return {
             token: TokenReference::new(return_token.token()),
             returns: Punctuated::map_from_punctuated(return_token.returns(), Expression::new),
@@ -985,7 +1004,7 @@ pub struct Repeat {
 }
 
 impl Repeat {
-    fn new(repeat: &ast::Repeat) -> Self {
+    pub fn new(repeat: &ast::Repeat) -> Self {
         Repeat {
             repeat_token: TokenReference::new(repeat.repeat_token()),
             block: Block::new(repeat.block()),
@@ -1032,7 +1051,7 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    fn new(stmt: &ast::Stmt) -> Self {
+    pub fn new(stmt: &ast::Stmt) -> Self {
         match stmt {
             ast::Stmt::Assignment(assignment) => Stmt::Assignment(l(Assignment::new(assignment))),
             ast::Stmt::Do(do_token) => Stmt::Do(l(Do::new(do_token))),
@@ -1067,7 +1086,7 @@ pub enum Suffix {
 }
 
 impl Suffix {
-    fn new(suffix: &ast::Suffix) -> Self {
+    pub fn new(suffix: &ast::Suffix) -> Self {
         match suffix {
             ast::Suffix::Call(call) => Suffix::Call(l(Call::new(call))),
             ast::Suffix::Index(index) => Suffix::Index(l(Index::new(index))),
@@ -1082,7 +1101,7 @@ pub struct TableConstructor {
 }
 
 impl TableConstructor {
-    fn new(table_constructor: &ast::TableConstructor) -> Self {
+    pub fn new(table_constructor: &ast::TableConstructor) -> Self {
         TableConstructor {
             braces: ContainedSpan::new(table_constructor.braces()),
             fields: Punctuated::map_from_punctuated(table_constructor.fields(), Field::new),
@@ -1116,7 +1135,7 @@ pub enum UnOp {
 }
 
 impl UnOp {
-    fn new(unop: &ast::UnOp) -> Self {
+    pub fn new(unop: &ast::UnOp) -> Self {
         match unop {
             ast::UnOp::Minus(token) => UnOp::Minus(l(TokenReference::new(token))),
             ast::UnOp::Not(token) => UnOp::Not(l(TokenReference::new(token))),
@@ -1180,7 +1199,7 @@ pub enum Var {
 }
 
 impl Var {
-    fn new(var: &ast::Var) -> Self {
+    pub fn new(var: &ast::Var) -> Self {
         match var {
             ast::Var::Expression(expression) => Var::Expression(l(VarExpression::new(expression))),
             ast::Var::Name(name_token) => Var::Name(l(TokenReference::new(name_token))),
@@ -1195,7 +1214,7 @@ pub struct VarExpression {
 }
 
 impl VarExpression {
-    fn new(var_expression: &ast::VarExpression) -> Self {
+    pub fn new(var_expression: &ast::VarExpression) -> Self {
         VarExpression {
             prefix: Prefix::new(var_expression.prefix()),
             suffixes: var_expression
@@ -1236,7 +1255,7 @@ pub struct While {
 }
 
 impl While {
-    fn new(while_token: &ast::While) -> Self {
+    pub fn new(while_token: &ast::While) -> Self {
         While {
             while_token: TokenReference::new(while_token.while_token()),
             condition: Expression::new(while_token.condition()),

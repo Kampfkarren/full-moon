@@ -29,12 +29,32 @@ assertEq(
 )
 
 local assignments = {}
+local assignmentEnds = {}
 
-stmt:visit({
+ast:visit({
 	Assignment = function(assignment)
 		table.insert(assignments, assignment:print())
 	end,
+
+	AssignmentEnd = function(assignmentEnd)
+		table.insert(assignmentEnds, assignmentEnd:print())
+	end,
 })
+
+assert(not pcall(function()
+	ast:visit({
+		Funky = function() end,
+	})
+end), "expected :visit to not allow invalid names")
+
+assert(not pcall(function()
+	ast:visit({
+		Assignment = 3,
+	})
+end), "expected :visit to not allow invalid values")
 
 assertEq(#assignments, 1)
 assertEq(assignments[1], "x, y = 1, 2")
+
+assertEq(#assignmentEnds, 1)
+assertEq(assignmentEnds[1], "x, y = 1, 2")
