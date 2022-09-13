@@ -78,7 +78,7 @@ end), "stmt:expect should have thrown")
 
 local assignment = stmt:expect("Assignment")
 assertEq(#assignment.var_list, 2)
-assertEq(#assignment.var_list:to_table(), 2)
+assertEq(#assignment.var_list:values(), 2)
 
 local iters = {}
 

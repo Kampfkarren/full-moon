@@ -70,7 +70,7 @@ impl<T> Punctuated<T> {
 }
 
 impl<T: Clone + UserData + 'static> Punctuated<T> {
-    fn to_table<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Table<'lua>> {
+    fn values<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Table<'lua>> {
         let table = lua.create_table()?;
 
         for (i, item) in self.0.iter().enumerate() {
@@ -94,7 +94,7 @@ impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
         methods.add_meta_method(MetaMethod::Iter, |lua, this, _: ()| {
             Ok((
                 lua.globals().get::<_, mlua::Function>("next")?,
-                this.to_table(lua)?,
+                this.values(lua)?,
             ))
         });
 
@@ -102,8 +102,8 @@ impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
             Ok(punctuated.len())
         });
 
-        methods.add_method("to_table", |lua, this, _: ()| {
-            this.to_table(lua).map_err(mlua::Error::external)
+        methods.add_method("values", |lua, this, _: ()| {
+            this.values(lua).map_err(mlua::Error::external)
         });
     }
 }
