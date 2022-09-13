@@ -7,6 +7,11 @@ use full_moon::{
 
 use mlua::{MetaMethod, ToLua, UserData};
 
+use crate::{
+    create_ast_node::CreateAstNode,
+    mlua_util::{add_core_meta_methods, add_to_string_display},
+};
+
 pub struct ContainedSpan {
     start: TokenReference,
     end: TokenReference,
@@ -20,6 +25,23 @@ impl ContainedSpan {
             start: TokenReference::new(start),
             end: TokenReference::new(end),
         }
+    }
+}
+
+impl UserData for ContainedSpan {
+    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
+        add_core_meta_methods("ContainedSpan", methods);
+    }
+}
+
+impl CreateAstNode for ContainedSpan {
+    type Node = ast::span::ContainedSpan;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(ast::span::ContainedSpan::new(
+            self.start.create_ast_node()?,
+            self.end.create_ast_node()?,
+        ))
     }
 }
 
@@ -44,12 +66,6 @@ impl<T> Punctuated<T> {
     }
 }
 
-impl<T> FromIterator<Pair<T>> for Punctuated<T> {
-    fn from_iter<I: IntoIterator<Item = Pair<T>>>(iter: I) -> Self {
-        Punctuated(ast::punctuated::Punctuated::from_iter(iter))
-    }
-}
-
 impl<T: Clone + UserData + 'static> Punctuated<T> {
     fn to_table<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Table<'lua>> {
         let table = lua.create_table()?;
@@ -59,6 +75,12 @@ impl<T: Clone + UserData + 'static> Punctuated<T> {
         }
 
         Ok(table)
+    }
+}
+
+impl<T> FromIterator<Pair<T>> for Punctuated<T> {
+    fn from_iter<I: IntoIterator<Item = Pair<T>>>(iter: I) -> Self {
+        Punctuated(ast::punctuated::Punctuated::from_iter(iter))
     }
 }
 
@@ -76,6 +98,27 @@ impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
         methods.add_meta_method(MetaMethod::Len, |_, Punctuated(punctuated), _: ()| {
             Ok(punctuated.len())
         });
+    }
+}
+
+impl<T: CreateAstNode> CreateAstNode for Punctuated<T> {
+    type Node = ast::punctuated::Punctuated<T::Node>;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(ast::punctuated::Punctuated::from_iter(
+            self.0
+                .pairs()
+                .map(|pair| {
+                    Some(match pair {
+                        Pair::Punctuated(value, punctuation) => {
+                            Pair::Punctuated(value.create_ast_node()?, punctuation.clone())
+                        }
+
+                        Pair::End(value) => Pair::End(value.create_ast_node()?),
+                    })
+                })
+                .collect::<Option<Vec<_>>>()?,
+        ))
     }
 }
 
@@ -97,6 +140,14 @@ impl From<&tokenizer::Token> for Token {
     }
 }
 
+impl CreateAstNode for Token {
+    type Node = tokenizer::Token;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(tokenizer::Token::new(self.token_type.0.clone()))
+    }
+}
+
 pub struct TokenReference {
     leading_trivia: Vec<Token>,
     token: Token,
@@ -110,5 +161,26 @@ impl TokenReference {
             token: Token::from(token_reference.token()),
             trailing_trivia: token_reference.trailing_trivia().map(Token::from).collect(),
         }
+    }
+}
+
+// TODO
+impl UserData for TokenReference {}
+
+impl CreateAstNode for TokenReference {
+    type Node = tokenizer::TokenReference;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(tokenizer::TokenReference::new(
+            self.leading_trivia
+                .iter()
+                .map(Token::create_ast_node)
+                .collect::<Option<Vec<_>>>()?,
+            self.token.create_ast_node()?,
+            self.trailing_trivia
+                .iter()
+                .map(Token::create_ast_node)
+                .collect::<Option<Vec<_>>>()?,
+        ))
     }
 }

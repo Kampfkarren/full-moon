@@ -1,29 +1,43 @@
-use full_moon::{ast, node::Node, tokenizer};
-use mlua::UserData;
+use std::sync::{Arc, RwLock};
 
-use crate::{mlua_util::add_to_string_display, shared::*};
+use full_moon::{ast, node::Node, tokenizer};
+use full_moon_lua_types_derive::LuaUserData;
+use mlua::{Table, UserData};
+
+use crate::{
+    create_ast_node::CreateAstNode,
+    mlua_util::{
+        add_core_meta_methods, add_newindex_block, add_print, add_to_string_display, ArcLocked,
+    },
+    prepare_for_lua::PrepareForLua,
+    shared::*,
+};
+
+fn l<T>(t: T) -> ArcLocked<T> {
+    Arc::new(RwLock::new(t))
+}
 
 pub struct Ast {
-    nodes: Block,
-    eof: TokenReference,
+    nodes: ArcLocked<Block>,
+    eof: ArcLocked<TokenReference>,
 }
 
 impl From<ast::Ast> for Ast {
     fn from(ast: ast::Ast) -> Self {
         Ast {
-            nodes: Block::new(ast.nodes()),
-            eof: TokenReference::new(ast.eof()),
+            nodes: l(Block::new(ast.nodes())),
+            eof: l(TokenReference::new(ast.eof())),
         }
     }
 }
 
 impl UserData for Ast {
     fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
-        // fields.add_field_method_get("nodes", |_, Ast { nodes, .. }| Ok(nodes))
+        fields.add_field_method_get("nodes", |_, Ast { nodes, .. }| Ok(nodes.clone()));
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Ast", methods);
+        add_core_meta_methods("Ast", methods);
     }
 }
 
@@ -46,61 +60,73 @@ impl Assignment {
 impl UserData for Assignment {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Assignment", methods);
+        add_print(methods);
     }
 }
 
+impl CreateAstNode for Assignment {
+    type Node = ast::Assignment;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Assignment::new(
+                self.var_list.create_ast_node()?,
+                self.expr_list.create_ast_node()?,
+            )
+            .with_equal_token(self.equal_token.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum BinOp {
-    And(TokenReference),
-    Caret(TokenReference),
-    GreaterThan(TokenReference),
-    GreaterThanEqual(TokenReference),
-    LessThan(TokenReference),
-    LessThanEqual(TokenReference),
-    Minus(TokenReference),
-    Or(TokenReference),
-    Percent(TokenReference),
-    Plus(TokenReference),
-    Slash(TokenReference),
-    Star(TokenReference),
-    TildeEqual(TokenReference),
-    TwoDots(TokenReference),
-    TwoEqual(TokenReference),
+    And(ArcLocked<TokenReference>),
+    Caret(ArcLocked<TokenReference>),
+    GreaterThan(ArcLocked<TokenReference>),
+    GreaterThanEqual(ArcLocked<TokenReference>),
+    LessThan(ArcLocked<TokenReference>),
+    LessThanEqual(ArcLocked<TokenReference>),
+    Minus(ArcLocked<TokenReference>),
+    Or(ArcLocked<TokenReference>),
+    Percent(ArcLocked<TokenReference>),
+    Plus(ArcLocked<TokenReference>),
+    Slash(ArcLocked<TokenReference>),
+    Star(ArcLocked<TokenReference>),
+    TildeEqual(ArcLocked<TokenReference>),
+    TwoDots(ArcLocked<TokenReference>),
+    TwoEqual(ArcLocked<TokenReference>),
 }
 
 impl BinOp {
     fn new(bin_op: &ast::BinOp) -> Self {
         match bin_op {
-            ast::BinOp::And(token) => BinOp::And(TokenReference::new(&token)),
-            ast::BinOp::Caret(token) => BinOp::Caret(TokenReference::new(&token)),
-            ast::BinOp::GreaterThan(token) => BinOp::GreaterThan(TokenReference::new(&token)),
+            ast::BinOp::And(token) => BinOp::And(l(TokenReference::new(&token))),
+            ast::BinOp::Caret(token) => BinOp::Caret(l(TokenReference::new(&token))),
+            ast::BinOp::GreaterThan(token) => BinOp::GreaterThan(l(TokenReference::new(&token))),
             ast::BinOp::GreaterThanEqual(token) => {
-                BinOp::GreaterThanEqual(TokenReference::new(&token))
+                BinOp::GreaterThanEqual(l(TokenReference::new(&token)))
             }
-            ast::BinOp::LessThan(token) => BinOp::LessThan(TokenReference::new(&token)),
-            ast::BinOp::LessThanEqual(token) => BinOp::LessThanEqual(TokenReference::new(&token)),
-            ast::BinOp::Minus(token) => BinOp::Minus(TokenReference::new(&token)),
-            ast::BinOp::Or(token) => BinOp::Or(TokenReference::new(&token)),
-            ast::BinOp::Percent(token) => BinOp::Percent(TokenReference::new(&token)),
-            ast::BinOp::Plus(token) => BinOp::Plus(TokenReference::new(&token)),
-            ast::BinOp::Slash(token) => BinOp::Slash(TokenReference::new(&token)),
-            ast::BinOp::Star(token) => BinOp::Star(TokenReference::new(&token)),
-            ast::BinOp::TildeEqual(token) => BinOp::TildeEqual(TokenReference::new(&token)),
-            ast::BinOp::TwoDots(token) => BinOp::TwoDots(TokenReference::new(&token)),
-            ast::BinOp::TwoEqual(token) => BinOp::TwoEqual(TokenReference::new(&token)),
+            ast::BinOp::LessThan(token) => BinOp::LessThan(l(TokenReference::new(&token))),
+            ast::BinOp::LessThanEqual(token) => {
+                BinOp::LessThanEqual(l(TokenReference::new(&token)))
+            }
+            ast::BinOp::Minus(token) => BinOp::Minus(l(TokenReference::new(&token))),
+            ast::BinOp::Or(token) => BinOp::Or(l(TokenReference::new(&token))),
+            ast::BinOp::Percent(token) => BinOp::Percent(l(TokenReference::new(&token))),
+            ast::BinOp::Plus(token) => BinOp::Plus(l(TokenReference::new(&token))),
+            ast::BinOp::Slash(token) => BinOp::Slash(l(TokenReference::new(&token))),
+            ast::BinOp::Star(token) => BinOp::Star(l(TokenReference::new(&token))),
+            ast::BinOp::TildeEqual(token) => BinOp::TildeEqual(l(TokenReference::new(&token))),
+            ast::BinOp::TwoDots(token) => BinOp::TwoDots(l(TokenReference::new(&token))),
+            ast::BinOp::TwoEqual(token) => BinOp::TwoEqual(l(TokenReference::new(&token))),
             other => panic!("unimplemented BinOp: {other:?}"),
         }
     }
 }
 
-impl UserData for BinOp {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("BinOp", methods);
-    }
-}
-
 pub struct Block {
-    stmts: Vec<(Stmt, Option<TokenReference>)>,
-    last_stmt: Option<(LastStmt, Option<TokenReference>)>,
+    stmts: Vec<(ArcLocked<Stmt>, Option<ArcLocked<TokenReference>>)>,
+    last_stmt: Option<(ArcLocked<LastStmt>, Option<ArcLocked<TokenReference>>)>,
 }
 
 impl Block {
@@ -108,7 +134,12 @@ impl Block {
         Block {
             stmts: block
                 .stmts_with_semicolon()
-                .map(|(stmt, token)| (Stmt::new(stmt), token.as_ref().map(TokenReference::new)))
+                .map(|(stmt, token)| {
+                    (
+                        l(Stmt::new(stmt)),
+                        token.as_ref().map(TokenReference::new).map(l),
+                    )
+                })
                 .collect(),
 
             last_stmt: block
@@ -116,8 +147,8 @@ impl Block {
                 .as_ref()
                 .map(|(last_stmt, token)| {
                     (
-                        LastStmt::new(last_stmt),
-                        token.as_ref().map(TokenReference::new),
+                        l(LastStmt::new(last_stmt)),
+                        token.as_ref().map(TokenReference::new).map(l),
                     )
                 }),
         }
@@ -125,31 +156,56 @@ impl Block {
 }
 
 impl UserData for Block {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("stmts", |_, Block { stmts, .. }| {
+            Ok(stmts
+                .iter()
+                .map(|(stmt, _)| stmt.clone())
+                .collect::<Vec<_>>())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Block", methods);
+        add_core_meta_methods("Block", methods);
     }
 }
 
+impl CreateAstNode for Block {
+    type Node = ast::Block;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Block::new()
+                .with_stmts(
+                    self.stmts
+                        .iter()
+                        .map(|(stmt, token)| {
+                            Some((stmt.create_ast_node()?, token.create_ast_node()))
+                        })
+                        .collect::<Option<Vec<_>>>()?,
+                )
+                .with_last_stmt(self.last_stmt.as_ref().map(|(last_stmt, token)| {
+                    Some((last_stmt.create_ast_node()?, token.create_ast_node()))
+                })?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum Call {
-    AnonymousCall(FunctionArgs),
-    MethodCall(MethodCall),
+    AnonymousCall(ArcLocked<FunctionArgs>),
+    MethodCall(ArcLocked<MethodCall>),
 }
 
 impl Call {
     fn new(call: &ast::Call) -> Self {
         match call {
             ast::Call::AnonymousCall(function_args) => {
-                Call::AnonymousCall(FunctionArgs::new(function_args))
+                Call::AnonymousCall(l(FunctionArgs::new(function_args)))
             }
-            ast::Call::MethodCall(method_call) => Call::MethodCall(MethodCall::new(method_call)),
+            ast::Call::MethodCall(method_call) => Call::MethodCall(l(MethodCall::new(method_call))),
             other => panic!("unimplemented Call: {other:?}"),
         }
-    }
-}
-
-impl UserData for Call {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Call", methods);
     }
 }
 
@@ -172,6 +228,19 @@ impl Do {
 impl UserData for Do {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Do", methods);
+    }
+}
+
+impl CreateAstNode for Do {
+    type Node = ast::Do;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Do::new()
+                .with_block(self.block.create_ast_node()?)
+                .with_do_token(self.do_token.create_ast_node()?)
+                .with_end_token(self.end_token.create_ast_node()?),
+        )
     }
 }
 
@@ -199,25 +268,39 @@ impl UserData for ElseIf {
     }
 }
 
+impl CreateAstNode for ElseIf {
+    type Node = ast::ElseIf;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::ElseIf::new(self.condition.create_ast_node()?)
+                .with_block(self.block.create_ast_node()?)
+                .with_else_if_token(self.else_if_token.create_ast_node()?)
+                .with_then_token(self.then_token.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(Clone, LuaUserData)]
 pub enum Expression {
     BinaryOperator {
-        lhs: Box<Expression>,
-        binop: BinOp,
-        rhs: Box<Expression>,
+        lhs: Box<ArcLocked<Expression>>,
+        binop: ArcLocked<BinOp>,
+        rhs: Box<ArcLocked<Expression>>,
     },
 
     Parentheses {
-        contained: ContainedSpan,
-        expression: Box<Expression>,
+        contained: ArcLocked<ContainedSpan>,
+        expression: Box<ArcLocked<Expression>>,
     },
 
     UnaryOperator {
-        unop: UnOp,
-        expression: Box<Expression>,
+        unop: ArcLocked<UnOp>,
+        expression: Box<ArcLocked<Expression>>,
     },
 
     Value {
-        value: Box<Value>,
+        value: Box<ArcLocked<Value>>,
     },
 }
 
@@ -225,26 +308,26 @@ impl Expression {
     fn new(expression: &ast::Expression) -> Self {
         match expression {
             ast::Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
-                lhs: Box::new(Expression::new(lhs)),
-                binop: BinOp::new(binop),
-                rhs: Box::new(Expression::new(rhs)),
+                lhs: Box::new(l(Expression::new(lhs))),
+                binop: l(BinOp::new(binop)),
+                rhs: Box::new(l(Expression::new(rhs))),
             },
 
             ast::Expression::Parentheses {
                 contained,
                 expression,
             } => Expression::Parentheses {
-                contained: ContainedSpan::new(contained),
-                expression: Box::new(Expression::new(expression)),
+                contained: l(ContainedSpan::new(contained)),
+                expression: Box::new(l(Expression::new(expression))),
             },
 
             ast::Expression::UnaryOperator { unop, expression } => Expression::UnaryOperator {
-                unop: UnOp::new(unop),
-                expression: Box::new(Expression::new(expression)),
+                unop: l(UnOp::new(unop)),
+                expression: Box::new(l(Expression::new(expression))),
             },
 
             ast::Expression::Value { value } => Expression::Value {
-                value: Box::new(Value::new(value)),
+                value: Box::new(l(Value::new(value))),
             },
 
             other => panic!("unimplemented Expression: {other:?}"),
@@ -252,21 +335,16 @@ impl Expression {
     }
 }
 
-impl UserData for Expression {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Expression", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum FunctionArgs {
     Parentheses {
-        contained: ContainedSpan,
-        expressions: Punctuated<Expression>,
+        parentheses: ArcLocked<ContainedSpan>,
+        arguments: ArcLocked<Punctuated<Expression>>,
     },
 
-    String(TokenReference),
+    String(ArcLocked<TokenReference>),
 
-    TableConstructor(TableConstructor),
+    TableConstructor(ArcLocked<TableConstructor>),
 }
 
 impl FunctionArgs {
@@ -276,24 +354,18 @@ impl FunctionArgs {
                 parentheses,
                 arguments,
             } => FunctionArgs::Parentheses {
-                contained: ContainedSpan::new(parentheses),
-                expressions: Punctuated::map_from_punctuated(arguments, Expression::new),
+                parentheses: l(ContainedSpan::new(parentheses)),
+                arguments: l(Punctuated::map_from_punctuated(arguments, Expression::new)),
             },
 
-            ast::FunctionArgs::String(token) => FunctionArgs::String(TokenReference::new(token)),
+            ast::FunctionArgs::String(token) => FunctionArgs::String(l(TokenReference::new(token))),
 
             ast::FunctionArgs::TableConstructor(table_constructor) => {
-                FunctionArgs::TableConstructor(TableConstructor::new(table_constructor))
+                FunctionArgs::TableConstructor(l(TableConstructor::new(table_constructor)))
             }
 
             other => panic!("unimplemented FunctionArgs: {other:?}"),
         }
-    }
-}
-
-impl UserData for FunctionArgs {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("FunctionArgs", methods);
     }
 }
 
@@ -323,51 +395,63 @@ impl UserData for FunctionBody {
     }
 }
 
+impl CreateAstNode for FunctionBody {
+    type Node = ast::FunctionBody;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::FunctionBody::new()
+                .with_block(self.block.create_ast_node()?)
+                .with_end_token(self.end_token.create_ast_node()?)
+                .with_parameters(self.parameters.create_ast_node()?)
+                .with_parameters_parentheses(self.parameters_parentheses.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum LastStmt {
-    Break(TokenReference),
+    Break(ArcLocked<TokenReference>),
     #[cfg(feature = "luau")]
-    Continue(TokenReference),
-    Return(Return),
+    Continue(ArcLocked<TokenReference>),
+    Return(ArcLocked<Return>),
 }
 
 impl LastStmt {
     fn new(last_stmt: &ast::LastStmt) -> Self {
         match last_stmt {
-            ast::LastStmt::Break(break_token) => LastStmt::Break(TokenReference::new(break_token)),
+            ast::LastStmt::Break(break_token) => {
+                LastStmt::Break(l(TokenReference::new(break_token)))
+            }
 
             #[cfg(feature = "luau")]
             ast::LastStmt::Continue(continue_token) => {
-                LastStmt::Continue(TokenReference::new(continue_token))
+                LastStmt::Continue(l(TokenReference::new(continue_token)))
             }
 
-            ast::LastStmt::Return(return_token) => LastStmt::Return(Return::new(return_token)),
+            ast::LastStmt::Return(return_token) => LastStmt::Return(l(Return::new(return_token))),
 
             _ => unimplemented!("unexpected LastStmt variant: {last_stmt:#?}"),
         }
     }
 }
 
-impl UserData for LastStmt {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("LastStmt", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum Field {
     ExpressionKey {
-        brackets: ContainedSpan,
-        key: Expression,
-        equal: TokenReference,
-        value: Expression,
+        brackets: ArcLocked<ContainedSpan>,
+        key: ArcLocked<Expression>,
+        equal: ArcLocked<TokenReference>,
+        value: ArcLocked<Expression>,
     },
 
     NameKey {
-        key: TokenReference,
-        equal: TokenReference,
-        value: Expression,
+        key: ArcLocked<TokenReference>,
+        equal: ArcLocked<TokenReference>,
+        value: ArcLocked<Expression>,
     },
 
-    NoKey(Expression),
+    NoKey(ArcLocked<Expression>),
 }
 
 impl Field {
@@ -379,28 +463,22 @@ impl Field {
                 equal,
                 value,
             } => Field::ExpressionKey {
-                brackets: ContainedSpan::new(brackets),
-                key: Expression::new(key),
-                equal: TokenReference::new(equal),
-                value: Expression::new(value),
+                brackets: l(ContainedSpan::new(brackets)),
+                key: l(Expression::new(key)),
+                equal: l(TokenReference::new(equal)),
+                value: l(Expression::new(value)),
             },
 
             ast::Field::NameKey { key, equal, value } => Field::NameKey {
-                key: TokenReference::new(key),
-                equal: TokenReference::new(equal),
-                value: Expression::new(value),
+                key: l(TokenReference::new(key)),
+                equal: l(TokenReference::new(equal)),
+                value: l(Expression::new(value)),
             },
 
-            ast::Field::NoKey(expression) => Field::NoKey(Expression::new(expression)),
+            ast::Field::NoKey(expression) => Field::NoKey(l(Expression::new(expression))),
 
             other => panic!("unimplemented Field: {other:?}"),
         }
-    }
-}
-
-impl UserData for Field {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Field", methods);
     }
 }
 
@@ -424,6 +502,21 @@ impl UserData for FunctionCall {
     }
 }
 
+impl CreateAstNode for FunctionCall {
+    type Node = ast::FunctionCall;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::FunctionCall::new(self.prefix.create_ast_node()?).with_suffixes(
+                self.suffixes
+                    .iter()
+                    .map(Suffix::create_ast_node)
+                    .collect::<Option<Vec<_>>>()?,
+            ),
+        )
+    }
+}
+
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
@@ -443,6 +536,18 @@ impl FunctionDeclaration {
 impl UserData for FunctionDeclaration {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("FunctionDeclaration", methods);
+    }
+}
+
+impl CreateAstNode for FunctionDeclaration {
+    type Node = ast::FunctionDeclaration;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::FunctionDeclaration::new(self.name.create_ast_node()?)
+                .with_body(self.body.create_ast_node()?)
+                .with_function_token(self.function_token.create_ast_node()?),
+        )
     }
 }
 
@@ -473,6 +578,21 @@ impl UserData for FunctionName {
     }
 }
 
+impl CreateAstNode for FunctionName {
+    type Node = ast::FunctionName;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::FunctionName::new(self.names.create_ast_node()?).with_method(
+                self.colon_name
+                    .as_ref()
+                    .map(|(colon, name)| Some((colon.create_ast_node()?, name.create_ast_node()?)))
+                    .flatten(),
+            ),
+        )
+    }
+}
+
 pub struct GenericFor {
     for_token: TokenReference,
     names: Punctuated<TokenReference>,
@@ -500,6 +620,24 @@ impl GenericFor {
 impl UserData for GenericFor {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("GenericFor", methods);
+    }
+}
+
+impl CreateAstNode for GenericFor {
+    type Node = ast::GenericFor;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::GenericFor::new(
+                self.names.create_ast_node()?,
+                self.expr_list.create_ast_node()?,
+            )
+            .with_for_token(self.for_token.create_ast_node()?)
+            .with_in_token(self.in_token.create_ast_node()?)
+            .with_do_token(self.do_token.create_ast_node()?)
+            .with_block(self.block.create_ast_node()?)
+            .with_end_token(self.end_token.create_ast_node()?),
+        )
     }
 }
 
@@ -537,15 +675,43 @@ impl UserData for If {
     }
 }
 
+impl CreateAstNode for If {
+    type Node = ast::If;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::If::new(self.condition.create_ast_node()?)
+                .with_if_token(self.if_token.create_ast_node()?)
+                .with_then_token(self.then_token.create_ast_node()?)
+                .with_block(self.block.create_ast_node()?)
+                .with_else_if(
+                    self.else_if
+                        .as_ref()
+                        .map(|else_if| {
+                            else_if
+                                .iter()
+                                .map(ElseIf::create_ast_node)
+                                .collect::<Option<Vec<_>>>()
+                        })
+                        .flatten(),
+                )
+                .with_else_token(self.else_token.create_ast_node())
+                .with_else(self.else_block.create_ast_node())
+                .with_end_token(self.end_token.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum Index {
     Brackets {
-        brackets: ContainedSpan,
-        expression: Expression,
+        brackets: ArcLocked<ContainedSpan>,
+        expression: ArcLocked<Expression>,
     },
 
     Dot {
-        dot: TokenReference,
-        name: TokenReference,
+        dot: ArcLocked<TokenReference>,
+        name: ArcLocked<TokenReference>,
     },
 }
 
@@ -556,23 +722,17 @@ impl Index {
                 brackets,
                 expression,
             } => Index::Brackets {
-                brackets: ContainedSpan::new(brackets),
-                expression: Expression::new(expression),
+                brackets: l(ContainedSpan::new(brackets)),
+                expression: l(Expression::new(expression)),
             },
 
             ast::Index::Dot { dot, name } => Index::Dot {
-                dot: TokenReference::new(dot),
-                name: TokenReference::new(name),
+                dot: l(TokenReference::new(dot)),
+                name: l(TokenReference::new(name)),
             },
 
             other => panic!("unimplemented Index: {other:?}"),
         }
-    }
-}
-
-impl UserData for Index {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Index", methods);
     }
 }
 
@@ -606,6 +766,19 @@ impl UserData for LocalAssignment {
     }
 }
 
+impl CreateAstNode for LocalAssignment {
+    type Node = ast::LocalAssignment;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::LocalAssignment::new(self.name_list.create_ast_node()?)
+                .with_expressions(self.expr_list.create_ast_node()?)
+                .with_local_token(self.local_token.create_ast_node()?)
+                .with_equal_token(self.equal_token.create_ast_node()),
+        )
+    }
+}
+
 pub struct LocalFunction {
     local_token: TokenReference,
     function_token: TokenReference,
@@ -630,6 +803,19 @@ impl UserData for LocalFunction {
     }
 }
 
+impl CreateAstNode for LocalFunction {
+    type Node = ast::LocalFunction;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::LocalFunction::new(self.name.create_ast_node()?)
+                .with_body(self.body.create_ast_node()?)
+                .with_local_token(self.local_token.create_ast_node()?)
+                .with_function_token(self.function_token.create_ast_node()?),
+        )
+    }
+}
+
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
@@ -649,6 +835,17 @@ impl MethodCall {
 impl UserData for MethodCall {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("MethodCall", methods);
+    }
+}
+
+impl CreateAstNode for MethodCall {
+    type Node = ast::MethodCall;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::MethodCall::new(self.name.create_ast_node()?, self.args.create_ast_node()?)
+                .with_colon_token(self.colon_token.create_ast_node()?),
+        )
     }
 }
 
@@ -690,49 +887,61 @@ impl UserData for NumericFor {
     }
 }
 
+impl CreateAstNode for NumericFor {
+    type Node = ast::NumericFor;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::NumericFor::new(
+                self.index_variable.create_ast_node()?,
+                self.start.create_ast_node()?,
+                self.end.create_ast_node()?,
+            )
+            .with_step(self.step.create_ast_node())
+            .with_block(self.block.create_ast_node()?)
+            .with_end_token(self.end_token.create_ast_node()?)
+            .with_start_end_comma(self.start_end_comma.create_ast_node()?)
+            .with_end_step_comma(self.end_step_comma.create_ast_node())
+            .with_for_token(self.for_token.create_ast_node()?)
+            .with_equal_token(self.equal_token.create_ast_node()?)
+            .with_do_token(self.do_token.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum Parameter {
-    Ellipse(TokenReference),
-    Name(TokenReference),
+    Ellipse(ArcLocked<TokenReference>),
+    Name(ArcLocked<TokenReference>),
 }
 
 impl Parameter {
     fn new(parameter: &ast::Parameter) -> Self {
         match parameter {
             ast::Parameter::Ellipse(ellipse_token) => {
-                Parameter::Ellipse(TokenReference::new(ellipse_token))
+                Parameter::Ellipse(l(TokenReference::new(ellipse_token)))
             }
 
-            ast::Parameter::Name(name_token) => Parameter::Name(TokenReference::new(name_token)),
+            ast::Parameter::Name(name_token) => Parameter::Name(l(TokenReference::new(name_token))),
 
             _ => unimplemented!("unexpected Parameter variant: {parameter:#?}"),
         }
     }
 }
 
-impl UserData for Parameter {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Parameter", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum Prefix {
-    Expression(Expression),
-    Name(TokenReference),
+    Expression(ArcLocked<Expression>),
+    Name(ArcLocked<TokenReference>),
 }
 
 impl Prefix {
     fn new(prefix: &ast::Prefix) -> Self {
         match prefix {
-            ast::Prefix::Expression(expr) => Prefix::Expression(Expression::new(expr)),
-            ast::Prefix::Name(name) => Prefix::Name(TokenReference::new(name)),
+            ast::Prefix::Expression(expr) => Prefix::Expression(l(Expression::new(expr))),
+            ast::Prefix::Name(name) => Prefix::Name(l(TokenReference::new(name))),
             other => unimplemented!("unexpected Prefix variant: {other:?}"),
         }
-    }
-}
-
-impl UserData for Prefix {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Prefix", methods);
     }
 }
 
@@ -753,6 +962,18 @@ impl Return {
 impl UserData for Return {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Return", methods);
+    }
+}
+
+impl CreateAstNode for Return {
+    type Node = ast::Return;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Return::new()
+                .with_token(self.token.create_ast_node()?)
+                .with_returns(self.returns.create_ast_node()?),
+        )
     }
 }
 
@@ -780,79 +1001,78 @@ impl UserData for Repeat {
     }
 }
 
-pub enum Stmt {
-    Assignment(Assignment),
-    Do(Do),
-    FunctionCall(FunctionCall),
-    FunctionDeclaration(FunctionDeclaration),
-    GenericFor(GenericFor),
-    If(If),
-    LocalAssignment(LocalAssignment),
-    LocalFunction(LocalFunction),
-    NumericFor(NumericFor),
-    Repeat(Repeat),
-    While(While),
+impl CreateAstNode for Repeat {
+    type Node = ast::Repeat;
 
-    NonStandard(Vec<TokenReference>),
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::Repeat::new(self.until.create_ast_node()?)
+                .with_repeat_token(self.repeat_token.create_ast_node()?)
+                .with_block(self.block.create_ast_node()?)
+                .with_until_token(self.until_token.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
+pub enum Stmt {
+    Assignment(ArcLocked<Assignment>),
+    Do(ArcLocked<Do>),
+    FunctionCall(ArcLocked<FunctionCall>),
+    FunctionDeclaration(ArcLocked<FunctionDeclaration>),
+    GenericFor(ArcLocked<GenericFor>),
+    If(ArcLocked<If>),
+    LocalAssignment(ArcLocked<LocalAssignment>),
+    LocalFunction(ArcLocked<LocalFunction>),
+    NumericFor(ArcLocked<NumericFor>),
+    Repeat(ArcLocked<Repeat>),
+    While(ArcLocked<While>),
+
+    NonStandard(Vec<ArcLocked<TokenReference>>),
 }
 
 impl Stmt {
     fn new(stmt: &ast::Stmt) -> Self {
         match stmt {
-            ast::Stmt::Assignment(assignment) => Stmt::Assignment(Assignment::new(assignment)),
-            ast::Stmt::Do(do_token) => Stmt::Do(Do::new(do_token)),
+            ast::Stmt::Assignment(assignment) => Stmt::Assignment(l(Assignment::new(assignment))),
+            ast::Stmt::Do(do_token) => Stmt::Do(l(Do::new(do_token))),
             ast::Stmt::FunctionCall(function_call) => {
-                Stmt::FunctionCall(FunctionCall::new(function_call))
+                Stmt::FunctionCall(l(FunctionCall::new(function_call)))
             }
             ast::Stmt::FunctionDeclaration(function_declaration) => {
-                Stmt::FunctionDeclaration(FunctionDeclaration::new(function_declaration))
+                Stmt::FunctionDeclaration(l(FunctionDeclaration::new(function_declaration)))
             }
-            ast::Stmt::GenericFor(generic_for) => Stmt::GenericFor(GenericFor::new(generic_for)),
-            ast::Stmt::If(if_token) => Stmt::If(If::new(if_token)),
+            ast::Stmt::GenericFor(generic_for) => Stmt::GenericFor(l(GenericFor::new(generic_for))),
+            ast::Stmt::If(if_token) => Stmt::If(l(If::new(if_token))),
             ast::Stmt::LocalAssignment(local_assignment) => {
-                Stmt::LocalAssignment(LocalAssignment::new(local_assignment))
+                Stmt::LocalAssignment(l(LocalAssignment::new(local_assignment)))
             }
             ast::Stmt::LocalFunction(local_function) => {
-                Stmt::LocalFunction(LocalFunction::new(local_function))
+                Stmt::LocalFunction(l(LocalFunction::new(local_function)))
             }
-            ast::Stmt::NumericFor(numeric_for) => Stmt::NumericFor(NumericFor::new(numeric_for)),
-            ast::Stmt::Repeat(repeat_token) => Stmt::Repeat(Repeat::new(repeat_token)),
-            ast::Stmt::While(while_token) => Stmt::While(While::new(while_token)),
+            ast::Stmt::NumericFor(numeric_for) => Stmt::NumericFor(l(NumericFor::new(numeric_for))),
+            ast::Stmt::Repeat(repeat_token) => Stmt::Repeat(l(Repeat::new(repeat_token))),
+            ast::Stmt::While(while_token) => Stmt::While(l(While::new(while_token))),
 
             // TODO: Support everything, then make this `unimplemented!`
-            _ => Stmt::NonStandard(
-                stmt.tokens()
-                    .map(|token| TokenReference::new(token))
-                    .collect(),
-            ),
+            _ => Stmt::NonStandard(stmt.tokens().map(TokenReference::new).map(l).collect()),
         }
     }
 }
 
-impl UserData for Stmt {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Stmt", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum Suffix {
-    Call(Call),
-    Index(Index),
+    Call(ArcLocked<Call>),
+    Index(ArcLocked<Index>),
 }
 
 impl Suffix {
     fn new(suffix: &ast::Suffix) -> Self {
         match suffix {
-            ast::Suffix::Call(call) => Suffix::Call(Call::new(call)),
-            ast::Suffix::Index(index) => Suffix::Index(Index::new(index)),
+            ast::Suffix::Call(call) => Suffix::Call(l(Call::new(call))),
+            ast::Suffix::Index(index) => Suffix::Index(l(Index::new(index))),
             other => unimplemented!("unexpected Suffix variant: {other:#?}"),
         }
-    }
-}
-
-impl UserData for Suffix {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Suffix", methods);
     }
 }
 
@@ -876,101 +1096,96 @@ impl UserData for TableConstructor {
     }
 }
 
+impl CreateAstNode for TableConstructor {
+    type Node = ast::TableConstructor;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::TableConstructor::new()
+                .with_braces(self.braces.create_ast_node()?)
+                .with_fields(self.fields.create_ast_node()?),
+        )
+    }
+}
+
+#[derive(LuaUserData)]
 pub enum UnOp {
-    Minus(TokenReference),
-    Not(TokenReference),
-    Hash(TokenReference),
+    Minus(ArcLocked<TokenReference>),
+    Not(ArcLocked<TokenReference>),
+    Hash(ArcLocked<TokenReference>),
 }
 
 impl UnOp {
     fn new(unop: &ast::UnOp) -> Self {
         match unop {
-            ast::UnOp::Minus(token) => UnOp::Minus(TokenReference::new(token)),
-            ast::UnOp::Not(token) => UnOp::Not(TokenReference::new(token)),
-            ast::UnOp::Hash(token) => UnOp::Hash(TokenReference::new(token)),
+            ast::UnOp::Minus(token) => UnOp::Minus(l(TokenReference::new(token))),
+            ast::UnOp::Not(token) => UnOp::Not(l(TokenReference::new(token))),
+            ast::UnOp::Hash(token) => UnOp::Hash(l(TokenReference::new(token))),
             other => panic!("unimplemented UnOp: {other:?}"),
         }
     }
 }
 
-impl UserData for UnOp {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("UnOp", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum Value {
-    Function((TokenReference, FunctionBody)),
-    FunctionCall(FunctionCall),
-    TableConstructor(TableConstructor),
-    Number(TokenReference),
-    ParenthesesExpression(Expression),
-    String(TokenReference),
-    Symbol(TokenReference),
-    Var(Var),
+    #[lua(
+        create_ast_node = "ast::Value::Function((_0.create_ast_node()?, _1.create_ast_node()?))"
+    )]
+    Function(ArcLocked<TokenReference>, ArcLocked<FunctionBody>),
+    FunctionCall(ArcLocked<FunctionCall>),
+    TableConstructor(ArcLocked<TableConstructor>),
+    Number(ArcLocked<TokenReference>),
+    ParenthesesExpression(ArcLocked<Expression>),
+    String(ArcLocked<TokenReference>),
+    Symbol(ArcLocked<TokenReference>),
+    Var(ArcLocked<Var>),
 
-    NonStandard(Vec<TokenReference>),
+    NonStandard(Vec<ArcLocked<TokenReference>>),
 }
 
 impl Value {
     pub fn new(value: &ast::Value) -> Self {
         match value {
-            ast::Value::Function((token_reference, function_body)) => Value::Function((
-                TokenReference::new(token_reference),
-                FunctionBody::new(function_body),
-            )),
+            ast::Value::Function((token_reference, function_body)) => Value::Function(
+                l(TokenReference::new(token_reference)),
+                l(FunctionBody::new(function_body)),
+            ),
 
             ast::Value::FunctionCall(function_call) => {
-                Value::FunctionCall(FunctionCall::new(function_call))
+                Value::FunctionCall(l(FunctionCall::new(function_call)))
             }
 
             ast::Value::TableConstructor(table_constructor) => {
-                Value::TableConstructor(TableConstructor::new(table_constructor))
+                Value::TableConstructor(l(TableConstructor::new(table_constructor)))
             }
 
-            ast::Value::Number(number) => Value::Number(TokenReference::new(number)),
+            ast::Value::Number(number) => Value::Number(l(TokenReference::new(number))),
             ast::Value::ParenthesesExpression(expression) => {
-                Value::ParenthesesExpression(Expression::new(expression))
+                Value::ParenthesesExpression(l(Expression::new(expression)))
             }
-            ast::Value::String(string) => Value::String(TokenReference::new(string)),
-            ast::Value::Symbol(symbol) => Value::Symbol(TokenReference::new(symbol)),
-            ast::Value::Var(var) => Value::Var(Var::new(var)),
+            ast::Value::String(string) => Value::String(l(TokenReference::new(string))),
+            ast::Value::Symbol(symbol) => Value::Symbol(l(TokenReference::new(symbol))),
+            ast::Value::Var(var) => Value::Var(l(Var::new(var))),
 
             // TODO: implement everything, then `unimplemented!`
-            other => Value::NonStandard(
-                other
-                    .tokens()
-                    .map(|token| TokenReference::new(token))
-                    .collect(),
-            ),
+            other => Value::NonStandard(other.tokens().map(TokenReference::new).map(l).collect()),
         }
     }
 }
 
-impl UserData for Value {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Value", methods);
-    }
-}
-
+#[derive(LuaUserData)]
 pub enum Var {
-    Expression(VarExpression),
-    Name(TokenReference),
+    Expression(ArcLocked<VarExpression>),
+    Name(ArcLocked<TokenReference>),
 }
 
 impl Var {
     fn new(var: &ast::Var) -> Self {
         match var {
-            ast::Var::Expression(expression) => Var::Expression(VarExpression::new(expression)),
-            ast::Var::Name(name_token) => Var::Name(TokenReference::new(name_token)),
+            ast::Var::Expression(expression) => Var::Expression(l(VarExpression::new(expression))),
+            ast::Var::Name(name_token) => Var::Name(l(TokenReference::new(name_token))),
             other => unimplemented!("unexpected Var variant: {var:#?}"),
         }
-    }
-}
-
-impl UserData for Var {
-    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Var", methods);
     }
 }
 
@@ -997,6 +1212,21 @@ impl UserData for VarExpression {
     }
 }
 
+impl CreateAstNode for VarExpression {
+    type Node = ast::VarExpression;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::VarExpression::new(self.prefix.create_ast_node()?).with_suffixes(
+                self.suffixes
+                    .iter()
+                    .map(|suffix| suffix.create_ast_node())
+                    .collect::<Option<Vec<_>>>()?,
+            ),
+        )
+    }
+}
+
 pub struct While {
     while_token: TokenReference,
     condition: Expression,
@@ -1020,5 +1250,19 @@ impl While {
 impl UserData for While {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("While", methods);
+    }
+}
+
+impl CreateAstNode for While {
+    type Node = ast::While;
+
+    fn create_ast_node(&self) -> Option<Self::Node> {
+        Some(
+            ast::While::new(self.condition.create_ast_node()?)
+                .with_block(self.block.create_ast_node()?)
+                .with_do_token(self.do_token.create_ast_node()?)
+                .with_end_token(self.end_token.create_ast_node()?)
+                .with_while_token(self.while_token.create_ast_node()?),
+        )
     }
 }
