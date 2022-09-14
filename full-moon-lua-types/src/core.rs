@@ -6,10 +6,7 @@ use mlua::{Table, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
-    mlua_util::{
-        add_core_meta_methods, add_newindex_block, add_print, add_to_string_display, add_visit,
-        ArcLocked,
-    },
+    mlua_util::{add_core_meta_methods, add_newindex_block, add_print, add_visit, ArcLocked},
     prepare_for_lua::PrepareForLua,
     shared::*,
 };
@@ -99,7 +96,7 @@ impl UserData for Assignment {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Assignment", methods);
+        add_core_meta_methods("Assignment", methods);
         add_print(methods);
     }
 }
@@ -212,6 +209,7 @@ impl UserData for Block {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Block", methods);
+        add_print(methods);
     }
 }
 
@@ -281,7 +279,8 @@ impl UserData for Do {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Do", methods);
+        add_core_meta_methods("Do", methods);
+        add_print(methods);
     }
 }
 
@@ -335,7 +334,8 @@ impl UserData for ElseIf {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("ElseIf", methods);
+        add_core_meta_methods("ElseIf", methods);
+        add_print(methods);
     }
 }
 
@@ -487,7 +487,8 @@ impl UserData for FunctionBody {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("FunctionBody", methods);
+        add_core_meta_methods("FunctionBody", methods);
+        add_print(methods);
     }
 }
 
@@ -606,7 +607,8 @@ impl UserData for FunctionCall {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("FunctionCall", methods);
+        add_core_meta_methods("FunctionCall", methods);
+        add_print(methods);
     }
 }
 
@@ -659,7 +661,8 @@ impl UserData for FunctionDeclaration {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("FunctionDeclaration", methods);
+        add_core_meta_methods("FunctionDeclaration", methods);
+        add_print(methods);
     }
 }
 
@@ -718,7 +721,8 @@ impl UserData for FunctionName {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("FunctionName", methods);
+        add_core_meta_methods("FunctionName", methods);
+        add_print(methods);
     }
 }
 
@@ -797,7 +801,8 @@ impl UserData for GenericFor {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("GenericFor", methods);
+        add_core_meta_methods("GenericFor", methods);
+        add_print(methods);
     }
 }
 
@@ -878,7 +883,8 @@ impl UserData for If {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("If", methods);
+        add_core_meta_methods("If", methods);
+        add_print(methods);
     }
 }
 
@@ -986,7 +992,8 @@ impl UserData for LocalAssignment {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("LocalAssignment", methods);
+        add_core_meta_methods("LocalAssignment", methods);
+        add_print(methods);
     }
 }
 
@@ -1039,7 +1046,8 @@ impl UserData for LocalFunction {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("LocalFunction", methods);
+        add_core_meta_methods("LocalFunction", methods);
+        add_print(methods);
     }
 }
 
@@ -1085,7 +1093,8 @@ impl UserData for MethodCall {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("MethodCall", methods);
+        add_core_meta_methods("MethodCall", methods);
+        add_print(methods);
     }
 }
 
@@ -1177,7 +1186,8 @@ impl UserData for NumericFor {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("NumericFor", methods);
+        add_core_meta_methods("NumericFor", methods);
+        add_print(methods);
     }
 }
 
@@ -1265,7 +1275,8 @@ impl UserData for Return {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Return", methods);
+        add_core_meta_methods("Return", methods);
+        add_print(methods);
     }
 }
 
@@ -1316,7 +1327,8 @@ impl UserData for Repeat {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("Repeat", methods);
+        add_core_meta_methods("Repeat", methods);
+        add_print(methods);
     }
 }
 
@@ -1425,7 +1437,8 @@ impl UserData for TableConstructor {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("TableConstructor", methods);
+        add_core_meta_methods("TableConstructor", methods);
+        add_print(methods);
     }
 }
 
@@ -1549,7 +1562,8 @@ impl UserData for VarExpression {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("VarExpression", methods);
+        add_core_meta_methods("VarExpression", methods);
+        add_print(methods);
     }
 }
 
@@ -1609,7 +1623,8 @@ impl UserData for While {
     }
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        add_to_string_display("While", methods);
+        add_core_meta_methods("While", methods);
+        add_print(methods);
     }
 }
 
