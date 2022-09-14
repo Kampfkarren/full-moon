@@ -446,11 +446,11 @@ impl VisitMut for LocalAssignment {
             let parameter = parameter_tuple.0.visit_mut(visitor);
             let attribute = attributes
                 .next()
-                .and_then(|attribute| attribute)
+                .flatten()
                 .map(|attribute| attribute.visit_mut(visitor));
             let type_specifier = type_specifiers
                 .next()
-                .and_then(|type_specifier| type_specifier)
+                .flatten()
                 .map(|type_specifier| type_specifier.visit_mut(visitor));
 
             let punctuation = parameter_tuple.1.visit_mut(visitor);
