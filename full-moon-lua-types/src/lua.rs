@@ -1,4 +1,4 @@
-use crate::{core, create_ast_node::CreateAstNode};
+use crate::core;
 
 pub fn create_lua() -> mlua::Result<mlua::Lua> {
     let lua = mlua::Lua::new();
@@ -8,9 +8,7 @@ pub fn create_lua() -> mlua::Result<mlua::Lua> {
     Ok(lua)
 }
 
-fn assign_globals(lua: &mlua::Lua) -> mlua::Result<()> {
-    let globals = lua.globals();
-
+pub fn full_moon_table(lua: &mlua::Lua) -> mlua::Result<mlua::Table> {
     let full_moon = lua.create_table()?;
 
     full_moon.set(
@@ -22,7 +20,13 @@ fn assign_globals(lua: &mlua::Lua) -> mlua::Result<()> {
         })?,
     )?;
 
-    globals.set("full_moon", full_moon)?;
+    Ok(full_moon)
+}
+
+fn assign_globals(lua: &mlua::Lua) -> mlua::Result<()> {
+    let globals = lua.globals();
+
+    globals.set("full_moon", full_moon_table(lua)?)?;
 
     Ok(())
 }
