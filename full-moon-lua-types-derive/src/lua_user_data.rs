@@ -335,28 +335,28 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     quote! {
         impl mlua::UserData for #input_ident {
-			fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
-				fields.add_field_method_get("kind", |_, this| {
-					Ok(#match_kind)
-				});
-			}
+            fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+                fields.add_field_method_get("kind", |_, this| {
+                    Ok(#match_kind)
+                });
+            }
 
             fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
-        		crate::mlua_util::add_core_metamethods_no_tostring(stringify!(#input_ident), methods);
+                crate::mlua_util::add_core_metamethods_no_tostring(stringify!(#input_ident), methods);
                 crate::mlua_util::add_print(methods);
                 crate::mlua_util::add_visit(methods);
 
-        		methods.add_meta_method(mlua::MetaMethod::ToString, |_, this, _: ()| {
-        			Ok(#match_to_string)
-        		});
+                methods.add_meta_method(mlua::MetaMethod::ToString, |_, this, _: ()| {
+                    Ok(#match_to_string)
+                });
 
                 methods.add_method("expect", |lua, this, variant: String| {
                     #match_expect
                 });
 
-				methods.add_method("match", |lua, this, table: mlua::Table| {
-					#match_match
-				});
+                methods.add_method("match", |lua, this, table: mlua::Table| {
+                    #match_match
+                });
             }
         }
 
