@@ -77,12 +77,12 @@ assert(not pcall(function()
 end), "stmt:expect should have thrown")
 
 local assignment = stmt:expect("Assignment")
-assertEq(#assignment.var_list, 2)
-assertEq(#assignment.var_list:values(), 2)
+assertEq(#assignment.variables, 2)
+assertEq(#assignment.variables:values(), 2)
 
 local iters = {}
 
-for i, v in assignment.var_list do
+for i, v in assignment.variables do
 	iters[i] = v:print()
 end
 

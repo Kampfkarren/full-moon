@@ -2,7 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use full_moon::{ast, node::Node, tokenizer};
 use full_moon_lua_types_derive::LuaUserData;
-use mlua::{Table, UserData};
+use mlua::{Table, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
@@ -85,7 +85,7 @@ impl Assignment {
 
 impl UserData for Assignment {
     fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
-        fields.add_field_method_get("var_list", |_, Assignment { var_list, .. }| {
+        fields.add_field_method_get("variables", |_, Assignment { var_list, .. }| {
             Ok(var_list.clone())
         });
 
@@ -93,7 +93,7 @@ impl UserData for Assignment {
             Ok(equal_token.clone())
         });
 
-        fields.add_field_method_get("expr_list", |_, Assignment { expr_list, .. }| {
+        fields.add_field_method_get("expressions", |_, Assignment { expr_list, .. }| {
             Ok(expr_list.clone())
         });
     }
@@ -256,22 +256,30 @@ impl Call {
 
 #[derive(Clone)]
 pub struct Do {
-    do_token: TokenReference,
-    block: Block,
-    end_token: TokenReference,
+    do_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl Do {
     pub fn new(do_: &ast::Do) -> Self {
         Do {
-            do_token: TokenReference::new(do_.do_token()),
-            block: Block::new(do_.block()),
-            end_token: TokenReference::new(do_.end_token()),
+            do_token: l(TokenReference::new(do_.do_token())),
+            block: l(Block::new(do_.block())),
+            end_token: l(TokenReference::new(do_.end_token())),
         }
     }
 }
 
 impl UserData for Do {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("do_token", |_, Do { do_token, .. }| Ok(do_token.clone()));
+
+        fields.add_field_method_get("block", |_, Do { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("end_token", |_, Do { end_token, .. }| Ok(end_token.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Do", methods);
     }
@@ -292,24 +300,40 @@ impl CreateAstNode for Do {
 
 #[derive(Clone)]
 pub struct ElseIf {
-    else_if_token: TokenReference,
-    condition: Expression,
-    then_token: TokenReference,
-    block: Block,
+    else_if_token: ArcLocked<TokenReference>,
+    condition: ArcLocked<Expression>,
+    then_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
 }
 
 impl ElseIf {
     pub fn new(else_if: &ast::ElseIf) -> Self {
         ElseIf {
-            else_if_token: TokenReference::new(else_if.else_if_token()),
-            condition: Expression::new(else_if.condition()),
-            then_token: TokenReference::new(else_if.then_token()),
-            block: Block::new(else_if.block()),
+            else_if_token: l(TokenReference::new(else_if.else_if_token())),
+            condition: l(Expression::new(else_if.condition())),
+            then_token: l(TokenReference::new(else_if.then_token())),
+            block: l(Block::new(else_if.block())),
         }
     }
 }
 
 impl UserData for ElseIf {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("else_if_token", |_, ElseIf { else_if_token, .. }| {
+            Ok(else_if_token.clone())
+        });
+
+        fields.add_field_method_get("condition", |_, ElseIf { condition, .. }| {
+            Ok(condition.clone())
+        });
+
+        fields.add_field_method_get("then_token", |_, ElseIf { then_token, .. }| {
+            Ok(then_token.clone())
+        });
+
+        fields.add_field_method_get("block", |_, ElseIf { block, .. }| Ok(block.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("ElseIf", methods);
     }
@@ -418,26 +442,50 @@ impl FunctionArgs {
 
 #[derive(Clone)]
 pub struct FunctionBody {
-    parameters_parentheses: ContainedSpan,
-    parameters: Punctuated<Parameter>,
-    block: Block,
-    end_token: TokenReference,
+    parameters_parentheses: ArcLocked<ContainedSpan>,
+    parameters: ArcLocked<Punctuated<Parameter>>,
+    block: ArcLocked<Block>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl FunctionBody {
     pub fn new(function_body: &ast::FunctionBody) -> Self {
         FunctionBody {
-            parameters_parentheses: ContainedSpan::new(function_body.parameters_parentheses()),
+            parameters_parentheses: l(ContainedSpan::new(function_body.parameters_parentheses())),
 
-            parameters: Punctuated::map_from_punctuated(function_body.parameters(), Parameter::new),
+            parameters: l(Punctuated::map_from_punctuated(
+                function_body.parameters(),
+                Parameter::new,
+            )),
 
-            block: Block::new(function_body.block()),
-            end_token: TokenReference::new(function_body.end_token()),
+            block: l(Block::new(function_body.block())),
+            end_token: l(TokenReference::new(function_body.end_token())),
         }
     }
 }
 
 impl UserData for FunctionBody {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get(
+            "parameters_parentheses",
+            |_,
+             FunctionBody {
+                 parameters_parentheses,
+                 ..
+             }| { Ok(parameters_parentheses.clone()) },
+        );
+
+        fields.add_field_method_get("parameters", |_, FunctionBody { parameters, .. }| {
+            Ok(parameters.clone())
+        });
+
+        fields.add_field_method_get("block", |_, FunctionBody { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("end_token", |_, FunctionBody { end_token, .. }| {
+            Ok(end_token.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("FunctionBody", methods);
     }
@@ -532,20 +580,31 @@ impl Field {
 
 #[derive(Clone)]
 pub struct FunctionCall {
-    prefix: Prefix,
-    suffixes: Vec<Suffix>,
+    prefix: ArcLocked<Prefix>,
+    suffixes: Vec<ArcLocked<Suffix>>,
 }
 
 impl FunctionCall {
     pub fn new(function_call: &ast::FunctionCall) -> Self {
         FunctionCall {
-            prefix: Prefix::new(function_call.prefix()),
-            suffixes: function_call.suffixes().map(Suffix::new).collect(),
+            prefix: l(Prefix::new(function_call.prefix())),
+            suffixes: function_call.suffixes().map(Suffix::new).map(l).collect(),
         }
     }
 }
 
 impl UserData for FunctionCall {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get(
+            "prefix",
+            |_, FunctionCall { prefix, .. }| Ok(prefix.clone()),
+        );
+
+        fields.add_field_method_get("suffixes", |_, FunctionCall { suffixes, .. }| {
+            Ok(suffixes.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("FunctionCall", methods);
     }
@@ -559,7 +618,7 @@ impl CreateAstNode for FunctionCall {
             ast::FunctionCall::new(self.prefix.create_ast_node()?).with_suffixes(
                 self.suffixes
                     .iter()
-                    .map(Suffix::create_ast_node)
+                    .map(|suffix| suffix.read().unwrap().create_ast_node())
                     .collect::<Option<Vec<_>>>()?,
             ),
         )
@@ -568,22 +627,37 @@ impl CreateAstNode for FunctionCall {
 
 #[derive(Clone)]
 pub struct FunctionDeclaration {
-    function_token: TokenReference,
-    name: FunctionName,
-    body: FunctionBody,
+    function_token: ArcLocked<TokenReference>,
+    name: ArcLocked<FunctionName>,
+    body: ArcLocked<FunctionBody>,
 }
 
 impl FunctionDeclaration {
     pub fn new(function_declaration: &ast::FunctionDeclaration) -> Self {
         FunctionDeclaration {
-            function_token: TokenReference::new(function_declaration.function_token()),
-            name: FunctionName::new(function_declaration.name()),
-            body: FunctionBody::new(function_declaration.body()),
+            function_token: l(TokenReference::new(function_declaration.function_token())),
+            name: l(FunctionName::new(function_declaration.name())),
+            body: l(FunctionBody::new(function_declaration.body())),
         }
     }
 }
 
 impl UserData for FunctionDeclaration {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get(
+            "function_token",
+            |_, FunctionDeclaration { function_token, .. }| Ok(function_token.clone()),
+        );
+
+        fields.add_field_method_get("name", |_, FunctionDeclaration { name, .. }| {
+            Ok(name.clone())
+        });
+
+        fields.add_field_method_get("body", |_, FunctionDeclaration { body, .. }| {
+            Ok(body.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("FunctionDeclaration", methods);
     }
@@ -603,18 +677,21 @@ impl CreateAstNode for FunctionDeclaration {
 
 #[derive(Clone)]
 pub struct FunctionName {
-    names: Punctuated<TokenReference>,
-    colon_name: Option<(TokenReference, TokenReference)>,
+    names: ArcLocked<Punctuated<TokenReference>>,
+    colon_name: Option<ArcLocked<(TokenReference, TokenReference)>>,
 }
 
 impl FunctionName {
     pub fn new(function_name: &ast::FunctionName) -> Self {
         FunctionName {
-            names: Punctuated::map_from_punctuated(function_name.names(), TokenReference::new),
+            names: l(Punctuated::map_from_punctuated(
+                function_name.names(),
+                TokenReference::new,
+            )),
 
             colon_name: match (function_name.method_colon(), function_name.method_name()) {
                 (Some(colon), Some(name)) => {
-                    Some((TokenReference::new(colon), TokenReference::new(name)))
+                    Some(l((TokenReference::new(colon), TokenReference::new(name))))
                 }
 
                 _ => None,
@@ -624,6 +701,22 @@ impl FunctionName {
 }
 
 impl UserData for FunctionName {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("names", |_, FunctionName { names, .. }| Ok(names.clone()));
+
+        fields.add_field_method_get("method_colon", |_, FunctionName { colon_name, .. }| {
+            Ok(colon_name
+                .as_ref()
+                .map(|lock| Arc::clone(lock).read().unwrap().0.clone()))
+        });
+
+        fields.add_field_method_get("method_name", |_, FunctionName { colon_name, .. }| {
+            Ok(colon_name
+                .as_ref()
+                .map(|lock| Arc::clone(lock).read().unwrap().1.clone()))
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("FunctionName", methods);
     }
@@ -635,10 +728,11 @@ impl CreateAstNode for FunctionName {
     fn create_ast_node(&self) -> Option<Self::Node> {
         Some(
             ast::FunctionName::new(self.names.create_ast_node()?).with_method(
-                self.colon_name
-                    .as_ref()
-                    .map(|(colon, name)| Some((colon.create_ast_node()?, name.create_ast_node()?)))
-                    .flatten(),
+                self.colon_name.as_ref().and_then(|colon_name_arc| {
+                    let colon_name_arc = Arc::clone(colon_name_arc);
+                    let lock = colon_name_arc.read().unwrap();
+                    Some((lock.0.create_ast_node()?, lock.1.create_ast_node()?))
+                }),
             ),
         )
     }
@@ -646,30 +740,62 @@ impl CreateAstNode for FunctionName {
 
 #[derive(Clone)]
 pub struct GenericFor {
-    for_token: TokenReference,
-    names: Punctuated<TokenReference>,
-    in_token: TokenReference,
-    expr_list: Punctuated<Expression>,
-    do_token: TokenReference,
-    block: Block,
-    end_token: TokenReference,
+    for_token: ArcLocked<TokenReference>,
+    names: ArcLocked<Punctuated<TokenReference>>,
+    in_token: ArcLocked<TokenReference>,
+    expr_list: ArcLocked<Punctuated<Expression>>,
+    do_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl GenericFor {
     pub fn new(generic_for: &ast::GenericFor) -> Self {
         GenericFor {
-            for_token: TokenReference::new(generic_for.for_token()),
-            names: Punctuated::map_from_punctuated(generic_for.names(), TokenReference::new),
-            in_token: TokenReference::new(generic_for.in_token()),
-            expr_list: Punctuated::map_from_punctuated(generic_for.expressions(), Expression::new),
-            do_token: TokenReference::new(generic_for.do_token()),
-            block: Block::new(generic_for.block()),
-            end_token: TokenReference::new(generic_for.end_token()),
+            for_token: l(TokenReference::new(generic_for.for_token())),
+            names: l(Punctuated::map_from_punctuated(
+                generic_for.names(),
+                TokenReference::new,
+            )),
+            in_token: l(TokenReference::new(generic_for.in_token())),
+            expr_list: l(Punctuated::map_from_punctuated(
+                generic_for.expressions(),
+                Expression::new,
+            )),
+            do_token: l(TokenReference::new(generic_for.do_token())),
+            block: l(Block::new(generic_for.block())),
+            end_token: l(TokenReference::new(generic_for.end_token())),
         }
     }
 }
 
 impl UserData for GenericFor {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("for_token", |_, GenericFor { for_token, .. }| {
+            Ok(for_token.clone())
+        });
+
+        fields.add_field_method_get("names", |_, GenericFor { names, .. }| Ok(names.clone()));
+
+        fields.add_field_method_get("in_token", |_, GenericFor { in_token, .. }| {
+            Ok(in_token.clone())
+        });
+
+        fields.add_field_method_get("expressions", |_, GenericFor { expr_list, .. }| {
+            Ok(expr_list.clone())
+        });
+
+        fields.add_field_method_get("do_token", |_, GenericFor { do_token, .. }| {
+            Ok(do_token.clone())
+        });
+
+        fields.add_field_method_get("block", |_, GenericFor { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("end_token", |_, GenericFor { end_token, .. }| {
+            Ok(end_token.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("GenericFor", methods);
     }
@@ -695,34 +821,62 @@ impl CreateAstNode for GenericFor {
 
 #[derive(Clone)]
 pub struct If {
-    if_token: TokenReference,
-    condition: Expression,
-    then_token: TokenReference,
-    block: Block,
-    else_if: Option<Vec<ElseIf>>,
-    else_token: Option<TokenReference>,
-    else_block: Option<Block>,
-    end_token: TokenReference,
+    if_token: ArcLocked<TokenReference>,
+    condition: ArcLocked<Expression>,
+    then_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    else_if: Option<Vec<ArcLocked<ElseIf>>>,
+    else_token: Option<ArcLocked<TokenReference>>,
+    else_block: Option<ArcLocked<Block>>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl If {
     pub fn new(if_node: &ast::If) -> Self {
         If {
-            if_token: TokenReference::new(if_node.if_token()),
-            condition: Expression::new(if_node.condition()),
-            then_token: TokenReference::new(if_node.then_token()),
-            block: Block::new(if_node.block()),
+            if_token: l(TokenReference::new(if_node.if_token())),
+            condition: l(Expression::new(if_node.condition())),
+            then_token: l(TokenReference::new(if_node.then_token())),
+            block: l(Block::new(if_node.block())),
             else_if: if_node
                 .else_if()
-                .map(|else_if| else_if.iter().map(ElseIf::new).collect()),
-            else_token: if_node.else_token().map(TokenReference::new),
-            else_block: if_node.else_block().map(Block::new),
-            end_token: TokenReference::new(if_node.end_token()),
+                .map(|else_if| else_if.iter().map(ElseIf::new).map(l).collect()),
+            else_token: if_node.else_token().map(TokenReference::new).map(l),
+            else_block: if_node.else_block().map(Block::new).map(l),
+            end_token: l(TokenReference::new(if_node.end_token())),
         }
     }
 }
 
 impl UserData for If {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("if_token", |_, If { if_token, .. }| Ok(if_token.clone()));
+
+        fields.add_field_method_get("condition", |_, If { condition, .. }| Ok(condition.clone()));
+
+        fields.add_field_method_get("then_token", |_, If { then_token, .. }| {
+            Ok(then_token.clone())
+        });
+
+        fields.add_field_method_get("block", |_, If { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("else_if", |lua, If { else_if, .. }| {
+            Ok(else_if
+                .as_ref()
+                .map(|else_if| else_if.iter().map(Arc::clone).collect::<Vec<_>>()))
+        });
+
+        fields.add_field_method_get("else_token", |_, If { else_token, .. }| {
+            Ok(else_token.clone())
+        });
+
+        fields.add_field_method_get("else_block", |_, If { else_block, .. }| {
+            Ok(else_block.clone())
+        });
+
+        fields.add_field_method_get("end_token", |_, If { end_token, .. }| Ok(end_token.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("If", methods);
     }
@@ -737,17 +891,12 @@ impl CreateAstNode for If {
                 .with_if_token(self.if_token.create_ast_node()?)
                 .with_then_token(self.then_token.create_ast_node()?)
                 .with_block(self.block.create_ast_node()?)
-                .with_else_if(
-                    self.else_if
-                        .as_ref()
-                        .map(|else_if| {
-                            else_if
-                                .iter()
-                                .map(ElseIf::create_ast_node)
-                                .collect::<Option<Vec<_>>>()
-                        })
-                        .flatten(),
-                )
+                .with_else_if(self.else_if.as_ref().and_then(|else_if| {
+                    else_if
+                        .iter()
+                        .map(|else_if| else_if.read().unwrap().create_ast_node())
+                        .collect::<Option<Vec<_>>>()
+                }))
                 .with_else_token(self.else_token.create_ast_node())
                 .with_else(self.else_block.create_ast_node())
                 .with_end_token(self.end_token.create_ast_node()?),
@@ -791,30 +940,51 @@ impl Index {
 
 #[derive(Clone)]
 pub struct LocalAssignment {
-    local_token: TokenReference,
-    name_list: Punctuated<TokenReference>,
-    equal_token: Option<TokenReference>,
-    expr_list: Punctuated<Expression>,
+    local_token: ArcLocked<TokenReference>,
+    name_list: ArcLocked<Punctuated<TokenReference>>,
+    equal_token: Option<ArcLocked<TokenReference>>,
+    expr_list: ArcLocked<Punctuated<Expression>>,
 }
 
 impl LocalAssignment {
     pub fn new(local_assignment: &ast::LocalAssignment) -> Self {
         LocalAssignment {
-            local_token: TokenReference::new(local_assignment.local_token()),
-            name_list: Punctuated::map_from_punctuated(
+            local_token: l(TokenReference::new(local_assignment.local_token())),
+            name_list: l(Punctuated::map_from_punctuated(
                 local_assignment.names(),
                 TokenReference::new,
-            ),
-            equal_token: local_assignment.equal_token().map(TokenReference::new),
-            expr_list: Punctuated::map_from_punctuated(
+            )),
+            equal_token: local_assignment
+                .equal_token()
+                .map(TokenReference::new)
+                .map(l),
+            expr_list: l(Punctuated::map_from_punctuated(
                 local_assignment.expressions(),
                 Expression::new,
-            ),
+            )),
         }
     }
 }
 
 impl UserData for LocalAssignment {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("local_token", |_, LocalAssignment { local_token, .. }| {
+            Ok(local_token.clone())
+        });
+
+        fields.add_field_method_get("names", |_, LocalAssignment { name_list, .. }| {
+            Ok(name_list.clone())
+        });
+
+        fields.add_field_method_get("equal_token", |_, LocalAssignment { equal_token, .. }| {
+            Ok(equal_token.clone())
+        });
+
+        fields.add_field_method_get("expressions", |_, LocalAssignment { expr_list, .. }| {
+            Ok(expr_list.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("LocalAssignment", methods);
     }
@@ -835,24 +1005,39 @@ impl CreateAstNode for LocalAssignment {
 
 #[derive(Clone)]
 pub struct LocalFunction {
-    local_token: TokenReference,
-    function_token: TokenReference,
-    name: TokenReference,
-    body: FunctionBody,
+    local_token: ArcLocked<TokenReference>,
+    function_token: ArcLocked<TokenReference>,
+    name: ArcLocked<TokenReference>,
+    body: ArcLocked<FunctionBody>,
 }
 
 impl LocalFunction {
     pub fn new(local_function: &ast::LocalFunction) -> Self {
         LocalFunction {
-            local_token: TokenReference::new(local_function.local_token()),
-            function_token: TokenReference::new(local_function.function_token()),
-            name: TokenReference::new(local_function.name()),
-            body: FunctionBody::new(local_function.body()),
+            local_token: l(TokenReference::new(local_function.local_token())),
+            function_token: l(TokenReference::new(local_function.function_token())),
+            name: l(TokenReference::new(local_function.name())),
+            body: l(FunctionBody::new(local_function.body())),
         }
     }
 }
 
 impl UserData for LocalFunction {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("local_token", |_, LocalFunction { local_token, .. }| {
+            Ok(local_token.clone())
+        });
+
+        fields.add_field_method_get(
+            "function_token",
+            |_, LocalFunction { function_token, .. }| Ok(function_token.clone()),
+        );
+
+        fields.add_field_method_get("name", |_, LocalFunction { name, .. }| Ok(name.clone()));
+
+        fields.add_field_method_get("body", |_, LocalFunction { body, .. }| Ok(body.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("LocalFunction", methods);
     }
@@ -873,22 +1058,32 @@ impl CreateAstNode for LocalFunction {
 
 #[derive(Clone)]
 pub struct MethodCall {
-    colon_token: TokenReference,
-    name: TokenReference,
-    args: FunctionArgs,
+    colon_token: ArcLocked<TokenReference>,
+    name: ArcLocked<TokenReference>,
+    args: ArcLocked<FunctionArgs>,
 }
 
 impl MethodCall {
     pub fn new(method_call: &ast::MethodCall) -> Self {
         MethodCall {
-            colon_token: TokenReference::new(method_call.colon_token()),
-            name: TokenReference::new(method_call.name()),
-            args: FunctionArgs::new(method_call.args()),
+            colon_token: l(TokenReference::new(method_call.colon_token())),
+            name: l(TokenReference::new(method_call.name())),
+            args: l(FunctionArgs::new(method_call.args())),
         }
     }
 }
 
 impl UserData for MethodCall {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("colon_token", |_, MethodCall { colon_token, .. }| {
+            Ok(colon_token.clone())
+        });
+
+        fields.add_field_method_get("name", |_, MethodCall { name, .. }| Ok(name.clone()));
+
+        fields.add_field_method_get("args", |_, MethodCall { args, .. }| Ok(args.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("MethodCall", methods);
     }
@@ -907,38 +1102,80 @@ impl CreateAstNode for MethodCall {
 
 #[derive(Clone)]
 pub struct NumericFor {
-    for_token: TokenReference,
-    index_variable: TokenReference,
-    equal_token: TokenReference,
-    start: Expression,
-    start_end_comma: TokenReference,
-    end: Expression,
-    end_step_comma: Option<TokenReference>,
-    step: Option<Expression>,
-    do_token: TokenReference,
-    block: Block,
-    end_token: TokenReference,
+    for_token: ArcLocked<TokenReference>,
+    index_variable: ArcLocked<TokenReference>,
+    equal_token: ArcLocked<TokenReference>,
+    start: ArcLocked<Expression>,
+    start_end_comma: ArcLocked<TokenReference>,
+    end: ArcLocked<Expression>,
+    end_step_comma: Option<ArcLocked<TokenReference>>,
+    step: Option<ArcLocked<Expression>>,
+    do_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl NumericFor {
     pub fn new(numeric_for: &ast::NumericFor) -> Self {
         NumericFor {
-            for_token: TokenReference::new(numeric_for.for_token()),
-            index_variable: TokenReference::new(numeric_for.index_variable()),
-            equal_token: TokenReference::new(numeric_for.equal_token()),
-            start: Expression::new(numeric_for.start()),
-            start_end_comma: TokenReference::new(numeric_for.start_end_comma()),
-            end: Expression::new(numeric_for.end()),
-            end_step_comma: numeric_for.end_step_comma().map(TokenReference::new),
-            step: numeric_for.step().map(Expression::new),
-            do_token: TokenReference::new(numeric_for.do_token()),
-            block: Block::new(numeric_for.block()),
-            end_token: TokenReference::new(numeric_for.end_token()),
+            for_token: l(TokenReference::new(numeric_for.for_token())),
+            index_variable: l(TokenReference::new(numeric_for.index_variable())),
+            equal_token: l(TokenReference::new(numeric_for.equal_token())),
+            start: l(Expression::new(numeric_for.start())),
+            start_end_comma: l(TokenReference::new(numeric_for.start_end_comma())),
+            end: l(Expression::new(numeric_for.end())),
+            end_step_comma: numeric_for.end_step_comma().map(TokenReference::new).map(l),
+            step: numeric_for.step().map(Expression::new).map(l),
+            do_token: l(TokenReference::new(numeric_for.do_token())),
+            block: l(Block::new(numeric_for.block())),
+            end_token: l(TokenReference::new(numeric_for.end_token())),
         }
     }
 }
 
 impl UserData for NumericFor {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("for_token", |_, NumericFor { for_token, .. }| {
+            Ok(for_token.clone())
+        });
+
+        fields.add_field_method_get("index_variable", |_, NumericFor { index_variable, .. }| {
+            Ok(index_variable.clone())
+        });
+
+        fields.add_field_method_get("equal_token", |_, NumericFor { equal_token, .. }| {
+            Ok(equal_token.clone())
+        });
+
+        fields.add_field_method_get("start", |_, NumericFor { start, .. }| Ok(start.clone()));
+
+        fields.add_field_method_get(
+            "start_end_comma",
+            |_,
+             NumericFor {
+                 start_end_comma, ..
+             }| Ok(start_end_comma.clone()),
+        );
+
+        fields.add_field_method_get("end", |_, NumericFor { end, .. }| Ok(end.clone()));
+
+        fields.add_field_method_get("end_step_comma", |_, NumericFor { end_step_comma, .. }| {
+            Ok(end_step_comma.clone())
+        });
+
+        fields.add_field_method_get("step", |_, NumericFor { step, .. }| Ok(step.clone()));
+
+        fields.add_field_method_get("do_token", |_, NumericFor { do_token, .. }| {
+            Ok(do_token.clone())
+        });
+
+        fields.add_field_method_get("block", |_, NumericFor { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("end_token", |_, NumericFor { end_token, .. }| {
+            Ok(end_token.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("NumericFor", methods);
     }
@@ -1004,20 +1241,29 @@ impl Prefix {
 
 #[derive(Clone)]
 pub struct Return {
-    token: TokenReference,
-    returns: Punctuated<Expression>,
+    token: ArcLocked<TokenReference>,
+    returns: ArcLocked<Punctuated<Expression>>,
 }
 
 impl Return {
     pub fn new(return_token: &ast::Return) -> Self {
         Return {
-            token: TokenReference::new(return_token.token()),
-            returns: Punctuated::map_from_punctuated(return_token.returns(), Expression::new),
+            token: l(TokenReference::new(return_token.token())),
+            returns: l(Punctuated::map_from_punctuated(
+                return_token.returns(),
+                Expression::new,
+            )),
         }
     }
 }
 
 impl UserData for Return {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("token", |_, Return { token, .. }| Ok(token.clone()));
+
+        fields.add_field_method_get("returns", |_, Return { returns, .. }| Ok(returns.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Return", methods);
     }
@@ -1037,24 +1283,38 @@ impl CreateAstNode for Return {
 
 #[derive(Clone)]
 pub struct Repeat {
-    repeat_token: TokenReference,
-    block: Block,
-    until_token: TokenReference,
-    until: Expression,
+    repeat_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    until_token: ArcLocked<TokenReference>,
+    until: ArcLocked<Expression>,
 }
 
 impl Repeat {
     pub fn new(repeat: &ast::Repeat) -> Self {
         Repeat {
-            repeat_token: TokenReference::new(repeat.repeat_token()),
-            block: Block::new(repeat.block()),
-            until_token: TokenReference::new(repeat.until_token()),
-            until: Expression::new(repeat.until()),
+            repeat_token: l(TokenReference::new(repeat.repeat_token())),
+            block: l(Block::new(repeat.block())),
+            until_token: l(TokenReference::new(repeat.until_token())),
+            until: l(Expression::new(repeat.until())),
         }
     }
 }
 
 impl UserData for Repeat {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("repeat_token", |_, Repeat { repeat_token, .. }| {
+            Ok(repeat_token.clone())
+        });
+
+        fields.add_field_method_get("block", |_, Repeat { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("until_token", |_, Repeat { until_token, .. }| {
+            Ok(until_token.clone())
+        });
+
+        fields.add_field_method_get("until", |_, Repeat { until, .. }| Ok(until.clone()));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("Repeat", methods);
     }
@@ -1137,20 +1397,33 @@ impl Suffix {
 
 #[derive(Clone)]
 pub struct TableConstructor {
-    braces: ContainedSpan,
-    fields: Punctuated<Field>,
+    braces: ArcLocked<ContainedSpan>,
+    fields: ArcLocked<Punctuated<Field>>,
 }
 
 impl TableConstructor {
     pub fn new(table_constructor: &ast::TableConstructor) -> Self {
         TableConstructor {
-            braces: ContainedSpan::new(table_constructor.braces()),
-            fields: Punctuated::map_from_punctuated(table_constructor.fields(), Field::new),
+            braces: l(ContainedSpan::new(table_constructor.braces())),
+            fields: l(Punctuated::map_from_punctuated(
+                table_constructor.fields(),
+                Field::new,
+            )),
         }
     }
 }
 
 impl UserData for TableConstructor {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("braces", |_, TableConstructor { braces, .. }| {
+            Ok(braces.clone())
+        });
+
+        fields.add_field_method_get("fields", |_, TableConstructor { fields, .. }| {
+            Ok(fields.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("TableConstructor", methods);
     }
@@ -1251,23 +1524,30 @@ impl Var {
 
 #[derive(Clone)]
 pub struct VarExpression {
-    prefix: Prefix,
-    suffixes: Vec<Suffix>,
+    prefix: ArcLocked<Prefix>,
+    suffixes: Vec<ArcLocked<Suffix>>,
 }
 
 impl VarExpression {
     pub fn new(var_expression: &ast::VarExpression) -> Self {
         VarExpression {
-            prefix: Prefix::new(var_expression.prefix()),
-            suffixes: var_expression
-                .suffixes()
-                .map(|suffix| Suffix::new(suffix))
-                .collect(),
+            prefix: l(Prefix::new(var_expression.prefix())),
+            suffixes: var_expression.suffixes().map(Suffix::new).map(l).collect(),
         }
     }
 }
 
 impl UserData for VarExpression {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("prefix", |_, VarExpression { prefix, .. }| {
+            Ok(prefix.clone())
+        });
+
+        fields.add_field_method_get("suffixes", |_, VarExpression { suffixes, .. }| {
+            Ok(suffixes.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("VarExpression", methods);
     }
@@ -1290,26 +1570,44 @@ impl CreateAstNode for VarExpression {
 
 #[derive(Clone)]
 pub struct While {
-    while_token: TokenReference,
-    condition: Expression,
-    do_token: TokenReference,
-    block: Block,
-    end_token: TokenReference,
+    while_token: ArcLocked<TokenReference>,
+    condition: ArcLocked<Expression>,
+    do_token: ArcLocked<TokenReference>,
+    block: ArcLocked<Block>,
+    end_token: ArcLocked<TokenReference>,
 }
 
 impl While {
     pub fn new(while_token: &ast::While) -> Self {
         While {
-            while_token: TokenReference::new(while_token.while_token()),
-            condition: Expression::new(while_token.condition()),
-            do_token: TokenReference::new(while_token.do_token()),
-            block: Block::new(while_token.block()),
-            end_token: TokenReference::new(while_token.end_token()),
+            while_token: l(TokenReference::new(while_token.while_token())),
+            condition: l(Expression::new(while_token.condition())),
+            do_token: l(TokenReference::new(while_token.do_token())),
+            block: l(Block::new(while_token.block())),
+            end_token: l(TokenReference::new(while_token.end_token())),
         }
     }
 }
 
 impl UserData for While {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("while_token", |_, While { while_token, .. }| {
+            Ok(while_token.clone())
+        });
+
+        fields.add_field_method_get("condition", |_, While { condition, .. }| {
+            Ok(condition.clone())
+        });
+
+        fields.add_field_method_get("do_token", |_, While { do_token, .. }| Ok(do_token.clone()));
+
+        fields.add_field_method_get("block", |_, While { block, .. }| Ok(block.clone()));
+
+        fields.add_field_method_get("end_token", |_, While { end_token, .. }| {
+            Ok(end_token.clone())
+        });
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_to_string_display("While", methods);
     }

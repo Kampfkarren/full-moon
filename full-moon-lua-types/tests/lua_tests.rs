@@ -10,8 +10,3 @@ fn test_lua_code(code: &str) {
 fn core() {
     test_lua_code(include_str!("lua/core.lua"));
 }
-
-#[test]
-fn everything() {
-    test_lua_code(include_str!("lua/everything.lua"));
-}
