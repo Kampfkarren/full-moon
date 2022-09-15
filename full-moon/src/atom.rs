@@ -210,11 +210,7 @@ pub(crate) enum Atom {
     GreaterThanEqual,
 
     #[token(">")]
-    GreaterThan,
-
-    #[cfg(feature = "lua53")]
-    #[token(">>")]
-    DoubleGreaterThan,
+    GreaterThan, // Lua 5.3: we cannot include DoubleGreaterThan '>>' in the tokenizer as it collides with Luau generics
 
     #[token("#")]
     Hash,

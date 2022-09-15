@@ -239,8 +239,6 @@ impl TryFrom<Atom> for Symbol {
             Atom::Equal => Symbol::Equal,
             Atom::GreaterThanEqual => Symbol::GreaterThanEqual,
             Atom::GreaterThan => Symbol::GreaterThan,
-            #[cfg(feature = "lua53")]
-            Atom::DoubleGreaterThan => Symbol::DoubleGreaterThan,
             Atom::Hash => Symbol::Hash,
             Atom::LeftBracket => Symbol::LeftBracket,
             Atom::LeftBrace => Symbol::LeftBrace,
