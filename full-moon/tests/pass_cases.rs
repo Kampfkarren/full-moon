@@ -54,7 +54,6 @@ fn test_pass_case(path: &Path) {
 }
 
 #[test]
-#[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
 #[cfg_attr(feature = "lua52", ignore)] // Lua 5.2 collides with this implementation
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
@@ -77,7 +76,6 @@ fn test_lua52_pass_cases() {
 
 #[test]
 #[cfg(feature = "lua53")]
-#[cfg_attr(feature = "lua54", ignore)] // Don't want Lua 5.4 fields in snapshot
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua53_pass_cases() {
     run_test_folder("./tests/lua53_cases/pass", test_pass_case);
