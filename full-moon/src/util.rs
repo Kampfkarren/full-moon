@@ -5,6 +5,7 @@ use crate::ast::punctuated::Punctuated;
 use std::fmt::Write;
 
 // Check if the vector is empty or full of None's
+#[cfg(any(feature = "lua54", feature = "roblox"))]
 pub fn empty_optional_vector<T>(vec: &Vec<Option<T>>) -> bool {
     vec.iter().all(Option::is_none)
 }

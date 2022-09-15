@@ -54,7 +54,7 @@ fn test_pass_case(path: &Path) {
 }
 
 #[test]
-#[cfg_attr(feature = "lua52", ignore)] // Lua 5.2 collides with this implementation
+#[cfg_attr(any(feature = "roblox", feature = "lua52"), ignore)] // Lua 5.2 collides with this implementation
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     run_test_folder("./tests/cases/pass", test_pass_case);
