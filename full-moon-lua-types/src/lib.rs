@@ -9,4 +9,7 @@ mod prepare_for_lua;
 mod shared;
 mod visitor;
 
-pub use lua::create_lua;
+pub use create_ast_node::CreateAstNode;
+pub use lua::*;
+
+pub use crate::core::Ast;

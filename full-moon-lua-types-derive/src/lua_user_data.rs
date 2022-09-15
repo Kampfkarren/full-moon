@@ -175,13 +175,39 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     let fields = field
                         .named
                         .iter()
-                        .map(|field| &field.ident)
+                        .filter_map(|field| field.ident.as_ref())
+                        .map(quote::ToTokens::to_token_stream)
                         .collect::<Vec<_>>();
+
+                    let mut added_fields: Vec<proc_macro2::TokenStream> = Vec::new();
+
+                    for attr in &variant.attrs {
+                        if !attr.path.is_ident("lua") {
+                            continue;
+                        }
+
+                        let name_value = attr
+                            .parse_args::<syn::MetaNameValue>()
+                            .expect("expected name value for lua attribute");
+
+                        if !name_value.path.is_ident("add_field") {
+                            continue;
+                        }
+
+                        added_fields.push(
+                            syn::parse_str(&match name_value.lit {
+                                syn::Lit::Str(lit_str) => lit_str.value(),
+                                _ => panic!("expected string for add_field"),
+                            })
+                            .unwrap(),
+                        );
+                    }
 
                     cases.push(quote! {
                         #input_ident::#variant_ident { #(#fields),* } => {
                             Some(full_moon::ast::#input_ident::#variant_ident {
-                                #(#fields: #fields.create_ast_node()?),*
+                                #(#fields: #fields.create_ast_node()?,)*
+                                #(#added_fields,)*
                             })
                         }
                     });
@@ -343,6 +369,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
             fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
                 crate::mlua_util::add_core_metamethods_no_tostring(stringify!(#input_ident), methods);
+                crate::mlua_util::add_create_ast_node_methods(methods);
                 crate::mlua_util::add_print(methods);
                 crate::mlua_util::add_visit(methods);
 

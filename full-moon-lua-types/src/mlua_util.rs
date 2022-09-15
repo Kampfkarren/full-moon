@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
-use mlua::{ToLua, UserData};
+use full_moon::node::Node;
+use mlua::{ToLua, ToLuaMulti, UserData};
 
 use crate::create_ast_node::CreateAstNode;
 
@@ -21,6 +22,29 @@ pub fn add_core_metamethods_no_tostring<'lua, T: UserData>(
     methods: &mut impl mlua::UserDataMethods<'lua, T>,
 ) {
     add_newindex_block(name, methods);
+}
+
+pub fn add_create_ast_node_methods<'lua, T, N>(methods: &mut impl mlua::UserDataMethods<'lua, T>)
+where
+    T: UserData + CreateAstNode<Node = N>,
+    N: Node,
+{
+    add_range(methods);
+}
+
+pub fn add_range<'lua, T, N>(methods: &mut impl mlua::UserDataMethods<'lua, T>)
+where
+    T: UserData + CreateAstNode<Node = N>,
+    N: Node,
+{
+    methods.add_method("range", |lua, this, ()| {
+        let node = this.create_ast_node().unwrap();
+
+        match node.range() {
+            Some((start, end)) => (start.bytes(), end.bytes()).to_lua_multi(lua),
+            None => mlua::Value::Nil.to_lua_multi(lua),
+        }
+    });
 }
 
 pub fn add_print<'lua, T, N>(methods: &mut impl mlua::UserDataMethods<'lua, T>)

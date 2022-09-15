@@ -16,7 +16,7 @@ pub fn full_moon_table(lua: &mlua::Lua) -> mlua::Result<mlua::Table> {
         lua.create_function(|_, code: String| {
             let ast = full_moon::parse(&code).expect("NYI: Error on failure");
 
-            Ok(core::Ast::from(ast))
+            Ok(core::Ast::from(&ast))
         })?,
     )?;
 

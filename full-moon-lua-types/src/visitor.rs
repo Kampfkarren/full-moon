@@ -224,8 +224,8 @@ pub fn add_visit_with_visitor<'lua, T, N, F>(
     methods: &mut impl mlua::UserDataMethods<'lua, T>,
     mut callback: F,
 ) where
-    T: UserData + CreateAstNode<Node = N>,
-    F: 'static + FnMut(N, &mut LuaVisitor<'lua>),
+    T: UserData + Send + Sync + CreateAstNode<Node = N>,
+    F: 'static + Send + FnMut(N, &mut LuaVisitor<'lua>),
 {
     methods.add_method_mut("visit", move |_, this, visitor: VisitorTable| {
         let mut visitor = LuaVisitor {

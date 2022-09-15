@@ -6,7 +6,10 @@ use mlua::{Table, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
-    mlua_util::{add_core_meta_methods, add_newindex_block, add_print, add_visit, ArcLocked},
+    mlua_util::{
+        add_core_meta_methods, add_create_ast_node_methods, add_newindex_block, add_print,
+        add_visit, ArcLocked,
+    },
     prepare_for_lua::PrepareForLua,
     shared::*,
 };
@@ -20,8 +23,8 @@ pub struct Ast {
     eof: ArcLocked<TokenReference>,
 }
 
-impl From<ast::Ast> for Ast {
-    fn from(ast: ast::Ast) -> Self {
+impl From<&ast::Ast> for Ast {
+    fn from(ast: &ast::Ast) -> Self {
         Ast {
             nodes: l(Block::new(ast.nodes())),
             eof: l(TokenReference::new(ast.eof())),
@@ -97,6 +100,7 @@ impl UserData for Assignment {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Assignment", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -209,6 +213,7 @@ impl UserData for Block {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Block", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -280,6 +285,7 @@ impl UserData for Do {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Do", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -335,6 +341,7 @@ impl UserData for ElseIf {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("ElseIf", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -370,9 +377,8 @@ pub enum Expression {
         expression: Box<ArcLocked<Expression>>,
     },
 
-    Value {
-        value: Box<ArcLocked<Value>>,
-    },
+    #[cfg_attr(feature = "luau", lua(add_field = "type_assertion: None"))]
+    Value { value: Box<ArcLocked<Value>> },
 }
 
 impl Expression {
@@ -397,7 +403,7 @@ impl Expression {
                 expression: Box::new(l(Expression::new(expression))),
             },
 
-            ast::Expression::Value { value } => Expression::Value {
+            ast::Expression::Value { value, .. } => Expression::Value {
                 value: Box::new(l(Value::new(value))),
             },
 
@@ -488,6 +494,7 @@ impl UserData for FunctionBody {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("FunctionBody", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -608,6 +615,7 @@ impl UserData for FunctionCall {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("FunctionCall", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -662,6 +670,7 @@ impl UserData for FunctionDeclaration {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("FunctionDeclaration", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -722,6 +731,7 @@ impl UserData for FunctionName {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("FunctionName", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -802,6 +812,7 @@ impl UserData for GenericFor {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("GenericFor", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -884,6 +895,7 @@ impl UserData for If {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("If", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -993,6 +1005,7 @@ impl UserData for LocalAssignment {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("LocalAssignment", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1047,6 +1060,7 @@ impl UserData for LocalFunction {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("LocalFunction", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1094,6 +1108,7 @@ impl UserData for MethodCall {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("MethodCall", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1187,6 +1202,7 @@ impl UserData for NumericFor {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("NumericFor", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1276,6 +1292,7 @@ impl UserData for Return {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Return", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1328,6 +1345,7 @@ impl UserData for Repeat {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("Repeat", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1438,6 +1456,7 @@ impl UserData for TableConstructor {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("TableConstructor", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1563,6 +1582,7 @@ impl UserData for VarExpression {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("VarExpression", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }
@@ -1624,6 +1644,7 @@ impl UserData for While {
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("While", methods);
+        add_create_ast_node_methods(methods);
         add_print(methods);
     }
 }

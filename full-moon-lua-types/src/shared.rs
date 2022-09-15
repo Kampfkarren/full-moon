@@ -2,6 +2,7 @@ use std::iter::FromIterator;
 
 use full_moon::{
     ast::{self, punctuated::Pair},
+    node::Node,
     tokenizer,
 };
 
@@ -9,7 +10,9 @@ use mlua::{MetaMethod, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
-    mlua_util::{add_core_meta_methods, add_print, add_to_string_display},
+    mlua_util::{
+        add_core_meta_methods, add_create_ast_node_methods, add_print, add_to_string_display,
+    },
 };
 
 #[derive(Clone)]
@@ -32,6 +35,7 @@ impl ContainedSpan {
 impl UserData for ContainedSpan {
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("ContainedSpan", methods);
+        add_create_ast_node_methods(methods);
     }
 }
 
@@ -46,7 +50,7 @@ impl CreateAstNode for ContainedSpan {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Position(tokenizer::Position);
 
 #[derive(Clone)]
@@ -69,7 +73,7 @@ impl<T> Punctuated<T> {
     }
 }
 
-impl<T: Clone + UserData + 'static> Punctuated<T> {
+impl<T: Clone + UserData + Send + Sync + 'static> Punctuated<T> {
     fn values<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Table<'lua>> {
         let table = lua.create_table()?;
 
@@ -87,7 +91,9 @@ impl<T> FromIterator<Pair<T>> for Punctuated<T> {
     }
 }
 
-impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
+impl<N: Node, T: Clone + UserData + CreateAstNode<Node = N> + Send + Sync + 'static> UserData
+    for Punctuated<T>
+{
     fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(_fields: &mut F) {}
 
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
@@ -105,6 +111,8 @@ impl<T: Clone + UserData + 'static> UserData for Punctuated<T> {
         methods.add_method("values", |lua, this, _: ()| {
             this.values(lua).map_err(mlua::Error::external)
         });
+
+        add_create_ast_node_methods(methods);
     }
 }
 
@@ -153,7 +161,11 @@ impl CreateAstNode for Token {
     type Node = tokenizer::Token;
 
     fn create_ast_node(&self) -> Option<Self::Node> {
-        Some(tokenizer::Token::new(self.token_type.0.clone()))
+        Some(
+            tokenizer::Token::new(self.token_type.0.clone())
+                .with_start_position(self.start_position.0)
+                .with_end_position(self.end_position.0),
+        )
     }
 }
 

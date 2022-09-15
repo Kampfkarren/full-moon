@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 full_moon = { version = "0.15.1", path = "../full-moon" }
 full_moon_lua_types_derive = { path = "../full-moon-lua-types-derive" }
-mlua = { version = "0.8.3", features = ["luau"] }
+mlua = { version = "0.8.3", features = ["luau", "send"] }
 paste = "1.0.9"
 
 [features]
