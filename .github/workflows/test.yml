@@ -31,6 +31,10 @@ jobs:
       run: |
         cd full-moon
         cargo test --features lua54
+    - name: Test (all features)
+      run: |
+        cd full-moon 
+        cargo test --features roblox,lua52,lua53,lua54
     - name: Test (no default features)
       run: |
         cd full-moon
