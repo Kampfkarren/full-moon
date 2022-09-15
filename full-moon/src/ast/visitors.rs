@@ -370,7 +370,19 @@ impl Visit for LocalAssignment {
         visitor.visit_local_assignment(self);
         self.local_token.visit(visitor);
 
+        let mut attributes;
         let mut type_specifiers;
+
+        #[cfg(feature = "lua54")]
+        {
+            attributes = self.attributes();
+        }
+
+        #[cfg(not(feature = "lua54"))]
+        {
+            // TODO: Option<!>, and implement Visit for !
+            attributes = std::iter::repeat::<Option<Self>>(None);
+        }
 
         #[cfg(feature = "roblox")]
         {
@@ -385,6 +397,7 @@ impl Visit for LocalAssignment {
 
         for name in &self.name_list {
             name.visit(visitor);
+            attributes.next().visit(visitor);
             type_specifiers.next().visit(visitor);
         }
 
@@ -399,7 +412,19 @@ impl VisitMut for LocalAssignment {
         self = visitor.visit_local_assignment(self);
         self.local_token = self.local_token.visit_mut(visitor);
 
+        let mut attributes;
         let mut type_specifiers;
+
+        #[cfg(feature = "lua54")]
+        {
+            attributes = self.attributes.into_iter();
+        }
+
+        #[cfg(not(feature = "lua54"))]
+        {
+            // TODO: Option<!>, and implement Visit for !
+            attributes = std::iter::repeat::<Option<Self>>(None);
+        }
 
         #[cfg(feature = "roblox")]
         {
@@ -412,23 +437,34 @@ impl VisitMut for LocalAssignment {
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
         }
 
+        let mut new_attributes = Vec::new();
         let mut new_type_specifiers = Vec::new();
         let mut new_names = Punctuated::new();
 
         for parameter_pair in self.name_list.into_pairs() {
             let parameter_tuple = parameter_pair.into_tuple();
             let parameter = parameter_tuple.0.visit_mut(visitor);
+            let attribute = attributes
+                .next()
+                .flatten()
+                .map(|attribute| attribute.visit_mut(visitor));
             let type_specifier = type_specifiers
                 .next()
-                .and_then(|type_specifier| type_specifier)
+                .flatten()
                 .map(|type_specifier| type_specifier.visit_mut(visitor));
 
             let punctuation = parameter_tuple.1.visit_mut(visitor);
+            new_attributes.push(attribute);
             new_type_specifiers.push(type_specifier);
             new_names.push(Pair::new(parameter, punctuation));
         }
 
         self.name_list = new_names;
+
+        #[cfg(feature = "lua54")]
+        {
+            self.attributes = new_attributes;
+        }
 
         #[cfg(feature = "roblox")]
         {

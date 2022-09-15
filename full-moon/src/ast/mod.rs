@@ -37,6 +37,11 @@ pub mod lua52;
 #[cfg(feature = "lua52")]
 use lua52::*;
 
+#[cfg(feature = "lua54")]
+pub mod lua54;
+#[cfg(feature = "lua54")]
+use lua54::*;
+
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -1657,6 +1662,9 @@ pub struct LocalAssignment {
     #[cfg(feature = "roblox")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
     name_list: Punctuated<TokenReference>,
+    #[cfg(feature = "lua54")]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
+    attributes: Vec<Option<Attribute>>,
     equal_token: Option<TokenReference>,
     expr_list: Punctuated<Expression>,
 }
@@ -1669,6 +1677,8 @@ impl LocalAssignment {
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
             name_list,
+            #[cfg(feature = "lua54")]
+            attributes: Vec::new(),
             equal_token: None,
             expr_list: Punctuated::new(),
         }
@@ -1705,6 +1715,15 @@ impl LocalAssignment {
         self.type_specifiers.iter().map(Option::as_ref)
     }
 
+    /// The attributes specified for the variables, in the order that they were assigned.
+    /// `local foo <const>, bar, baz <close>` returns an iterator containing:
+    /// `Some(Attribute("const")), None, Some(Attribute("close"))`
+    /// Only available when the "lua54" feature flag is enabled.
+    #[cfg(feature = "lua54")]
+    pub fn attributes(&self) -> impl Iterator<Item = Option<&Attribute>> {
+        self.attributes.iter().map(Option::as_ref)
+    }
+
     /// Returns a new LocalAssignment with the given `local` token
     pub fn with_local_token(self, local_token: TokenReference) -> Self {
         Self {
@@ -1720,6 +1739,12 @@ impl LocalAssignment {
             type_specifiers,
             ..self
         }
+    }
+
+    /// Returns a new LocalAssignment with the given attributes
+    #[cfg(feature = "lua54")]
+    pub fn with_attributes(self, attributes: Vec<Option<Attribute>>) -> Self {
+        Self { attributes, ..self }
     }
 
     /// Returns a new LocalAssignment with the given name list
@@ -1742,25 +1767,21 @@ impl LocalAssignment {
 }
 
 impl fmt::Display for LocalAssignment {
-    #[cfg(feature = "roblox")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "{}{}{}{}",
-            self.local_token,
-            join_type_specifiers(&self.name_list, self.type_specifiers()),
-            display_option(&self.equal_token),
-            self.expr_list
-        )
-    }
+        #[cfg(feature = "lua54")]
+        let attributes = self.attributes();
+        #[cfg(not(feature = "lua54"))]
+        let attributes = std::iter::repeat_with(|| None::<TokenReference>);
+        #[cfg(feature = "roblox")]
+        let type_specifiers = self.type_specifiers();
+        #[cfg(not(feature = "roblox"))]
+        let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
-    #[cfg(not(feature = "roblox"))]
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
             "{}{}{}{}",
             self.local_token,
-            self.name_list,
+            join_iterators(&self.name_list, attributes, type_specifiers),
             display_option(&self.equal_token),
             self.expr_list
         )

@@ -928,33 +928,41 @@ struct ParseLocalAssignment;
 define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
     let (mut state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
 
-    let mut name_list;
+    let mut name_list = Punctuated::new();
+    #[cfg(feature = "lua54")]
+    let mut attributes = Vec::new();
+    #[cfg(feature = "roblox")]
     let mut type_specifiers = Vec::new();
 
-    if cfg!(feature = "roblox") {
-        name_list = Punctuated::new();
+    loop {
+        let (new_state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
+        state = new_state;
 
-        let (new_state, full_name_list) = expect!(
-            state,
-            OneOrMore(ParseNameWithType, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected name"
-        );
-
-        for mut pair in full_name_list.into_pairs() {
-            type_specifiers.push(pair.value_mut().1.take());
-            name_list.push(pair.map(|(name, _)| name));
+        #[cfg(feature = "lua54")]
+        if let Ok((new_state, attribute)) = keep_going!(ParseAttribute.parse(state)) {
+            attributes.push(Some(attribute));
+            state = new_state;
+        } else {
+            attributes.push(None);
         }
 
-        state = new_state;
-    } else {
-        let (new_state, new_name_list) = expect!(
-            state,
-            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected name"
-        );
+        #[cfg(feature = "roblox")]
+        if let Ok((new_state, type_specifier)) =
+            keep_going!(ParseTypeSpecifier(TypeInfoContext::None).parse(state))
+        {
+            type_specifiers.push(Some(type_specifier));
+            state = new_state;
+        } else {
+            type_specifiers.push(None);
+        }
 
-        state = new_state;
-        name_list = new_name_list;
+        if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state) {
+            name_list.push(Pair::Punctuated(name, comma));
+            state = new_state;
+        } else {
+            name_list.push(Pair::End(name));
+            break;
+        }
     }
 
     let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state) {
@@ -978,6 +986,8 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
             #[cfg(feature = "roblox")]
             type_specifiers,
             name_list,
+            #[cfg(feature = "lua54")]
+            attributes,
             equal_token,
             expr_list,
         },
@@ -1950,6 +1960,34 @@ define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
         },
     ))
 });
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "lua54")] {
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseAttribute;
+        define_parser!(ParseAttribute, Attribute, |_, state| {
+            let (state, left_angle_bracket) = ParseSymbol(Symbol::LessThan).parse(state)?;
+            let (state, name) = expect!(
+                state,
+                ParseIdentifier.parse(state),
+                "expected identifier after `<`"
+            );
+            let (state, right_angle_bracket) = expect!(
+                state,
+                ParseSymbol(Symbol::GreaterThan).parse(state),
+                "expected `>`"
+            );
+
+            Ok((
+                state,
+                Attribute {
+                    brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+                    name,
+                },
+            ))
+        });
+    }
+}
 
 macro_rules! make_op_parser {
 	($enum:ident, $parser:ident, { $($(#[$inner:meta])* $operator:ident,)+ }) => {
