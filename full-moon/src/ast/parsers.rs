@@ -2017,37 +2017,80 @@ macro_rules! make_op_parser {
 	};
 }
 
-make_op_parser!(BinOp, ParseBinOp,
-    {
-        And,
-        Caret,
-        GreaterThan,
-        GreaterThanEqual,
-        LessThan,
-        LessThanEqual,
-        Minus,
-        Or,
-        Percent,
-        Plus,
-        Slash,
-        Star,
-        TildeEqual,
-        TwoDots,
-        TwoEqual,
+#[derive(Clone, Debug, PartialEq)]
+struct ParseBinOp;
+define_parser!(ParseBinOp, BinOp, |_, state| {
+    if let Ok((state, operator)) = ParseSymbol(Symbol::And).parse(state) {
+        Ok((state, BinOp::And(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Caret).parse(state) {
+        Ok((state, BinOp::Caret(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
+        // Lua 5.3 special case. If we find another Symbol::GreaterThan, merge them together into a DoubleGreaterThan
+        // We can't do this in the tokenizer since it collides with Luau generics for Array<Array<number>>
+        // We must ensure there is no whitespace in between the two symbols
         #[cfg(feature = "lua53")]
-        Ampersand,
+        if operator.trailing_trivia().next().is_none() {
+            if let Ok((state, operator2)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
+                let merged_token = Token {
+                    start_position: operator.start_position,
+                    end_position: operator2.end_position,
+                    token_type: TokenType::Symbol {
+                        symbol: Symbol::DoubleGreaterThan,
+                    },
+                };
+
+                let merged_operator = TokenReference::new(
+                    operator.leading_trivia,
+                    merged_token,
+                    operator2.trailing_trivia,
+                );
+                return Ok((state, BinOp::DoubleGreaterThan(merged_operator)));
+            }
+        }
+
+        Ok((state, BinOp::GreaterThan(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThanEqual).parse(state) {
+        Ok((state, BinOp::GreaterThanEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThan).parse(state) {
+        Ok((state, BinOp::LessThan(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThanEqual).parse(state) {
+        Ok((state, BinOp::LessThanEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Minus).parse(state) {
+        Ok((state, BinOp::Minus(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Or).parse(state) {
+        Ok((state, BinOp::Or(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Percent).parse(state) {
+        Ok((state, BinOp::Percent(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Plus).parse(state) {
+        Ok((state, BinOp::Plus(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Slash).parse(state) {
+        Ok((state, BinOp::Slash(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Star).parse(state) {
+        Ok((state, BinOp::Star(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TildeEqual).parse(state) {
+        Ok((state, BinOp::TildeEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoDots).parse(state) {
+        Ok((state, BinOp::TwoDots(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoEqual).parse(state) {
+        Ok((state, BinOp::TwoEqual(operator)))
+    } else {
+        // Lua 5.3
         #[cfg(feature = "lua53")]
-        DoubleSlash,
-        #[cfg(feature = "lua53")]
-        DoubleLessThan,
-        #[cfg(feature = "lua53")]
-        Pipe,
-        #[cfg(feature = "lua53")]
-        DoubleGreaterThan,
-        #[cfg(feature = "lua53")]
-        Tilde,
+        if let Ok((state, operator)) = ParseSymbol(Symbol::Ampersand).parse(state) {
+            return Ok((state, BinOp::Ampersand(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleSlash).parse(state) {
+            return Ok((state, BinOp::DoubleSlash(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleLessThan).parse(state) {
+            return Ok((state, BinOp::DoubleLessThan(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Pipe).parse(state) {
+            return Ok((state, BinOp::Pipe(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Tilde).parse(state) {
+            return Ok((state, BinOp::Tilde(operator)));
+        }
+
+        Err(InternalAstError::NoMatch)
     }
-);
+});
 
 make_op_parser!(UnOp, ParseUnOp,
     {
