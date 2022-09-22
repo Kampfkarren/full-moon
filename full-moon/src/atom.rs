@@ -58,7 +58,7 @@ fn proceed_with_bracketed(lex: &mut Lexer<Atom>, block_count: usize) -> bool {
 
                 return true;
             }
-            (false, ']') => {
+            (_, ']') => {
                 in_tail = true;
                 current_count = 0;
             }
