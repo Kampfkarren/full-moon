@@ -1,0 +1,49 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 38
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 77
+    line: 1
+    character: 78
+  token_type:
+    type: SingleLineComment
+    comment: "`signatures` the value defaults to zero or is ignored if `signatures.length"
+- start_position:
+    bytes: 77
+    line: 1
+    character: 78
+  end_position:
+    bytes: 78
+    line: 1
+    character: 78
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 78
+    line: 2
+    character: 1
+  end_position:
+    bytes: 155
+    line: 2
+    character: 78
+  token_type:
+    type: SingleLineComment
+    comment: "=== 0`. Whenever possible implementors should make an active decision about"
+- start_position:
+    bytes: 155
+    line: 2
+    character: 78
+  end_position:
+    bytes: 155
+    line: 2
+    character: 78
+  token_type:
+    type: Eof
+

@@ -1,0 +1,7 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 52
+expression: ast.nodes()
+---
+stmts: []
+
