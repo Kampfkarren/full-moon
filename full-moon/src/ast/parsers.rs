@@ -928,33 +928,41 @@ struct ParseLocalAssignment;
 define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
     let (mut state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
 
-    let mut name_list;
+    let mut name_list = Punctuated::new();
+    #[cfg(feature = "lua54")]
+    let mut attributes = Vec::new();
+    #[cfg(feature = "roblox")]
     let mut type_specifiers = Vec::new();
 
-    if cfg!(feature = "roblox") {
-        name_list = Punctuated::new();
+    loop {
+        let (new_state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
+        state = new_state;
 
-        let (new_state, full_name_list) = expect!(
-            state,
-            OneOrMore(ParseNameWithType, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected name"
-        );
-
-        for mut pair in full_name_list.into_pairs() {
-            type_specifiers.push(pair.value_mut().1.take());
-            name_list.push(pair.map(|(name, _)| name));
+        #[cfg(feature = "lua54")]
+        if let Ok((new_state, attribute)) = keep_going!(ParseAttribute.parse(state)) {
+            attributes.push(Some(attribute));
+            state = new_state;
+        } else {
+            attributes.push(None);
         }
 
-        state = new_state;
-    } else {
-        let (new_state, new_name_list) = expect!(
-            state,
-            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected name"
-        );
+        #[cfg(feature = "roblox")]
+        if let Ok((new_state, type_specifier)) =
+            keep_going!(ParseTypeSpecifier(TypeInfoContext::None).parse(state))
+        {
+            type_specifiers.push(Some(type_specifier));
+            state = new_state;
+        } else {
+            type_specifiers.push(None);
+        }
 
-        state = new_state;
-        name_list = new_name_list;
+        if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state) {
+            name_list.push(Pair::Punctuated(name, comma));
+            state = new_state;
+        } else {
+            name_list.push(Pair::End(name));
+            break;
+        }
     }
 
     let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state) {
@@ -978,6 +986,8 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
             #[cfg(feature = "roblox")]
             type_specifiers,
             name_list,
+            #[cfg(feature = "lua54")]
+            attributes,
             equal_token,
             expr_list,
         },
@@ -1951,12 +1961,41 @@ define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
     ))
 });
 
+cfg_if::cfg_if! {
+    if #[cfg(feature = "lua54")] {
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseAttribute;
+        define_parser!(ParseAttribute, Attribute, |_, state| {
+            let (state, left_angle_bracket) = ParseSymbol(Symbol::LessThan).parse(state)?;
+            let (state, name) = expect!(
+                state,
+                ParseIdentifier.parse(state),
+                "expected identifier after `<`"
+            );
+            let (state, right_angle_bracket) = expect!(
+                state,
+                ParseSymbol(Symbol::GreaterThan).parse(state),
+                "expected `>`"
+            );
+
+            Ok((
+                state,
+                Attribute {
+                    brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+                    name,
+                },
+            ))
+        });
+    }
+}
+
 macro_rules! make_op_parser {
-	($enum:ident, $parser:ident, { $($operator:ident,)+ }) => {
+	($enum:ident, $parser:ident, { $($(#[$inner:meta])* $operator:ident,)+ }) => {
 		#[derive(Clone, Debug, PartialEq)]
         struct $parser;
         define_parser!($parser, $enum, |_, state| {
             $(
+                $(#[$inner])*
                 if let Ok((state, operator)) = ParseSymbol(Symbol::$operator).parse(state) {
                     return Ok((state, $enum::$operator(operator)));
                 }
@@ -1967,6 +2006,7 @@ macro_rules! make_op_parser {
 			if let Some(x) = None {
 				match x {
 					$(
+                        $(#[$inner])*
 						$enum::$operator(_) => {},
 					)+
 				}
@@ -1977,31 +2017,88 @@ macro_rules! make_op_parser {
 	};
 }
 
-make_op_parser!(BinOp, ParseBinOp,
-    {
-        And,
-        Caret,
-        GreaterThan,
-        GreaterThanEqual,
-        LessThan,
-        LessThanEqual,
-        Minus,
-        Or,
-        Percent,
-        Plus,
-        Slash,
-        Star,
-        TildeEqual,
-        TwoDots,
-        TwoEqual,
+#[derive(Clone, Debug, PartialEq)]
+struct ParseBinOp;
+define_parser!(ParseBinOp, BinOp, |_, state| {
+    if let Ok((state, operator)) = ParseSymbol(Symbol::And).parse(state) {
+        Ok((state, BinOp::And(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Caret).parse(state) {
+        Ok((state, BinOp::Caret(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
+        // Lua 5.3 special case. If we find another Symbol::GreaterThan, merge them together into a DoubleGreaterThan
+        // We can't do this in the tokenizer since it collides with Luau generics for Array<Array<number>>
+        // We must ensure there is no whitespace in between the two symbols
+        #[cfg(feature = "lua53")]
+        if operator.trailing_trivia().next().is_none() {
+            if let Ok((state, operator2)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
+                let merged_token = Token {
+                    start_position: operator.start_position,
+                    end_position: operator2.end_position,
+                    token_type: TokenType::Symbol {
+                        symbol: Symbol::DoubleGreaterThan,
+                    },
+                };
+
+                let merged_operator = TokenReference::new(
+                    operator.leading_trivia,
+                    merged_token,
+                    operator2.trailing_trivia,
+                );
+                return Ok((state, BinOp::DoubleGreaterThan(merged_operator)));
+            }
+        }
+
+        Ok((state, BinOp::GreaterThan(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThanEqual).parse(state) {
+        Ok((state, BinOp::GreaterThanEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThan).parse(state) {
+        Ok((state, BinOp::LessThan(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThanEqual).parse(state) {
+        Ok((state, BinOp::LessThanEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Minus).parse(state) {
+        Ok((state, BinOp::Minus(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Or).parse(state) {
+        Ok((state, BinOp::Or(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Percent).parse(state) {
+        Ok((state, BinOp::Percent(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Plus).parse(state) {
+        Ok((state, BinOp::Plus(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Slash).parse(state) {
+        Ok((state, BinOp::Slash(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Star).parse(state) {
+        Ok((state, BinOp::Star(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TildeEqual).parse(state) {
+        Ok((state, BinOp::TildeEqual(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoDots).parse(state) {
+        Ok((state, BinOp::TwoDots(operator)))
+    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoEqual).parse(state) {
+        Ok((state, BinOp::TwoEqual(operator)))
+    } else {
+        // Lua 5.3
+        #[cfg(feature = "lua53")]
+        if let Ok((state, operator)) = ParseSymbol(Symbol::Ampersand).parse(state) {
+            return Ok((state, BinOp::Ampersand(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleSlash).parse(state) {
+            return Ok((state, BinOp::DoubleSlash(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleLessThan).parse(state) {
+            return Ok((state, BinOp::DoubleLessThan(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Pipe).parse(state) {
+            return Ok((state, BinOp::Pipe(operator)));
+        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Tilde).parse(state) {
+            return Ok((state, BinOp::Tilde(operator)));
+        }
+
+        Err(InternalAstError::NoMatch)
     }
-);
+});
 
 make_op_parser!(UnOp, ParseUnOp,
     {
         Minus,
         Not,
         Hash,
+        #[cfg(feature = "lua53")]
+        Tilde,
     }
 );
 

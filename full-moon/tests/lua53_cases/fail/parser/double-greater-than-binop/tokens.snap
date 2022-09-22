@@ -1,0 +1,180 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 64
+    line: 1
+    character: 65
+  token_type:
+    type: SingleLineComment
+    comment: " We shouldn't parse this as >> since it has a space in between"
+- start_position:
+    bytes: 64
+    line: 1
+    character: 65
+  end_position:
+    bytes: 65
+    line: 1
+    character: 65
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 65
+    line: 2
+    character: 1
+  end_position:
+    bytes: 70
+    line: 2
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 70
+    line: 2
+    character: 6
+  end_position:
+    bytes: 71
+    line: 2
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 71
+    line: 2
+    character: 7
+  end_position:
+    bytes: 72
+    line: 2
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 72
+    line: 2
+    character: 8
+  end_position:
+    bytes: 73
+    line: 2
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 73
+    line: 2
+    character: 9
+  end_position:
+    bytes: 74
+    line: 2
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 74
+    line: 2
+    character: 10
+  end_position:
+    bytes: 75
+    line: 2
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 75
+    line: 2
+    character: 11
+  end_position:
+    bytes: 76
+    line: 2
+    character: 12
+  token_type:
+    type: Number
+    text: "1"
+- start_position:
+    bytes: 76
+    line: 2
+    character: 12
+  end_position:
+    bytes: 77
+    line: 2
+    character: 13
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 77
+    line: 2
+    character: 13
+  end_position:
+    bytes: 78
+    line: 2
+    character: 14
+  token_type:
+    type: Symbol
+    symbol: ">"
+- start_position:
+    bytes: 78
+    line: 2
+    character: 14
+  end_position:
+    bytes: 79
+    line: 2
+    character: 15
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 79
+    line: 2
+    character: 15
+  end_position:
+    bytes: 80
+    line: 2
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: ">"
+- start_position:
+    bytes: 80
+    line: 2
+    character: 16
+  end_position:
+    bytes: 81
+    line: 2
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 81
+    line: 2
+    character: 17
+  end_position:
+    bytes: 82
+    line: 2
+    character: 18
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 82
+    line: 2
+    character: 18
+  end_position:
+    bytes: 82
+    line: 2
+    character: 18
+  token_type:
+    type: Eof
+

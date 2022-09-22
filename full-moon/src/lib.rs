@@ -3,7 +3,7 @@
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg))]
 //! # Full Moon
 //!
-//! `full_moon` is a lossless parser for Lua 5.1
+//! `full_moon` is a lossless parser for Lua, supporting Lua 5.1, 5.2, 5.3, 5.4 and Luau
 //! Learn more by going to [the repository](https://github.com/Kampfkarren/full-moon)
 
 /// Utilities for ASTs (Abstract Syntax Trees). Contains all nodes used by Full Moon (such as blocks).

@@ -32,7 +32,7 @@ fn test_tokenizer_fail_cases() {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         match tokenizer::tokens(&source) {
-            Ok(_) => panic!("fail case passed for {:?}", path),
+            Ok(tokens) => panic!("fail case passed for {:?}\n{tokens:#?}", path),
             Err(error) => {
                 assert_yaml_snapshot!("error", error);
             }
@@ -66,6 +66,48 @@ fn test_roblox_parser_fail_cases() {
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_parser_fail_cases() {
     run_test_folder("./tests/lua52_cases/fail/parser", |path| {
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
+
+        assert_yaml_snapshot!("tokens", tokens);
+
+        match ast::Ast::from_tokens(tokens) {
+            Ok(_) => panic!("fail case passed for {:?}", path),
+            Err(error) => {
+                println!("error {:#?}", error);
+                assert_yaml_snapshot!("error", error);
+            }
+        }
+    })
+}
+
+#[test]
+#[cfg(feature = "lua53")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua53_parser_fail_cases() {
+    run_test_folder("./tests/lua53_cases/fail/parser", |path| {
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
+
+        assert_yaml_snapshot!("tokens", tokens);
+
+        match ast::Ast::from_tokens(tokens) {
+            Ok(_) => panic!("fail case passed for {:?}", path),
+            Err(error) => {
+                println!("error {:#?}", error);
+                assert_yaml_snapshot!("error", error);
+            }
+        }
+    })
+}
+
+#[test]
+#[cfg(feature = "lua54")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua54_parser_fail_cases() {
+    run_test_folder("./tests/lua54_cases/fail/parser", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");

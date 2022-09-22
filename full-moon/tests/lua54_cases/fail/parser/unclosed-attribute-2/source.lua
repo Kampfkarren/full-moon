@@ -1,0 +1,1 @@
+local name <const = 10

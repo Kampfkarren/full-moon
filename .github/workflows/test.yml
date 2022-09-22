@@ -23,6 +23,14 @@ jobs:
       run: |
         cd full-moon
         cargo test --features lua52
+    - name: Test (Lua 5.3 feature)
+      run: |
+        cd full-moon
+        cargo test --features lua53
+    - name: Test (Lua 5.4 feature)
+      run: |
+        cd full-moon
+        cargo test --features lua54
     - name: Test (no default features)
       run: |
         cd full-moon

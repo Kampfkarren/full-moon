@@ -66,7 +66,7 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = "..="))]
     TwoDotsEqual,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[cfg_attr(feature = "serde", serde(rename = "&"))]
     Ampersand,
 
@@ -108,6 +108,10 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = ">"))]
     GreaterThan,
 
+    #[cfg(feature = "lua53")]
+    #[cfg_attr(feature = "serde", serde(rename = ">>"))]
+    DoubleGreaterThan,
+
     #[cfg_attr(feature = "serde", serde(rename = "#"))]
     Hash,
 
@@ -126,13 +130,17 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = "<"))]
     LessThan,
 
+    #[cfg(feature = "lua53")]
+    #[cfg_attr(feature = "serde", serde(rename = "<<"))]
+    DoubleLessThan,
+
     #[cfg_attr(feature = "serde", serde(rename = "-"))]
     Minus,
 
     #[cfg_attr(feature = "serde", serde(rename = "%"))]
     Percent,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[cfg_attr(feature = "serde", serde(rename = "|"))]
     Pipe,
 
@@ -158,8 +166,16 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = "/"))]
     Slash,
 
+    #[cfg(feature = "lua53")]
+    #[cfg_attr(feature = "serde", serde(rename = "//"))]
+    DoubleSlash,
+
     #[cfg_attr(feature = "serde", serde(rename = "*"))]
     Star,
+
+    #[cfg(feature = "lua53")]
+    #[cfg_attr(feature = "serde", serde(rename = "~"))]
+    Tilde,
 
     #[cfg_attr(feature = "serde", serde(rename = "~="))]
     TildeEqual,
@@ -212,7 +228,7 @@ impl TryFrom<Atom> for Symbol {
             Atom::Comma => Symbol::Comma,
             Atom::Ellipse => Symbol::Ellipse,
             Atom::TwoDots => Symbol::TwoDots,
-            #[cfg(feature = "roblox")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Atom::Ampersand => Symbol::Ampersand,
             #[cfg(feature = "roblox")]
             Atom::ThinArrow => Symbol::ThinArrow,
@@ -229,9 +245,11 @@ impl TryFrom<Atom> for Symbol {
             Atom::LeftParen => Symbol::LeftParen,
             Atom::LessThanEqual => Symbol::LessThanEqual,
             Atom::LessThan => Symbol::LessThan,
+            #[cfg(feature = "lua53")]
+            Atom::DoubleLessThan => Symbol::DoubleLessThan,
             Atom::Minus => Symbol::Minus,
             Atom::Percent => Symbol::Percent,
-            #[cfg(feature = "roblox")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Atom::Pipe => Symbol::Pipe,
             #[cfg(feature = "roblox")]
             Atom::QuestionMark => Symbol::QuestionMark,
@@ -241,7 +259,11 @@ impl TryFrom<Atom> for Symbol {
             Atom::RightParen => Symbol::RightParen,
             Atom::Semicolon => Symbol::Semicolon,
             Atom::Slash => Symbol::Slash,
+            #[cfg(feature = "lua53")]
+            Atom::DoubleSlash => Symbol::DoubleSlash,
             Atom::Star => Symbol::Star,
+            #[cfg(feature = "lua53")]
+            Atom::Tilde => Symbol::Tilde,
             Atom::TildeEqual => Symbol::TildeEqual,
             _ => {
                 return Err(());
@@ -283,7 +305,7 @@ impl Display for Symbol {
             Symbol::PercentEqual => "%=",
             Symbol::CaretEqual => "^=",
             Symbol::TwoDotsEqual => "..=",
-            #[cfg(feature = "roblox")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Symbol::Ampersand => "&",
             #[cfg(feature = "roblox")]
             Symbol::ThinArrow => "->",
@@ -299,15 +321,19 @@ impl Display for Symbol {
             Symbol::Equal => "=",
             Symbol::GreaterThanEqual => ">=",
             Symbol::GreaterThan => ">",
+            #[cfg(feature = "lua53")]
+            Symbol::DoubleGreaterThan => ">>",
             Symbol::Hash => "#",
             Symbol::LeftBracket => "[",
             Symbol::LeftBrace => "{",
             Symbol::LeftParen => "(",
             Symbol::LessThanEqual => "<=",
             Symbol::LessThan => "<",
+            #[cfg(feature = "lua53")]
+            Symbol::DoubleLessThan => "<<",
             Symbol::Minus => "-",
             Symbol::Percent => "%",
-            #[cfg(feature = "roblox")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Symbol::Pipe => "|",
             Symbol::Plus => "+",
             #[cfg(feature = "roblox")]
@@ -317,7 +343,11 @@ impl Display for Symbol {
             Symbol::RightParen => ")",
             Symbol::Semicolon => ";",
             Symbol::Slash => "/",
+            #[cfg(feature = "lua53")]
+            Symbol::DoubleSlash => "//",
             Symbol::Star => "*",
+            #[cfg(feature = "lua53")]
+            Symbol::Tilde => "~",
             Symbol::TildeEqual => "~=",
         };
 
@@ -926,22 +956,22 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
 
             Ok(TokenType::Identifier { identifier })
         }
-        Atom::MultiLineComment => {
-            let (comment, blocks) = trim_bracket_head(&slice[2..]);
-            let blocks = blocks.unwrap();
 
-            Ok(TokenType::MultiLineComment { blocks, comment })
+        Atom::Comment => {
+            let (comment, blocks) = trim_bracket_head(&slice[2..]);
+
+            match blocks {
+                Some(blocks) => Ok(TokenType::MultiLineComment { comment, blocks }),
+                None => Ok(TokenType::SingleLineComment { comment }),
+            }
         }
+
         Atom::Number => {
             let text = slice.into();
 
             Ok(TokenType::Number { text })
         }
-        Atom::SingleLineComment => {
-            let comment = slice[2..].into();
 
-            Ok(TokenType::SingleLineComment { comment })
-        }
         Atom::MultiLineString => {
             let (literal, multi_line) = trim_bracket_head(slice);
 
@@ -951,21 +981,27 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
                 quote_type: StringLiteralQuoteType::Brackets,
             })
         }
+
         Atom::ApostropheString => Ok(TokenType::new_string(
             &slice[1..slice.len() - 1],
             StringLiteralQuoteType::Single,
         )),
+
         Atom::QuoteString => Ok(TokenType::new_string(
             &slice[1..slice.len() - 1],
             StringLiteralQuoteType::Double,
         )),
+
         Atom::Whitespace => {
             let characters = slice.into();
 
             Ok(TokenType::Whitespace { characters })
         }
+
         Atom::Bom => Err(TokenizerErrorType::UnexpectedToken('\u{feff}')),
+
         Atom::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
+
         Atom::Unknown => {
             let first = slice.chars().next().unwrap();
             let what = match first {
@@ -976,6 +1012,7 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
 
             Err(what)
         }
+
         token => Ok(TokenType::Symbol {
             symbol: token.try_into().unwrap(),
         }),
