@@ -32,7 +32,7 @@ fn test_tokenizer_fail_cases() {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         match tokenizer::tokens(&source) {
-            Ok(_) => panic!("fail case passed for {:?}", path),
+            Ok(tokens) => panic!("fail case passed for {:?}\n{tokens:#?}", path),
             Err(error) => {
                 assert_yaml_snapshot!("error", error);
             }

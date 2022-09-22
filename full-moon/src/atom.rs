@@ -9,6 +9,7 @@ pub fn trim_bracket_head(slice: &str) -> (ShortString, Option<usize>) {
 
             (trim.into(), Some(count))
         }
+
         None => (slice.into(), None),
     }
 }
@@ -45,32 +46,81 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
     false
 }
 
-fn read_bracketed(lex: &mut Lexer<Atom>, skips: usize) -> bool {
-    let num_eq = match lex.slice().get(skips..).and_then(test_bracket_head) {
-        Some(value) => value,
-        None => return false,
-    };
-
+fn proceed_with_bracketed(lex: &mut Lexer<Atom>, block_count: usize) -> bool {
     let mut in_tail = false;
-    let mut num = 0;
+    let mut current_count = 0;
 
     for (pos, char) in lex.remainder().char_indices() {
         match (in_tail, char) {
-            (true, '=') => num += 1,
-            (true, ']') if num_eq == num => {
+            (true, '=') => current_count += 1,
+            (true, ']') if block_count == current_count => {
                 lex.bump(pos + 1);
 
                 return true;
             }
             (false, ']') => {
                 in_tail = true;
-                num = 0;
+                current_count = 0;
             }
             _ => in_tail = false,
         }
     }
 
     false
+}
+
+fn read_bracketed(lex: &mut Lexer<Atom>, skips: usize) -> bool {
+    let block_count = match lex.slice().get(skips..).and_then(test_bracket_head) {
+        Some(value) => value,
+        None => return false,
+    };
+
+    proceed_with_bracketed(lex, block_count)
+}
+
+fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
+    let mut remainder = lexer.remainder().char_indices().peekable();
+
+    if matches!(remainder.peek(), Some((_, '['))) {
+        remainder.next();
+
+        let mut block_count = 0;
+
+        loop {
+            let next = remainder.next();
+
+            match next {
+                Some((_, '=')) => block_count += 1,
+
+                Some((offset, '[')) => {
+                    // Confirmed real multi-line comment
+                    lexer.bump(offset + 1);
+                    return proceed_with_bracketed(lexer, block_count);
+                }
+
+                // Not a multi-line comment, just --[text
+                Some((offset, _)) => {
+                    lexer.bump(offset);
+                    break;
+                }
+
+                None => return false,
+            }
+        }
+    }
+
+    // Normal single line comment.
+    // Reset remainder since it might've been bumped.
+    for (offset, char) in lexer.remainder().char_indices() {
+        if char == '\n' {
+            lexer.bump(offset);
+            return true;
+        }
+    }
+
+    // The rest of the string is a comment
+    lexer.bump(lexer.remainder().chars().count());
+    true
 }
 
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
@@ -311,11 +361,14 @@ pub(crate) enum Atom {
     #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
     MultiLineString,
 
-    #[regex(r"--([^\n(\[=*\[)].*)?")]
-    SingleLineComment,
+    // These don't work, even with priority set! Ideally, this would be what we use.
+    // #[regex(r"--.*")]
+    // SingleLineComment,
 
-    #[regex(r"--\[=*\[", |x| read_bracketed(x, 2))]
-    MultiLineComment,
+    // #[regex(r"--\[=*\[", |x| read_bracketed(x, 2))]
+    // MultiLineComment,
+    #[regex(r"--", read_comment)]
+    Comment,
 
     #[regex(r"[ \t]*(\r?\n)?")]
     Whitespace,
