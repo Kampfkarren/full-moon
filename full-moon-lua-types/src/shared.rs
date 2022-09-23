@@ -10,9 +10,7 @@ use mlua::{MetaMethod, ToLua, UserData};
 
 use crate::{
     create_ast_node::CreateAstNode,
-    mlua_util::{
-        add_core_meta_methods, add_create_ast_node_methods, add_print, add_to_string_display,
-    },
+    mlua_util::{add_core_meta_methods, add_create_ast_node_methods, add_print},
 };
 
 #[derive(Clone)]
@@ -193,8 +191,13 @@ impl TokenReference {
     }
 }
 
-// TODO
-impl UserData for TokenReference {}
+impl UserData for TokenReference {
+    fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
+        add_core_meta_methods("TokenReference", methods);
+        add_create_ast_node_methods(methods);
+        add_print(methods);
+    }
+}
 
 impl CreateAstNode for TokenReference {
     type Node = tokenizer::TokenReference;
