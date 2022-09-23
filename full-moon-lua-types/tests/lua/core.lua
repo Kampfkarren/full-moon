@@ -80,7 +80,7 @@ local assignment = stmt:expect("Assignment")
 assertEq(#assignment.variables, 2)
 assertEq(#assignment.variables:values(), 2)
 
-assert(stmt:match("Assignment"))
+assertEq(tostring(stmt:match("Assignment")), tostring(assignment))
 assertEq(stmt:match("While"), nil)
 
 local iters = {}
