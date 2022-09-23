@@ -128,21 +128,33 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 #(#cases,)*
             };
 
-            match table.get::<_, Option<mlua::Value>>(function_name)? {
-                Some(mlua::Value::Function(function)) => {
-                    function.call::<_, mlua::Value>(args)
+            match table_or_name {
+                crate::either::Either::A(table) => {
+                    match table.get::<_, Option<mlua::Value>>(function_name)? {
+                        Some(mlua::Value::Function(function)) => {
+                            function.call::<_, mlua::MultiValue>(args)
+                        }
+
+                        Some(other) => {
+                            Err(mlua::Error::external(format!(
+                                "expected function for {}, got {}",
+                                function_name,
+                                other.type_name(),
+                            )))
+                        }
+
+                        None => {
+                            mlua::Value::Nil.to_lua_multi(lua)
+                        }
+                    }
                 }
 
-                Some(other) => {
-                    Err(mlua::Error::external(format!(
-                        "expected function for {}, got {}",
-                        function_name,
-                        other.type_name(),
-                    )))
-                }
-
-                None => {
-                    Ok(mlua::Value::Nil)
+                crate::either::Either::B(name) => {
+                    if name == function_name {
+                        Ok(args)
+                    } else {
+                        mlua::Value::Nil.to_lua_multi(lua)
+                    }
                 }
             }
         }
@@ -381,7 +393,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     #match_expect
                 });
 
-                methods.add_method("match", |lua, this, table: mlua::Table| {
+                methods.add_method("match", |lua, this, value: mlua::Value| {
+                    let table_or_name = crate::either::take_either::<mlua::Table, String>(
+                        lua,
+                        value,
+                        "table of variants to callbacks",
+                        "variant name",
+                    )?;
+
                     #match_match
                 });
             }
