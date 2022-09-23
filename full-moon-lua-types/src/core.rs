@@ -876,7 +876,7 @@ impl UserData for If {
 
         fields.add_field_method_get("block", |_, If { block, .. }| Ok(block.clone()));
 
-        fields.add_field_method_get("else_if", |lua, If { else_if, .. }| {
+        fields.add_field_method_get("else_if", |_, If { else_if, .. }| {
             Ok(else_if
                 .as_ref()
                 .map(|else_if| else_if.iter().map(Arc::clone).collect::<Vec<_>>()))

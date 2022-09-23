@@ -192,6 +192,10 @@ impl TokenReference {
 }
 
 impl UserData for TokenReference {
+    fn add_fields<'lua, F: mlua::UserDataFields<'lua, Self>>(fields: &mut F) {
+        fields.add_field_method_get("token", |lua, this: &Self| this.token.clone().to_lua(lua));
+    }
+
     fn add_methods<'lua, M: mlua::UserDataMethods<'lua, Self>>(methods: &mut M) {
         add_core_meta_methods("TokenReference", methods);
         add_create_ast_node_methods(methods);
