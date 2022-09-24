@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use mlua::ToLua;
+
 use crate::mlua_util::ArcLocked;
 
 pub trait CreateAstNode {
@@ -38,4 +40,8 @@ impl<T: CreateAstNode, U: CreateAstNode> CreateAstNode for (T, U) {
     fn create_ast_node(&self) -> Option<Self::Node> {
         Some((self.0.create_ast_node()?, self.1.create_ast_node()?))
     }
+}
+
+pub trait AstToLua {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>>;
 }

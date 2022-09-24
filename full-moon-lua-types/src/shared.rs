@@ -9,8 +9,9 @@ use full_moon::{
 use mlua::{MetaMethod, ToLua, UserData};
 
 use crate::{
-    create_ast_node::CreateAstNode,
+    ast_traits::CreateAstNode,
     mlua_util::{add_core_meta_methods, add_create_ast_node_methods, add_print},
+    AstToLua,
 };
 
 #[derive(Clone)]
@@ -45,6 +46,12 @@ impl CreateAstNode for ContainedSpan {
             self.start.create_ast_node()?,
             self.end.create_ast_node()?,
         ))
+    }
+}
+
+impl AstToLua for ast::span::ContainedSpan {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        ContainedSpan::new(self).to_lua(lua)
     }
 }
 
@@ -218,5 +225,11 @@ impl CreateAstNode for TokenReference {
                 .map(Token::create_ast_node)
                 .collect::<Option<Vec<_>>>()?,
         ))
+    }
+}
+
+impl AstToLua for tokenizer::TokenReference {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        TokenReference::new(self).to_lua(lua)
     }
 }

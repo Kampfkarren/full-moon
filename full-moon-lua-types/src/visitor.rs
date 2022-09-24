@@ -1,4 +1,4 @@
-use crate::{core, create_ast_node::CreateAstNode, shared};
+use crate::{ast_traits::CreateAstNode, core, shared};
 use full_moon::{
     ast,
     node::Node,

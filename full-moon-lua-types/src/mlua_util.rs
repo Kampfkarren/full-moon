@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use full_moon::node::Node;
 use mlua::{ToLua, ToLuaMulti, UserData};
 
-use crate::create_ast_node::CreateAstNode;
+use crate::ast_traits::CreateAstNode;
 
 pub use crate::visitor::add_visit;
 

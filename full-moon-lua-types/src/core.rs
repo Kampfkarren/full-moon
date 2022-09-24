@@ -5,13 +5,14 @@ use full_moon_lua_types_derive::LuaUserData;
 use mlua::{Table, ToLua, UserData};
 
 use crate::{
-    create_ast_node::CreateAstNode,
+    ast_traits::CreateAstNode,
     mlua_util::{
         add_core_meta_methods, add_create_ast_node_methods, add_newindex_block, add_print,
         add_visit, ArcLocked,
     },
     prepare_for_lua::PrepareForLua,
     shared::*,
+    AstToLua,
 };
 
 fn l<T>(t: T) -> ArcLocked<T> {
@@ -58,6 +59,12 @@ impl CreateAstNode for Ast {
                 .with_eof(self.eof.create_ast_node()?)
                 .with_nodes(self.nodes.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::Ast {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Ast::from(self).to_lua(lua)
     }
 }
 
@@ -119,6 +126,12 @@ impl CreateAstNode for Assignment {
     }
 }
 
+impl AstToLua for ast::Assignment {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Assignment::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum BinOp {
     And(ArcLocked<TokenReference>),
@@ -162,6 +175,12 @@ impl BinOp {
             ast::BinOp::TwoEqual(token) => BinOp::TwoEqual(l(TokenReference::new(&token))),
             other => panic!("unimplemented BinOp: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::BinOp {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        BinOp::new(self).to_lua(lua)
     }
 }
 
@@ -239,6 +258,12 @@ impl CreateAstNode for Block {
     }
 }
 
+impl AstToLua for ast::Block {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Block::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Call {
     AnonymousCall(ArcLocked<FunctionArgs>),
@@ -254,6 +279,12 @@ impl Call {
             ast::Call::MethodCall(method_call) => Call::MethodCall(l(MethodCall::new(method_call))),
             other => panic!("unimplemented Call: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Call {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Call::new(self).to_lua(lua)
     }
 }
 
@@ -300,6 +331,12 @@ impl CreateAstNode for Do {
                 .with_do_token(self.do_token.create_ast_node()?)
                 .with_end_token(self.end_token.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::Do {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Do::new(self).to_lua(lua)
     }
 }
 
@@ -359,6 +396,12 @@ impl CreateAstNode for ElseIf {
     }
 }
 
+impl AstToLua for ast::ElseIf {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        ElseIf::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Expression {
     BinaryOperator {
@@ -412,6 +455,12 @@ impl Expression {
     }
 }
 
+impl AstToLua for ast::Expression {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Expression::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum FunctionArgs {
     Parentheses {
@@ -443,6 +492,12 @@ impl FunctionArgs {
 
             other => panic!("unimplemented FunctionArgs: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::FunctionArgs {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        FunctionArgs::new(self).to_lua(lua)
     }
 }
 
@@ -513,6 +568,12 @@ impl CreateAstNode for FunctionBody {
     }
 }
 
+impl AstToLua for ast::FunctionBody {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        FunctionBody::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum LastStmt {
     Break(ArcLocked<TokenReference>),
@@ -537,6 +598,12 @@ impl LastStmt {
 
             _ => unimplemented!("unexpected LastStmt variant: {last_stmt:#?}"),
         }
+    }
+}
+
+impl AstToLua for ast::LastStmt {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        LastStmt::new(self).to_lua(lua)
     }
 }
 
@@ -583,6 +650,12 @@ impl Field {
 
             other => panic!("unimplemented Field: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Field {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Field::new(self).to_lua(lua)
     }
 }
 
@@ -635,6 +708,12 @@ impl CreateAstNode for FunctionCall {
     }
 }
 
+impl AstToLua for ast::FunctionCall {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        FunctionCall::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone)]
 pub struct FunctionDeclaration {
     function_token: ArcLocked<TokenReference>,
@@ -684,6 +763,12 @@ impl CreateAstNode for FunctionDeclaration {
                 .with_body(self.body.create_ast_node()?)
                 .with_function_token(self.function_token.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::FunctionDeclaration {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        FunctionDeclaration::new(self).to_lua(lua)
     }
 }
 
@@ -749,6 +834,12 @@ impl CreateAstNode for FunctionName {
                 }),
             ),
         )
+    }
+}
+
+impl AstToLua for ast::FunctionName {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        FunctionName::new(self).to_lua(lua)
     }
 }
 
@@ -832,6 +923,12 @@ impl CreateAstNode for GenericFor {
             .with_block(self.block.create_ast_node()?)
             .with_end_token(self.end_token.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::GenericFor {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        GenericFor::new(self).to_lua(lua)
     }
 }
 
@@ -922,6 +1019,12 @@ impl CreateAstNode for If {
     }
 }
 
+impl AstToLua for ast::If {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        If::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Index {
     Brackets {
@@ -953,6 +1056,12 @@ impl Index {
 
             other => panic!("unimplemented Index: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Index {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Index::new(self).to_lua(lua)
     }
 }
 
@@ -1023,6 +1132,12 @@ impl CreateAstNode for LocalAssignment {
     }
 }
 
+impl AstToLua for ast::LocalAssignment {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        LocalAssignment::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone)]
 pub struct LocalFunction {
     local_token: ArcLocked<TokenReference>,
@@ -1078,6 +1193,12 @@ impl CreateAstNode for LocalFunction {
     }
 }
 
+impl AstToLua for ast::LocalFunction {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        LocalFunction::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone)]
 pub struct MethodCall {
     colon_token: ArcLocked<TokenReference>,
@@ -1121,6 +1242,12 @@ impl CreateAstNode for MethodCall {
             ast::MethodCall::new(self.name.create_ast_node()?, self.args.create_ast_node()?)
                 .with_colon_token(self.colon_token.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::MethodCall {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        MethodCall::new(self).to_lua(lua)
     }
 }
 
@@ -1229,6 +1356,12 @@ impl CreateAstNode for NumericFor {
     }
 }
 
+impl AstToLua for ast::NumericFor {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        NumericFor::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Parameter {
     Ellipse(ArcLocked<TokenReference>),
@@ -1249,6 +1382,12 @@ impl Parameter {
     }
 }
 
+impl AstToLua for ast::Parameter {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Parameter::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Prefix {
     Expression(ArcLocked<Expression>),
@@ -1262,6 +1401,12 @@ impl Prefix {
             ast::Prefix::Name(name) => Prefix::Name(l(TokenReference::new(name))),
             other => unimplemented!("unexpected Prefix variant: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Prefix {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Prefix::new(self).to_lua(lua)
     }
 }
 
@@ -1306,6 +1451,12 @@ impl CreateAstNode for Return {
                 .with_token(self.token.create_ast_node()?)
                 .with_returns(self.returns.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::Return {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Return::new(self).to_lua(lua)
     }
 }
 
@@ -1363,6 +1514,12 @@ impl CreateAstNode for Repeat {
     }
 }
 
+impl AstToLua for ast::Repeat {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Repeat::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Stmt {
     Assignment(ArcLocked<Assignment>),
@@ -1409,6 +1566,12 @@ impl Stmt {
     }
 }
 
+impl AstToLua for ast::Stmt {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Stmt::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Suffix {
     Call(ArcLocked<Call>),
@@ -1422,6 +1585,12 @@ impl Suffix {
             ast::Suffix::Index(index) => Suffix::Index(l(Index::new(index))),
             other => unimplemented!("unexpected Suffix variant: {other:#?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Suffix {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Suffix::new(self).to_lua(lua)
     }
 }
 
@@ -1473,6 +1642,12 @@ impl CreateAstNode for TableConstructor {
     }
 }
 
+impl AstToLua for ast::TableConstructor {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        TableConstructor::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum UnOp {
     Minus(ArcLocked<TokenReference>),
@@ -1488,6 +1663,12 @@ impl UnOp {
             ast::UnOp::Hash(token) => UnOp::Hash(l(TokenReference::new(token))),
             other => panic!("unimplemented UnOp: {other:?}"),
         }
+    }
+}
+
+impl AstToLua for ast::UnOp {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        UnOp::new(self).to_lua(lua)
     }
 }
 
@@ -1538,6 +1719,12 @@ impl Value {
     }
 }
 
+impl AstToLua for ast::Value {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Value::new(self).to_lua(lua)
+    }
+}
+
 #[derive(Clone, LuaUserData)]
 pub enum Var {
     Expression(ArcLocked<VarExpression>),
@@ -1551,6 +1738,12 @@ impl Var {
             ast::Var::Name(name_token) => Var::Name(l(TokenReference::new(name_token))),
             other => unimplemented!("unexpected Var variant: {var:#?}"),
         }
+    }
+}
+
+impl AstToLua for ast::Var {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        Var::new(self).to_lua(lua)
     }
 }
 
@@ -1599,6 +1792,12 @@ impl CreateAstNode for VarExpression {
                     .collect::<Option<Vec<_>>>()?,
             ),
         )
+    }
+}
+
+impl AstToLua for ast::VarExpression {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        VarExpression::new(self).to_lua(lua)
     }
 }
 
@@ -1660,5 +1859,11 @@ impl CreateAstNode for While {
                 .with_end_token(self.end_token.create_ast_node()?)
                 .with_while_token(self.while_token.create_ast_node()?),
         )
+    }
+}
+
+impl AstToLua for ast::While {
+    fn ast_to_lua<'lua>(&self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        While::new(self).to_lua(lua)
     }
 }
