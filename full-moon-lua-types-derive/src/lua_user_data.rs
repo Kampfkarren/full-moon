@@ -406,7 +406,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl crate::create_ast_node::CreateAstNode for #input_ident {
+        impl crate::ast_traits::CreateAstNode for #input_ident {
             type Node = full_moon::ast::#input_ident;
 
             fn create_ast_node(&self) -> Option<Self::Node> {
