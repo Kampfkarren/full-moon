@@ -34,6 +34,7 @@ compile_error!("Serde feature must be enabled for tests");
 /// An error type that consists of both [`AstError`](ast::AstError) and [`TokenizerError`](tokenizer::TokenizerError)
 /// Used by [`parse`]
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Error {
     /// Triggered if there's an issue creating an AST, but tokenizing must have succeeded
     AstError(ast::AstError),
