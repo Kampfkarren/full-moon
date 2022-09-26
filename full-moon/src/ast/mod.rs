@@ -2203,6 +2203,7 @@ impl std::error::Error for AstError {}
 
 /// An abstract syntax tree, contains all the nodes used in the code
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Ast {
     pub(crate) nodes: Block,
     pub(crate) eof: TokenReference,
