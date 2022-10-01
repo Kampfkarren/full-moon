@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 58
+expression: error
+---
+UnexpectedToken:
+  token:
+    start_position:
+      bytes: 9
+      line: 1
+      character: 10
+    end_position:
+      bytes: 10
+      line: 1
+      character: 11
+    token_type:
+      type: Symbol
+      symbol: ">"
+  additional: expected name
+
