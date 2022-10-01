@@ -1670,7 +1670,7 @@ cfg_if::cfg_if! {
                 {
                     let (state, generics) = expect!(
                         state,
-                        OneOrMore(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
+                        ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
                         "expected type parameters"
                     );
 
