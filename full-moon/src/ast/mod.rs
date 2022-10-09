@@ -65,7 +65,10 @@ impl Block {
         }
     }
 
-    /// An iterator over the statements in the block, such as `local foo = 1`
+    /// An iterator over the statements in the block, such as `local foo = 1`.
+    ///
+    /// Note that this does not contain the final statement which can be
+    /// attained via [`Block::last_stmt`].
     pub fn stmts(&self) -> impl Iterator<Item = &Stmt> {
         self.stmts.iter().map(|(stmt, _)| stmt)
     }
