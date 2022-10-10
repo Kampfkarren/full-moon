@@ -58,6 +58,7 @@ fn read_template_string_start(lex: &mut Lexer<Atom>) -> bool {
             // A template string must include at least one interpolation.
             (false, '`') => break,
             (false, '{') => {
+                lex.bump(1);
                 lex.extras.template_count += 1;
                 return true;
             }
