@@ -19,7 +19,10 @@ macro_rules! create_visitor {
             $($meta_visit_name:ident => $meta_ast_type:ident,)+
         })+
     }, token: {
-        $($visit_token:ident,)+
+        $(
+					$(#[$t_meta:meta])?
+					$visit_token:ident,
+				)+
     }) => {
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`VisitorMut`], nodes/tokens passed are immutable.
@@ -75,6 +78,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
+								$(#[$t_meta])?
                 fn $visit_token(&mut self, _token: &Token) { }
             )+
         }
@@ -128,6 +132,7 @@ macro_rules! create_visitor {
 
             $(
                 #[allow(missing_docs)]
+								$(#[$t_meta])?
                 fn $visit_token(&mut self, token: Token) -> Token {
                     token
                 }
@@ -292,4 +297,10 @@ create_visitor!(ast: {
     visit_symbol,
     visit_token,
     visit_whitespace,
+        #[cfg(feature = "roblox")]
+        visit_template_literal_start,
+        #[cfg(feature = "roblox")]
+        visit_template_literal_chunk,
+        #[cfg(feature = "roblox")]
+        visit_template_literal_end,
 });

@@ -450,6 +450,30 @@ pub enum TokenType {
         symbol: Symbol,
     },
 
+    /// The start of a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralStart {
+        /// The literal chunk before the first interpolation, excluding the
+        /// back tick and opening curly brace.
+        literal: ShortString,
+    },
+
+    /// A string chunk in the middle of a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralChunk {
+        /// The literal chunk between the closing brace of the interpolation
+        /// before and the opening brace of the next interpolation.
+        literal: ShortString,
+    },
+
+    /// The string chunk at the end of a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralEnd {
+        /// The literal chunk between the closing brace of the interpolation
+        /// before and the back tick terminating the template literal.
+        literal: ShortString,
+    },
+
     /// Whitespace, such as tabs or new lines
     Whitespace {
         /// Characters consisting of the whitespace
@@ -512,6 +536,12 @@ impl TokenType {
             TokenType::SingleLineComment { .. } => TokenKind::SingleLineComment,
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
+            #[cfg(feature = "roblox")]
+            TokenType::TemplateLiteralStart { .. } => TokenKind::TemplateLiteralStart,
+            #[cfg(feature = "roblox")]
+            TokenType::TemplateLiteralChunk { .. } => TokenKind::TemplateLiteralChunk,
+            #[cfg(feature = "roblox")]
+            TokenType::TemplateLiteralEnd { .. } => TokenKind::TemplateLiteralEnd,
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
         }
     }
@@ -551,6 +581,15 @@ pub enum TokenKind {
     StringLiteral,
     /// A [`Symbol`], such as `local` or `+`
     Symbol,
+    /// The start of a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralStart,
+    /// A string chunk between interpolations in a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralChunk,
+    /// The final string chunk in a template literal.
+    #[cfg(feature = "roblox")]
+    TemplateLiteralEnd,
     /// Whitespace, such as tabs or new lines
     Whitespace,
 }
@@ -622,6 +661,12 @@ impl fmt::Display for Token {
                 }
             }
             Symbol { symbol } => symbol.fmt(formatter),
+            #[cfg(feature = "roblox")]
+            TemplateLiteralStart { literal } => write!(formatter, "`{literal}"),
+            #[cfg(feature = "roblox")]
+            TemplateLiteralChunk { literal } => write!(formatter, "}}{literal}{{"),
+            #[cfg(feature = "roblox")]
+            TemplateLiteralEnd { literal } => write!(formatter, "}}{literal}`"),
             Whitespace { characters } => characters.fmt(formatter),
         }
     }
@@ -662,6 +707,12 @@ impl Visit for Token {
             TokenKind::SingleLineComment => visitor.visit_single_line_comment(self),
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralStart => visitor.visit_template_literal_start(self),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralChunk => visitor.visit_template_literal_chunk(self),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralEnd => visitor.visit_template_literal_end(self),
             TokenKind::Whitespace => visitor.visit_whitespace(self),
         }
     }
@@ -680,6 +731,12 @@ impl VisitMut for Token {
             TokenKind::SingleLineComment => visitor.visit_single_line_comment(token),
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralStart => visitor.visit_template_literal_start(token),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralChunk => visitor.visit_template_literal_chunk(token),
+            #[cfg(feature = "roblox")]
+            TokenKind::TemplateLiteralEnd => visitor.visit_template_literal_end(token),
             TokenKind::Whitespace => visitor.visit_whitespace(token),
         }
     }
