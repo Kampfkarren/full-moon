@@ -48,7 +48,7 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
 
 #[inline]
 #[cfg(feature = "roblox")]
-fn read_template_string_start(lex: &mut Lexer<Atom>) -> bool {
+fn read_template_literal_start(lex: &mut Lexer<Atom>) -> bool {
     let mut escape = false;
     for char in lex.remainder().chars() {
         match (escape, char) {
@@ -441,8 +441,8 @@ pub(crate) enum Atom {
     MultiLineString,
 
     #[cfg(feature = "roblox")]
-    #[regex(r"`", |x| read_template_string_start(x))]
-    TemplateStringStart,
+    #[regex(r"`", |x| read_template_literal_start(x))]
+    TemplateLiteralStart,
 
     // These don't work, even with priority set! Ideally, this would be what we use.
     // #[regex(r"--.*")]
