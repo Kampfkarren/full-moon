@@ -92,7 +92,7 @@ fn handle_right_brace(lex: &mut Lexer<Atom>) -> bool {
                 match (escape, char) {
                     (true, ..) => escape = false,
                     (false, '\\') => escape = true,
-                    (false, '\n' | '\r') => break,
+                    (false, '\n' | '\r') => return false,
                     (false, '{') => {
                         // Include the brace in the chunk and reset the brace count.
                         lex.bump(1);
@@ -105,7 +105,6 @@ fn handle_right_brace(lex: &mut Lexer<Atom>) -> bool {
                         lex.extras.template_count -= 1;
                         return true;
                     }
-                    (false, ..) if char == '`' => break,
                     _ => {}
                 }
                 lex.bump(char.len_utf8());
