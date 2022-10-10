@@ -46,6 +46,74 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
     false
 }
 
+#[inline]
+#[cfg(feature = "roblox")]
+fn read_template_string_start(lex: &mut Lexer<Atom>) -> bool {
+    let mut escape = false;
+    for char in lex.remainder().chars() {
+        match (escape, char) {
+            (true, ..) => escape = false,
+            (false, '\\') => escape = true,
+            (false, '\n' | '\r') => break,
+            // A template string must include at least one interpolation.
+            (false, '`') => break,
+            (false, '{') => {
+                lex.extras.template_count += 1;
+                return true;
+            }
+            _ => {}
+        }
+        lex.bump(char.len_utf8());
+    }
+    false
+}
+
+#[inline]
+#[cfg(feature = "roblox")]
+fn handle_left_brace(lex: &mut Lexer<Atom>) -> bool {
+    if lex.extras.template_count != 0 {
+        lex.extras.template_brace_counts[lex.extras.template_count - 1] += 1;
+    }
+    true
+}
+
+#[inline]
+#[cfg(feature = "roblox")]
+fn handle_right_brace(lex: &mut Lexer<Atom>) -> bool {
+    if lex.extras.template_count != 0 {
+        let brace_count = lex.extras.template_brace_counts[lex.extras.template_count - 1];
+        if brace_count != 0 {
+            lex.extras.template_brace_counts[lex.extras.template_count - 1] -= 1;
+        } else {
+            // Eagerly consume a string chunk with the brace.
+            let mut escape = false;
+            for char in lex.remainder().chars() {
+                match (escape, char) {
+                    (true, ..) => escape = false,
+                    (false, '\\') => escape = true,
+                    (false, '\n' | '\r') => break,
+                    (false, '{') => {
+                        // Include the brace in the chunk and reset the brace count.
+                        lex.bump(1);
+                        lex.extras.template_brace_counts[lex.extras.template_count - 1] = 0;
+                        return true;
+                    }
+                    (false, '`') => {
+                        // Include the '`' in the chunk.
+                        lex.bump(1);
+                        lex.extras.template_count -= 1;
+                        return true;
+                    }
+                    (false, ..) if char == '`' => break,
+                    _ => {}
+                }
+                lex.bump(char.len_utf8());
+            }
+        }
+    }
+    true
+}
+
 fn proceed_with_bracketed(lex: &mut Lexer<Atom>, block_count: usize) -> bool {
     let mut in_tail = false;
     let mut current_count = 0;
@@ -123,7 +191,16 @@ fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
     true
 }
 
+#[derive(Default, Copy, Clone)]
+#[cfg(feature = "roblox")]
+pub(crate) struct AtomExtras {
+    pub(crate) template_count: usize,
+    // FIXME: dynamically grow this somehow
+    pub(crate) template_brace_counts: [usize; 8],
+}
+
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "roblox", logos(extras = AtomExtras))]
 pub(crate) enum Atom {
     #[token("and")]
     And,
@@ -268,7 +345,8 @@ pub(crate) enum Atom {
     #[token("[")]
     LeftBracket,
 
-    #[token("{")]
+    #[cfg_attr(feature = "roblox", token("{", |x| handle_left_brace(x)))]
+    #[cfg_attr(not(feature = "roblox"), token("{"))]
     LeftBrace,
 
     #[token("(")]
@@ -301,7 +379,8 @@ pub(crate) enum Atom {
     #[token("?")]
     QuestionMark,
 
-    #[token("}")]
+    #[cfg_attr(feature = "roblox", token("}", |x| handle_right_brace(x)))]
+    #[cfg_attr(not(feature = "roblox"), token("}"))]
     RightBrace,
 
     #[token("]")]
@@ -360,6 +439,10 @@ pub(crate) enum Atom {
 
     #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
     MultiLineString,
+
+    #[cfg(feature = "roblox")]
+    #[regex(r"`", |x| read_template_string_start(x))]
+    TemplateStringStart,
 
     // These don't work, even with priority set! Ideally, this would be what we use.
     // #[regex(r"--.*")]
