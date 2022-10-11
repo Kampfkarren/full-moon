@@ -1046,10 +1046,7 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
 
         #[cfg(feature = "roblox")]
         Atom::RightBrace => Ok(if slice.len() != 1 {
-            // SAFETY: We already validated that the length is not one
-            // byte and it cannot be zero bytes so reading the last byte from
-            // the pointer with one less than the length offset is safe.
-            if unsafe { *((slice.as_ptr() as usize + slice.len() - 1) as *const u8) } == b'{' {
+            if slice.as_bytes()[slice.len() - 1] == b'{' {
                 TokenType::TemplateLiteralChunk {
                     literal: slice[1..slice.len() - 1].into(),
                 }
