@@ -662,7 +662,7 @@ impl fmt::Display for Token {
             }
             Symbol { symbol } => symbol.fmt(formatter),
             #[cfg(feature = "roblox")]
-            TemplateLiteralStart { literal } => write!(formatter, "`{literal}"),
+            TemplateLiteralStart { literal } => write!(formatter, "`{literal}{{"),
             #[cfg(feature = "roblox")]
             TemplateLiteralChunk { literal } => write!(formatter, "}}{literal}{{"),
             #[cfg(feature = "roblox")]
