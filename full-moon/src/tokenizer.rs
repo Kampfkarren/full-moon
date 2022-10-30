@@ -1374,9 +1374,9 @@ mod tests {
     #[cfg(feature = "lua52")]
     fn test_string_z_escape() {
         test_rule!(
-            "'hello \\\\z\nworld'",
+            "'hello \\z\nworld'",
             TokenType::StringLiteral {
-                literal: "hello \\\\z\nworld".into(),
+                literal: "hello \\z\nworld".into(),
                 multi_line: None,
                 quote_type: StringLiteralQuoteType::Single,
             }
