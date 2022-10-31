@@ -11,8 +11,8 @@ expression: tokens
     line: 1
     character: 6
   token_type:
-    type: Symbol
-    symbol: local
+    type: Identifier
+    identifier: print
 - start_position:
     bytes: 5
     line: 1
@@ -22,72 +22,39 @@ expression: tokens
     line: 1
     character: 7
   token_type:
-    type: Whitespace
-    characters: " "
+    type: Symbol
+    symbol: (
 - start_position:
     bytes: 6
     line: 1
     character: 7
   end_position:
-    bytes: 11
-    line: 1
-    character: 12
-  token_type:
-    type: Identifier
-    identifier: value
-- start_position:
-    bytes: 11
-    line: 1
-    character: 12
-  end_position:
-    bytes: 12
-    line: 1
-    character: 13
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 12
-    line: 1
-    character: 13
-  end_position:
-    bytes: 13
-    line: 1
-    character: 14
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 13
-    line: 1
-    character: 14
-  end_position:
-    bytes: 14
-    line: 1
-    character: 15
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 14
-    line: 1
-    character: 15
-  end_position:
-    bytes: 39
+    bytes: 29
     line: 2
-    character: 14
+    character: 12
   token_type:
     type: StringLiteral
-    literal: "testing \\z\n\t\t\t   twelve"
+    literal: "testing \\z\n\t   twelve"
     quote_type: Double
 - start_position:
-    bytes: 39
+    bytes: 29
     line: 2
-    character: 14
+    character: 12
   end_position:
-    bytes: 39
+    bytes: 30
     line: 2
-    character: 14
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 30
+    line: 2
+    character: 13
+  end_position:
+    bytes: 30
+    line: 2
+    character: 13
   token_type:
     type: Eof
 

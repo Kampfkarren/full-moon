@@ -1,2 +1,2 @@
-local value = "testing \z
-			   twelve"
+print("testing \z
+	   twelve")
