@@ -123,7 +123,25 @@ fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
     true
 }
 
+#[cfg(not(feature = "roblox"))]
+fn read_right_brace(lexer: &mut Lexer<Atom>) -> Option<Option<InterpolatedStringSection>> {
+    Some(None)
+}
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct TokenizerState {
+    #[cfg(feature = "roblox")]
+    pub brace_stack: Vec<BraceType>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum BraceType {
+    InterpolatedString,
+    Normal,
+}
+
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
+#[logos(extras = TokenizerState)]
 pub(crate) enum Atom {
     #[token("and")]
     And,
@@ -301,8 +319,12 @@ pub(crate) enum Atom {
     #[token("?")]
     QuestionMark,
 
-    #[token("}")]
-    RightBrace,
+    #[cfg_attr(not(feature = "roblox"), regex(r"\}", read_right_brace))]
+    #[cfg_attr(
+        feature = "roblox",
+        regex(r"\}", crate::tokenizer_luau::read_interpolated_string_right_brace)
+    )]
+    RightBrace(Option<InterpolatedStringSection>),
 
     #[token("]")]
     RightBracket,
@@ -361,6 +383,10 @@ pub(crate) enum Atom {
     #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
     MultiLineString,
 
+    #[cfg(feature = "roblox")]
+    #[regex(r"`", crate::tokenizer_luau::read_interpolated_string_begin)]
+    InterpolatedStringBegin(InterpolatedStringBegin),
+
     // These don't work, even with priority set! Ideally, this would be what we use.
     // #[regex(r"--.*")]
     // SingleLineComment,
@@ -376,3 +402,22 @@ pub(crate) enum Atom {
     #[error]
     Unknown,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg(feature = "roblox")]
+pub enum InterpolatedStringBegin {
+    Formatted, // `uh {oh}`
+    Simple,    // `no formatting`
+}
+
+#[cfg(feature = "roblox")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InterpolatedStringSection {
+    Middle, // } ... {
+    End,    // }
+}
+
+// This existing, but being empty makes things much easier
+#[cfg(not(feature = "roblox"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InterpolatedStringSection {}

@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![allow(clippy::large_enum_variant)]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg))]
 //! # Full Moon
@@ -23,6 +23,9 @@ mod atom;
 mod private;
 mod short_string;
 mod util;
+
+#[cfg(feature = "roblox")]
+mod tokenizer_luau;
 
 pub use short_string::ShortString;
 

@@ -1,0 +1,4854 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 38
+expression: tokens
+input_file: full-moon/tests/roblox_cases/pass/string_interpolation_conformance
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 1131
+    line: 20
+    character: 3
+  token_type:
+    type: MultiLineComment
+    blocks: 0
+    comment: "\nMIT License\n\nCopyright (c) 2019-2022 Roblox Corporation\nCopyright (c) 1994–2019 Lua.org, PUC-Rio.\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\nof the Software, and to permit persons to whom the Software is furnished to do\nso, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+- start_position:
+    bytes: 1131
+    line: 20
+    character: 3
+  end_position:
+    bytes: 1132
+    line: 20
+    character: 3
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1132
+    line: 21
+    character: 1
+  end_position:
+    bytes: 1133
+    line: 21
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1133
+    line: 22
+    character: 1
+  end_position:
+    bytes: 1138
+    line: 22
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 1138
+    line: 22
+    character: 6
+  end_position:
+    bytes: 1139
+    line: 22
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1139
+    line: 22
+    character: 7
+  end_position:
+    bytes: 1147
+    line: 22
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 1147
+    line: 22
+    character: 15
+  end_position:
+    bytes: 1148
+    line: 22
+    character: 16
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1148
+    line: 22
+    character: 16
+  end_position:
+    bytes: 1156
+    line: 22
+    character: 24
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1156
+    line: 22
+    character: 24
+  end_position:
+    bytes: 1157
+    line: 22
+    character: 25
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1157
+    line: 22
+    character: 25
+  end_position:
+    bytes: 1161
+    line: 22
+    character: 29
+  token_type:
+    type: Identifier
+    identifier: left
+- start_position:
+    bytes: 1161
+    line: 22
+    character: 29
+  end_position:
+    bytes: 1162
+    line: 22
+    character: 30
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1162
+    line: 22
+    character: 30
+  end_position:
+    bytes: 1163
+    line: 22
+    character: 31
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1163
+    line: 22
+    character: 31
+  end_position:
+    bytes: 1168
+    line: 22
+    character: 36
+  token_type:
+    type: Identifier
+    identifier: right
+- start_position:
+    bytes: 1168
+    line: 22
+    character: 36
+  end_position:
+    bytes: 1169
+    line: 22
+    character: 37
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1169
+    line: 22
+    character: 37
+  end_position:
+    bytes: 1170
+    line: 22
+    character: 37
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1170
+    line: 23
+    character: 1
+  end_position:
+    bytes: 1171
+    line: 23
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 1171
+    line: 23
+    character: 2
+  end_position:
+    bytes: 1177
+    line: 23
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: assert
+- start_position:
+    bytes: 1177
+    line: 23
+    character: 8
+  end_position:
+    bytes: 1178
+    line: 23
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1178
+    line: 23
+    character: 9
+  end_position:
+    bytes: 1184
+    line: 23
+    character: 15
+  token_type:
+    type: Identifier
+    identifier: typeof
+- start_position:
+    bytes: 1184
+    line: 23
+    character: 15
+  end_position:
+    bytes: 1185
+    line: 23
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1185
+    line: 23
+    character: 16
+  end_position:
+    bytes: 1189
+    line: 23
+    character: 20
+  token_type:
+    type: Identifier
+    identifier: left
+- start_position:
+    bytes: 1189
+    line: 23
+    character: 20
+  end_position:
+    bytes: 1190
+    line: 23
+    character: 21
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1190
+    line: 23
+    character: 21
+  end_position:
+    bytes: 1191
+    line: 23
+    character: 22
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1191
+    line: 23
+    character: 22
+  end_position:
+    bytes: 1193
+    line: 23
+    character: 24
+  token_type:
+    type: Symbol
+    symbol: "=="
+- start_position:
+    bytes: 1193
+    line: 23
+    character: 24
+  end_position:
+    bytes: 1194
+    line: 23
+    character: 25
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1194
+    line: 23
+    character: 25
+  end_position:
+    bytes: 1202
+    line: 23
+    character: 33
+  token_type:
+    type: StringLiteral
+    literal: string
+    quote_type: Double
+- start_position:
+    bytes: 1202
+    line: 23
+    character: 33
+  end_position:
+    bytes: 1203
+    line: 23
+    character: 34
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1203
+    line: 23
+    character: 34
+  end_position:
+    bytes: 1204
+    line: 23
+    character: 35
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1204
+    line: 23
+    character: 35
+  end_position:
+    bytes: 1216
+    line: 23
+    character: 47
+  token_type:
+    type: StringLiteral
+    literal: "left is a "
+    quote_type: Double
+- start_position:
+    bytes: 1216
+    line: 23
+    character: 47
+  end_position:
+    bytes: 1217
+    line: 23
+    character: 48
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1217
+    line: 23
+    character: 48
+  end_position:
+    bytes: 1219
+    line: 23
+    character: 50
+  token_type:
+    type: Symbol
+    symbol: ".."
+- start_position:
+    bytes: 1219
+    line: 23
+    character: 50
+  end_position:
+    bytes: 1220
+    line: 23
+    character: 51
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1220
+    line: 23
+    character: 51
+  end_position:
+    bytes: 1226
+    line: 23
+    character: 57
+  token_type:
+    type: Identifier
+    identifier: typeof
+- start_position:
+    bytes: 1226
+    line: 23
+    character: 57
+  end_position:
+    bytes: 1227
+    line: 23
+    character: 58
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1227
+    line: 23
+    character: 58
+  end_position:
+    bytes: 1231
+    line: 23
+    character: 62
+  token_type:
+    type: Identifier
+    identifier: left
+- start_position:
+    bytes: 1231
+    line: 23
+    character: 62
+  end_position:
+    bytes: 1232
+    line: 23
+    character: 63
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1232
+    line: 23
+    character: 63
+  end_position:
+    bytes: 1233
+    line: 23
+    character: 64
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1233
+    line: 23
+    character: 64
+  end_position:
+    bytes: 1234
+    line: 23
+    character: 64
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1234
+    line: 24
+    character: 1
+  end_position:
+    bytes: 1235
+    line: 24
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 1235
+    line: 24
+    character: 2
+  end_position:
+    bytes: 1241
+    line: 24
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: assert
+- start_position:
+    bytes: 1241
+    line: 24
+    character: 8
+  end_position:
+    bytes: 1242
+    line: 24
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1242
+    line: 24
+    character: 9
+  end_position:
+    bytes: 1248
+    line: 24
+    character: 15
+  token_type:
+    type: Identifier
+    identifier: typeof
+- start_position:
+    bytes: 1248
+    line: 24
+    character: 15
+  end_position:
+    bytes: 1249
+    line: 24
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1249
+    line: 24
+    character: 16
+  end_position:
+    bytes: 1254
+    line: 24
+    character: 21
+  token_type:
+    type: Identifier
+    identifier: right
+- start_position:
+    bytes: 1254
+    line: 24
+    character: 21
+  end_position:
+    bytes: 1255
+    line: 24
+    character: 22
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1255
+    line: 24
+    character: 22
+  end_position:
+    bytes: 1256
+    line: 24
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1256
+    line: 24
+    character: 23
+  end_position:
+    bytes: 1258
+    line: 24
+    character: 25
+  token_type:
+    type: Symbol
+    symbol: "=="
+- start_position:
+    bytes: 1258
+    line: 24
+    character: 25
+  end_position:
+    bytes: 1259
+    line: 24
+    character: 26
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1259
+    line: 24
+    character: 26
+  end_position:
+    bytes: 1267
+    line: 24
+    character: 34
+  token_type:
+    type: StringLiteral
+    literal: string
+    quote_type: Double
+- start_position:
+    bytes: 1267
+    line: 24
+    character: 34
+  end_position:
+    bytes: 1268
+    line: 24
+    character: 35
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1268
+    line: 24
+    character: 35
+  end_position:
+    bytes: 1269
+    line: 24
+    character: 36
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1269
+    line: 24
+    character: 36
+  end_position:
+    bytes: 1282
+    line: 24
+    character: 49
+  token_type:
+    type: StringLiteral
+    literal: "right is a "
+    quote_type: Double
+- start_position:
+    bytes: 1282
+    line: 24
+    character: 49
+  end_position:
+    bytes: 1283
+    line: 24
+    character: 50
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1283
+    line: 24
+    character: 50
+  end_position:
+    bytes: 1285
+    line: 24
+    character: 52
+  token_type:
+    type: Symbol
+    symbol: ".."
+- start_position:
+    bytes: 1285
+    line: 24
+    character: 52
+  end_position:
+    bytes: 1286
+    line: 24
+    character: 53
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1286
+    line: 24
+    character: 53
+  end_position:
+    bytes: 1292
+    line: 24
+    character: 59
+  token_type:
+    type: Identifier
+    identifier: typeof
+- start_position:
+    bytes: 1292
+    line: 24
+    character: 59
+  end_position:
+    bytes: 1293
+    line: 24
+    character: 60
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1293
+    line: 24
+    character: 60
+  end_position:
+    bytes: 1298
+    line: 24
+    character: 65
+  token_type:
+    type: Identifier
+    identifier: right
+- start_position:
+    bytes: 1298
+    line: 24
+    character: 65
+  end_position:
+    bytes: 1299
+    line: 24
+    character: 66
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1299
+    line: 24
+    character: 66
+  end_position:
+    bytes: 1300
+    line: 24
+    character: 67
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1300
+    line: 24
+    character: 67
+  end_position:
+    bytes: 1301
+    line: 24
+    character: 67
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1301
+    line: 25
+    character: 1
+  end_position:
+    bytes: 1302
+    line: 25
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1302
+    line: 26
+    character: 1
+  end_position:
+    bytes: 1303
+    line: 26
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 1303
+    line: 26
+    character: 2
+  end_position:
+    bytes: 1305
+    line: 26
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: if
+- start_position:
+    bytes: 1305
+    line: 26
+    character: 4
+  end_position:
+    bytes: 1306
+    line: 26
+    character: 5
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1306
+    line: 26
+    character: 5
+  end_position:
+    bytes: 1310
+    line: 26
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: left
+- start_position:
+    bytes: 1310
+    line: 26
+    character: 9
+  end_position:
+    bytes: 1311
+    line: 26
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1311
+    line: 26
+    character: 10
+  end_position:
+    bytes: 1313
+    line: 26
+    character: 12
+  token_type:
+    type: Symbol
+    symbol: ~=
+- start_position:
+    bytes: 1313
+    line: 26
+    character: 12
+  end_position:
+    bytes: 1314
+    line: 26
+    character: 13
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1314
+    line: 26
+    character: 13
+  end_position:
+    bytes: 1319
+    line: 26
+    character: 18
+  token_type:
+    type: Identifier
+    identifier: right
+- start_position:
+    bytes: 1319
+    line: 26
+    character: 18
+  end_position:
+    bytes: 1320
+    line: 26
+    character: 19
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1320
+    line: 26
+    character: 19
+  end_position:
+    bytes: 1324
+    line: 26
+    character: 23
+  token_type:
+    type: Symbol
+    symbol: then
+- start_position:
+    bytes: 1324
+    line: 26
+    character: 23
+  end_position:
+    bytes: 1325
+    line: 26
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1325
+    line: 27
+    character: 1
+  end_position:
+    bytes: 1327
+    line: 27
+    character: 3
+  token_type:
+    type: Whitespace
+    characters: "\t\t"
+- start_position:
+    bytes: 1327
+    line: 27
+    character: 3
+  end_position:
+    bytes: 1332
+    line: 27
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: error
+- start_position:
+    bytes: 1332
+    line: 27
+    character: 8
+  end_position:
+    bytes: 1333
+    line: 27
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1333
+    line: 27
+    character: 9
+  end_position:
+    bytes: 1339
+    line: 27
+    character: 15
+  token_type:
+    type: Identifier
+    identifier: string
+- start_position:
+    bytes: 1339
+    line: 27
+    character: 15
+  end_position:
+    bytes: 1340
+    line: 27
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: "."
+- start_position:
+    bytes: 1340
+    line: 27
+    character: 16
+  end_position:
+    bytes: 1346
+    line: 27
+    character: 22
+  token_type:
+    type: Identifier
+    identifier: format
+- start_position:
+    bytes: 1346
+    line: 27
+    character: 22
+  end_position:
+    bytes: 1347
+    line: 27
+    character: 23
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1347
+    line: 27
+    character: 23
+  end_position:
+    bytes: 1357
+    line: 27
+    character: 33
+  token_type:
+    type: StringLiteral
+    literal: "%q ~= %q"
+    quote_type: Double
+- start_position:
+    bytes: 1357
+    line: 27
+    character: 33
+  end_position:
+    bytes: 1358
+    line: 27
+    character: 34
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1358
+    line: 27
+    character: 34
+  end_position:
+    bytes: 1359
+    line: 27
+    character: 35
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1359
+    line: 27
+    character: 35
+  end_position:
+    bytes: 1363
+    line: 27
+    character: 39
+  token_type:
+    type: Identifier
+    identifier: left
+- start_position:
+    bytes: 1363
+    line: 27
+    character: 39
+  end_position:
+    bytes: 1364
+    line: 27
+    character: 40
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1364
+    line: 27
+    character: 40
+  end_position:
+    bytes: 1365
+    line: 27
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1365
+    line: 27
+    character: 41
+  end_position:
+    bytes: 1370
+    line: 27
+    character: 46
+  token_type:
+    type: Identifier
+    identifier: right
+- start_position:
+    bytes: 1370
+    line: 27
+    character: 46
+  end_position:
+    bytes: 1371
+    line: 27
+    character: 47
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1371
+    line: 27
+    character: 47
+  end_position:
+    bytes: 1372
+    line: 27
+    character: 48
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1372
+    line: 27
+    character: 48
+  end_position:
+    bytes: 1373
+    line: 27
+    character: 48
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1373
+    line: 28
+    character: 1
+  end_position:
+    bytes: 1374
+    line: 28
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 1374
+    line: 28
+    character: 2
+  end_position:
+    bytes: 1377
+    line: 28
+    character: 5
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 1377
+    line: 28
+    character: 5
+  end_position:
+    bytes: 1378
+    line: 28
+    character: 5
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1378
+    line: 29
+    character: 1
+  end_position:
+    bytes: 1381
+    line: 29
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 1381
+    line: 29
+    character: 4
+  end_position:
+    bytes: 1382
+    line: 29
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1382
+    line: 30
+    character: 1
+  end_position:
+    bytes: 1383
+    line: 30
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1383
+    line: 31
+    character: 1
+  end_position:
+    bytes: 1391
+    line: 31
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1391
+    line: 31
+    character: 9
+  end_position:
+    bytes: 1392
+    line: 31
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1392
+    line: 31
+    character: 10
+  end_position:
+    bytes: 1400
+    line: 31
+    character: 18
+  token_type:
+    type: InterpolatedString
+    literal: "hello "
+    kind: Begin
+- start_position:
+    bytes: 1400
+    line: 31
+    character: 18
+  end_position:
+    bytes: 1407
+    line: 31
+    character: 25
+  token_type:
+    type: StringLiteral
+    literal: world
+    quote_type: Double
+- start_position:
+    bytes: 1407
+    line: 31
+    character: 25
+  end_position:
+    bytes: 1409
+    line: 31
+    character: 27
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 1409
+    line: 31
+    character: 27
+  end_position:
+    bytes: 1410
+    line: 31
+    character: 28
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1410
+    line: 31
+    character: 28
+  end_position:
+    bytes: 1411
+    line: 31
+    character: 29
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1411
+    line: 31
+    character: 29
+  end_position:
+    bytes: 1424
+    line: 31
+    character: 42
+  token_type:
+    type: StringLiteral
+    literal: hello world
+    quote_type: Double
+- start_position:
+    bytes: 1424
+    line: 31
+    character: 42
+  end_position:
+    bytes: 1425
+    line: 31
+    character: 43
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1425
+    line: 31
+    character: 43
+  end_position:
+    bytes: 1426
+    line: 31
+    character: 43
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1426
+    line: 32
+    character: 1
+  end_position:
+    bytes: 1434
+    line: 32
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1434
+    line: 32
+    character: 9
+  end_position:
+    bytes: 1435
+    line: 32
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1435
+    line: 32
+    character: 10
+  end_position:
+    bytes: 1445
+    line: 32
+    character: 20
+  token_type:
+    type: InterpolatedString
+    literal: "Welcome "
+    kind: Begin
+- start_position:
+    bytes: 1445
+    line: 32
+    character: 20
+  end_position:
+    bytes: 1449
+    line: 32
+    character: 24
+  token_type:
+    type: StringLiteral
+    literal: to
+    quote_type: Double
+- start_position:
+    bytes: 1449
+    line: 32
+    character: 24
+  end_position:
+    bytes: 1452
+    line: 32
+    character: 27
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1452
+    line: 32
+    character: 27
+  end_position:
+    bytes: 1458
+    line: 32
+    character: 33
+  token_type:
+    type: StringLiteral
+    literal: Luau
+    quote_type: Double
+- start_position:
+    bytes: 1458
+    line: 32
+    character: 33
+  end_position:
+    bytes: 1461
+    line: 32
+    character: 36
+  token_type:
+    type: InterpolatedString
+    literal: "!"
+    kind: End
+- start_position:
+    bytes: 1461
+    line: 32
+    character: 36
+  end_position:
+    bytes: 1462
+    line: 32
+    character: 37
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1462
+    line: 32
+    character: 37
+  end_position:
+    bytes: 1463
+    line: 32
+    character: 38
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1463
+    line: 32
+    character: 38
+  end_position:
+    bytes: 1481
+    line: 32
+    character: 56
+  token_type:
+    type: StringLiteral
+    literal: Welcome to Luau!
+    quote_type: Double
+- start_position:
+    bytes: 1481
+    line: 32
+    character: 56
+  end_position:
+    bytes: 1482
+    line: 32
+    character: 57
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1482
+    line: 32
+    character: 57
+  end_position:
+    bytes: 1483
+    line: 32
+    character: 57
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1483
+    line: 33
+    character: 1
+  end_position:
+    bytes: 1484
+    line: 33
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1484
+    line: 34
+    character: 1
+  end_position:
+    bytes: 1492
+    line: 34
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1492
+    line: 34
+    character: 9
+  end_position:
+    bytes: 1493
+    line: 34
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1493
+    line: 34
+    character: 10
+  end_position:
+    bytes: 1503
+    line: 34
+    character: 20
+  token_type:
+    type: InterpolatedString
+    literal: "2 + 2 = "
+    kind: Begin
+- start_position:
+    bytes: 1503
+    line: 34
+    character: 20
+  end_position:
+    bytes: 1504
+    line: 34
+    character: 21
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 1504
+    line: 34
+    character: 21
+  end_position:
+    bytes: 1505
+    line: 34
+    character: 22
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1505
+    line: 34
+    character: 22
+  end_position:
+    bytes: 1506
+    line: 34
+    character: 23
+  token_type:
+    type: Symbol
+    symbol: +
+- start_position:
+    bytes: 1506
+    line: 34
+    character: 23
+  end_position:
+    bytes: 1507
+    line: 34
+    character: 24
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1507
+    line: 34
+    character: 24
+  end_position:
+    bytes: 1508
+    line: 34
+    character: 25
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 1508
+    line: 34
+    character: 25
+  end_position:
+    bytes: 1510
+    line: 34
+    character: 27
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 1510
+    line: 34
+    character: 27
+  end_position:
+    bytes: 1511
+    line: 34
+    character: 28
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1511
+    line: 34
+    character: 28
+  end_position:
+    bytes: 1512
+    line: 34
+    character: 29
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1512
+    line: 34
+    character: 29
+  end_position:
+    bytes: 1523
+    line: 34
+    character: 40
+  token_type:
+    type: StringLiteral
+    literal: 2 + 2 = 4
+    quote_type: Double
+- start_position:
+    bytes: 1523
+    line: 34
+    character: 40
+  end_position:
+    bytes: 1524
+    line: 34
+    character: 41
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1524
+    line: 34
+    character: 41
+  end_position:
+    bytes: 1525
+    line: 34
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1525
+    line: 35
+    character: 1
+  end_position:
+    bytes: 1526
+    line: 35
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1526
+    line: 36
+    character: 1
+  end_position:
+    bytes: 1534
+    line: 36
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1534
+    line: 36
+    character: 9
+  end_position:
+    bytes: 1535
+    line: 36
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1535
+    line: 36
+    character: 10
+  end_position:
+    bytes: 1537
+    line: 36
+    character: 12
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: Begin
+- start_position:
+    bytes: 1537
+    line: 36
+    character: 12
+  end_position:
+    bytes: 1538
+    line: 36
+    character: 13
+  token_type:
+    type: Number
+    text: "1"
+- start_position:
+    bytes: 1538
+    line: 36
+    character: 13
+  end_position:
+    bytes: 1541
+    line: 36
+    character: 16
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1541
+    line: 36
+    character: 16
+  end_position:
+    bytes: 1542
+    line: 36
+    character: 17
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 1542
+    line: 36
+    character: 17
+  end_position:
+    bytes: 1545
+    line: 36
+    character: 20
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1545
+    line: 36
+    character: 20
+  end_position:
+    bytes: 1546
+    line: 36
+    character: 21
+  token_type:
+    type: Number
+    text: "3"
+- start_position:
+    bytes: 1546
+    line: 36
+    character: 21
+  end_position:
+    bytes: 1549
+    line: 36
+    character: 24
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1549
+    line: 36
+    character: 24
+  end_position:
+    bytes: 1550
+    line: 36
+    character: 25
+  token_type:
+    type: Number
+    text: "4"
+- start_position:
+    bytes: 1550
+    line: 36
+    character: 25
+  end_position:
+    bytes: 1553
+    line: 36
+    character: 28
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1553
+    line: 36
+    character: 28
+  end_position:
+    bytes: 1554
+    line: 36
+    character: 29
+  token_type:
+    type: Number
+    text: "5"
+- start_position:
+    bytes: 1554
+    line: 36
+    character: 29
+  end_position:
+    bytes: 1557
+    line: 36
+    character: 32
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1557
+    line: 36
+    character: 32
+  end_position:
+    bytes: 1558
+    line: 36
+    character: 33
+  token_type:
+    type: Number
+    text: "6"
+- start_position:
+    bytes: 1558
+    line: 36
+    character: 33
+  end_position:
+    bytes: 1561
+    line: 36
+    character: 36
+  token_type:
+    type: InterpolatedString
+    literal: " "
+    kind: Middle
+- start_position:
+    bytes: 1561
+    line: 36
+    character: 36
+  end_position:
+    bytes: 1562
+    line: 36
+    character: 37
+  token_type:
+    type: Number
+    text: "7"
+- start_position:
+    bytes: 1562
+    line: 36
+    character: 37
+  end_position:
+    bytes: 1564
+    line: 36
+    character: 39
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 1564
+    line: 36
+    character: 39
+  end_position:
+    bytes: 1565
+    line: 36
+    character: 40
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1565
+    line: 36
+    character: 40
+  end_position:
+    bytes: 1566
+    line: 36
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1566
+    line: 36
+    character: 41
+  end_position:
+    bytes: 1581
+    line: 36
+    character: 56
+  token_type:
+    type: StringLiteral
+    literal: 1 2 3 4 5 6 7
+    quote_type: Double
+- start_position:
+    bytes: 1581
+    line: 36
+    character: 56
+  end_position:
+    bytes: 1582
+    line: 36
+    character: 57
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1582
+    line: 36
+    character: 57
+  end_position:
+    bytes: 1583
+    line: 36
+    character: 57
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1583
+    line: 37
+    character: 1
+  end_position:
+    bytes: 1584
+    line: 37
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1584
+    line: 38
+    character: 1
+  end_position:
+    bytes: 1589
+    line: 38
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 1589
+    line: 38
+    character: 6
+  end_position:
+    bytes: 1590
+    line: 38
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1590
+    line: 38
+    character: 7
+  end_position:
+    bytes: 1595
+    line: 38
+    character: 12
+  token_type:
+    type: Identifier
+    identifier: combo
+- start_position:
+    bytes: 1595
+    line: 38
+    character: 12
+  end_position:
+    bytes: 1596
+    line: 38
+    character: 13
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1596
+    line: 38
+    character: 13
+  end_position:
+    bytes: 1597
+    line: 38
+    character: 14
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 1597
+    line: 38
+    character: 14
+  end_position:
+    bytes: 1598
+    line: 38
+    character: 15
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1598
+    line: 38
+    character: 15
+  end_position:
+    bytes: 1599
+    line: 38
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: "{"
+- start_position:
+    bytes: 1599
+    line: 38
+    character: 16
+  end_position:
+    bytes: 1600
+    line: 38
+    character: 17
+  token_type:
+    type: Number
+    text: "5"
+- start_position:
+    bytes: 1600
+    line: 38
+    character: 17
+  end_position:
+    bytes: 1601
+    line: 38
+    character: 18
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1601
+    line: 38
+    character: 18
+  end_position:
+    bytes: 1602
+    line: 38
+    character: 19
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1602
+    line: 38
+    character: 19
+  end_position:
+    bytes: 1603
+    line: 38
+    character: 20
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 1603
+    line: 38
+    character: 20
+  end_position:
+    bytes: 1604
+    line: 38
+    character: 21
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1604
+    line: 38
+    character: 21
+  end_position:
+    bytes: 1605
+    line: 38
+    character: 22
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1605
+    line: 38
+    character: 22
+  end_position:
+    bytes: 1606
+    line: 38
+    character: 23
+  token_type:
+    type: Number
+    text: "8"
+- start_position:
+    bytes: 1606
+    line: 38
+    character: 23
+  end_position:
+    bytes: 1607
+    line: 38
+    character: 24
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1607
+    line: 38
+    character: 24
+  end_position:
+    bytes: 1608
+    line: 38
+    character: 25
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1608
+    line: 38
+    character: 25
+  end_position:
+    bytes: 1609
+    line: 38
+    character: 26
+  token_type:
+    type: Number
+    text: "9"
+- start_position:
+    bytes: 1609
+    line: 38
+    character: 26
+  end_position:
+    bytes: 1610
+    line: 38
+    character: 27
+  token_type:
+    type: Symbol
+    symbol: "}"
+- start_position:
+    bytes: 1610
+    line: 38
+    character: 27
+  end_position:
+    bytes: 1611
+    line: 38
+    character: 27
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1611
+    line: 39
+    character: 1
+  end_position:
+    bytes: 1619
+    line: 39
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1619
+    line: 39
+    character: 9
+  end_position:
+    bytes: 1620
+    line: 39
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1620
+    line: 39
+    character: 10
+  end_position:
+    bytes: 1649
+    line: 39
+    character: 39
+  token_type:
+    type: InterpolatedString
+    literal: "The lock combinations are: "
+    kind: Begin
+- start_position:
+    bytes: 1649
+    line: 39
+    character: 39
+  end_position:
+    bytes: 1654
+    line: 39
+    character: 44
+  token_type:
+    type: Identifier
+    identifier: table
+- start_position:
+    bytes: 1654
+    line: 39
+    character: 44
+  end_position:
+    bytes: 1655
+    line: 39
+    character: 45
+  token_type:
+    type: Symbol
+    symbol: "."
+- start_position:
+    bytes: 1655
+    line: 39
+    character: 45
+  end_position:
+    bytes: 1661
+    line: 39
+    character: 51
+  token_type:
+    type: Identifier
+    identifier: concat
+- start_position:
+    bytes: 1661
+    line: 39
+    character: 51
+  end_position:
+    bytes: 1662
+    line: 39
+    character: 52
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1662
+    line: 39
+    character: 52
+  end_position:
+    bytes: 1667
+    line: 39
+    character: 57
+  token_type:
+    type: Identifier
+    identifier: combo
+- start_position:
+    bytes: 1667
+    line: 39
+    character: 57
+  end_position:
+    bytes: 1668
+    line: 39
+    character: 58
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1668
+    line: 39
+    character: 58
+  end_position:
+    bytes: 1669
+    line: 39
+    character: 59
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1669
+    line: 39
+    character: 59
+  end_position:
+    bytes: 1673
+    line: 39
+    character: 63
+  token_type:
+    type: StringLiteral
+    literal: ", "
+    quote_type: Double
+- start_position:
+    bytes: 1673
+    line: 39
+    character: 63
+  end_position:
+    bytes: 1674
+    line: 39
+    character: 64
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1674
+    line: 39
+    character: 64
+  end_position:
+    bytes: 1676
+    line: 39
+    character: 66
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 1676
+    line: 39
+    character: 66
+  end_position:
+    bytes: 1677
+    line: 39
+    character: 67
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1677
+    line: 39
+    character: 67
+  end_position:
+    bytes: 1678
+    line: 39
+    character: 68
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1678
+    line: 39
+    character: 68
+  end_position:
+    bytes: 1717
+    line: 39
+    character: 107
+  token_type:
+    type: StringLiteral
+    literal: "The lock combinations are: 5, 2, 8, 9"
+    quote_type: Double
+- start_position:
+    bytes: 1717
+    line: 39
+    character: 107
+  end_position:
+    bytes: 1718
+    line: 39
+    character: 108
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1718
+    line: 39
+    character: 108
+  end_position:
+    bytes: 1719
+    line: 39
+    character: 108
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1719
+    line: 40
+    character: 1
+  end_position:
+    bytes: 1720
+    line: 40
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1720
+    line: 41
+    character: 1
+  end_position:
+    bytes: 1728
+    line: 41
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1728
+    line: 41
+    character: 9
+  end_position:
+    bytes: 1729
+    line: 41
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1729
+    line: 41
+    character: 10
+  end_position:
+    bytes: 1738
+    line: 41
+    character: 19
+  token_type:
+    type: InterpolatedString
+    literal: "true = "
+    kind: Begin
+- start_position:
+    bytes: 1738
+    line: 41
+    character: 19
+  end_position:
+    bytes: 1742
+    line: 41
+    character: 23
+  token_type:
+    type: Symbol
+    symbol: "true"
+- start_position:
+    bytes: 1742
+    line: 41
+    character: 23
+  end_position:
+    bytes: 1744
+    line: 41
+    character: 25
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 1744
+    line: 41
+    character: 25
+  end_position:
+    bytes: 1745
+    line: 41
+    character: 26
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1745
+    line: 41
+    character: 26
+  end_position:
+    bytes: 1746
+    line: 41
+    character: 27
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1746
+    line: 41
+    character: 27
+  end_position:
+    bytes: 1759
+    line: 41
+    character: 40
+  token_type:
+    type: StringLiteral
+    literal: true = true
+    quote_type: Double
+- start_position:
+    bytes: 1759
+    line: 41
+    character: 40
+  end_position:
+    bytes: 1760
+    line: 41
+    character: 41
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1760
+    line: 41
+    character: 41
+  end_position:
+    bytes: 1761
+    line: 41
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1761
+    line: 42
+    character: 1
+  end_position:
+    bytes: 1762
+    line: 42
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1762
+    line: 43
+    character: 1
+  end_position:
+    bytes: 1767
+    line: 43
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 1767
+    line: 43
+    character: 6
+  end_position:
+    bytes: 1768
+    line: 43
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1768
+    line: 43
+    character: 7
+  end_position:
+    bytes: 1772
+    line: 43
+    character: 11
+  token_type:
+    type: Identifier
+    identifier: name
+- start_position:
+    bytes: 1772
+    line: 43
+    character: 11
+  end_position:
+    bytes: 1773
+    line: 43
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1773
+    line: 43
+    character: 12
+  end_position:
+    bytes: 1774
+    line: 43
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 1774
+    line: 43
+    character: 13
+  end_position:
+    bytes: 1775
+    line: 43
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1775
+    line: 43
+    character: 14
+  end_position:
+    bytes: 1781
+    line: 43
+    character: 20
+  token_type:
+    type: StringLiteral
+    literal: Luau
+    quote_type: Double
+- start_position:
+    bytes: 1781
+    line: 43
+    character: 20
+  end_position:
+    bytes: 1782
+    line: 43
+    character: 20
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1782
+    line: 44
+    character: 1
+  end_position:
+    bytes: 1790
+    line: 44
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1790
+    line: 44
+    character: 9
+  end_position:
+    bytes: 1791
+    line: 44
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1791
+    line: 44
+    character: 10
+  end_position:
+    bytes: 1804
+    line: 44
+    character: 23
+  token_type:
+    type: InterpolatedString
+    literal: "Welcome to "
+    kind: Begin
+- start_position:
+    bytes: 1804
+    line: 44
+    character: 23
+  end_position:
+    bytes: 1805
+    line: 44
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1805
+    line: 45
+    character: 1
+  end_position:
+    bytes: 1806
+    line: 45
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 1806
+    line: 45
+    character: 2
+  end_position:
+    bytes: 1810
+    line: 45
+    character: 6
+  token_type:
+    type: Identifier
+    identifier: name
+- start_position:
+    bytes: 1810
+    line: 45
+    character: 6
+  end_position:
+    bytes: 1811
+    line: 45
+    character: 6
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1811
+    line: 46
+    character: 1
+  end_position:
+    bytes: 1814
+    line: 46
+    character: 4
+  token_type:
+    type: InterpolatedString
+    literal: "!"
+    kind: End
+- start_position:
+    bytes: 1814
+    line: 46
+    character: 4
+  end_position:
+    bytes: 1815
+    line: 46
+    character: 5
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1815
+    line: 46
+    character: 5
+  end_position:
+    bytes: 1816
+    line: 46
+    character: 6
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1816
+    line: 46
+    character: 6
+  end_position:
+    bytes: 1834
+    line: 46
+    character: 24
+  token_type:
+    type: StringLiteral
+    literal: Welcome to Luau!
+    quote_type: Double
+- start_position:
+    bytes: 1834
+    line: 46
+    character: 24
+  end_position:
+    bytes: 1835
+    line: 46
+    character: 25
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1835
+    line: 46
+    character: 25
+  end_position:
+    bytes: 1836
+    line: 46
+    character: 25
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1836
+    line: 47
+    character: 1
+  end_position:
+    bytes: 1837
+    line: 47
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1837
+    line: 48
+    character: 1
+  end_position:
+    bytes: 1842
+    line: 48
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 1842
+    line: 48
+    character: 6
+  end_position:
+    bytes: 1843
+    line: 48
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1843
+    line: 48
+    character: 7
+  end_position:
+    bytes: 1867
+    line: 48
+    character: 31
+  token_type:
+    type: Identifier
+    identifier: nameNotConstantEvaluated
+- start_position:
+    bytes: 1867
+    line: 48
+    character: 31
+  end_position:
+    bytes: 1868
+    line: 48
+    character: 32
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1868
+    line: 48
+    character: 32
+  end_position:
+    bytes: 1869
+    line: 48
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 1869
+    line: 48
+    character: 33
+  end_position:
+    bytes: 1870
+    line: 48
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1870
+    line: 48
+    character: 34
+  end_position:
+    bytes: 1871
+    line: 48
+    character: 35
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1871
+    line: 48
+    character: 35
+  end_position:
+    bytes: 1879
+    line: 48
+    character: 43
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 1879
+    line: 48
+    character: 43
+  end_position:
+    bytes: 1880
+    line: 48
+    character: 44
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1880
+    line: 48
+    character: 44
+  end_position:
+    bytes: 1881
+    line: 48
+    character: 45
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1881
+    line: 48
+    character: 45
+  end_position:
+    bytes: 1882
+    line: 48
+    character: 46
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1882
+    line: 48
+    character: 46
+  end_position:
+    bytes: 1888
+    line: 48
+    character: 52
+  token_type:
+    type: Symbol
+    symbol: return
+- start_position:
+    bytes: 1888
+    line: 48
+    character: 52
+  end_position:
+    bytes: 1889
+    line: 48
+    character: 53
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1889
+    line: 48
+    character: 53
+  end_position:
+    bytes: 1895
+    line: 48
+    character: 59
+  token_type:
+    type: StringLiteral
+    literal: Luau
+    quote_type: Double
+- start_position:
+    bytes: 1895
+    line: 48
+    character: 59
+  end_position:
+    bytes: 1896
+    line: 48
+    character: 60
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1896
+    line: 48
+    character: 60
+  end_position:
+    bytes: 1899
+    line: 48
+    character: 63
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 1899
+    line: 48
+    character: 63
+  end_position:
+    bytes: 1900
+    line: 48
+    character: 64
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1900
+    line: 48
+    character: 64
+  end_position:
+    bytes: 1901
+    line: 48
+    character: 65
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1901
+    line: 48
+    character: 65
+  end_position:
+    bytes: 1902
+    line: 48
+    character: 66
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1902
+    line: 48
+    character: 66
+  end_position:
+    bytes: 1903
+    line: 48
+    character: 66
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1903
+    line: 49
+    character: 1
+  end_position:
+    bytes: 1911
+    line: 49
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1911
+    line: 49
+    character: 9
+  end_position:
+    bytes: 1912
+    line: 49
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1912
+    line: 49
+    character: 10
+  end_position:
+    bytes: 1925
+    line: 49
+    character: 23
+  token_type:
+    type: InterpolatedString
+    literal: "Welcome to "
+    kind: Begin
+- start_position:
+    bytes: 1925
+    line: 49
+    character: 23
+  end_position:
+    bytes: 1949
+    line: 49
+    character: 47
+  token_type:
+    type: Identifier
+    identifier: nameNotConstantEvaluated
+- start_position:
+    bytes: 1949
+    line: 49
+    character: 47
+  end_position:
+    bytes: 1952
+    line: 49
+    character: 50
+  token_type:
+    type: InterpolatedString
+    literal: "!"
+    kind: End
+- start_position:
+    bytes: 1952
+    line: 49
+    character: 50
+  end_position:
+    bytes: 1953
+    line: 49
+    character: 51
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 1953
+    line: 49
+    character: 51
+  end_position:
+    bytes: 1954
+    line: 49
+    character: 52
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 1954
+    line: 49
+    character: 52
+  end_position:
+    bytes: 1972
+    line: 49
+    character: 70
+  token_type:
+    type: StringLiteral
+    literal: Welcome to Luau!
+    quote_type: Double
+- start_position:
+    bytes: 1972
+    line: 49
+    character: 70
+  end_position:
+    bytes: 1973
+    line: 49
+    character: 71
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 1973
+    line: 49
+    character: 71
+  end_position:
+    bytes: 1974
+    line: 49
+    character: 71
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1974
+    line: 50
+    character: 1
+  end_position:
+    bytes: 1975
+    line: 50
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 1975
+    line: 51
+    character: 1
+  end_position:
+    bytes: 1983
+    line: 51
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 1983
+    line: 51
+    character: 9
+  end_position:
+    bytes: 1984
+    line: 51
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 1984
+    line: 51
+    character: 10
+  end_position:
+    bytes: 1991
+    line: 51
+    character: 17
+  token_type:
+    type: InterpolatedString
+    literal: "This "
+    kind: Begin
+- start_position:
+    bytes: 1991
+    line: 51
+    character: 17
+  end_position:
+    bytes: 2000
+    line: 51
+    character: 26
+  token_type:
+    type: Identifier
+    identifier: localName
+- start_position:
+    bytes: 2000
+    line: 51
+    character: 26
+  end_position:
+    bytes: 2017
+    line: 51
+    character: 43
+  token_type:
+    type: InterpolatedString
+    literal: " does not exist"
+    kind: End
+- start_position:
+    bytes: 2017
+    line: 51
+    character: 43
+  end_position:
+    bytes: 2018
+    line: 51
+    character: 44
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2018
+    line: 51
+    character: 44
+  end_position:
+    bytes: 2019
+    line: 51
+    character: 45
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2019
+    line: 51
+    character: 45
+  end_position:
+    bytes: 2044
+    line: 51
+    character: 70
+  token_type:
+    type: StringLiteral
+    literal: This nil does not exist
+    quote_type: Double
+- start_position:
+    bytes: 2044
+    line: 51
+    character: 70
+  end_position:
+    bytes: 2045
+    line: 51
+    character: 71
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2045
+    line: 51
+    character: 71
+  end_position:
+    bytes: 2046
+    line: 51
+    character: 71
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2046
+    line: 52
+    character: 1
+  end_position:
+    bytes: 2047
+    line: 52
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2047
+    line: 53
+    character: 1
+  end_position:
+    bytes: 2055
+    line: 53
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2055
+    line: 53
+    character: 9
+  end_position:
+    bytes: 2056
+    line: 53
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2056
+    line: 53
+    character: 10
+  end_position:
+    bytes: 2071
+    line: 53
+    character: 25
+  token_type:
+    type: InterpolatedString
+    literal: "Welcome to \\\n"
+    kind: Begin
+- start_position:
+    bytes: 2071
+    line: 53
+    character: 25
+  end_position:
+    bytes: 2075
+    line: 53
+    character: 29
+  token_type:
+    type: Identifier
+    identifier: name
+- start_position:
+    bytes: 2075
+    line: 53
+    character: 29
+  end_position:
+    bytes: 2078
+    line: 53
+    character: 32
+  token_type:
+    type: InterpolatedString
+    literal: "!"
+    kind: End
+- start_position:
+    bytes: 2078
+    line: 53
+    character: 32
+  end_position:
+    bytes: 2079
+    line: 53
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2079
+    line: 53
+    character: 33
+  end_position:
+    bytes: 2080
+    line: 53
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2080
+    line: 53
+    character: 34
+  end_position:
+    bytes: 2100
+    line: 53
+    character: 54
+  token_type:
+    type: StringLiteral
+    literal: "Welcome to \\nLuau!"
+    quote_type: Double
+- start_position:
+    bytes: 2100
+    line: 53
+    character: 54
+  end_position:
+    bytes: 2101
+    line: 53
+    character: 55
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2101
+    line: 53
+    character: 55
+  end_position:
+    bytes: 2102
+    line: 53
+    character: 55
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2102
+    line: 54
+    character: 1
+  end_position:
+    bytes: 2103
+    line: 54
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2103
+    line: 55
+    character: 1
+  end_position:
+    bytes: 2111
+    line: 55
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2111
+    line: 55
+    character: 9
+  end_position:
+    bytes: 2112
+    line: 55
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2112
+    line: 55
+    character: 10
+  end_position:
+    bytes: 2119
+    line: 55
+    character: 17
+  token_type:
+    type: InterpolatedString
+    literal: empty
+    kind: Simple
+- start_position:
+    bytes: 2119
+    line: 55
+    character: 17
+  end_position:
+    bytes: 2120
+    line: 55
+    character: 18
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2120
+    line: 55
+    character: 18
+  end_position:
+    bytes: 2121
+    line: 55
+    character: 19
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2121
+    line: 55
+    character: 19
+  end_position:
+    bytes: 2128
+    line: 55
+    character: 26
+  token_type:
+    type: StringLiteral
+    literal: empty
+    quote_type: Double
+- start_position:
+    bytes: 2128
+    line: 55
+    character: 26
+  end_position:
+    bytes: 2129
+    line: 55
+    character: 27
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2129
+    line: 55
+    character: 27
+  end_position:
+    bytes: 2130
+    line: 55
+    character: 27
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2130
+    line: 56
+    character: 1
+  end_position:
+    bytes: 2131
+    line: 56
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2131
+    line: 57
+    character: 1
+  end_position:
+    bytes: 2139
+    line: 57
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2139
+    line: 57
+    character: 9
+  end_position:
+    bytes: 2140
+    line: 57
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2140
+    line: 57
+    character: 10
+  end_position:
+    bytes: 2160
+    line: 57
+    character: 30
+  token_type:
+    type: InterpolatedString
+    literal: "Escaped brace: \\{}"
+    kind: Simple
+- start_position:
+    bytes: 2160
+    line: 57
+    character: 30
+  end_position:
+    bytes: 2161
+    line: 57
+    character: 31
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2161
+    line: 57
+    character: 31
+  end_position:
+    bytes: 2162
+    line: 57
+    character: 32
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2162
+    line: 57
+    character: 32
+  end_position:
+    bytes: 2181
+    line: 57
+    character: 51
+  token_type:
+    type: StringLiteral
+    literal: "Escaped brace: {}"
+    quote_type: Double
+- start_position:
+    bytes: 2181
+    line: 57
+    character: 51
+  end_position:
+    bytes: 2182
+    line: 57
+    character: 52
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2182
+    line: 57
+    character: 52
+  end_position:
+    bytes: 2183
+    line: 57
+    character: 52
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2183
+    line: 58
+    character: 1
+  end_position:
+    bytes: 2191
+    line: 58
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2191
+    line: 58
+    character: 9
+  end_position:
+    bytes: 2192
+    line: 58
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2192
+    line: 58
+    character: 10
+  end_position:
+    bytes: 2217
+    line: 58
+    character: 35
+  token_type:
+    type: InterpolatedString
+    literal: "Escaped brace \\{} with "
+    kind: Begin
+- start_position:
+    bytes: 2217
+    line: 58
+    character: 35
+  end_position:
+    bytes: 2229
+    line: 58
+    character: 47
+  token_type:
+    type: StringLiteral
+    literal: expression
+    quote_type: Double
+- start_position:
+    bytes: 2229
+    line: 58
+    character: 47
+  end_position:
+    bytes: 2231
+    line: 58
+    character: 49
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2231
+    line: 58
+    character: 49
+  end_position:
+    bytes: 2232
+    line: 58
+    character: 50
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2232
+    line: 58
+    character: 50
+  end_position:
+    bytes: 2233
+    line: 58
+    character: 51
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2233
+    line: 58
+    character: 51
+  end_position:
+    bytes: 2267
+    line: 58
+    character: 85
+  token_type:
+    type: StringLiteral
+    literal: "Escaped brace {} with expression"
+    quote_type: Double
+- start_position:
+    bytes: 2267
+    line: 58
+    character: 85
+  end_position:
+    bytes: 2268
+    line: 58
+    character: 86
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2268
+    line: 58
+    character: 86
+  end_position:
+    bytes: 2269
+    line: 58
+    character: 86
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2269
+    line: 59
+    character: 1
+  end_position:
+    bytes: 2277
+    line: 59
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2277
+    line: 59
+    character: 9
+  end_position:
+    bytes: 2278
+    line: 59
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2278
+    line: 59
+    character: 10
+  end_position:
+    bytes: 2345
+    line: 59
+    character: 77
+  token_type:
+    type: InterpolatedString
+    literal: "Backslash \\ that escapes the space is not a part of the string..."
+    kind: Simple
+- start_position:
+    bytes: 2345
+    line: 59
+    character: 77
+  end_position:
+    bytes: 2346
+    line: 59
+    character: 78
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2346
+    line: 59
+    character: 78
+  end_position:
+    bytes: 2347
+    line: 59
+    character: 79
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2347
+    line: 59
+    character: 79
+  end_position:
+    bytes: 2413
+    line: 59
+    character: 145
+  token_type:
+    type: StringLiteral
+    literal: Backslash  that escapes the space is not a part of the string...
+    quote_type: Double
+- start_position:
+    bytes: 2413
+    line: 59
+    character: 145
+  end_position:
+    bytes: 2414
+    line: 59
+    character: 146
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2414
+    line: 59
+    character: 146
+  end_position:
+    bytes: 2415
+    line: 59
+    character: 146
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2415
+    line: 60
+    character: 1
+  end_position:
+    bytes: 2423
+    line: 60
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2423
+    line: 60
+    character: 9
+  end_position:
+    bytes: 2424
+    line: 60
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2424
+    line: 60
+    character: 10
+  end_position:
+    bytes: 2446
+    line: 60
+    character: 32
+  token_type:
+    type: InterpolatedString
+    literal: "Escaped backslash \\\\"
+    kind: Simple
+- start_position:
+    bytes: 2446
+    line: 60
+    character: 32
+  end_position:
+    bytes: 2447
+    line: 60
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2447
+    line: 60
+    character: 33
+  end_position:
+    bytes: 2448
+    line: 60
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2448
+    line: 60
+    character: 34
+  end_position:
+    bytes: 2470
+    line: 60
+    character: 56
+  token_type:
+    type: StringLiteral
+    literal: "Escaped backslash \\\\"
+    quote_type: Double
+- start_position:
+    bytes: 2470
+    line: 60
+    character: 56
+  end_position:
+    bytes: 2471
+    line: 60
+    character: 57
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2471
+    line: 60
+    character: 57
+  end_position:
+    bytes: 2472
+    line: 60
+    character: 57
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2472
+    line: 61
+    character: 1
+  end_position:
+    bytes: 2480
+    line: 61
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2480
+    line: 61
+    character: 9
+  end_position:
+    bytes: 2481
+    line: 61
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2481
+    line: 61
+    character: 10
+  end_position:
+    bytes: 2503
+    line: 61
+    character: 32
+  token_type:
+    type: InterpolatedString
+    literal: "Escaped backtick: \\`"
+    kind: Simple
+- start_position:
+    bytes: 2503
+    line: 61
+    character: 32
+  end_position:
+    bytes: 2504
+    line: 61
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2504
+    line: 61
+    character: 33
+  end_position:
+    bytes: 2505
+    line: 61
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2505
+    line: 61
+    character: 34
+  end_position:
+    bytes: 2526
+    line: 61
+    character: 55
+  token_type:
+    type: StringLiteral
+    literal: "Escaped backtick: `"
+    quote_type: Double
+- start_position:
+    bytes: 2526
+    line: 61
+    character: 55
+  end_position:
+    bytes: 2527
+    line: 61
+    character: 56
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2527
+    line: 61
+    character: 56
+  end_position:
+    bytes: 2528
+    line: 61
+    character: 56
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2528
+    line: 62
+    character: 1
+  end_position:
+    bytes: 2529
+    line: 62
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2529
+    line: 63
+    character: 1
+  end_position:
+    bytes: 2537
+    line: 63
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2537
+    line: 63
+    character: 9
+  end_position:
+    bytes: 2538
+    line: 63
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2538
+    line: 63
+    character: 10
+  end_position:
+    bytes: 2546
+    line: 63
+    character: 18
+  token_type:
+    type: InterpolatedString
+    literal: "Hello "
+    kind: Begin
+- start_position:
+    bytes: 2546
+    line: 63
+    character: 18
+  end_position:
+    bytes: 2560
+    line: 63
+    character: 32
+  token_type:
+    type: InterpolatedString
+    literal: "from inside "
+    kind: Begin
+- start_position:
+    bytes: 2560
+    line: 63
+    character: 32
+  end_position:
+    bytes: 2577
+    line: 63
+    character: 49
+  token_type:
+    type: StringLiteral
+    literal: a nested string
+    quote_type: Double
+- start_position:
+    bytes: 2577
+    line: 63
+    character: 49
+  end_position:
+    bytes: 2579
+    line: 63
+    character: 51
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2579
+    line: 63
+    character: 51
+  end_position:
+    bytes: 2581
+    line: 63
+    character: 53
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2581
+    line: 63
+    character: 53
+  end_position:
+    bytes: 2582
+    line: 63
+    character: 54
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2582
+    line: 63
+    character: 54
+  end_position:
+    bytes: 2583
+    line: 63
+    character: 55
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2583
+    line: 63
+    character: 55
+  end_position:
+    bytes: 2618
+    line: 63
+    character: 90
+  token_type:
+    type: StringLiteral
+    literal: Hello from inside a nested string
+    quote_type: Double
+- start_position:
+    bytes: 2618
+    line: 63
+    character: 90
+  end_position:
+    bytes: 2619
+    line: 63
+    character: 91
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2619
+    line: 63
+    character: 91
+  end_position:
+    bytes: 2620
+    line: 63
+    character: 91
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2620
+    line: 64
+    character: 1
+  end_position:
+    bytes: 2621
+    line: 64
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2621
+    line: 65
+    character: 1
+  end_position:
+    bytes: 2629
+    line: 65
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2629
+    line: 65
+    character: 9
+  end_position:
+    bytes: 2630
+    line: 65
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2630
+    line: 65
+    character: 10
+  end_position:
+    bytes: 2634
+    line: 65
+    character: 14
+  token_type:
+    type: InterpolatedString
+    literal: "1 "
+    kind: Begin
+- start_position:
+    bytes: 2634
+    line: 65
+    character: 14
+  end_position:
+    bytes: 2638
+    line: 65
+    character: 18
+  token_type:
+    type: InterpolatedString
+    literal: "2 "
+    kind: Begin
+- start_position:
+    bytes: 2638
+    line: 65
+    character: 18
+  end_position:
+    bytes: 2642
+    line: 65
+    character: 22
+  token_type:
+    type: InterpolatedString
+    literal: "3 "
+    kind: Begin
+- start_position:
+    bytes: 2642
+    line: 65
+    character: 22
+  end_position:
+    bytes: 2643
+    line: 65
+    character: 23
+  token_type:
+    type: Number
+    text: "4"
+- start_position:
+    bytes: 2643
+    line: 65
+    character: 23
+  end_position:
+    bytes: 2645
+    line: 65
+    character: 25
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2645
+    line: 65
+    character: 25
+  end_position:
+    bytes: 2647
+    line: 65
+    character: 27
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2647
+    line: 65
+    character: 27
+  end_position:
+    bytes: 2649
+    line: 65
+    character: 29
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2649
+    line: 65
+    character: 29
+  end_position:
+    bytes: 2650
+    line: 65
+    character: 30
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2650
+    line: 65
+    character: 30
+  end_position:
+    bytes: 2651
+    line: 65
+    character: 31
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2651
+    line: 65
+    character: 31
+  end_position:
+    bytes: 2660
+    line: 65
+    character: 40
+  token_type:
+    type: StringLiteral
+    literal: 1 2 3 4
+    quote_type: Double
+- start_position:
+    bytes: 2660
+    line: 65
+    character: 40
+  end_position:
+    bytes: 2661
+    line: 65
+    character: 41
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2661
+    line: 65
+    character: 41
+  end_position:
+    bytes: 2662
+    line: 65
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2662
+    line: 66
+    character: 1
+  end_position:
+    bytes: 2663
+    line: 66
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2663
+    line: 67
+    character: 1
+  end_position:
+    bytes: 2668
+    line: 67
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 2668
+    line: 67
+    character: 6
+  end_position:
+    bytes: 2669
+    line: 67
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2669
+    line: 67
+    character: 7
+  end_position:
+    bytes: 2675
+    line: 67
+    character: 13
+  token_type:
+    type: Identifier
+    identifier: health
+- start_position:
+    bytes: 2675
+    line: 67
+    character: 13
+  end_position:
+    bytes: 2676
+    line: 67
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2676
+    line: 67
+    character: 14
+  end_position:
+    bytes: 2677
+    line: 67
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 2677
+    line: 67
+    character: 15
+  end_position:
+    bytes: 2678
+    line: 67
+    character: 16
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2678
+    line: 67
+    character: 16
+  end_position:
+    bytes: 2680
+    line: 67
+    character: 18
+  token_type:
+    type: Number
+    text: "50"
+- start_position:
+    bytes: 2680
+    line: 67
+    character: 18
+  end_position:
+    bytes: 2681
+    line: 67
+    character: 18
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2681
+    line: 68
+    character: 1
+  end_position:
+    bytes: 2687
+    line: 68
+    character: 7
+  token_type:
+    type: Identifier
+    identifier: assert
+- start_position:
+    bytes: 2687
+    line: 68
+    character: 7
+  end_position:
+    bytes: 2688
+    line: 68
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2688
+    line: 68
+    character: 8
+  end_position:
+    bytes: 2699
+    line: 68
+    character: 19
+  token_type:
+    type: InterpolatedString
+    literal: "You have "
+    kind: Begin
+- start_position:
+    bytes: 2699
+    line: 68
+    character: 19
+  end_position:
+    bytes: 2705
+    line: 68
+    character: 25
+  token_type:
+    type: Identifier
+    identifier: health
+- start_position:
+    bytes: 2705
+    line: 68
+    character: 25
+  end_position:
+    bytes: 2715
+    line: 68
+    character: 35
+  token_type:
+    type: InterpolatedString
+    literal: "% health"
+    kind: End
+- start_position:
+    bytes: 2715
+    line: 68
+    character: 35
+  end_position:
+    bytes: 2716
+    line: 68
+    character: 36
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2716
+    line: 68
+    character: 36
+  end_position:
+    bytes: 2718
+    line: 68
+    character: 38
+  token_type:
+    type: Symbol
+    symbol: "=="
+- start_position:
+    bytes: 2718
+    line: 68
+    character: 38
+  end_position:
+    bytes: 2719
+    line: 68
+    character: 39
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2719
+    line: 68
+    character: 39
+  end_position:
+    bytes: 2740
+    line: 68
+    character: 60
+  token_type:
+    type: StringLiteral
+    literal: You have 50% health
+    quote_type: Double
+- start_position:
+    bytes: 2740
+    line: 68
+    character: 60
+  end_position:
+    bytes: 2741
+    line: 68
+    character: 61
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2741
+    line: 68
+    character: 61
+  end_position:
+    bytes: 2742
+    line: 68
+    character: 61
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2742
+    line: 69
+    character: 1
+  end_position:
+    bytes: 2743
+    line: 69
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2743
+    line: 70
+    character: 1
+  end_position:
+    bytes: 2748
+    line: 70
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 2748
+    line: 70
+    character: 6
+  end_position:
+    bytes: 2749
+    line: 70
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2749
+    line: 70
+    character: 7
+  end_position:
+    bytes: 2757
+    line: 70
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 2757
+    line: 70
+    character: 15
+  end_position:
+    bytes: 2758
+    line: 70
+    character: 16
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2758
+    line: 70
+    character: 16
+  end_position:
+    bytes: 2771
+    line: 70
+    character: 29
+  token_type:
+    type: Identifier
+    identifier: shadowsString
+- start_position:
+    bytes: 2771
+    line: 70
+    character: 29
+  end_position:
+    bytes: 2772
+    line: 70
+    character: 30
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2772
+    line: 70
+    character: 30
+  end_position:
+    bytes: 2778
+    line: 70
+    character: 36
+  token_type:
+    type: Identifier
+    identifier: string
+- start_position:
+    bytes: 2778
+    line: 70
+    character: 36
+  end_position:
+    bytes: 2779
+    line: 70
+    character: 37
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2779
+    line: 70
+    character: 37
+  end_position:
+    bytes: 2780
+    line: 70
+    character: 37
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2780
+    line: 71
+    character: 1
+  end_position:
+    bytes: 2781
+    line: 71
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 2781
+    line: 71
+    character: 2
+  end_position:
+    bytes: 2787
+    line: 71
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: return
+- start_position:
+    bytes: 2787
+    line: 71
+    character: 8
+  end_position:
+    bytes: 2788
+    line: 71
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2788
+    line: 71
+    character: 9
+  end_position:
+    bytes: 2799
+    line: 71
+    character: 20
+  token_type:
+    type: InterpolatedString
+    literal: "Value is "
+    kind: Begin
+- start_position:
+    bytes: 2799
+    line: 71
+    character: 20
+  end_position:
+    bytes: 2805
+    line: 71
+    character: 26
+  token_type:
+    type: Identifier
+    identifier: string
+- start_position:
+    bytes: 2805
+    line: 71
+    character: 26
+  end_position:
+    bytes: 2807
+    line: 71
+    character: 28
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 2807
+    line: 71
+    character: 28
+  end_position:
+    bytes: 2808
+    line: 71
+    character: 28
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2808
+    line: 72
+    character: 1
+  end_position:
+    bytes: 2811
+    line: 72
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 2811
+    line: 72
+    character: 4
+  end_position:
+    bytes: 2812
+    line: 72
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2812
+    line: 73
+    character: 1
+  end_position:
+    bytes: 2813
+    line: 73
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2813
+    line: 74
+    character: 1
+  end_position:
+    bytes: 2821
+    line: 74
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2821
+    line: 74
+    character: 9
+  end_position:
+    bytes: 2822
+    line: 74
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2822
+    line: 74
+    character: 10
+  end_position:
+    bytes: 2835
+    line: 74
+    character: 23
+  token_type:
+    type: Identifier
+    identifier: shadowsString
+- start_position:
+    bytes: 2835
+    line: 74
+    character: 23
+  end_position:
+    bytes: 2836
+    line: 74
+    character: 24
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2836
+    line: 74
+    character: 24
+  end_position:
+    bytes: 2843
+    line: 74
+    character: 31
+  token_type:
+    type: StringLiteral
+    literal: hello
+    quote_type: Double
+- start_position:
+    bytes: 2843
+    line: 74
+    character: 31
+  end_position:
+    bytes: 2844
+    line: 74
+    character: 32
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2844
+    line: 74
+    character: 32
+  end_position:
+    bytes: 2845
+    line: 74
+    character: 33
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2845
+    line: 74
+    character: 33
+  end_position:
+    bytes: 2846
+    line: 74
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2846
+    line: 74
+    character: 34
+  end_position:
+    bytes: 2862
+    line: 74
+    character: 50
+  token_type:
+    type: StringLiteral
+    literal: Value is hello
+    quote_type: Double
+- start_position:
+    bytes: 2862
+    line: 74
+    character: 50
+  end_position:
+    bytes: 2863
+    line: 74
+    character: 51
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2863
+    line: 74
+    character: 51
+  end_position:
+    bytes: 2864
+    line: 74
+    character: 51
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2864
+    line: 75
+    character: 1
+  end_position:
+    bytes: 2872
+    line: 75
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: assertEq
+- start_position:
+    bytes: 2872
+    line: 75
+    character: 9
+  end_position:
+    bytes: 2873
+    line: 75
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2873
+    line: 75
+    character: 10
+  end_position:
+    bytes: 2886
+    line: 75
+    character: 23
+  token_type:
+    type: Identifier
+    identifier: shadowsString
+- start_position:
+    bytes: 2886
+    line: 75
+    character: 23
+  end_position:
+    bytes: 2887
+    line: 75
+    character: 24
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2887
+    line: 75
+    character: 24
+  end_position:
+    bytes: 2888
+    line: 75
+    character: 25
+  token_type:
+    type: Number
+    text: "1"
+- start_position:
+    bytes: 2888
+    line: 75
+    character: 25
+  end_position:
+    bytes: 2889
+    line: 75
+    character: 26
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2889
+    line: 75
+    character: 26
+  end_position:
+    bytes: 2890
+    line: 75
+    character: 27
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 2890
+    line: 75
+    character: 27
+  end_position:
+    bytes: 2891
+    line: 75
+    character: 28
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2891
+    line: 75
+    character: 28
+  end_position:
+    bytes: 2903
+    line: 75
+    character: 40
+  token_type:
+    type: StringLiteral
+    literal: Value is 1
+    quote_type: Double
+- start_position:
+    bytes: 2903
+    line: 75
+    character: 40
+  end_position:
+    bytes: 2904
+    line: 75
+    character: 41
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 2904
+    line: 75
+    character: 41
+  end_position:
+    bytes: 2905
+    line: 75
+    character: 41
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2905
+    line: 76
+    character: 1
+  end_position:
+    bytes: 2906
+    line: 76
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2906
+    line: 77
+    character: 1
+  end_position:
+    bytes: 2915
+    line: 77
+    character: 10
+  token_type:
+    type: SingleLineComment
+    comment: " SITODO"
+- start_position:
+    bytes: 2915
+    line: 77
+    character: 10
+  end_position:
+    bytes: 2916
+    line: 77
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2916
+    line: 78
+    character: 1
+  end_position:
+    bytes: 2948
+    line: 78
+    character: 33
+  token_type:
+    type: SingleLineComment
+    comment: " assertEq(`\\u{0041}\\t`, \"A\\t\")"
+- start_position:
+    bytes: 2948
+    line: 78
+    character: 33
+  end_position:
+    bytes: 2949
+    line: 78
+    character: 33
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2949
+    line: 79
+    character: 1
+  end_position:
+    bytes: 2950
+    line: 79
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2950
+    line: 80
+    character: 1
+  end_position:
+    bytes: 2956
+    line: 80
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: return
+- start_position:
+    bytes: 2956
+    line: 80
+    character: 7
+  end_position:
+    bytes: 2957
+    line: 80
+    character: 8
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 2957
+    line: 80
+    character: 8
+  end_position:
+    bytes: 2961
+    line: 80
+    character: 12
+  token_type:
+    type: StringLiteral
+    literal: OK
+    quote_type: Double
+- start_position:
+    bytes: 2961
+    line: 80
+    character: 12
+  end_position:
+    bytes: 2962
+    line: 80
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 2962
+    line: 81
+    character: 1
+  end_position:
+    bytes: 2962
+    line: 81
+    character: 1
+  token_type:
+    type: Eof
+

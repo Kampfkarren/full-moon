@@ -1,5 +1,5 @@
 use crate::{
-    atom::{trim_bracket_head, Atom},
+    atom::{trim_bracket_head, Atom, InterpolatedStringBegin, InterpolatedStringSection},
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -12,6 +12,8 @@ use std::{
     convert::{TryFrom, TryInto},
     fmt::{self, Display},
 };
+
+pub use crate::tokenizer_luau::InterpolatedStringKind;
 
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
@@ -254,7 +256,7 @@ impl TryFrom<Atom> for Symbol {
             #[cfg(feature = "roblox")]
             Atom::QuestionMark => Symbol::QuestionMark,
             Atom::Plus => Symbol::Plus,
-            Atom::RightBrace => Symbol::RightBrace,
+            Atom::RightBrace(None) => Symbol::RightBrace,
             Atom::RightBracket => Symbol::RightBracket,
             Atom::RightParen => Symbol::RightParen,
             Atom::Semicolon => Symbol::Semicolon,
@@ -455,6 +457,17 @@ pub enum TokenType {
         /// Characters consisting of the whitespace
         characters: ShortString,
     },
+
+    /// Some form of interpolated string
+    #[cfg(feature = "roblox")]
+    InterpolatedString {
+        /// The literal itself, ignoring backticks
+        literal: ShortString,
+
+        /// The kind of interpolated string.
+        /// If it is the beginning, middle, end, or a standalone string.
+        kind: InterpolatedStringKind,
+    },
 }
 
 impl TokenType {
@@ -513,6 +526,9 @@ impl TokenType {
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
+
+            #[cfg(feature = "roblox")]
+            TokenType::InterpolatedString { .. } => TokenKind::InterpolatedString,
         }
     }
 
@@ -553,6 +569,10 @@ pub enum TokenKind {
     Symbol,
     /// Whitespace, such as tabs or new lines
     Whitespace,
+
+    #[cfg(feature = "roblox")]
+    /// Some form of interpolated string
+    InterpolatedString,
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
@@ -623,6 +643,14 @@ impl fmt::Display for Token {
             }
             Symbol { symbol } => symbol.fmt(formatter),
             Whitespace { characters } => characters.fmt(formatter),
+
+            #[cfg(feature = "roblox")]
+            InterpolatedString { literal, kind } => {
+                write!(
+                    formatter,
+                    "SITODO: Interpolated string -- {kind:?} / {literal:?}"
+                )
+            }
         }
     }
 }
@@ -663,6 +691,11 @@ impl Visit for Token {
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
             TokenKind::Whitespace => visitor.visit_whitespace(self),
+
+            #[cfg(feature = "roblox")]
+            TokenKind::InterpolatedString => {
+                // SITODO: visit interpolated string
+            }
         }
     }
 }
@@ -681,6 +714,12 @@ impl VisitMut for Token {
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
             TokenKind::Whitespace => visitor.visit_whitespace(token),
+
+            #[cfg(feature = "roblox")]
+            TokenKind::InterpolatedString => {
+                // SITODO: visit interpolated string
+                token
+            }
         }
     }
 }
@@ -992,11 +1031,41 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
 
         Atom::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
 
+        #[cfg(feature = "roblox")]
+        Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple)
+        | Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted)
+        | Atom::RightBrace(Some(InterpolatedStringSection::Middle))
+        | Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
+            Ok(TokenType::InterpolatedString {
+                literal: ShortString::new(&slice[1..slice.len() - 1]),
+                kind: match token {
+                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple) => {
+                        InterpolatedStringKind::Simple
+                    }
+
+                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted) => {
+                        InterpolatedStringKind::Begin
+                    }
+
+                    Atom::RightBrace(Some(InterpolatedStringSection::Middle)) => {
+                        InterpolatedStringKind::Middle
+                    }
+
+                    Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
+                        InterpolatedStringKind::End
+                    }
+
+                    _ => unreachable!(),
+                },
+            })
+        }
+
         Atom::Unknown => {
             let first = slice.chars().next().unwrap();
             let what = match first {
                 '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
                 '-' => TokenizerErrorType::UnclosedComment,
+                // SITODO: Interpolated string errors
                 other => TokenizerErrorType::UnexpectedToken(other),
             };
 
