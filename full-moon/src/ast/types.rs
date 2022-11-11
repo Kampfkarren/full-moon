@@ -1,6 +1,12 @@
 //! Contains the types necessary to parse [Luau](https://luau-lang.org/).
+//! The module name is a misnomer from when Luau was just types.
+//! It will be renamed to "luau" in the future.
 use super::{punctuated::Punctuated, span::ContainedSpan, *};
-use crate::{util::display_option, ShortString};
+use crate::{
+    util::display_option,
+    visitors::{Visit, VisitMut},
+    ShortString,
+};
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
@@ -952,5 +958,41 @@ impl ElseIfExpression {
     /// Returns a new ElseIfExpression with the given expression
     pub fn with_block(self, expression: Expression) -> Self {
         Self { expression, ..self }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+// SITODO: We need to expose the backtick position somehow? Even if no TokenReference for it
+pub struct InterpolatedString {
+    pub(crate) segments: Vec<InterpolatedStringSegment>,
+    pub(crate) last_string: TokenReference,
+}
+
+impl fmt::Display for InterpolatedString {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!("SITODO: InterpolatedString Display")
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub(crate) struct InterpolatedStringSegment {
+    pub literal: TokenReference,
+    pub expression: Expression,
+}
+
+impl Visit for InterpolatedStringSegment {
+    fn visit<V: crate::visitors::Visitor>(&self, visitor: &mut V) {
+        self.expression.visit(visitor);
+    }
+}
+
+impl VisitMut for InterpolatedStringSegment {
+    fn visit_mut<V: crate::visitors::VisitorMut>(self, visitor: &mut V) -> Self {
+        Self {
+            expression: self.expression.visit_mut(visitor),
+            ..self
+        }
     }
 }

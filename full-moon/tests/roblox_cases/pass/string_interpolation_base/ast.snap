@@ -1,0 +1,519 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 52
+expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/string_interpolation_base
+---
+stmts:
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 1
+                line: 1
+                character: 2
+              token_type:
+                type: Identifier
+                identifier: x
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 1
+                            line: 1
+                            character: 2
+                          end_position:
+                            bytes: 2
+                            line: 1
+                            character: 3
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 63
+                            line: 1
+                            character: 64
+                          end_position:
+                            bytes: 64
+                            line: 1
+                            character: 65
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 64
+                              line: 1
+                              character: 65
+                            end_position:
+                              bytes: 65
+                              line: 1
+                              character: 65
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          value:
+                            InterpolatedString:
+                              segments: []
+                              last_string:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 2
+                                    line: 1
+                                    character: 3
+                                  end_position:
+                                    bytes: 63
+                                    line: 1
+                                    character: 64
+                                  token_type:
+                                    type: InterpolatedString
+                                    literal: simple
+                                    kind: Simple
+                                trailing_trivia: []
+    - ~
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 65
+                line: 2
+                character: 1
+              end_position:
+                bytes: 66
+                line: 2
+                character: 2
+              token_type:
+                type: Identifier
+                identifier: x
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 66
+                            line: 2
+                            character: 2
+                          end_position:
+                            bytes: 67
+                            line: 2
+                            character: 3
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 126
+                            line: 2
+                            character: 62
+                          end_position:
+                            bytes: 127
+                            line: 2
+                            character: 63
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 127
+                              line: 2
+                              character: 63
+                            end_position:
+                              bytes: 128
+                              line: 2
+                              character: 63
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          value:
+                            InterpolatedString:
+                              segments:
+                                - literal:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 14
+                                        line: 2
+                                        character: 3
+                                      end_position:
+                                        bytes: 22
+                                        line: 2
+                                        character: 11
+                                      token_type:
+                                        type: InterpolatedString
+                                        literal: "hello "
+                                        kind: Begin
+                                    trailing_trivia: []
+                                  expression:
+                                    value:
+                                      String:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 67
+                                            line: 2
+                                            character: 3
+                                          end_position:
+                                            bytes: 74
+                                            line: 2
+                                            character: 10
+                                          token_type:
+                                            type: StringLiteral
+                                            literal: world
+                                            quote_type: Double
+                                        trailing_trivia: []
+                              last_string:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 74
+                                    line: 2
+                                    character: 10
+                                  end_position:
+                                    bytes: 126
+                                    line: 2
+                                    character: 62
+                                  token_type:
+                                    type: InterpolatedString
+                                    literal: ""
+                                    kind: End
+                                trailing_trivia: []
+    - ~
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 128
+                line: 3
+                character: 1
+              end_position:
+                bytes: 129
+                line: 3
+                character: 2
+              token_type:
+                type: Identifier
+                identifier: x
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 129
+                            line: 3
+                            character: 2
+                          end_position:
+                            bytes: 130
+                            line: 3
+                            character: 3
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 187
+                            line: 3
+                            character: 60
+                          end_position:
+                            bytes: 188
+                            line: 3
+                            character: 61
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 188
+                              line: 3
+                              character: 61
+                            end_position:
+                              bytes: 189
+                              line: 3
+                              character: 61
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          value:
+                            InterpolatedString:
+                              segments:
+                                - literal:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 35
+                                        line: 3
+                                        character: 3
+                                      end_position:
+                                        bytes: 38
+                                        line: 3
+                                        character: 6
+                                      token_type:
+                                        type: InterpolatedString
+                                        literal: "1"
+                                        kind: Begin
+                                    trailing_trivia: []
+                                  expression:
+                                    value:
+                                      Number:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 130
+                                            line: 3
+                                            character: 3
+                                          end_position:
+                                            bytes: 131
+                                            line: 3
+                                            character: 4
+                                          token_type:
+                                            type: Number
+                                            text: "2"
+                                        trailing_trivia: []
+                                - literal:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 39
+                                        line: 3
+                                        character: 7
+                                      end_position:
+                                        bytes: 42
+                                        line: 3
+                                        character: 10
+                                      token_type:
+                                        type: InterpolatedString
+                                        literal: "3"
+                                        kind: Middle
+                                    trailing_trivia: []
+                                  expression:
+                                    value:
+                                      String:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 131
+                                            line: 3
+                                            character: 4
+                                          end_position:
+                                            bytes: 134
+                                            line: 3
+                                            character: 7
+                                          token_type:
+                                            type: StringLiteral
+                                            literal: "4"
+                                            quote_type: Double
+                                        trailing_trivia: []
+                              last_string:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 134
+                                    line: 3
+                                    character: 7
+                                  end_position:
+                                    bytes: 187
+                                    line: 3
+                                    character: 60
+                                  token_type:
+                                    type: InterpolatedString
+                                    literal: "5"
+                                    kind: End
+                                trailing_trivia: []
+    - ~
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 189
+                line: 4
+                character: 1
+              end_position:
+                bytes: 190
+                line: 4
+                character: 2
+              token_type:
+                type: Identifier
+                identifier: x
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 190
+                            line: 4
+                            character: 2
+                          end_position:
+                            bytes: 191
+                            line: 4
+                            character: 3
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 298
+                            line: 4
+                            character: 110
+                          end_position:
+                            bytes: 299
+                            line: 4
+                            character: 111
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 299
+                              line: 4
+                              character: 111
+                            end_position:
+                              bytes: 300
+                              line: 4
+                              character: 111
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          value:
+                            InterpolatedString:
+                              segments:
+                                - literal:
+                                    leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 52
+                                        line: 4
+                                        character: 3
+                                      end_position:
+                                        bytes: 55
+                                        line: 4
+                                        character: 6
+                                      token_type:
+                                        type: InterpolatedString
+                                        literal: "1"
+                                        kind: Begin
+                                    trailing_trivia: []
+                                  expression:
+                                    value:
+                                      InterpolatedString:
+                                        segments:
+                                          - literal:
+                                              leading_trivia: []
+                                              token:
+                                                start_position:
+                                                  bytes: 55
+                                                  line: 4
+                                                  character: 6
+                                                end_position:
+                                                  bytes: 58
+                                                  line: 4
+                                                  character: 9
+                                                token_type:
+                                                  type: InterpolatedString
+                                                  literal: "2"
+                                                  kind: Begin
+                                              trailing_trivia: []
+                                            expression:
+                                              value:
+                                                String:
+                                                  leading_trivia: []
+                                                  token:
+                                                    start_position:
+                                                      bytes: 191
+                                                      line: 4
+                                                      character: 3
+                                                    end_position:
+                                                      bytes: 194
+                                                      line: 4
+                                                      character: 6
+                                                    token_type:
+                                                      type: StringLiteral
+                                                      literal: "3"
+                                                      quote_type: Double
+                                                  trailing_trivia: []
+                                        last_string:
+                                          leading_trivia: []
+                                          token:
+                                            start_position:
+                                              bytes: 194
+                                              line: 4
+                                              character: 6
+                                            end_position:
+                                              bytes: 246
+                                              line: 4
+                                              character: 58
+                                            token_type:
+                                              type: InterpolatedString
+                                              literal: ""
+                                              kind: End
+                                          trailing_trivia: []
+                              last_string:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 246
+                                    line: 4
+                                    character: 58
+                                  end_position:
+                                    bytes: 298
+                                    line: 4
+                                    character: 110
+                                  token_type:
+                                    type: InterpolatedString
+                                    literal: ""
+                                    kind: End
+                                trailing_trivia: []
+    - ~
+

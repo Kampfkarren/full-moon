@@ -39,9 +39,6 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    // TODO: This is bad, containing a mandatory clone on every call so that everything is
-    // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
-    // to tackle lifetimes.
     pub fn peek(&self) -> &TokenReference {
         assert!(
             self.index < self.len,

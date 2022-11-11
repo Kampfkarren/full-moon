@@ -265,6 +265,7 @@ create_visitor!(ast: {
         visit_generic_parameter_info => GenericParameterInfo,
         visit_if_expression => IfExpression,
         visit_indexed_type_info => IndexedTypeInfo,
+        visit_interpolated_string => InterpolatedString,
         visit_type_argument => TypeArgument,
         visit_type_assertion => TypeAssertion,
         visit_type_declaration => TypeDeclaration,

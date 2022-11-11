@@ -329,6 +329,11 @@ pub enum Value {
     #[cfg(feature = "roblox")]
     #[display(fmt = "{}", "_0")]
     IfExpression(IfExpression),
+    /// An interpolated string, such as `` `hello {"world"}` ``
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    #[display(fmt = "{}", "_0")]
+    InterpolatedString(InterpolatedString),
     /// A table constructor, such as `{ 1, 2, 3 }`
     #[display(fmt = "{}", "_0")]
     TableConstructor(TableConstructor),

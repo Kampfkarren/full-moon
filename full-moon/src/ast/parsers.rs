@@ -10,7 +10,10 @@ use super::types::*;
 #[cfg(feature = "lua52")]
 use super::lua52::*;
 
-use crate::tokenizer::{TokenKind, TokenReference, TokenType};
+use crate::{
+    tokenizer::{TokenKind, TokenReference, TokenType},
+    tokenizer_luau::InterpolatedStringKind,
+};
 
 use std::borrow::Cow;
 
@@ -363,6 +366,8 @@ define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
     ParseParenExpression => Value::ParenthesesExpression,
     @#[cfg(feature = "roblox")]
     ParseIfExpression => Value::IfExpression,
+    @#[cfg(feature = "roblox")]
+    ParseInterpolatedString => Value::InterpolatedString,
 }));
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -1249,6 +1254,99 @@ define_roblox_parser!(
     }
 );
 
+// Outside of cfg_if for formatting...:(
+#[cfg(feature = "roblox")]
+fn parse_interpolated_string(
+    state: ParserState<'_>,
+) -> Result<(ParserState<'_>, InterpolatedString), InternalAstError> {
+    let mut current = state.peek().clone();
+
+    let (mut state, kind) = match &current.token_type {
+        TokenType::InterpolatedString { kind, .. } => (
+            state.advance().expect(
+                "we just peeked an interpolated string literal, and now can't advance to it",
+            ),
+            kind,
+        ),
+
+        _ => return Err(InternalAstError::NoMatch),
+    };
+
+    match kind {
+        InterpolatedStringKind::Simple => Ok((
+            state,
+            InterpolatedString {
+                segments: Vec::new(),
+                last_string: current,
+            },
+        )),
+
+        InterpolatedStringKind::Begin => {
+            let mut segments = Vec::new();
+            let last_string;
+
+            loop {
+                let expression;
+                (state, expression) = expect!(
+                    state,
+                    ParseExpression.parse(state),
+                    "expected expression in interpolated string"
+                );
+
+                segments.push(InterpolatedStringSegment {
+                    expression,
+                    literal: current.clone(),
+                });
+
+                current = state.peek().clone();
+
+                if matches!(
+                    current.token_type,
+                    TokenType::InterpolatedString {
+                        kind: InterpolatedStringKind::End,
+                        ..
+                    }
+                ) {
+                    last_string = current;
+                    return Ok((
+                        state.advance().expect(
+                            "we just peeked an interpolated string literal to end the formatted string, and now can't advance to it",
+                        ),
+                        InterpolatedString {
+                            segments,
+                            last_string,
+                        },
+                    ));
+                }
+
+                // `hello {"world" "wait"}`
+                if current.token_kind() != TokenKind::InterpolatedString {
+                    return Err(InternalAstError::UnexpectedToken {
+                        additional: Some(
+                            "interpolated string parameter can only contain an expression".into(),
+                        ),
+                        token: current.clone(),
+                    });
+                }
+
+                state = match state.advance() {
+                    Some(state) => state,
+                    None => {
+                        return Err(InternalAstError::UnexpectedToken {
+                            token: current,
+                            additional: Some("expected `}` to end interpolated string".into()),
+                        })
+                    }
+                };
+            }
+        }
+
+        other => {
+            unreachable!("unexpected interpolated string kind: {other:?} ({current:#?})")
+        }
+    }
+}
+
 cfg_if::cfg_if! {
     if #[cfg(feature = "roblox")] {
         // Roblox Compound Assignment
@@ -1326,6 +1424,16 @@ cfg_if::cfg_if! {
                         else_expression,
                     },
                 ))
+            }
+        );
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct ParseInterpolatedString;
+        define_parser!(
+            ParseInterpolatedString,
+            InterpolatedString,
+            |_, state| {
+                parse_interpolated_string(state)
             }
         );
 
