@@ -1286,6 +1286,19 @@ fn parse_interpolated_string(
             let last_string;
 
             loop {
+                // Could be done in the tokenizer, but our error tooling there is a lot worse
+                if matches!(
+                    state.peek().token_type,
+                    TokenType::Symbol {
+                        symbol: Symbol::LeftBrace
+                    }
+                ) {
+                    return Err(InternalAstError::UnexpectedToken {
+                        token: state.peek().clone(),
+                        additional: Some("unexpected double brace for interpolated string. try \\{ if you meant to escape".into()),
+                    });
+                }
+
                 let expression;
                 (state, expression) = expect!(
                     state,
