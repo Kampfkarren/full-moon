@@ -124,20 +124,14 @@ fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
 }
 
 #[cfg(not(feature = "roblox"))]
-fn read_right_brace(lexer: &mut Lexer<Atom>) -> Option<Option<InterpolatedStringSection>> {
+fn read_right_brace(_: &mut Lexer<Atom>) -> Option<Option<InterpolatedStringSection>> {
     Some(None)
 }
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct TokenizerState {
     #[cfg(feature = "roblox")]
-    pub brace_stack: Vec<BraceType>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum BraceType {
-    InterpolatedString,
-    Normal,
+    pub brace_stack: Vec<crate::tokenizer_luau::BraceType>,
 }
 
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]

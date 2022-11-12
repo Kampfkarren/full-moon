@@ -1,5 +1,5 @@
 use crate::{
-    atom::{trim_bracket_head, Atom, InterpolatedStringBegin, InterpolatedStringSection},
+    atom::{trim_bracket_head, Atom},
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -13,6 +13,10 @@ use std::{
     fmt::{self, Display},
 };
 
+#[cfg(feature = "roblox")]
+use crate::atom::{InterpolatedStringBegin, InterpolatedStringSection};
+
+#[cfg(feature = "roblox")]
 pub use crate::tokenizer_luau::InterpolatedStringKind;
 
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -495,7 +499,6 @@ impl TokenType {
                 | TokenType::Shebang { .. }
                 | TokenType::StringLiteral { .. }
                 | TokenType::Whitespace { .. }
-                | TokenType::InterpolatedString { .. }
         ) || is_interpolated_string
     }
 

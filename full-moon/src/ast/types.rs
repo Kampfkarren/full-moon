@@ -961,20 +961,65 @@ impl ElseIfExpression {
     }
 }
 
+/// An interpolated string, such as `` `hello, {"world"}!` ``.
+/// "segments", made up of [`InterpolatedStringSegment`]s, is each part of the string,
+/// up until the `last_string`.
+/// The number of segments is the number of expressions used.
+/// For example, `` `1{2}3` `` would have one segment, with literal "1" (marked with a
+/// [`TokenType`](crate::tokenizer::TokenType) of `InterpolatedString { token: "1", kind: InterpolatedStringKind::Begin }`),
+/// and the expression `2`.
+/// The `last_string` would be the literal 3, with a backtick afterwards.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "join_vec(segments)", "last_string")]
-// SITODO: We need to expose the backtick position somehow? Even if no TokenReference for it
 pub struct InterpolatedString {
     pub(crate) segments: Vec<InterpolatedStringSegment>,
     pub(crate) last_string: TokenReference,
 }
 
+impl InterpolatedString {
+    /// Creates a new InterpolatedString from the given segments and last string
+    pub fn new(segments: Vec<InterpolatedStringSegment>, last_string: TokenReference) -> Self {
+        Self {
+            segments,
+            last_string,
+        }
+    }
+
+    /// The segments of the interpolated string
+    pub fn segments(&self) -> &[InterpolatedStringSegment] {
+        &self.segments
+    }
+
+    /// The last string of the interpolated string
+    pub fn last_string(&self) -> &TokenReference {
+        &self.last_string
+    }
+
+    /// Returns a new InterpolatedString with the given segments
+    pub fn with_segments(self, segments: Vec<InterpolatedStringSegment>) -> Self {
+        Self { segments, ..self }
+    }
+
+    /// Returns a new InterpolatedString with the given last string
+    pub fn with_last_string(self, last_string: TokenReference) -> Self {
+        Self {
+            last_string,
+            ..self
+        }
+    }
+}
+
+/// Segments of an interpolated string, as seen in [`InterpolatedString`].
+/// Read the documentation for [`InterpolatedString`] for more information.
 #[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(fmt = "{}{}", "literal", "expression")]
-pub(crate) struct InterpolatedStringSegment {
+pub struct InterpolatedStringSegment {
+    /// The literal part of the segment. Guaranteed to be of TokenType::InterpolatedString
     pub literal: TokenReference,
+
+    /// The expression being formatted
     pub expression: Expression,
 }
 
