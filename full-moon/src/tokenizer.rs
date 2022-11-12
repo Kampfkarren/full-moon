@@ -712,9 +712,7 @@ impl Visit for Token {
             TokenKind::Whitespace => visitor.visit_whitespace(self),
 
             #[cfg(feature = "roblox")]
-            TokenKind::InterpolatedString => {
-                // SITODO: visit interpolated string
-            }
+            TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(self),
         }
     }
 }
@@ -735,10 +733,7 @@ impl VisitMut for Token {
             TokenKind::Whitespace => visitor.visit_whitespace(token),
 
             #[cfg(feature = "roblox")]
-            TokenKind::InterpolatedString => {
-                // SITODO: visit interpolated string
-                token
-            }
+            TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(token),
         }
     }
 }
