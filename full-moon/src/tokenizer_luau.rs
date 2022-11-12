@@ -1,6 +1,6 @@
 use logos::Lexer;
 
-use crate::atom::{Atom, BraceType, InterpolatedStringBegin, InterpolatedStringSection};
+use crate::atom::{Atom, InterpolatedStringBegin, InterpolatedStringSection};
 
 fn read_interpolated_string_section<T>(
     lexer: &mut Lexer<Atom>,
