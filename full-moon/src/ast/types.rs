@@ -996,6 +996,14 @@ impl InterpolatedString {
         &self.last_string
     }
 
+    /// Returns just the expressions
+    pub fn expressions(&self) -> impl Iterator<Item = &Expression> {
+        ExpressionsIterator {
+            segments: &self.segments,
+            index: 0,
+        }
+    }
+
     /// Returns a new InterpolatedString with the given segments
     pub fn with_segments(self, segments: Vec<InterpolatedStringSegment>) -> Self {
         Self { segments, ..self }
@@ -1036,5 +1044,25 @@ impl VisitMut for InterpolatedStringSegment {
             literal: self.literal.visit_mut(visitor),
             expression: self.expression.visit_mut(visitor),
         }
+    }
+}
+
+struct ExpressionsIterator<'a> {
+    segments: &'a [InterpolatedStringSegment],
+    index: usize,
+}
+
+impl<'a> Iterator for ExpressionsIterator<'a> {
+    type Item = &'a Expression;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.segments.len() {
+            return None;
+        }
+
+        let segment = &self.segments[self.index];
+        self.index += 1;
+
+        Some(&segment.expression)
     }
 }
