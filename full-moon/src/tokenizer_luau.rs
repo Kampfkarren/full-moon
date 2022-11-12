@@ -39,9 +39,6 @@ fn read_interpolated_string_section<T>(
             (false, ..) if character == '{' => {
                 lexer.bump(1);
                 lexer.extras.brace_stack.push(BraceType::InterpolatedString);
-
-                // SITODO: Error for {{}}
-
                 return Some(format_type);
             }
 
