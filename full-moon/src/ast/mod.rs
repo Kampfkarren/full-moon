@@ -2303,7 +2303,7 @@ impl Ast {
     /// The entire code of the function
     ///
     /// ```rust
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().stmts().count(), 2);
     /// # Ok(())
     /// # }

@@ -961,22 +961,18 @@ impl ElseIfExpression {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "join_vec(segments)", "last_string")]
 // SITODO: We need to expose the backtick position somehow? Even if no TokenReference for it
 pub struct InterpolatedString {
     pub(crate) segments: Vec<InterpolatedStringSegment>,
     pub(crate) last_string: TokenReference,
 }
 
-impl fmt::Display for InterpolatedString {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!("SITODO: InterpolatedString Display")
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Node)]
+#[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "literal", "expression")]
 pub(crate) struct InterpolatedStringSegment {
     pub literal: TokenReference,
     pub expression: Expression,
@@ -984,6 +980,7 @@ pub(crate) struct InterpolatedStringSegment {
 
 impl Visit for InterpolatedStringSegment {
     fn visit<V: crate::visitors::Visitor>(&self, visitor: &mut V) {
+        self.literal.visit(visitor);
         self.expression.visit(visitor);
     }
 }
@@ -991,8 +988,8 @@ impl Visit for InterpolatedStringSegment {
 impl VisitMut for InterpolatedStringSegment {
     fn visit_mut<V: crate::visitors::VisitorMut>(self, visitor: &mut V) -> Self {
         Self {
+            literal: self.literal.visit_mut(visitor),
             expression: self.expression.visit_mut(visitor),
-            ..self
         }
     }
 }

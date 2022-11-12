@@ -42,12 +42,12 @@ fn test_pass_case(path: &Path) {
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
     let ast = ast.update_positions();
-    // assert_eq!(
-    //     old_positions,
-    //     ast.tokens()
-    //         .flat_map(unpack_token_reference)
-    //         .collect::<Vec<_>>(),
-    // );
+    assert_eq!(
+        old_positions,
+        ast.tokens()
+            .flat_map(unpack_token_reference)
+            .collect::<Vec<_>>(),
+    );
 
     assert_yaml_snapshot!("ast", ast.nodes());
     assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));

@@ -7,13 +7,13 @@ use super::{
 #[cfg(feature = "roblox")]
 use super::types::*;
 
+#[cfg(feature = "roblox")]
+use crate::tokenizer_luau::InterpolatedStringKind;
+
 #[cfg(feature = "lua52")]
 use super::lua52::*;
 
-use crate::{
-    tokenizer::{TokenKind, TokenReference, TokenType},
-    tokenizer_luau::InterpolatedStringKind,
-};
+use crate::tokenizer::{TokenKind, TokenReference, TokenType};
 
 use std::borrow::Cow;
 

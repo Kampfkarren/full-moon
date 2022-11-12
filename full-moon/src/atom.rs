@@ -286,7 +286,11 @@ pub(crate) enum Atom {
     #[token("[")]
     LeftBracket,
 
-    #[token("{")]
+    #[cfg_attr(not(feature = "roblox"), token("{"))]
+    #[cfg_attr(
+        feature = "roblox",
+        regex(r"\{", crate::tokenizer_luau::read_left_brace)
+    )]
     LeftBrace,
 
     #[token("(")]

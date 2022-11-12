@@ -66,6 +66,11 @@ pub(crate) fn read_interpolated_string_right_brace(
     )?)) // ? needed so that it does not turn into Some(None), which is an }, which this is not
 }
 
+pub(crate) fn read_left_brace(lexer: &mut Lexer<Atom>) -> bool {
+    lexer.extras.brace_stack.push(BraceType::Normal);
+    true
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum InterpolatedStringKind {

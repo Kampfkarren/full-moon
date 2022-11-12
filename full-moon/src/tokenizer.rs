@@ -481,14 +481,22 @@ impl TokenType {
         }
     }
 
+    /// Can this token type contain new lines?
     fn is_extensive(&self) -> bool {
+        #[cfg(feature = "roblox")]
+        let is_interpolated_string = matches!(self, TokenType::InterpolatedString { .. });
+
+        #[cfg(not(feature = "roblox"))]
+        let is_interpolated_string = false;
+
         matches!(
             self,
             TokenType::MultiLineComment { .. }
                 | TokenType::Shebang { .. }
                 | TokenType::StringLiteral { .. }
                 | TokenType::Whitespace { .. }
-        )
+                | TokenType::InterpolatedString { .. }
+        ) || is_interpolated_string
     }
 
     /// Returns whether a token can be practically ignored in most cases
@@ -645,12 +653,23 @@ impl fmt::Display for Token {
             Whitespace { characters } => characters.fmt(formatter),
 
             #[cfg(feature = "roblox")]
-            InterpolatedString { literal, kind } => {
-                write!(
-                    formatter,
-                    "SITODO: Interpolated string -- {kind:?} / {literal:?}"
-                )
-            }
+            InterpolatedString { literal, kind } => match kind {
+                InterpolatedStringKind::Begin => {
+                    write!(formatter, "`{literal}{{")
+                }
+
+                InterpolatedStringKind::Middle => {
+                    write!(formatter, "}}{literal}{{")
+                }
+
+                InterpolatedStringKind::End => {
+                    write!(formatter, "}}{literal}`")
+                }
+
+                InterpolatedStringKind::Simple => {
+                    write!(formatter, "`{literal}`")
+                }
+            },
         }
     }
 }
@@ -1511,6 +1530,13 @@ mod tests {
                 },
             }
         );
+    }
+
+    #[cfg(feature = "roblox")]
+    #[test]
+    fn test_string_interpolation_multi_line() {
+        let tokens = tokens("`Welcome to \\\n{name}!`").unwrap();
+        assert_eq!(tokens[0].to_string(), "`Welcome to \\\n{");
     }
 
     #[test]
