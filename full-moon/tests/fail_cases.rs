@@ -62,6 +62,22 @@ fn test_roblox_parser_fail_cases() {
 }
 
 #[test]
+#[cfg(feature = "roblox")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_roblox_tokenizer_fail_cases() {
+    run_test_folder("./tests/roblox_cases/fail/tokenizer", |path| {
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        match tokenizer::tokens(&source) {
+            Ok(tokens) => panic!("fail case passed for {:?}\n{tokens:#?}", path),
+            Err(error) => {
+                assert_yaml_snapshot!("error", error);
+            }
+        }
+    })
+}
+
+#[test]
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_parser_fail_cases() {

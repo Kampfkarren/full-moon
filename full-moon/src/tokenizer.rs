@@ -1077,9 +1077,9 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
         Atom::Unknown => {
             let first = slice.chars().next().unwrap();
             let what = match first {
+                '`' if cfg!(feature = "roblox") => TokenizerErrorType::UnclosedString,
                 '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
                 '-' => TokenizerErrorType::UnclosedComment,
-                // SITODO: Interpolated string errors
                 other => TokenizerErrorType::UnexpectedToken(other),
             };
 
