@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - `full_moon::Error` and `full_moon::ast::Ast` now implement Serialize and Deserialize.
+- Added support for string interpolation under the `roblox` feature flag
 
 ### Fixed
 - Support instantiated generics with no parameters, e.g. `Foo<>`
