@@ -987,8 +987,8 @@ impl InterpolatedString {
     }
 
     /// The segments of the interpolated string
-    pub fn segments(&self) -> &[InterpolatedStringSegment] {
-        &self.segments
+    pub fn segments(&self) -> impl Iterator<Item = &InterpolatedStringSegment> {
+        self.segments.iter()
     }
 
     /// The last string of the interpolated string
