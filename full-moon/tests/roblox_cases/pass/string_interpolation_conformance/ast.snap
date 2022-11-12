@@ -6574,55 +6574,22 @@ stmts:
                       - Punctuated:
                           - value:
                               InterpolatedString:
-                                segments:
-                                  - literal:
-                                      leading_trivia: []
-                                      token:
-                                        start_position:
-                                          bytes: 1782
-                                          line: 57
-                                          character: 10
-                                        end_position:
-                                          bytes: 1786
-                                          line: 57
-                                          character: 14
-                                        token_type:
-                                          type: InterpolatedString
-                                          literal: "\\u"
-                                          kind: Begin
-                                      trailing_trivia: []
-                                    expression:
-                                      value:
-                                        Number:
-                                          leading_trivia: []
-                                          token:
-                                            start_position:
-                                              bytes: 1786
-                                              line: 57
-                                              character: 14
-                                            end_position:
-                                              bytes: 1790
-                                              line: 57
-                                              character: 18
-                                            token_type:
-                                              type: Number
-                                              text: "0041"
-                                          trailing_trivia: []
+                                segments: []
                                 last_string:
                                   leading_trivia: []
                                   token:
                                     start_position:
-                                      bytes: 1790
+                                      bytes: 1782
                                       line: 57
-                                      character: 18
+                                      character: 10
                                     end_position:
                                       bytes: 1794
                                       line: 57
                                       character: 22
                                     token_type:
                                       type: InterpolatedString
-                                      literal: "\\t"
-                                      kind: End
+                                      literal: "\\u{0041}\\t"
+                                      kind: Simple
                                   trailing_trivia: []
                           - leading_trivia: []
                             token:

@@ -8,14 +8,34 @@ fn read_interpolated_string_section<T>(
     end_type: T,
 ) -> Option<T> {
     let mut escape = false;
+    let mut characters = lexer.remainder().chars().peekable();
 
-    for character in lexer.remainder().chars() {
+    while let Some(character) = characters.next() {
         match (escape, character) {
             (true, ..) => escape = false,
+
+            // Make sure \u{1234} doesn't get treated as \u, followed by {1234}
+            (false, '\\') if characters.peek() == Some(&'u') => {
+                characters.next();
+                lexer.bump(1);
+
+                if characters.peek() == Some(&'{') {
+                    characters.next();
+                    lexer.bump(1);
+
+                    for character in characters.by_ref() {
+                        lexer.bump(character.len_utf8());
+
+                        if character == '}' {
+                            break;
+                        }
+                    }
+                }
+            }
+
             (false, '\\') => escape = true,
             (false, '\n' | '\r') => break,
 
-            // SITODO: Check for \u{}
             (false, ..) if character == '{' => {
                 lexer.bump(1);
                 lexer.extras.brace_stack.push(BraceType::InterpolatedString);

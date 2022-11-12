@@ -4734,36 +4734,13 @@ input_file: full-moon/tests/roblox_cases/pass/string_interpolation_conformance
     line: 57
     character: 10
   end_position:
-    bytes: 1786
-    line: 57
-    character: 14
-  token_type:
-    type: InterpolatedString
-    literal: "\\u"
-    kind: Begin
-- start_position:
-    bytes: 1786
-    line: 57
-    character: 14
-  end_position:
-    bytes: 1790
-    line: 57
-    character: 18
-  token_type:
-    type: Number
-    text: "0041"
-- start_position:
-    bytes: 1790
-    line: 57
-    character: 18
-  end_position:
     bytes: 1794
     line: 57
     character: 22
   token_type:
     type: InterpolatedString
-    literal: "\\t"
-    kind: End
+    literal: "\\u{0041}\\t"
+    kind: Simple
 - start_position:
     bytes: 1794
     line: 57
