@@ -1,0 +1,675 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 25
+    line: 1
+    character: 26
+  token_type:
+    type: SingleLineComment
+    comment: " fractional hexadecimal"
+- start_position:
+    bytes: 25
+    line: 1
+    character: 26
+  end_position:
+    bytes: 26
+    line: 1
+    character: 26
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 26
+    line: 2
+    character: 1
+  end_position:
+    bytes: 31
+    line: 2
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 31
+    line: 2
+    character: 6
+  end_position:
+    bytes: 32
+    line: 2
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 32
+    line: 2
+    character: 7
+  end_position:
+    bytes: 33
+    line: 2
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: a
+- start_position:
+    bytes: 33
+    line: 2
+    character: 8
+  end_position:
+    bytes: 34
+    line: 2
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 34
+    line: 2
+    character: 9
+  end_position:
+    bytes: 35
+    line: 2
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 35
+    line: 2
+    character: 10
+  end_position:
+    bytes: 36
+    line: 2
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 36
+    line: 2
+    character: 11
+  end_position:
+    bytes: 42
+    line: 2
+    character: 17
+  token_type:
+    type: Number
+    text: "0x0.1E"
+- start_position:
+    bytes: 42
+    line: 2
+    character: 17
+  end_position:
+    bytes: 43
+    line: 2
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 43
+    line: 3
+    character: 1
+  end_position:
+    bytes: 44
+    line: 3
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 44
+    line: 4
+    character: 1
+  end_position:
+    bytes: 77
+    line: 4
+    character: 34
+  token_type:
+    type: SingleLineComment
+    comment: " binary exponent in hexadecimal"
+- start_position:
+    bytes: 77
+    line: 4
+    character: 34
+  end_position:
+    bytes: 78
+    line: 4
+    character: 34
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 78
+    line: 5
+    character: 1
+  end_position:
+    bytes: 83
+    line: 5
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 83
+    line: 5
+    character: 6
+  end_position:
+    bytes: 84
+    line: 5
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 84
+    line: 5
+    character: 7
+  end_position:
+    bytes: 85
+    line: 5
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: b
+- start_position:
+    bytes: 85
+    line: 5
+    character: 8
+  end_position:
+    bytes: 86
+    line: 5
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 86
+    line: 5
+    character: 9
+  end_position:
+    bytes: 87
+    line: 5
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 87
+    line: 5
+    character: 10
+  end_position:
+    bytes: 88
+    line: 5
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 88
+    line: 5
+    character: 11
+  end_position:
+    bytes: 96
+    line: 5
+    character: 19
+  token_type:
+    type: Number
+    text: "0xA23p-4"
+- start_position:
+    bytes: 96
+    line: 5
+    character: 19
+  end_position:
+    bytes: 97
+    line: 5
+    character: 19
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 97
+    line: 6
+    character: 1
+  end_position:
+    bytes: 98
+    line: 6
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 98
+    line: 7
+    character: 1
+  end_position:
+    bytes: 118
+    line: 7
+    character: 21
+  token_type:
+    type: SingleLineComment
+    comment: " a mixture of both"
+- start_position:
+    bytes: 118
+    line: 7
+    character: 21
+  end_position:
+    bytes: 119
+    line: 7
+    character: 21
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 119
+    line: 8
+    character: 1
+  end_position:
+    bytes: 124
+    line: 8
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 124
+    line: 8
+    character: 6
+  end_position:
+    bytes: 125
+    line: 8
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 125
+    line: 8
+    character: 7
+  end_position:
+    bytes: 126
+    line: 8
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: c
+- start_position:
+    bytes: 126
+    line: 8
+    character: 8
+  end_position:
+    bytes: 127
+    line: 8
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 127
+    line: 8
+    character: 9
+  end_position:
+    bytes: 128
+    line: 8
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 128
+    line: 8
+    character: 10
+  end_position:
+    bytes: 129
+    line: 8
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 129
+    line: 8
+    character: 11
+  end_position:
+    bytes: 149
+    line: 8
+    character: 31
+  token_type:
+    type: Number
+    text: 0X1.921FB54442D18P+1
+- start_position:
+    bytes: 149
+    line: 8
+    character: 31
+  end_position:
+    bytes: 150
+    line: 8
+    character: 31
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 150
+    line: 9
+    character: 1
+  end_position:
+    bytes: 151
+    line: 9
+    character: 1
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 151
+    line: 10
+    character: 1
+  end_position:
+    bytes: 231
+    line: 10
+    character: 81
+  token_type:
+    type: SingleLineComment
+    comment: " LuaJIT numbers (ULL/LL ending for both decimal and hexidecimal, or imaginary)"
+- start_position:
+    bytes: 231
+    line: 10
+    character: 81
+  end_position:
+    bytes: 232
+    line: 10
+    character: 81
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 232
+    line: 11
+    character: 1
+  end_position:
+    bytes: 274
+    line: 11
+    character: 43
+  token_type:
+    type: SingleLineComment
+    comment: " This is in Lua 5.2 tests for simplicity"
+- start_position:
+    bytes: 274
+    line: 11
+    character: 43
+  end_position:
+    bytes: 275
+    line: 11
+    character: 43
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 275
+    line: 12
+    character: 1
+  end_position:
+    bytes: 280
+    line: 12
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 280
+    line: 12
+    character: 6
+  end_position:
+    bytes: 281
+    line: 12
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 281
+    line: 12
+    character: 7
+  end_position:
+    bytes: 282
+    line: 12
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: d
+- start_position:
+    bytes: 282
+    line: 12
+    character: 8
+  end_position:
+    bytes: 283
+    line: 12
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 283
+    line: 12
+    character: 9
+  end_position:
+    bytes: 284
+    line: 12
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 284
+    line: 12
+    character: 10
+  end_position:
+    bytes: 285
+    line: 12
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 285
+    line: 12
+    character: 11
+  end_position:
+    bytes: 289
+    line: 12
+    character: 15
+  token_type:
+    type: Number
+    text: 42LL
+- start_position:
+    bytes: 289
+    line: 12
+    character: 15
+  end_position:
+    bytes: 290
+    line: 12
+    character: 15
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 290
+    line: 13
+    character: 1
+  end_position:
+    bytes: 295
+    line: 13
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 295
+    line: 13
+    character: 6
+  end_position:
+    bytes: 296
+    line: 13
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 296
+    line: 13
+    character: 7
+  end_position:
+    bytes: 297
+    line: 13
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: e
+- start_position:
+    bytes: 297
+    line: 13
+    character: 8
+  end_position:
+    bytes: 298
+    line: 13
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 298
+    line: 13
+    character: 9
+  end_position:
+    bytes: 299
+    line: 13
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 299
+    line: 13
+    character: 10
+  end_position:
+    bytes: 300
+    line: 13
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 300
+    line: 13
+    character: 11
+  end_position:
+    bytes: 306
+    line: 13
+    character: 17
+  token_type:
+    type: Number
+    text: "0x2aLL"
+- start_position:
+    bytes: 306
+    line: 13
+    character: 17
+  end_position:
+    bytes: 307
+    line: 13
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 307
+    line: 14
+    character: 1
+  end_position:
+    bytes: 312
+    line: 14
+    character: 6
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 312
+    line: 14
+    character: 6
+  end_position:
+    bytes: 313
+    line: 14
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 313
+    line: 14
+    character: 7
+  end_position:
+    bytes: 314
+    line: 14
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: f
+- start_position:
+    bytes: 314
+    line: 14
+    character: 8
+  end_position:
+    bytes: 315
+    line: 14
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 315
+    line: 14
+    character: 9
+  end_position:
+    bytes: 316
+    line: 14
+    character: 10
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 316
+    line: 14
+    character: 10
+  end_position:
+    bytes: 317
+    line: 14
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 317
+    line: 14
+    character: 11
+  end_position:
+    bytes: 322
+    line: 14
+    character: 16
+  token_type:
+    type: Number
+    text: 12.5i
+- start_position:
+    bytes: 322
+    line: 14
+    character: 16
+  end_position:
+    bytes: 322
+    line: 14
+    character: 16
+  token_type:
+    type: Eof
+
