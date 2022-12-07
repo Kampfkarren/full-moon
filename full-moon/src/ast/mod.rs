@@ -499,6 +499,7 @@ pub struct NumericFor {
     block: Block,
     end_token: TokenReference,
     #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     type_specifier: Option<TypeSpecifier>,
 }
 
@@ -1663,10 +1664,17 @@ impl LocalFunction {
 pub struct LocalAssignment {
     local_token: TokenReference,
     #[cfg(feature = "roblox")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "empty_optional_vector")
+    )]
     type_specifiers: Vec<Option<TypeSpecifier>>,
     name_list: Punctuated<TokenReference>,
     #[cfg(feature = "lua54")]
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "empty_optional_vector")
+    )]
     attributes: Vec<Option<Attribute>>,
     equal_token: Option<TokenReference>,
     expr_list: Punctuated<Expression>,
