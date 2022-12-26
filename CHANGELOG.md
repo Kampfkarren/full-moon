@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - `full_moon::Error` and `full_moon::ast::Ast` now implement Serialize and Deserialize.
+- Added optional "stacker" feature which uses the [stacker](https://docs.rs/stacker/latest/stacker/index.html) crate to conditionally expand stack size to avoid stack overflows, a known problem with full-moon.
 
 ### Fixed
 - Support instantiated generics with no parameters, e.g. `Foo<>`
