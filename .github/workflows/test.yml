@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Test (default features)
       run: |
         cd full-moon
@@ -39,12 +39,6 @@ jobs:
       run: |
         cd full-moon
         cargo test --no-default-features --features serde
-    - name: Clippy (default)
-      run: |
-        cargo clippy -- -D warnings
-    - name: Clippy (all features)
-      run: |
-        cargo clippy --all-features -- -D warnings
     - name: Rustfmt
       run: |
         cargo fmt -- --check
