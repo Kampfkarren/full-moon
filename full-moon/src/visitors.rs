@@ -20,6 +20,10 @@ macro_rules! create_visitor {
         })+
     }, token: {
         $($visit_token:ident,)+
+
+        $(#[$token_meta:meta] {
+            $($meta_visit_token:ident,)+
+        })+
     }) => {
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`VisitorMut`], nodes/tokens passed are immutable.
@@ -77,6 +81,14 @@ macro_rules! create_visitor {
                 #[allow(missing_docs)]
                 fn $visit_token(&mut self, _token: &Token) { }
             )+
+
+            $(
+                $(
+                    #[$token_meta]
+                    #[allow(missing_docs)]
+                    fn $meta_visit_token(&mut self, _token: &Token) { }
+                )+
+            )+
         }
 
         /// A trait that implements functions to listen for specific nodes/tokens.
@@ -131,6 +143,17 @@ macro_rules! create_visitor {
                 fn $visit_token(&mut self, token: Token) -> Token {
                     token
                 }
+            )+
+
+            $(
+                #[$token_meta]
+                $(
+                    #[$token_meta]
+                    #[allow(missing_docs)]
+                    fn $meta_visit_token(&mut self, token: Token) -> Token {
+                        token
+                    }
+                )+
             )+
         }
     };
@@ -265,6 +288,7 @@ create_visitor!(ast: {
         visit_generic_parameter_info => GenericParameterInfo,
         visit_if_expression => IfExpression,
         visit_indexed_type_info => IndexedTypeInfo,
+        visit_interpolated_string => InterpolatedString,
         visit_type_argument => TypeArgument,
         visit_type_assertion => TypeAssertion,
         visit_type_declaration => TypeDeclaration,
@@ -292,4 +316,8 @@ create_visitor!(ast: {
     visit_symbol,
     visit_token,
     visit_whitespace,
+
+    #[cfg(feature = "roblox")] {
+        visit_interpolated_string_segment,
+    }
 });

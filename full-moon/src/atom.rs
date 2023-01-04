@@ -30,10 +30,19 @@ fn test_bracket_head(slice: &str) -> Option<usize> {
 
 fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
     let mut escape = false;
+    #[cfg(feature = "lua52")]
+    let mut z_escaped = false;
     for char in lex.remainder().chars() {
         match (escape, char) {
+            #[cfg(feature = "lua52")]
+            (true, 'z') => {
+                escape = false;
+                z_escaped = true
+            }
             (true, ..) => escape = false,
             (false, '\\') => escape = true,
+            #[cfg(feature = "lua52")]
+            (false, '\n' | '\r') if z_escaped => z_escaped = false,
             (false, '\n' | '\r') => break,
             (false, ..) if char == quote => {
                 lex.bump(1);
@@ -123,7 +132,19 @@ fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
     true
 }
 
+#[cfg(not(feature = "roblox"))]
+fn read_right_brace(_: &mut Lexer<Atom>) -> Option<Option<InterpolatedStringSection>> {
+    Some(None)
+}
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct TokenizerState {
+    #[cfg(feature = "roblox")]
+    pub brace_stack: Vec<crate::tokenizer_luau::BraceType>,
+}
+
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq)]
+#[logos(extras = TokenizerState)]
 pub(crate) enum Atom {
     #[token("and")]
     And,
@@ -268,7 +289,11 @@ pub(crate) enum Atom {
     #[token("[")]
     LeftBracket,
 
-    #[token("{")]
+    #[cfg_attr(not(feature = "roblox"), token("{"))]
+    #[cfg_attr(
+        feature = "roblox",
+        regex(r"\{", crate::tokenizer_luau::read_left_brace)
+    )]
     LeftBrace,
 
     #[token("(")]
@@ -301,8 +326,12 @@ pub(crate) enum Atom {
     #[token("?")]
     QuestionMark,
 
-    #[token("}")]
-    RightBrace,
+    #[cfg_attr(not(feature = "roblox"), regex(r"\}", read_right_brace))]
+    #[cfg_attr(
+        feature = "roblox",
+        regex(r"\}", crate::tokenizer_luau::read_interpolated_string_right_brace)
+    )]
+    RightBrace(Option<InterpolatedStringSection>),
 
     #[token("]")]
     RightBracket,
@@ -378,6 +407,10 @@ pub(crate) enum Atom {
     #[regex(r"\[=*\[", |x| read_bracketed(x, 0))]
     MultiLineString,
 
+    #[cfg(feature = "roblox")]
+    #[regex(r"`", crate::tokenizer_luau::read_interpolated_string_begin)]
+    InterpolatedStringBegin(InterpolatedStringBegin),
+
     // These don't work, even with priority set! Ideally, this would be what we use.
     // #[regex(r"--.*")]
     // SingleLineComment,
@@ -393,3 +426,22 @@ pub(crate) enum Atom {
     #[error]
     Unknown,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg(feature = "roblox")]
+pub enum InterpolatedStringBegin {
+    Formatted, // `uh {oh}`
+    Simple,    // `no formatting`
+}
+
+#[cfg(feature = "roblox")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InterpolatedStringSection {
+    Middle, // } ... {
+    End,    // }
+}
+
+// This existing, but being empty makes things much easier
+#[cfg(not(feature = "roblox"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InterpolatedStringSection {}

@@ -39,9 +39,6 @@ impl<'a> ParserState<'a> {
         }
     }
 
-    // TODO: This is bad, containing a mandatory clone on every call so that everything is
-    // backwards compatible, since it SHOULD just borrow. It is only like this because of a failure
-    // to tackle lifetimes.
     pub fn peek(&self) -> &TokenReference {
         assert!(
             self.index < self.len,
@@ -109,6 +106,11 @@ macro_rules! define_parser {
                 &self,
                 state: ParserState<'a>,
             ) -> Result<(ParserState<'a>, $node), InternalAstError> {
+                #[cfg(feature = "stacker")]
+                if true {
+                    return stacker::maybe_grow(32 * 1024, 1024 * 1024, || $body(self, state));
+                }
+
                 $body(self, state)
             }
         }

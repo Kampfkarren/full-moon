@@ -1,0 +1,360 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 38
+expression: tokens
+input_file: full-moon/tests/roblox_cases/pass/string_interpolation_base
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 1
+    line: 1
+    character: 2
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 1
+    line: 1
+    character: 2
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: InterpolatedString
+    literal: simple
+    kind: Simple
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 12
+    line: 1
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 12
+    line: 2
+    character: 1
+  end_position:
+    bytes: 13
+    line: 2
+    character: 2
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 13
+    line: 2
+    character: 2
+  end_position:
+    bytes: 14
+    line: 2
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 14
+    line: 2
+    character: 3
+  end_position:
+    bytes: 22
+    line: 2
+    character: 11
+  token_type:
+    type: InterpolatedString
+    literal: "hello "
+    kind: Begin
+- start_position:
+    bytes: 22
+    line: 2
+    character: 11
+  end_position:
+    bytes: 29
+    line: 2
+    character: 18
+  token_type:
+    type: StringLiteral
+    literal: world
+    quote_type: Double
+- start_position:
+    bytes: 29
+    line: 2
+    character: 18
+  end_position:
+    bytes: 31
+    line: 2
+    character: 20
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 31
+    line: 2
+    character: 20
+  end_position:
+    bytes: 32
+    line: 2
+    character: 21
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 32
+    line: 2
+    character: 21
+  end_position:
+    bytes: 33
+    line: 2
+    character: 21
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 33
+    line: 3
+    character: 1
+  end_position:
+    bytes: 34
+    line: 3
+    character: 2
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 34
+    line: 3
+    character: 2
+  end_position:
+    bytes: 35
+    line: 3
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 35
+    line: 3
+    character: 3
+  end_position:
+    bytes: 38
+    line: 3
+    character: 6
+  token_type:
+    type: InterpolatedString
+    literal: "1"
+    kind: Begin
+- start_position:
+    bytes: 38
+    line: 3
+    character: 6
+  end_position:
+    bytes: 39
+    line: 3
+    character: 7
+  token_type:
+    type: Number
+    text: "2"
+- start_position:
+    bytes: 39
+    line: 3
+    character: 7
+  end_position:
+    bytes: 42
+    line: 3
+    character: 10
+  token_type:
+    type: InterpolatedString
+    literal: "3"
+    kind: Middle
+- start_position:
+    bytes: 42
+    line: 3
+    character: 10
+  end_position:
+    bytes: 45
+    line: 3
+    character: 13
+  token_type:
+    type: StringLiteral
+    literal: "4"
+    quote_type: Double
+- start_position:
+    bytes: 45
+    line: 3
+    character: 13
+  end_position:
+    bytes: 48
+    line: 3
+    character: 16
+  token_type:
+    type: InterpolatedString
+    literal: "5"
+    kind: End
+- start_position:
+    bytes: 48
+    line: 3
+    character: 16
+  end_position:
+    bytes: 49
+    line: 3
+    character: 17
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 49
+    line: 3
+    character: 17
+  end_position:
+    bytes: 50
+    line: 3
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 50
+    line: 4
+    character: 1
+  end_position:
+    bytes: 51
+    line: 4
+    character: 2
+  token_type:
+    type: Identifier
+    identifier: x
+- start_position:
+    bytes: 51
+    line: 4
+    character: 2
+  end_position:
+    bytes: 52
+    line: 4
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 52
+    line: 4
+    character: 3
+  end_position:
+    bytes: 55
+    line: 4
+    character: 6
+  token_type:
+    type: InterpolatedString
+    literal: "1"
+    kind: Begin
+- start_position:
+    bytes: 55
+    line: 4
+    character: 6
+  end_position:
+    bytes: 58
+    line: 4
+    character: 9
+  token_type:
+    type: InterpolatedString
+    literal: "2"
+    kind: Begin
+- start_position:
+    bytes: 58
+    line: 4
+    character: 9
+  end_position:
+    bytes: 61
+    line: 4
+    character: 12
+  token_type:
+    type: StringLiteral
+    literal: "3"
+    quote_type: Double
+- start_position:
+    bytes: 61
+    line: 4
+    character: 12
+  end_position:
+    bytes: 63
+    line: 4
+    character: 14
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 63
+    line: 4
+    character: 14
+  end_position:
+    bytes: 65
+    line: 4
+    character: 16
+  token_type:
+    type: InterpolatedString
+    literal: ""
+    kind: End
+- start_position:
+    bytes: 65
+    line: 4
+    character: 16
+  end_position:
+    bytes: 66
+    line: 4
+    character: 17
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 66
+    line: 4
+    character: 17
+  end_position:
+    bytes: 67
+    line: 4
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 67
+    line: 5
+    character: 1
+  end_position:
+    bytes: 67
+    line: 5
+    character: 1
+  token_type:
+    type: Eof
+

@@ -1,6 +1,12 @@
 //! Contains the types necessary to parse [Luau](https://luau-lang.org/).
+//! The module name is a misnomer from when Luau was just types.
+//! It will be renamed to "luau" in the future.
 use super::{punctuated::Punctuated, span::ContainedSpan, *};
-use crate::{util::display_option, ShortString};
+use crate::{
+    util::display_option,
+    visitors::{Visit, VisitMut},
+    ShortString,
+};
 use derive_more::Display;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
@@ -952,5 +958,111 @@ impl ElseIfExpression {
     /// Returns a new ElseIfExpression with the given expression
     pub fn with_block(self, expression: Expression) -> Self {
         Self { expression, ..self }
+    }
+}
+
+/// An interpolated string, such as `` `hello, {"world"}!` ``.
+/// "segments", made up of [`InterpolatedStringSegment`]s, is each part of the string,
+/// up until the `last_string`.
+/// The number of segments is the number of expressions used.
+/// For example, `` `1{2}3` `` would have one segment, with literal "1" (marked with a
+/// [`TokenType`](crate::tokenizer::TokenType) of `InterpolatedString { token: "1", kind: InterpolatedStringKind::Begin }`),
+/// and the expression `2`.
+/// The `last_string` would be the literal 3, with a backtick afterwards.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "join_vec(segments)", "last_string")]
+pub struct InterpolatedString {
+    pub(crate) segments: Vec<InterpolatedStringSegment>,
+    pub(crate) last_string: TokenReference,
+}
+
+impl InterpolatedString {
+    /// Creates a new InterpolatedString from the given segments and last string
+    pub fn new(segments: Vec<InterpolatedStringSegment>, last_string: TokenReference) -> Self {
+        Self {
+            segments,
+            last_string,
+        }
+    }
+
+    /// The segments of the interpolated string
+    pub fn segments(&self) -> impl Iterator<Item = &InterpolatedStringSegment> {
+        self.segments.iter()
+    }
+
+    /// The last string of the interpolated string
+    pub fn last_string(&self) -> &TokenReference {
+        &self.last_string
+    }
+
+    /// Returns just the expressions
+    pub fn expressions(&self) -> impl Iterator<Item = &Expression> {
+        ExpressionsIterator {
+            segments: &self.segments,
+            index: 0,
+        }
+    }
+
+    /// Returns a new InterpolatedString with the given segments
+    pub fn with_segments(self, segments: Vec<InterpolatedStringSegment>) -> Self {
+        Self { segments, ..self }
+    }
+
+    /// Returns a new InterpolatedString with the given last string
+    pub fn with_last_string(self, last_string: TokenReference) -> Self {
+        Self {
+            last_string,
+            ..self
+        }
+    }
+}
+
+/// Segments of an interpolated string, as seen in [`InterpolatedString`].
+/// Read the documentation for [`InterpolatedString`] for more information.
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{}", "literal", "expression")]
+pub struct InterpolatedStringSegment {
+    /// The literal part of the segment. Guaranteed to be of TokenType::InterpolatedString
+    pub literal: TokenReference,
+
+    /// The expression being formatted
+    pub expression: Expression,
+}
+
+impl Visit for InterpolatedStringSegment {
+    fn visit<V: crate::visitors::Visitor>(&self, visitor: &mut V) {
+        self.literal.visit(visitor);
+        self.expression.visit(visitor);
+    }
+}
+
+impl VisitMut for InterpolatedStringSegment {
+    fn visit_mut<V: crate::visitors::VisitorMut>(self, visitor: &mut V) -> Self {
+        Self {
+            literal: self.literal.visit_mut(visitor),
+            expression: self.expression.visit_mut(visitor),
+        }
+    }
+}
+
+struct ExpressionsIterator<'a> {
+    segments: &'a [InterpolatedStringSegment],
+    index: usize,
+}
+
+impl<'a> Iterator for ExpressionsIterator<'a> {
+    type Item = &'a Expression;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.segments.len() {
+            return None;
+        }
+
+        let segment = &self.segments[self.index];
+        self.index += 1;
+
+        Some(&segment.expression)
     }
 }

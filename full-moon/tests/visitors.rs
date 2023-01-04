@@ -45,7 +45,7 @@ fn test_visitor_mut() {
                 .map(|name| {
                     name.to_owned().map(|value| {
                         value.with_token(Token::new(TokenType::Identifier {
-                            identifier: value.token().to_string().replace("s", "sss").into(),
+                            identifier: value.token().to_string().replace('s', "sss").into(),
                         }))
                     })
                 })
