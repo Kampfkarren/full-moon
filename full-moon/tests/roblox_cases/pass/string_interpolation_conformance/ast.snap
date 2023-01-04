@@ -1,8 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/string_interpolation_conformance
 ---
 stmts:
   - - LocalFunction:
@@ -2405,8 +2403,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -3159,8 +3155,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -3480,8 +3474,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
@@ -5583,8 +5575,6 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        type_specifiers:
-          - ~
         name_list:
           pairs:
             - End:
