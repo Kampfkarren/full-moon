@@ -1256,6 +1256,7 @@ define_roblox_parser!(
 
 // Outside of cfg_if for formatting...:(
 #[cfg(feature = "roblox")]
+#[allow(clippy::result_large_err)]
 fn parse_interpolated_string(
     state: ParserState<'_>,
 ) -> Result<(ParserState<'_>, InterpolatedString), InternalAstError> {
