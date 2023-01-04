@@ -63,6 +63,7 @@ impl<'a> fmt::Debug for ParserState<'a> {
 pub(crate) trait Parser: Sized {
     type Item;
 
+    #[allow(clippy::result_large_err)]
     fn parse<'a>(
         &self,
         state: ParserState<'a>,

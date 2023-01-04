@@ -71,6 +71,7 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = 1").is_ok());
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
+#[allow(clippy::result_large_err)]
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
     let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
     ast::Ast::from_tokens(tokens).map_err(Error::AstError)
