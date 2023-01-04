@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Support instantiated generics with no parameters, e.g. `Foo<>`
+- Support `\z` escapes (followed by line breaks) in strings for Lua 5.2+
 
 ## [0.16.2] - 2022-09-22
 ### Fixed
