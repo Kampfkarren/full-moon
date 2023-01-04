@@ -368,14 +368,31 @@ pub(crate) enum Atom {
     #[regex(r"[_\p{L}][_\p{L}\p{N}]*")]
     Identifier,
 
-    #[cfg(feature = "roblox")]
+    // An amalgamation of both options, so that we can support both feature flags enabled at the same
+    // time. This means some false negatives will be triggered, but its our best solution for now.
+    #[cfg(all(feature = "roblox", feature = "lua52"))]
+    #[regex(r"0[bB][01_]+([eE][01_]+)?(\.[01_]*)?")]
+    #[regex(r"0[xX][0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?([pP][\+\-]?[0-9a-fA-F_]+)?(LL|ULL|i)?")]
+    #[regex(r"\.[0-9][0-9_]*([eE][\+\-]?[0-9_]+)?(LL|ULL|i)?")]
+    #[regex(r"[0-9][0-9_]*(\.[0-9_]*)?([eE][\+\-]?[0-9_]+)?(LL|ULL|i)?")]
+    Number,
+
+    #[cfg(all(feature = "roblox", not(feature = "lua52")))]
     #[regex(r"0[bB][01_]+([eE][01_]+)?(\.[01_]*)?")]
     #[regex(r"0[xX][0-9a-fA-F_]+")]
     #[regex(r"\.[0-9][0-9_]*([eE][\+\-]?[0-9_]+)?")]
     #[regex(r"[0-9][0-9_]*(\.[0-9_]*)?([eE][\+\-]?[0-9_]+)?")]
     Number,
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(all(feature = "lua52", not(feature = "roblox")))]
+    // Allow fractional hexadecimal, and binary exponents
+    // Also support LuaJIT ULL/LL/i endings
+    #[regex(r"0[xX][0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?([pP][\+\-]?[0-9a-fA-F_]+)?(LL|ULL|i)?")]
+    #[regex(r"\.[0-9][0-9_]*([eE][\+\-]?[0-9_]+)?(LL|ULL|i)?")]
+    #[regex(r"[0-9][0-9_]*(\.[0-9_]*)?([eE][\+\-]?[0-9_]+)?(LL|ULL|i)?")]
+    Number,
+
+    #[cfg(all(not(feature = "roblox"), not(feature = "lua52")))]
     #[regex(r"0[xX][0-9a-fA-F]+")]
     #[regex(r"\.[0-9]+([eE][\+\-]?[0-9]+)?")]
     #[regex(r"[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?")]
