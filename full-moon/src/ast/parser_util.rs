@@ -106,6 +106,11 @@ macro_rules! define_parser {
                 &self,
                 state: ParserState<'a>,
             ) -> Result<(ParserState<'a>, $node), InternalAstError> {
+                #[cfg(feature = "stacker")]
+                if true {
+                    return stacker::maybe_grow(32 * 1024, 1024 * 1024, || $body(self, state));
+                }
+
                 $body(self, state)
             }
         }
