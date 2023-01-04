@@ -13,6 +13,12 @@ use std::{
     fmt::{self, Display},
 };
 
+#[cfg(feature = "roblox")]
+use crate::atom::{InterpolatedStringBegin, InterpolatedStringSection};
+
+#[cfg(feature = "roblox")]
+pub use crate::tokenizer_luau::InterpolatedStringKind;
+
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[non_exhaustive]
@@ -254,7 +260,7 @@ impl TryFrom<Atom> for Symbol {
             #[cfg(feature = "roblox")]
             Atom::QuestionMark => Symbol::QuestionMark,
             Atom::Plus => Symbol::Plus,
-            Atom::RightBrace => Symbol::RightBrace,
+            Atom::RightBrace(None) => Symbol::RightBrace,
             Atom::RightBracket => Symbol::RightBracket,
             Atom::RightParen => Symbol::RightParen,
             Atom::Semicolon => Symbol::Semicolon,
@@ -455,6 +461,17 @@ pub enum TokenType {
         /// Characters consisting of the whitespace
         characters: ShortString,
     },
+
+    /// Some form of interpolated string
+    #[cfg(feature = "roblox")]
+    InterpolatedString {
+        /// The literal itself, ignoring backticks
+        literal: ShortString,
+
+        /// The kind of interpolated string.
+        /// If it is the beginning, middle, end, or a standalone string.
+        kind: InterpolatedStringKind,
+    },
 }
 
 impl TokenType {
@@ -468,14 +485,21 @@ impl TokenType {
         }
     }
 
+    /// Can this token type contain new lines?
     fn is_extensive(&self) -> bool {
+        #[cfg(feature = "roblox")]
+        let is_interpolated_string = matches!(self, TokenType::InterpolatedString { .. });
+
+        #[cfg(not(feature = "roblox"))]
+        let is_interpolated_string = false;
+
         matches!(
             self,
             TokenType::MultiLineComment { .. }
                 | TokenType::Shebang { .. }
                 | TokenType::StringLiteral { .. }
                 | TokenType::Whitespace { .. }
-        )
+        ) || is_interpolated_string
     }
 
     /// Returns whether a token can be practically ignored in most cases
@@ -513,6 +537,9 @@ impl TokenType {
             TokenType::StringLiteral { .. } => TokenKind::StringLiteral,
             TokenType::Symbol { .. } => TokenKind::Symbol,
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
+
+            #[cfg(feature = "roblox")]
+            TokenType::InterpolatedString { .. } => TokenKind::InterpolatedString,
         }
     }
 
@@ -553,6 +580,10 @@ pub enum TokenKind {
     Symbol,
     /// Whitespace, such as tabs or new lines
     Whitespace,
+
+    #[cfg(feature = "roblox")]
+    /// Some form of interpolated string
+    InterpolatedString,
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
@@ -623,6 +654,25 @@ impl fmt::Display for Token {
             }
             Symbol { symbol } => symbol.fmt(formatter),
             Whitespace { characters } => characters.fmt(formatter),
+
+            #[cfg(feature = "roblox")]
+            InterpolatedString { literal, kind } => match kind {
+                InterpolatedStringKind::Begin => {
+                    write!(formatter, "`{literal}{{")
+                }
+
+                InterpolatedStringKind::Middle => {
+                    write!(formatter, "}}{literal}{{")
+                }
+
+                InterpolatedStringKind::End => {
+                    write!(formatter, "}}{literal}`")
+                }
+
+                InterpolatedStringKind::Simple => {
+                    write!(formatter, "`{literal}`")
+                }
+            },
         }
     }
 }
@@ -663,6 +713,9 @@ impl Visit for Token {
             TokenKind::StringLiteral => visitor.visit_string_literal(self),
             TokenKind::Symbol => visitor.visit_symbol(self),
             TokenKind::Whitespace => visitor.visit_whitespace(self),
+
+            #[cfg(feature = "roblox")]
+            TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(self),
         }
     }
 }
@@ -681,6 +734,9 @@ impl VisitMut for Token {
             TokenKind::StringLiteral => visitor.visit_string_literal(token),
             TokenKind::Symbol => visitor.visit_symbol(token),
             TokenKind::Whitespace => visitor.visit_whitespace(token),
+
+            #[cfg(feature = "roblox")]
+            TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(token),
         }
     }
 }
@@ -992,9 +1048,39 @@ fn tokenize(token: Atom, slice: &str) -> RawToken {
 
         Atom::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
 
+        #[cfg(feature = "roblox")]
+        Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple)
+        | Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted)
+        | Atom::RightBrace(Some(InterpolatedStringSection::Middle))
+        | Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
+            Ok(TokenType::InterpolatedString {
+                literal: ShortString::new(&slice[1..slice.len() - 1]),
+                kind: match token {
+                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple) => {
+                        InterpolatedStringKind::Simple
+                    }
+
+                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted) => {
+                        InterpolatedStringKind::Begin
+                    }
+
+                    Atom::RightBrace(Some(InterpolatedStringSection::Middle)) => {
+                        InterpolatedStringKind::Middle
+                    }
+
+                    Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
+                        InterpolatedStringKind::End
+                    }
+
+                    _ => unreachable!(),
+                },
+            })
+        }
+
         Atom::Unknown => {
             let first = slice.chars().next().unwrap();
             let what = match first {
+                '`' if cfg!(feature = "roblox") => TokenizerErrorType::UnclosedString,
                 '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
                 '-' => TokenizerErrorType::UnclosedComment,
                 other => TokenizerErrorType::UnexpectedToken(other),
@@ -1455,6 +1541,13 @@ mod tests {
                 },
             }
         );
+    }
+
+    #[cfg(feature = "roblox")]
+    #[test]
+    fn test_string_interpolation_multi_line() {
+        let tokens = tokens("`Welcome to \\\n{name}!`").unwrap();
+        assert_eq!(tokens[0].to_string(), "`Welcome to \\\n{");
     }
 
     #[test]
