@@ -385,10 +385,10 @@ impl fmt::Display for TokenizerErrorType {
             TokenizerErrorType::UnclosedString => "unclosed string".fmt(formatter),
             TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(formatter),
             TokenizerErrorType::UnexpectedToken(character) => {
-                write!(formatter, "unexpected character {}", character)
+                write!(formatter, "unexpected character {character}")
             }
             TokenizerErrorType::InvalidSymbol(symbol) => {
-                write!(formatter, "invalid symbol {}", symbol)
+                write!(formatter, "invalid symbol {symbol}")
             }
         }
     }
@@ -640,7 +640,7 @@ impl fmt::Display for Token {
                 write!(formatter, "--[{0}[{1}]{0}]", "=".repeat(*blocks), comment)
             }
             Shebang { line } => line.fmt(formatter),
-            SingleLineComment { comment } => write!(formatter, "--{}", comment),
+            SingleLineComment { comment } => write!(formatter, "--{comment}"),
             StringLiteral {
                 literal,
                 multi_line,
@@ -649,7 +649,7 @@ impl fmt::Display for Token {
                 if let Some(blocks) = multi_line {
                     write!(formatter, "[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
                 } else {
-                    write!(formatter, "{0}{1}{0}", quote_type, literal)
+                    write!(formatter, "{quote_type}{literal}{quote_type}")
                 }
             }
             Symbol { symbol } => symbol.fmt(formatter),

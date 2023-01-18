@@ -49,10 +49,10 @@ impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Error::AstError(error) => {
-                write!(formatter, "error occurred while creating ast: {}", error)
+                write!(formatter, "error occurred while creating ast: {error}")
             }
             Error::TokenizerError(error) => {
-                write!(formatter, "error occurred while tokenizing: {}", error)
+                write!(formatter, "error occurred while tokenizing: {error}")
             }
         }
     }
