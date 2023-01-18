@@ -24,26 +24,23 @@ pub enum TypeInfo {
     },
 
     /// A standalone type, such as `string` or `Foo`.
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Basic(TokenReference),
 
     /// A singleton string type, such as `"hello"`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     String(TokenReference),
 
     /// A singleton boolean type, such as `true`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Boolean(TokenReference),
 
     /// A callback type, such as `(string, number) => boolean`.
     #[display(
-        fmt = "{}{}{}{}{}{}",
+        fmt = "{}{}{arguments}{}{arrow}{return_type}",
         "display_option(generics)",
         "parentheses.tokens().0",
-        "arguments",
-        "parentheses.tokens().1",
-        "arrow",
-        "return_type"
+        "parentheses.tokens().1"
     )]
     Callback {
         /// Optional generics provided for the arguments, such as in `<T>(T) -> string`
@@ -77,7 +74,7 @@ pub enum TypeInfo {
 
     /// A generic pack: `T...`.
     /// Note, these are only available as return types, when annotating a vararg (`...`) in a function parameter, or as a generic type argument.
-    #[display(fmt = "{}{}", "name", "ellipse")]
+    #[display(fmt = "{name}{ellipse}")]
     GenericPack {
         /// The name of the type that is generic: `T`.
         name: TokenReference,
@@ -86,7 +83,7 @@ pub enum TypeInfo {
     },
 
     /// An intersection type: `string & number`, denoting both types.
-    #[display(fmt = "{}{}{}", "left", "ampersand", "right")]
+    #[display(fmt = "{left}{ampersand}{right}")]
     Intersection {
         /// The left hand side: `string`.
         left: Box<TypeInfo>,
@@ -97,7 +94,7 @@ pub enum TypeInfo {
     },
 
     /// A type coming from a module, such as `module.Foo`
-    #[display(fmt = "{}{}{}", "module", "punctuation", "type_info")]
+    #[display(fmt = "{module}{punctuation}{type_info}")]
     Module {
         /// The module the type is coming from: `module`.
         module: TokenReference,
@@ -108,7 +105,7 @@ pub enum TypeInfo {
     },
 
     /// An optional type, such as `string?`.
-    #[display(fmt = "{}{}", "base", "question_mark")]
+    #[display(fmt = "{base}{question_mark}")]
     Optional {
         /// The type that is optional: `string`.
         base: Box<TypeInfo>,
@@ -157,7 +154,7 @@ pub enum TypeInfo {
     },
 
     /// A union type: `string | number`, denoting one or the other.
-    #[display(fmt = "{}{}{}", "left", "pipe", "right")]
+    #[display(fmt = "{left}{pipe}{right}")]
     Union {
         /// The left hand side: `string`.
         left: Box<TypeInfo>,
@@ -168,7 +165,7 @@ pub enum TypeInfo {
     },
 
     /// A variadic type: `...number`.
-    #[display(fmt = "{}{}", "ellipse", "type_info")]
+    #[display(fmt = "{ellipse}{type_info}")]
     Variadic {
         /// The ellipse: `...`.
         ellipse: TokenReference,
@@ -177,7 +174,7 @@ pub enum TypeInfo {
     },
 
     /// A variadic type pack: `...T` in `Function<...T>`
-    #[display(fmt = "{}{}", "ellipse", "name")]
+    #[display(fmt = "{ellipse}{name}")]
     VariadicPack {
         /// The ellipse: `...`
         ellipse: TokenReference,
@@ -192,17 +189,11 @@ pub enum TypeInfo {
 #[non_exhaustive]
 pub enum IndexedTypeInfo {
     /// A standalone type, such as `string` or `Foo`.
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Basic(TokenReference),
 
     /// A type using generics, such as `map<number, string>`.
-    #[display(
-        fmt = "{}{}{}{}",
-        "base",
-        "arrows.tokens().0",
-        "generics",
-        "arrows.tokens().1"
-    )]
+    #[display(fmt = "{base}{}{generics}{}", "arrows.tokens().0", "arrows.tokens().1")]
     Generic {
         /// The type that has generics: `map`.
         base: TokenReference,
@@ -217,7 +208,7 @@ pub enum IndexedTypeInfo {
 /// The `foo: number` in `{ foo: number }`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "key", "colon", "value")]
+#[display(fmt = "{key}{colon}{value}")]
 pub struct TypeField {
     pub(crate) key: TypeFieldKey,
     pub(crate) colon: TokenReference,
@@ -274,7 +265,7 @@ impl TypeField {
 #[non_exhaustive]
 pub enum TypeFieldKey {
     /// A name, such as `foo`.
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Name(TokenReference),
 
     /// An index signature, such as `[number]`.
@@ -291,7 +282,7 @@ pub enum TypeFieldKey {
 /// A type assertion using `::`, such as `:: number`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "assertion_op", "cast_to")]
+#[display(fmt = "{assertion_op}{cast_to}")]
 pub struct TypeAssertion {
     pub(crate) assertion_op: TokenReference,
     pub(crate) cast_to: TypeInfo,
@@ -433,11 +424,11 @@ impl TypeDeclaration {
 #[non_exhaustive]
 pub enum GenericParameterInfo {
     /// A name, such as `foo`.
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Name(TokenReference),
 
     /// A variadic type pack: `T...`.
-    #[display(fmt = "{}{}", "name", "ellipse")]
+    #[display(fmt = "{name}{ellipse}")]
     Variadic {
         /// The name of the type that is variadic: `T`.
         name: TokenReference,
@@ -546,7 +537,7 @@ impl Default for GenericDeclaration {
 /// A type specifier, the `: number` in `local foo: number`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "punctuation", "type_info")]
+#[display(fmt = "{punctuation}{type_info}")]
 pub struct TypeSpecifier {
     pub(crate) punctuation: TokenReference,
     pub(crate) type_info: TypeInfo,
@@ -637,7 +628,7 @@ impl fmt::Display for TypeArgument {
 /// An exported type declaration, such as `export type Meters = number`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "export_token", "type_declaration")]
+#[display(fmt = "{export_token}{type_declaration}")]
 pub struct ExportedTypeDeclaration {
     pub(crate) export_token: TokenReference,
     pub(crate) type_declaration: TypeDeclaration,
@@ -716,7 +707,7 @@ impl CompoundOp {
 /// A Compound Assignment statement, such as `x += 1` or `x -= 1`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "lhs", "compound_operator", "rhs")]
+#[display(fmt = "{lhs}{compound_operator}{rhs}")]
 pub struct CompoundAssignment {
     pub(crate) lhs: Var,
     pub(crate) compound_operator: CompoundOp,
@@ -892,13 +883,7 @@ impl IfExpression {
 /// An elseif expression in a bigger [`IfExpression`] expression
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    fmt = "{}{}{}{}",
-    "else_if_token",
-    "condition",
-    "then_token",
-    "expression"
-)]
+#[display(fmt = "{else_if_token}{condition}{then_token}{expression}")]
 pub struct ElseIfExpression {
     pub(crate) else_if_token: TokenReference,
     pub(crate) condition: Expression,
@@ -1022,7 +1007,7 @@ impl InterpolatedString {
 /// Read the documentation for [`InterpolatedString`] for more information.
 #[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "literal", "expression")]
+#[display(fmt = "{literal}{expression}")]
 pub struct InterpolatedStringSegment {
     /// The literal part of the segment. Guaranteed to be of TokenType::InterpolatedString
     pub literal: TokenReference,
