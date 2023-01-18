@@ -1,0 +1,37 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 20
+    line: 1
+    character: 21
+  token_type:
+    type: SingleLineComment
+    comment: 随便写点中文
+- start_position:
+    bytes: 20
+    line: 1
+    character: 21
+  end_position:
+    bytes: 21
+    line: 1
+    character: 21
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 21
+    line: 2
+    character: 1
+  end_position:
+    bytes: 21
+    line: 2
+    character: 1
+  token_type:
+    type: Eof
+
