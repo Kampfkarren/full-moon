@@ -59,7 +59,7 @@ impl fmt::Debug for TokenItem<'_> {
         match self {
             TokenItem::MoreTokens(_) => write!(formatter, "TokenItem::MoreTokens"),
             TokenItem::TokenReference(token) => {
-                write!(formatter, "TokenItem::TokenReference({})", token)
+                write!(formatter, "TokenItem::TokenReference({token})")
             }
         }
     }

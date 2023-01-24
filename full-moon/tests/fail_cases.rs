@@ -16,9 +16,9 @@ fn test_parser_fail_cases() {
         assert_yaml_snapshot!("tokens", tokens);
 
         match ast::Ast::from_tokens(tokens) {
-            Ok(_) => panic!("fail case passed for {:?}", path),
+            Ok(_) => panic!("fail case passed for {path:?}"),
             Err(error) => {
-                println!("error {:#?}", error);
+                println!("error {error:#?}");
                 assert_yaml_snapshot!("error", error);
             }
         }
@@ -32,7 +32,7 @@ fn test_tokenizer_fail_cases() {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
         match tokenizer::tokens(&source) {
-            Ok(tokens) => panic!("fail case passed for {:?}\n{tokens:#?}", path),
+            Ok(tokens) => panic!("fail case passed for {path:?}\n{tokens:#?}"),
             Err(error) => {
                 assert_yaml_snapshot!("error", error);
             }

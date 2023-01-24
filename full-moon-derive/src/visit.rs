@@ -100,8 +100,8 @@ impl DeriveGenerator for VisitGenerator {
             Some(VisitHint::SkipVisitSelf) => (quote! {}, quote! {}),
             Some(VisitHint::VisitAs(visit_as)) => {
                 let visit_as_end =
-                    syn::Ident::new(&format!("visit_{}_end", visit_as), input_ident.span());
-                let visit_as = syn::Ident::new(&format!("visit_{}", visit_as), input_ident.span());
+                    syn::Ident::new(&format!("visit_{visit_as}_end"), input_ident.span());
+                let visit_as = syn::Ident::new(&format!("visit_{visit_as}"), input_ident.span());
 
                 (
                     quote! {

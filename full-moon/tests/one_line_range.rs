@@ -24,8 +24,7 @@ fn test_one_line_range() {
         assert_eq!(
             end.line() - start.line(),
             0,
-            "node {:?} does not have a range on the same line",
-            stmt
+            "node {stmt:?} does not have a range on the same line"
         );
     }
 }

@@ -38,7 +38,7 @@ fn test_pass_case(path: &Path) {
     assert_yaml_snapshot!("tokens", tokens);
 
     let ast = ast::Ast::from_tokens(tokens)
-        .unwrap_or_else(|error| panic!("couldn't make ast for {:?} - {:?}", path, error));
+        .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:?}"));
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
     let ast = ast.update_positions();
