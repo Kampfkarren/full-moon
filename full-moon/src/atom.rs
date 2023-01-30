@@ -39,7 +39,16 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
                 escape = false;
                 z_escaped = true
             }
-            (true, ..) => escape = false,
+            (true, ..) => {
+                escape = false;
+                #[cfg(feature = "lua52")]
+                {
+                    // support for '\' followed by a newline
+                    if !z_escaped {
+                        z_escaped = true;
+                    }
+                }
+            }
             (false, '\\') => escape = true,
             #[cfg(feature = "lua52")]
             (false, '\n' | '\r') if z_escaped => z_escaped = false,
