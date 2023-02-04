@@ -120,15 +120,17 @@ fn read_comment(lexer: &mut Lexer<Atom>) -> bool {
 
     // Normal single line comment.
     // Reset remainder since it might've been bumped.
+    let mut current_offset = 0;
     for (offset, char) in lexer.remainder().char_indices() {
         if char == '\n' {
             lexer.bump(offset);
             return true;
         }
+        current_offset = offset + char.len_utf8();
     }
 
     // The rest of the string is a comment
-    lexer.bump(lexer.remainder().chars().count());
+    lexer.bump(current_offset);
     true
 }
 
