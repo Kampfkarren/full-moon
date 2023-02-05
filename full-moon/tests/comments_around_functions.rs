@@ -32,7 +32,7 @@ struct MemberVisitor {
 impl Visitor for MemberVisitor {
     fn visit_function_declaration(&mut self, function: &FunctionDeclaration) {
         let (tokens, _) = function.surrounding_trivia();
-        let mut tokens = tokens.clone();
+        let mut tokens = tokens;
         tokens.retain(|t| t.token_kind() == TokenKind::MultiLineComment);
         self.comments.extend(
             tokens

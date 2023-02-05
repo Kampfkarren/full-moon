@@ -120,7 +120,7 @@ pub enum LastStmt {
 /// A `return` statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", token, returns)]
+#[display(fmt = "{token}{returns}")]
 pub struct Return {
     token: TokenReference,
     returns: Punctuated<Expression>,
@@ -189,7 +189,7 @@ pub enum Field {
     },
 
     /// A key in the format of `name = value`
-    #[display(fmt = "{}{}{}", "key", "equal", "value")]
+    #[display(fmt = "{key}{equal}{value}")]
     NameKey {
         /// The `name` part of `name = value`
         key: TokenReference,
@@ -200,7 +200,7 @@ pub enum Field {
     },
 
     /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     NoKey(Expression),
 }
 
@@ -262,7 +262,7 @@ impl Default for TableConstructor {
 #[non_exhaustive]
 pub enum Expression {
     /// A binary operation, such as `1 + 3`
-    #[display(fmt = "{}{}{}", "lhs", "binop", "rhs")]
+    #[display(fmt = "{lhs}{binop}{rhs}")]
     BinaryOperator {
         /// The left hand side of the binary operation, the `1` part of `1 + 3`
         lhs: Box<Expression>,
@@ -288,7 +288,7 @@ pub enum Expression {
     },
 
     /// A unary operation, such as `#list`
-    #[display(fmt = "{}{}", "unop", "expression")]
+    #[display(fmt = "{unop}{expression}")]
     UnaryOperator {
         /// The unary operation, the `#` part of `#list`
         unop: UnOp,
@@ -297,7 +297,7 @@ pub enum Expression {
     },
 
     /// A value, such as "strings"
-    #[cfg_attr(not(feature = "roblox"), display(fmt = "{}", value))]
+    #[cfg_attr(not(feature = "roblox"), display(fmt = "{value}"))]
     #[cfg_attr(
         feature = "roblox",
         display(fmt = "{}{}", value, "display_option(type_assertion)")
@@ -322,35 +322,35 @@ pub enum Value {
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
     Function((TokenReference, FunctionBody)),
     /// A call of a function, such as `call()`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     FunctionCall(FunctionCall),
     /// An if expression, such as `if foo then true else false`.
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     IfExpression(IfExpression),
     /// An interpolated string, such as `` `hello {"world"}` ``
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     InterpolatedString(InterpolatedString),
     /// A table constructor, such as `{ 1, 2, 3 }`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     TableConstructor(TableConstructor),
     /// A number token, such as `3.3`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Number(TokenReference),
     /// An expression between parentheses, such as `(3 + 2)`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     ParenthesesExpression(Expression),
     /// A string token, such as `"hello"`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     String(TokenReference),
     /// A symbol, such as `true`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Symbol(TokenReference),
     /// A more complex value, such as `call().x`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Var(Var),
 }
 
@@ -360,43 +360,43 @@ pub enum Value {
 #[non_exhaustive]
 pub enum Stmt {
     /// An assignment, such as `x = 1`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     Assignment(Assignment),
     /// A do block, `do end`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     Do(Do),
     /// A function call on its own, such as `call()`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     FunctionCall(FunctionCall),
     /// A function declaration, such as `function x() end`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     FunctionDeclaration(FunctionDeclaration),
     /// A generic for loop, such as `for index, value in pairs(list) do end`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     GenericFor(GenericFor),
     /// An if statement
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     If(If),
     /// A local assignment, such as `local x = 1`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     LocalAssignment(LocalAssignment),
     /// A local function declaration, such as `local function x() end`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     LocalFunction(LocalFunction),
     /// A numeric for loop, such as `for index = 1, 10 do end`
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     NumericFor(NumericFor),
     /// A repeat loop
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     Repeat(Repeat),
     /// A while loop
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     While(While),
 
     /// A compound assignment, such as `+=`
     /// Only available when the "roblox" feature flag is enabled
     #[cfg(feature = "roblox")]
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
     /// Only available when the "roblox" feature flag is enabled.
@@ -423,10 +423,10 @@ pub enum Stmt {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Prefix {
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     /// A complicated expression, such as `("foo")`
     Expression(Expression),
-    #[display(fmt = "{}", _0)]
+    #[display(fmt = "{_0}")]
     /// Just a name, such as `foo`
     Name(TokenReference),
 }
@@ -452,7 +452,7 @@ pub enum Index {
     },
 
     /// Indexing in the form of `x.y`
-    #[display(fmt = "{}{}", "dot", "name")]
+    #[display(fmt = "{dot}{name}")]
     Dot {
         /// The `.` part of `.y`
         dot: TokenReference,
@@ -481,10 +481,10 @@ pub enum FunctionArgs {
         arguments: Punctuated<Expression>,
     },
     /// Used when a function is called in the form of `call "foobar"`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     String(TokenReference),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     TableConstructor(TableConstructor),
 }
 
@@ -997,7 +997,7 @@ impl If {
 /// An elseif block in a bigger [`If`] statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}{}", "else_if_token", "condition", "then_token", "block")]
+#[display(fmt = "{else_if_token}{condition}{then_token}{block}")]
 pub struct ElseIf {
     else_if_token: TokenReference,
     condition: Expression,
@@ -1063,14 +1063,7 @@ impl ElseIf {
 /// A while loop
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    fmt = "{}{}{}{}{}",
-    "while_token",
-    "condition",
-    "do_token",
-    "block",
-    "end_token"
-)]
+#[display(fmt = "{while_token}{condition}{do_token}{block}{end_token}")]
 pub struct While {
     while_token: TokenReference,
     condition: Expression,
@@ -1148,7 +1141,7 @@ impl While {
 /// A repeat loop
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}{}", "repeat_token", "block", "until_token", "until")]
+#[display(fmt = "{repeat_token}{block}{until_token}{until}")]
 pub struct Repeat {
     repeat_token: TokenReference,
     block: Block,
@@ -1217,7 +1210,7 @@ impl Repeat {
 /// A method call, such as `x:y()`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "colon_token", "name", "args")]
+#[display(fmt = "{colon_token}{name}{args}")]
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
@@ -1273,10 +1266,10 @@ impl MethodCall {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Call {
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     /// A function being called directly, such as `x(1)`
     AnonymousCall(FunctionArgs),
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     /// A method call, such as `x:y()`
     MethodCall(MethodCall),
 }
@@ -1471,10 +1464,10 @@ pub enum Parameter {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Suffix {
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     /// A call, including method calls and direct calls
     Call(Call),
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     /// An index, such as `x.y`
     Index(Index),
 }
@@ -1524,17 +1517,17 @@ impl VarExpression {
 #[non_exhaustive]
 pub enum Var {
     /// An expression, such as `x.y.z` or `x()`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Expression(VarExpression),
     /// A literal identifier, such as `x`
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     Name(TokenReference),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](LocalAssignment)
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "var_list", "equal_token", "expr_list")]
+#[display(fmt = "{var_list}{equal_token}{expr_list}")]
 pub struct Assignment {
     var_list: Punctuated<Var>,
     equal_token: TokenReference,
@@ -1592,11 +1585,11 @@ impl Assignment {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(
     not(feature = "roblox"),
-    display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")
+    display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 #[cfg_attr(
     feature = "roblox",
-    display(fmt = "{}{}{}{}", "local_token", "function_token", "name", "body")
+    display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 pub struct LocalFunction {
     local_token: TokenReference,
@@ -1808,7 +1801,7 @@ impl fmt::Display for LocalAssignment {
 /// This is not used for things like `while true do end`, only those on their own
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "do_token", "block", "end_token")]
+#[display(fmt = "{do_token}{block}{end_token}")]
 pub struct Do {
     do_token: TokenReference,
     block: Block,
@@ -1968,14 +1961,8 @@ impl FunctionName {
 /// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(
-    not(feature = "roblox"),
-    display(fmt = "{}{}{}", "function_token", "name", "body")
-)]
-#[cfg_attr(
-    feature = "roblox",
-    display(fmt = "{}{}{}", "function_token", "name", "body")
-)]
+#[cfg_attr(not(feature = "roblox"), display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(feature = "roblox", display(fmt = "{function_token}{name}{body}"))]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
@@ -2207,7 +2194,7 @@ impl fmt::Display for AstError {
                 token.end_position().line(),
                 token.end_position().character(),
                 match additional {
-                    Some(additional) => format!("\nadditional information: {}", additional),
+                    Some(additional) => format!("\nadditional information: {additional}"),
                     None => String::new(),
                 }
             )
