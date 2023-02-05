@@ -79,7 +79,7 @@ impl<T: MatchEnumGenerator> EnumGenerator for T {
         let deref = if T::DEREF { Some(quote! { * }) } else { None };
 
         T::complete(quote! {
-            match #deref#self_ident {
+            match #deref #self_ident {
                 #(#cases)*
             }
         })

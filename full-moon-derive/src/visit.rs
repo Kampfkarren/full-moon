@@ -60,19 +60,19 @@ impl VisitGenerator {
             .filter(|field| search_hint("visit", &field.attrs) != Some(VisitHint::Skip))
         {
             let ident = field.ident.as_ref().unwrap();
-            let token_stream = quote! { #prefix#ident };
+            let token_stream = quote! { #prefix #ident };
 
             if let Some(VisitHint::Contains(contains_node)) = search_hint("visit", &field.attrs) {
                 contains.insert(contains_node, ident);
             } else if let Some(contains_me) = contains.remove(&ident.to_string()) {
                 fields.push(quote! {
-                    #prefix#contains_me.tokens.0
+                    #prefix #contains_me.tokens.0
                 });
 
                 fields.push(token_stream);
 
                 fields.push(quote! {
-                    #prefix#contains_me.tokens.1
+                    #prefix #contains_me.tokens.1
                 });
             } else {
                 fields.push(token_stream);
@@ -81,8 +81,7 @@ impl VisitGenerator {
 
         assert!(
             contains.is_empty(),
-            "#[visit(contains = \"...\")] used in wrong order: {:?}",
-            contains
+            "#[visit(contains = \"...\")] used in wrong order: {contains:?}",
         );
 
         quote! {
