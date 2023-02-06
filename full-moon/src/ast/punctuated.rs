@@ -111,6 +111,18 @@ impl<T> Punctuated<T> {
         self.pairs.into_iter()
     }
 
+    /// Returns the first pair in the sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// assert_eq!(punctuated.first(), None);
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.first(), Some(&Pair::new(1, None)));
+    /// ```
+    pub fn first(&self) -> Option<&Pair<T>> {
+        self.pairs.first()
+    }
+
     /// Returns the last pair in the sequence
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
