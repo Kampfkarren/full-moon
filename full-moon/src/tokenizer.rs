@@ -1514,7 +1514,7 @@ mod tests {
         );
         // Don't recognize if not in the beggining.
         test_rule!(
-            &format!("#!/usr/bin/env lua\n {}", bom),
+            &format!("#!/usr/bin/env lua\n {bom}"),
             TokenizerErrorType::UnexpectedToken('\u{feff}')
         );
     }

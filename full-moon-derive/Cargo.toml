@@ -5,7 +5,7 @@ authors = ["Kampfkarren <kampfkarren@gmail.com>"]
 description = "Internally used for the full_moon project. Do not use."
 license = "MPL-2.0"
 repository = "https://github.com/Kampfkarren/full-moon"
-edition = "2018"
+edition = "2021"
 
 [lib]
 proc-macro = true
