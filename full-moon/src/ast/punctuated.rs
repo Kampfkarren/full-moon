@@ -111,6 +111,18 @@ impl<T> Punctuated<T> {
         self.pairs.into_iter()
     }
 
+    /// Returns the first pair in the sequence
+    /// ```rust
+    /// # use full_moon::ast::punctuated::{Pair, Punctuated};
+    /// let mut punctuated = Punctuated::new();
+    /// assert_eq!(punctuated.first(), None);
+    /// punctuated.push(Pair::new(1, None));
+    /// assert_eq!(punctuated.first(), Some(&Pair::new(1, None)));
+    /// ```
+    pub fn first(&self) -> Option<&Pair<T>> {
+        self.pairs.first()
+    }
+
     /// Returns the last pair in the sequence
     /// ```rust
     /// # use full_moon::ast::punctuated::{Pair, Punctuated};
@@ -301,15 +313,16 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
 #[derive(Clone, Debug, Display, PartialEq, Eq)]
+#[display(bound = "T: Display")]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Pair<T> {
     /// A node `T` with no trailing punctuation
-    #[display(fmt = "{}", "_0")]
+    #[display(fmt = "{_0}")]
     End(T),
 
     /// A node `T` followed by punctuation (in the form of a
     /// [`TokenReference`](crate::tokenizer::TokenReference))
-    #[display(fmt = "{}{}", "_0", "_1")]
+    #[display(fmt = "{_0}{_1}")]
     Punctuated(T, TokenReference),
 }
 

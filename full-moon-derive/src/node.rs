@@ -16,7 +16,7 @@ fn token_getter(
         #[allow(clippy::cmp_owned)]
         if token_ref.ident.to_string() == "TokenReference" {
             return quote! {
-                crate::node::TokenItem::TokenReference(&#prefix#ident)
+                crate::node::TokenItem::TokenReference(&#prefix #ident)
             };
         }
     }
@@ -26,7 +26,7 @@ fn token_getter(
     }
 
     quote! {
-        crate::node::TokenItem::MoreTokens(&#prefix#ident)
+        crate::node::TokenItem::MoreTokens(&#prefix #ident)
     }
 }
 
@@ -155,7 +155,7 @@ impl StructGenerator for StructRangeGenerator {
             }
 
             quote! {
-                Some((None#(#start_position)*?, None#(#end_position)*?))
+                Some((None #(#start_position)*?, None #(#end_position)*?))
             }
         }
     }
@@ -271,7 +271,7 @@ impl MatchEnumGenerator for EnumRangeGenerator {
             }
 
             quote! {
-                Some((None#(#start_position)*?, None#(#end_position)*?))
+                Some((None #(#start_position)*?, None #(#end_position)*?))
             }
         };
 
