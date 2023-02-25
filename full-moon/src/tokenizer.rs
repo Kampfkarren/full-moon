@@ -1208,16 +1208,16 @@ fn read_position(code: &str, position: &mut Position) -> bool {
     let mut has_newline = false;
 
     for c in code.chars() {
+        if has_newline {
+            position.line += 1;
+            position.character = 1;
+
+            has_newline = false;
+        }
+
         if c == '\n' {
             has_newline = true;
         } else {
-            if has_newline {
-                position.line += 1;
-                position.character = 1;
-
-                has_newline = false;
-            }
-
             position.character += 1;
         }
     }
