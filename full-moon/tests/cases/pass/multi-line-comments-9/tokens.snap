@@ -1,0 +1,27 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 231
+    line: 21
+    character: 4
+  token_type:
+    type: MultiLineComment
+    blocks: 1
+    comment: "\n\n\tThis description starts one line down,\n\n\tAnd has a line in the middle, followed by trailing lines.\n\n\t```lua\n\tfunction test()\n\t\tprint(\"indentation\")\n\n\t\tdo\n\t\t\tprint(\"more indented\")\n\t\tend\n\tend\n\t```\n\n\n\t@class indentation\n\n\n"
+- start_position:
+    bytes: 231
+    line: 21
+    character: 4
+  end_position:
+    bytes: 231
+    line: 21
+    character: 4
+  token_type:
+    type: Eof
+
