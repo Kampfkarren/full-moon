@@ -6,9 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.18.0] - 2023-03-12
+### Added
+- Added `first` method to `Punctuated`.
+
 ### Fixed
 - Fixed parse failed with Chinese token in comment and bump deps.
-- Added `first` method to `Punctuated`.
 - Fixed `\` escapes in strings for Lua 5.2+.
 - Fixed incorrect line number positions when a token contains consecutive newlines (typically multi line strings or comments)
 
