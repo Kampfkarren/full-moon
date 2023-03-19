@@ -1778,11 +1778,11 @@ impl LocalAssignment {
 impl fmt::Display for LocalAssignment {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         #[cfg(feature = "lua54")]
-        let attributes = self.attributes();
+        let attributes = self.attributes().chain(std::iter::repeat(None));
         #[cfg(not(feature = "lua54"))]
         let attributes = std::iter::repeat_with(|| None::<TokenReference>);
         #[cfg(feature = "roblox")]
-        let type_specifiers = self.type_specifiers();
+        let type_specifiers = self.type_specifiers().chain(std::iter::repeat(None));
         #[cfg(not(feature = "roblox"))]
         let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
@@ -2479,5 +2479,40 @@ mod tests {
         Return::new();
         TableConstructor::new();
         While::new(expression);
+    }
+
+    #[test]
+    fn test_local_assignment_print() {
+        let block = Block::new().with_stmts(vec![(
+            Stmt::LocalAssignment(
+                LocalAssignment::new(
+                    std::iter::once(Pair::End(TokenReference::new(
+                        vec![],
+                        Token::new(TokenType::Identifier {
+                            identifier: "variable".into(),
+                        }),
+                        vec![],
+                    )))
+                    .collect(),
+                )
+                .with_equal_token(Some(TokenReference::symbol(" = ").unwrap()))
+                .with_expressions(
+                    std::iter::once(Pair::End(Expression::Value {
+                        value: Box::new(Value::Number(TokenReference::new(
+                            vec![],
+                            Token::new(TokenType::Number { text: "1".into() }),
+                            vec![],
+                        ))),
+                        #[cfg(feature = "roblox")]
+                        type_assertion: None,
+                    }))
+                    .collect(),
+                ),
+            ),
+            None,
+        )]);
+
+        let ast = parse("").unwrap().with_nodes(block);
+        assert_eq!(print(&ast), "local variable = 1");
     }
 }
