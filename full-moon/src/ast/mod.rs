@@ -2480,4 +2480,39 @@ mod tests {
         TableConstructor::new();
         While::new(expression);
     }
+
+    #[test]
+    fn test_local_assignment_print() {
+        let block = Block::new().with_stmts(vec![(
+            Stmt::LocalAssignment(
+                LocalAssignment::new(
+                    std::iter::once(Pair::End(TokenReference::new(
+                        vec![],
+                        Token::new(TokenType::Identifier {
+                            identifier: "variable".into(),
+                        }),
+                        vec![],
+                    )))
+                    .collect(),
+                )
+                .with_equal_token(Some(TokenReference::symbol(" = ").unwrap()))
+                .with_expressions(
+                    std::iter::once(Pair::End(Expression::Value {
+                        value: Box::new(Value::Number(TokenReference::new(
+                            vec![],
+                            Token::new(TokenType::Number { text: "1".into() }),
+                            vec![],
+                        ))),
+                        #[cfg(feature = "roblox")]
+                        type_assertion: None,
+                    }))
+                    .collect(),
+                ),
+            ),
+            None,
+        )]);
+
+        let ast = parse("").unwrap().with_nodes(block);
+        assert_eq!(print(&ast), "local variable = 1");
+    }
 }
