@@ -1778,11 +1778,11 @@ impl LocalAssignment {
 impl fmt::Display for LocalAssignment {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         #[cfg(feature = "lua54")]
-        let attributes = self.attributes();
+        let attributes = self.attributes().chain(std::iter::repeat(None));
         #[cfg(not(feature = "lua54"))]
         let attributes = std::iter::repeat_with(|| None::<TokenReference>);
         #[cfg(feature = "roblox")]
-        let type_specifiers = self.type_specifiers();
+        let type_specifiers = self.type_specifiers().chain(std::iter::repeat(None));
         #[cfg(not(feature = "roblox"))]
         let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
