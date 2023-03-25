@@ -258,7 +258,6 @@ impl Default for TableConstructor {
 /// An expression, mostly useful for getting values
 #[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(feature = "serde", serde(untagged))]
 #[non_exhaustive]
 pub enum Expression {
     /// A binary operation, such as `1 + 3`

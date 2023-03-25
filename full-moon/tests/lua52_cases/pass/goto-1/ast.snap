@@ -63,20 +63,21 @@ stmts:
               symbol: "="
           trailing_trivia: []
         start:
-          leading_trivia: []
-          token:
-            start_position:
-              bytes: 6
-              line: 1
-              character: 7
-            end_position:
-              bytes: 7
-              line: 1
-              character: 8
-            token_type:
-              type: Number
-              text: "1"
-          trailing_trivia: []
+          Number:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 6
+                line: 1
+                character: 7
+              end_position:
+                bytes: 7
+                line: 1
+                character: 8
+              token_type:
+                type: Number
+                text: "1"
+            trailing_trivia: []
         start_end_comma:
           leading_trivia: []
           token:
@@ -104,31 +105,32 @@ stmts:
                 type: Whitespace
                 characters: " "
         end:
-          leading_trivia: []
-          token:
-            start_position:
-              bytes: 9
-              line: 1
-              character: 10
-            end_position:
-              bytes: 11
-              line: 1
-              character: 12
-            token_type:
-              type: Number
-              text: "10"
-          trailing_trivia:
-            - start_position:
+          Number:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 9
+                line: 1
+                character: 10
+              end_position:
                 bytes: 11
                 line: 1
                 character: 12
-              end_position:
-                bytes: 12
-                line: 1
-                character: 13
               token_type:
-                type: Whitespace
-                characters: " "
+                type: Number
+                text: "10"
+            trailing_trivia:
+              - start_position:
+                  bytes: 11
+                  line: 1
+                  character: 12
+                end_position:
+                  bytes: 12
+                  line: 1
+                  character: 13
+                token_type:
+                  type: Whitespace
+                  characters: " "
         end_step_comma: ~
         step: ~
         do_token:
@@ -198,86 +200,89 @@ stmts:
                           type: Whitespace
                           characters: " "
                   condition:
-                    lhs:
-                      Name:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 19
-                            line: 2
-                            character: 5
-                          end_position:
-                            bytes: 20
-                            line: 2
-                            character: 6
-                          token_type:
-                            type: Identifier
-                            identifier: i
-                        trailing_trivia:
-                          - start_position:
-                              bytes: 20
-                              line: 2
-                              character: 6
-                            end_position:
+                    BinaryOperator:
+                      lhs:
+                        Var:
+                          Name:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 19
+                                line: 2
+                                character: 5
+                              end_position:
+                                bytes: 20
+                                line: 2
+                                character: 6
+                              token_type:
+                                type: Identifier
+                                identifier: i
+                            trailing_trivia:
+                              - start_position:
+                                  bytes: 20
+                                  line: 2
+                                  character: 6
+                                end_position:
+                                  bytes: 21
+                                  line: 2
+                                  character: 7
+                                token_type:
+                                  type: Whitespace
+                                  characters: " "
+                      binop:
+                        TwoEqual:
+                          leading_trivia: []
+                          token:
+                            start_position:
                               bytes: 21
                               line: 2
                               character: 7
-                            token_type:
-                              type: Whitespace
-                              characters: " "
-                    binop:
-                      TwoEqual:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 21
-                            line: 2
-                            character: 7
-                          end_position:
-                            bytes: 23
-                            line: 2
-                            character: 9
-                          token_type:
-                            type: Symbol
-                            symbol: "=="
-                        trailing_trivia:
-                          - start_position:
+                            end_position:
                               bytes: 23
                               line: 2
                               character: 9
-                            end_position:
+                            token_type:
+                              type: Symbol
+                              symbol: "=="
+                          trailing_trivia:
+                            - start_position:
+                                bytes: 23
+                                line: 2
+                                character: 9
+                              end_position:
+                                bytes: 24
+                                line: 2
+                                character: 10
+                              token_type:
+                                type: Whitespace
+                                characters: " "
+                      rhs:
+                        Number:
+                          leading_trivia: []
+                          token:
+                            start_position:
                               bytes: 24
                               line: 2
                               character: 10
+                            end_position:
+                              bytes: 25
+                              line: 2
+                              character: 11
                             token_type:
-                              type: Whitespace
-                              characters: " "
-                    rhs:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 24
-                          line: 2
-                          character: 10
-                        end_position:
-                          bytes: 25
-                          line: 2
-                          character: 11
-                        token_type:
-                          type: Number
-                          text: "5"
-                      trailing_trivia:
-                        - start_position:
-                            bytes: 25
-                            line: 2
-                            character: 11
-                          end_position:
-                            bytes: 26
-                            line: 2
-                            character: 12
-                          token_type:
-                            type: Whitespace
-                            characters: " "
+                              type: Number
+                              text: "5"
+                          trailing_trivia:
+                            - start_position:
+                                bytes: 25
+                                line: 2
+                                character: 11
+                              end_position:
+                                bytes: 26
+                                line: 2
+                                character: 12
+                              token_type:
+                                type: Whitespace
+                                characters: " "
                   then_token:
                     leading_trivia: []
                     token:
