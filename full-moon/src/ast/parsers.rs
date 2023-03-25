@@ -276,15 +276,29 @@ define_parser!(ParseValueExpression, Expression, |_, state| {
 #[derive(Clone, Debug, PartialEq)]
 struct ParsePartExpression;
 define_parser!(ParsePartExpression, Expression, |_, state| {
-    if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
-        Ok((state, expression))
-    } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
-        Ok((state, expression))
-    } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
-        Ok((state, expression))
-    } else {
-        Err(InternalAstError::NoMatch)
+    let (state, expression) =
+        if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
+            Ok((state, expression))
+        } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
+            Ok((state, expression))
+        } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
+            Ok((state, expression))
+        } else {
+            Err(InternalAstError::NoMatch)
+        }?;
+
+    #[cfg(feature = "roblox")]
+    if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
+        return Ok((
+            state,
+            Expression::TypeAssertion {
+                expression: Box::new(expression),
+                type_assertion,
+            },
+        ));
     }
+
+    Ok((state, expression))
 });
 
 #[derive(Clone, Debug, PartialEq)]
