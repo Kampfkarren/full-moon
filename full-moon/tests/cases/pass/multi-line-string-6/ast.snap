@@ -89,31 +89,32 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 12
-                    line: 1
-                    character: 13
-                  end_position:
-                    bytes: 22
-                    line: 2
-                    character: 5
-                  token_type:
-                    type: StringLiteral
-                    literal: "bar\\\nbaz"
-                    quote_type: Double
-                trailing_trivia:
-                  - start_position:
+                String:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 12
+                      line: 1
+                      character: 13
+                    end_position:
                       bytes: 22
                       line: 2
                       character: 5
-                    end_position:
-                      bytes: 23
-                      line: 2
-                      character: 5
                     token_type:
-                      type: Whitespace
-                      characters: "\n"
+                      type: StringLiteral
+                      literal: "bar\\\nbaz"
+                      quote_type: Double
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 22
+                        line: 2
+                        character: 5
+                      end_position:
+                        bytes: 23
+                        line: 2
+                        character: 5
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
     - ~
 

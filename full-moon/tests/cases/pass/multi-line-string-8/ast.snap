@@ -89,21 +89,22 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 10
-                    line: 1
-                    character: 11
-                  end_position:
-                    bytes: 68
-                    line: 1
-                    character: 69
-                  token_type:
-                    type: StringLiteral
-                    literal: "\\v<((do|load)file|require)\\s*\\(?['\"]\\zs[^'\"]+\\ze['\"]"
-                    multi_line: 1
-                    quote_type: Brackets
-                trailing_trivia: []
+                String:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    end_position:
+                      bytes: 68
+                      line: 1
+                      character: 69
+                    token_type:
+                      type: StringLiteral
+                      literal: "\\v<((do|load)file|require)\\s*\\(?['\"]\\zs[^'\"]+\\ze['\"]"
+                      multi_line: 1
+                      quote_type: Brackets
+                  trailing_trivia: []
     - ~
 

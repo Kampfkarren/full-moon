@@ -89,31 +89,32 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 12
-                    line: 1
-                    character: 13
-                  end_position:
-                    bytes: 15
-                    line: 1
-                    character: 16
-                  token_type:
-                    type: Number
-                    text: "1e5"
-                trailing_trivia:
-                  - start_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 12
+                      line: 1
+                      character: 13
+                    end_position:
                       bytes: 15
                       line: 1
                       character: 16
-                    end_position:
-                      bytes: 16
-                      line: 1
-                      character: 16
                     token_type:
-                      type: Whitespace
-                      characters: "\n"
+                      type: Number
+                      text: "1e5"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 15
+                        line: 1
+                        character: 16
+                      end_position:
+                        bytes: 16
+                        line: 1
+                        character: 16
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:
@@ -199,31 +200,32 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 29
-                    line: 2
-                    character: 14
-                  end_position:
-                    bytes: 33
-                    line: 2
-                    character: 18
-                  token_type:
-                    type: Number
-                    text: "1e-5"
-                trailing_trivia:
-                  - start_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 29
+                      line: 2
+                      character: 14
+                    end_position:
                       bytes: 33
                       line: 2
                       character: 18
-                    end_position:
-                      bytes: 34
-                      line: 2
-                      character: 18
                     token_type:
-                      type: Whitespace
-                      characters: "\n"
+                      type: Number
+                      text: "1e-5"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 33
+                        line: 2
+                        character: 18
+                      end_position:
+                        bytes: 34
+                        line: 2
+                        character: 18
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:
@@ -309,19 +311,20 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 47
-                    line: 3
-                    character: 14
-                  end_position:
-                    bytes: 51
-                    line: 3
-                    character: 18
-                  token_type:
-                    type: Number
-                    text: "1e+5"
-                trailing_trivia: []
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 47
+                      line: 3
+                      character: 14
+                    end_position:
+                      bytes: 51
+                      line: 3
+                      character: 18
+                    token_type:
+                      type: Number
+                      text: "1e+5"
+                  trailing_trivia: []
     - ~
 

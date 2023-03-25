@@ -89,19 +89,20 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 10
-                    line: 1
-                    character: 11
-                  end_position:
-                    bytes: 11
-                    line: 1
-                    character: 12
-                  token_type:
-                    type: Number
-                    text: "1"
-                trailing_trivia: []
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    end_position:
+                      bytes: 11
+                      line: 1
+                      character: 12
+                    token_type:
+                      type: Number
+                      text: "1"
+                  trailing_trivia: []
     - ~
 

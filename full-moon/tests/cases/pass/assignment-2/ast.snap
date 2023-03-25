@@ -105,20 +105,21 @@ stmts:
         expr_list:
           pairs:
             - Punctuated:
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 7
-                      line: 1
-                      character: 8
-                    end_position:
-                      bytes: 8
-                      line: 1
-                      character: 9
-                    token_type:
-                      type: Number
-                      text: "1"
-                  trailing_trivia: []
+                - Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 7
+                        line: 1
+                        character: 8
+                      end_position:
+                        bytes: 8
+                        line: 1
+                        character: 9
+                      token_type:
+                        type: Number
+                        text: "1"
+                    trailing_trivia: []
                 - leading_trivia: []
                   token:
                     start_position:
@@ -145,19 +146,20 @@ stmts:
                         type: Whitespace
                         characters: " "
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 10
-                    line: 1
-                    character: 11
-                  end_position:
-                    bytes: 14
-                    line: 1
-                    character: 15
-                  token_type:
-                    type: Symbol
-                    symbol: "true"
-                trailing_trivia: []
+                Symbol:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    end_position:
+                      bytes: 14
+                      line: 1
+                      character: 15
+                    token_type:
+                      type: Symbol
+                      symbol: "true"
+                  trailing_trivia: []
     - ~
 

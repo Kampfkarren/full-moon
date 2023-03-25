@@ -146,31 +146,32 @@ stmts:
                                     type: Whitespace
                                     characters: " "
                             value:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 11
-                                  line: 1
-                                  character: 12
-                                end_position:
-                                  bytes: 12
-                                  line: 1
-                                  character: 13
-                                token_type:
-                                  type: Number
-                                  text: "1"
-                              trailing_trivia:
-                                - start_position:
+                              Number:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 11
+                                    line: 1
+                                    character: 12
+                                  end_position:
                                     bytes: 12
                                     line: 1
                                     character: 13
-                                  end_position:
-                                    bytes: 13
-                                    line: 1
-                                    character: 14
                                   token_type:
-                                    type: Whitespace
-                                    characters: " "
+                                    type: Number
+                                    text: "1"
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 12
+                                      line: 1
+                                      character: 13
+                                    end_position:
+                                      bytes: 13
+                                      line: 1
+                                      character: 14
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
     - ~
   - - FunctionCall:
         prefix:

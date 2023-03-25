@@ -113,20 +113,21 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          leading_trivia: []
-                          token:
-                            start_position:
-                              bytes: 59
-                              line: 2
-                              character: 11
-                            end_position:
-                              bytes: 64
-                              line: 2
-                              character: 16
-                            token_type:
-                              type: StringLiteral
-                              literal: foo
-                              quote_type: Double
-                          trailing_trivia: []
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 59
+                                line: 2
+                                character: 11
+                              end_position:
+                                bytes: 64
+                                line: 2
+                                character: 16
+                              token_type:
+                                type: StringLiteral
+                                literal: foo
+                                quote_type: Double
+                            trailing_trivia: []
     - ~
 

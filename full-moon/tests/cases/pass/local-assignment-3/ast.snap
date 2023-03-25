@@ -129,20 +129,21 @@ stmts:
         expr_list:
           pairs:
             - Punctuated:
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 13
-                      line: 1
-                      character: 14
-                    end_position:
-                      bytes: 14
-                      line: 1
-                      character: 15
-                    token_type:
-                      type: Number
-                      text: "1"
-                  trailing_trivia: []
+                - Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 13
+                        line: 1
+                        character: 14
+                      end_position:
+                        bytes: 14
+                        line: 1
+                        character: 15
+                      token_type:
+                        type: Number
+                        text: "1"
+                    trailing_trivia: []
                 - leading_trivia: []
                   token:
                     start_position:
@@ -169,31 +170,32 @@ stmts:
                         type: Whitespace
                         characters: " "
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 16
-                    line: 1
-                    character: 17
-                  end_position:
-                    bytes: 17
-                    line: 1
-                    character: 18
-                  token_type:
-                    type: Number
-                    text: "2"
-                trailing_trivia:
-                  - start_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 16
+                      line: 1
+                      character: 17
+                    end_position:
                       bytes: 17
                       line: 1
                       character: 18
-                    end_position:
-                      bytes: 18
-                      line: 1
-                      character: 18
                     token_type:
-                      type: Whitespace
-                      characters: "\n"
+                      type: Number
+                      text: "2"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 17
+                        line: 1
+                        character: 18
+                      end_position:
+                        bytes: 18
+                        line: 1
+                        character: 18
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:
@@ -319,20 +321,21 @@ stmts:
         expr_list:
           pairs:
             - Punctuated:
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 31
-                      line: 2
-                      character: 14
-                    end_position:
-                      bytes: 32
-                      line: 2
-                      character: 15
-                    token_type:
-                      type: Number
-                      text: "3"
-                  trailing_trivia: []
+                - Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 31
+                        line: 2
+                        character: 14
+                      end_position:
+                        bytes: 32
+                        line: 2
+                        character: 15
+                      token_type:
+                        type: Number
+                        text: "3"
+                    trailing_trivia: []
                 - leading_trivia: []
                   token:
                     start_position:
@@ -359,31 +362,32 @@ stmts:
                         type: Whitespace
                         characters: " "
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 34
-                    line: 2
-                    character: 17
-                  end_position:
-                    bytes: 35
-                    line: 2
-                    character: 18
-                  token_type:
-                    type: Number
-                    text: "4"
-                trailing_trivia:
-                  - start_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 34
+                      line: 2
+                      character: 17
+                    end_position:
                       bytes: 35
                       line: 2
                       character: 18
-                    end_position:
-                      bytes: 36
-                      line: 2
-                      character: 18
                     token_type:
-                      type: Whitespace
-                      characters: "\n"
+                      type: Number
+                      text: "4"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 35
+                        line: 2
+                        character: 18
+                      end_position:
+                        bytes: 36
+                        line: 2
+                        character: 18
+                      token_type:
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:
@@ -509,20 +513,21 @@ stmts:
         expr_list:
           pairs:
             - Punctuated:
-                - leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 49
-                      line: 3
-                      character: 14
-                    end_position:
-                      bytes: 50
-                      line: 3
-                      character: 15
-                    token_type:
-                      type: Number
-                      text: "5"
-                  trailing_trivia: []
+                - Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 49
+                        line: 3
+                        character: 14
+                      end_position:
+                        bytes: 50
+                        line: 3
+                        character: 15
+                      token_type:
+                        type: Number
+                        text: "5"
+                    trailing_trivia: []
                 - leading_trivia: []
                   token:
                     start_position:
@@ -549,19 +554,20 @@ stmts:
                         type: Whitespace
                         characters: " "
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 52
-                    line: 3
-                    character: 17
-                  end_position:
-                    bytes: 53
-                    line: 3
-                    character: 18
-                  token_type:
-                    type: Number
-                    text: "6"
-                trailing_trivia: []
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 52
+                      line: 3
+                      character: 17
+                    end_position:
+                      bytes: 53
+                      line: 3
+                      character: 18
+                    token_type:
+                      type: Number
+                      text: "6"
+                  trailing_trivia: []
     - ~
 

@@ -129,85 +129,87 @@ stmts:
         expr_list:
           pairs:
             - End:
-                prefix:
-                  Name:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 20
-                        line: 1
-                        character: 21
-                      end_position:
-                        bytes: 25
-                        line: 1
-                        character: 26
-                      token_type:
-                        type: Identifier
-                        identifier: pairs
-                    trailing_trivia: []
-                suffixes:
-                  - Call:
-                      AnonymousCall:
-                        Parentheses:
-                          parentheses:
-                            tokens:
-                              - leading_trivia: []
-                                token:
-                                  start_position:
-                                    bytes: 25
-                                    line: 1
-                                    character: 26
-                                  end_position:
-                                    bytes: 26
-                                    line: 1
-                                    character: 27
-                                  token_type:
-                                    type: Symbol
-                                    symbol: (
-                                trailing_trivia: []
-                              - leading_trivia: []
-                                token:
-                                  start_position:
-                                    bytes: 30
-                                    line: 1
-                                    character: 31
-                                  end_position:
-                                    bytes: 31
-                                    line: 1
-                                    character: 32
-                                  token_type:
-                                    type: Symbol
-                                    symbol: )
-                                trailing_trivia:
-                                  - start_position:
+                FunctionCall:
+                  prefix:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 20
+                          line: 1
+                          character: 21
+                        end_position:
+                          bytes: 25
+                          line: 1
+                          character: 26
+                        token_type:
+                          type: Identifier
+                          identifier: pairs
+                      trailing_trivia: []
+                  suffixes:
+                    - Call:
+                        AnonymousCall:
+                          Parentheses:
+                            parentheses:
+                              tokens:
+                                - leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 25
+                                      line: 1
+                                      character: 26
+                                    end_position:
+                                      bytes: 26
+                                      line: 1
+                                      character: 27
+                                    token_type:
+                                      type: Symbol
+                                      symbol: (
+                                  trailing_trivia: []
+                                - leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 30
+                                      line: 1
+                                      character: 31
+                                    end_position:
                                       bytes: 31
                                       line: 1
                                       character: 32
-                                    end_position:
-                                      bytes: 32
-                                      line: 1
-                                      character: 33
                                     token_type:
-                                      type: Whitespace
-                                      characters: " "
-                          arguments:
-                            pairs:
-                              - End:
-                                  Name:
-                                    leading_trivia: []
-                                    token:
-                                      start_position:
-                                        bytes: 26
+                                      type: Symbol
+                                      symbol: )
+                                  trailing_trivia:
+                                    - start_position:
+                                        bytes: 31
                                         line: 1
-                                        character: 27
+                                        character: 32
                                       end_position:
-                                        bytes: 30
+                                        bytes: 32
                                         line: 1
-                                        character: 31
+                                        character: 33
                                       token_type:
-                                        type: Identifier
-                                        identifier: list
-                                    trailing_trivia: []
+                                        type: Whitespace
+                                        characters: " "
+                            arguments:
+                              pairs:
+                                - End:
+                                    Var:
+                                      Name:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 26
+                                            line: 1
+                                            character: 27
+                                          end_position:
+                                            bytes: 30
+                                            line: 1
+                                            character: 31
+                                          token_type:
+                                            type: Identifier
+                                            identifier: list
+                                        trailing_trivia: []
         do_token:
           leading_trivia: []
           token:
@@ -312,21 +314,22 @@ stmts:
                             arguments:
                               pairs:
                                 - Punctuated:
-                                    - Name:
-                                        leading_trivia: []
-                                        token:
-                                          start_position:
-                                            bytes: 41
-                                            line: 2
-                                            character: 7
-                                          end_position:
-                                            bytes: 46
-                                            line: 2
-                                            character: 12
-                                          token_type:
-                                            type: Identifier
-                                            identifier: index
-                                        trailing_trivia: []
+                                    - Var:
+                                        Name:
+                                          leading_trivia: []
+                                          token:
+                                            start_position:
+                                              bytes: 41
+                                              line: 2
+                                              character: 7
+                                            end_position:
+                                              bytes: 46
+                                              line: 2
+                                              character: 12
+                                            token_type:
+                                              type: Identifier
+                                              identifier: index
+                                          trailing_trivia: []
                                     - leading_trivia: []
                                       token:
                                         start_position:
@@ -353,21 +356,22 @@ stmts:
                                             type: Whitespace
                                             characters: " "
                                 - End:
-                                    Name:
-                                      leading_trivia: []
-                                      token:
-                                        start_position:
-                                          bytes: 48
-                                          line: 2
-                                          character: 14
-                                        end_position:
-                                          bytes: 53
-                                          line: 2
-                                          character: 19
-                                        token_type:
-                                          type: Identifier
-                                          identifier: value
-                                      trailing_trivia: []
+                                    Var:
+                                      Name:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 48
+                                            line: 2
+                                            character: 14
+                                          end_position:
+                                            bytes: 53
+                                            line: 2
+                                            character: 19
+                                          token_type:
+                                            type: Identifier
+                                            identifier: value
+                                        trailing_trivia: []
               - ~
         end_token:
           leading_trivia: []

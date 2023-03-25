@@ -89,21 +89,22 @@ stmts:
         expr_list:
           pairs:
             - End:
-                leading_trivia: []
-                token:
-                  start_position:
-                    bytes: 10
-                    line: 1
-                    character: 11
-                  end_position:
-                    bytes: 48
-                    line: 4
-                    character: 13
-                  token_type:
-                    type: StringLiteral
-                    literal: "Full Moon\nis a\nlossless\nLua parser"
-                    multi_line: 0
-                    quote_type: Brackets
-                trailing_trivia: []
+                String:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    end_position:
+                      bytes: 48
+                      line: 4
+                      character: 13
+                    token_type:
+                      type: StringLiteral
+                      literal: "Full Moon\nis a\nlossless\nLua parser"
+                      multi_line: 0
+                      quote_type: Brackets
+                  trailing_trivia: []
     - ~
 

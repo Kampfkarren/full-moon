@@ -112,31 +112,32 @@ stmts:
         expr_list:
           pairs:
             - End:
-                Name:
-                  leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 40
-                      line: 2
-                      character: 19
-                    end_position:
-                      bytes: 44
-                      line: 2
-                      character: 23
-                    token_type:
-                      type: Identifier
-                      identifier: here
-                  trailing_trivia:
-                    - start_position:
+                Var:
+                  Name:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 40
+                        line: 2
+                        character: 19
+                      end_position:
                         bytes: 44
                         line: 2
                         character: 23
-                      end_position:
-                        bytes: 45
-                        line: 2
-                        character: 23
                       token_type:
-                        type: Whitespace
-                        characters: "\n"
+                        type: Identifier
+                        identifier: here
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 44
+                          line: 2
+                          character: 23
+                        end_position:
+                          bytes: 45
+                          line: 2
+                          character: 23
+                        token_type:
+                          type: Whitespace
+                          characters: "\n"
     - ~
 

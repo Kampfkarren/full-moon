@@ -195,20 +195,21 @@ stmts:
                               arguments:
                                 pairs:
                                   - End:
-                                      leading_trivia: []
-                                      token:
-                                        start_position:
-                                          bytes: 25
-                                          line: 2
-                                          character: 7
-                                        end_position:
-                                          bytes: 26
-                                          line: 2
-                                          character: 8
-                                        token_type:
-                                          type: Number
-                                          text: "1"
-                                      trailing_trivia: []
+                                      Number:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 25
+                                            line: 2
+                                            character: 7
+                                          end_position:
+                                            bytes: 26
+                                            line: 2
+                                            character: 8
+                                          token_type:
+                                            type: Number
+                                            text: "1"
+                                        trailing_trivia: []
                 - ~
           end_token:
             leading_trivia: []
