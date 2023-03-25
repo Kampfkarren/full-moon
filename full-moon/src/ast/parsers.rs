@@ -278,6 +278,8 @@ struct ParsePartExpression;
 define_parser!(ParsePartExpression, Expression, |_, state| {
     if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
         Ok((state, expression))
+    } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
+        Ok((state, expression))
     } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
         Ok((state, expression))
     } else {

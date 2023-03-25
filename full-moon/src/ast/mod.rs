@@ -279,7 +279,7 @@ pub enum Expression {
         "contained.tokens().1"
     )]
     Parentheses {
-        /// The parentheses of the `ParenExpression`
+        /// The parentheses of the expression
         #[node(full_range)]
         contained: ContainedSpan,
         /// The expression inside the parentheses
