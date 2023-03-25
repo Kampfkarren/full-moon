@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
+input_file: full-moon/tests/lua52_cases/pass/not-z-escape-string
 ---
 stmts:
   - - FunctionCall:
@@ -57,22 +59,20 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          value:
-                            String:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 6
-                                  line: 1
-                                  character: 7
-                                end_position:
-                                  bytes: 28
-                                  line: 2
-                                  character: 12
-                                token_type:
-                                  type: StringLiteral
-                                  literal: "testing \\\n\t   twelve"
-                                  quote_type: Double
-                              trailing_trivia: []
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 6
+                              line: 1
+                              character: 7
+                            end_position:
+                              bytes: 28
+                              line: 2
+                              character: 12
+                            token_type:
+                              type: StringLiteral
+                              literal: "testing \\\n\t   twelve"
+                              quote_type: Double
+                          trailing_trivia: []
     - ~
 
