@@ -255,31 +255,12 @@ define_parser!(ParseParenExpression, Expression, |_, state| {
 });
 
 #[derive(Clone, Debug, PartialEq)]
-struct ParseValueExpression;
-define_parser!(ParseValueExpression, Expression, |_, state| {
-    let (state, value) = keep_going!(ParseValue.parse(state))?;
-
-    #[cfg(feature = "roblox")]
-    if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
-        return Ok((
-            state,
-            Expression::TypeAssertion {
-                expression: Box::new(value),
-                type_assertion,
-            },
-        ));
-    }
-
-    Ok((state, value))
-});
-
-#[derive(Clone, Debug, PartialEq)]
 struct ParsePartExpression;
 define_parser!(ParsePartExpression, Expression, |_, state| {
     let (state, expression) =
         if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
             Ok((state, expression))
-        } else if let Ok((state, expression)) = keep_going!(ParseValueExpression.parse(state)) {
+        } else if let Ok((state, expression)) = keep_going!(ParseValue.parse(state)) {
             Ok((state, expression))
         } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
             Ok((state, expression))
