@@ -296,59 +296,54 @@ pub enum Expression {
         expression: Box<Expression>,
     },
 
-    /// A value, such as "strings"
-    #[cfg_attr(not(feature = "roblox"), display(fmt = "{value}"))]
-    #[cfg_attr(
-        feature = "roblox",
-        display(fmt = "{}{}", value, "display_option(type_assertion)")
-    )]
-    Value {
-        /// The value itself
-        value: Box<Value>,
-        /// What the value is being asserted as using `::`.
-        /// Only available when the "roblox" feature flag is enabled.
-        #[cfg(feature = "roblox")]
-        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-        type_assertion: Option<TypeAssertion>,
-    },
-}
-
-/// Values that cannot be used standalone, but as part of things such as [`Stmt`]
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[non_exhaustive]
-pub enum Value {
     /// An anonymous function, such as `function() end)`
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
     Function((TokenReference, FunctionBody)),
+
     /// A call of a function, such as `call()`
     #[display(fmt = "{_0}")]
     FunctionCall(FunctionCall),
+
     /// An if expression, such as `if foo then true else false`.
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     #[display(fmt = "{_0}")]
     IfExpression(IfExpression),
+
     /// An interpolated string, such as `` `hello {"world"}` ``
     /// Only available when the "roblox" feature flag is enabled.
     #[cfg(feature = "roblox")]
     #[display(fmt = "{_0}")]
     InterpolatedString(InterpolatedString),
+
     /// A table constructor, such as `{ 1, 2, 3 }`
     #[display(fmt = "{_0}")]
     TableConstructor(TableConstructor),
+
     /// A number token, such as `3.3`
     #[display(fmt = "{_0}")]
     Number(TokenReference),
-    /// An expression between parentheses, such as `(3 + 2)`
-    #[display(fmt = "{_0}")]
-    ParenthesesExpression(Expression),
+
     /// A string token, such as `"hello"`
     #[display(fmt = "{_0}")]
     String(TokenReference),
+
     /// A symbol, such as `true`
     #[display(fmt = "{_0}")]
     Symbol(TokenReference),
+
+    /// A value that has been asserted for a particular type, for use in Luau.
+    /// Only available when the "roblox" feature flag is enabled.
+    #[cfg(feature = "roblox")]
+    #[display(fmt = "{expression}{type_assertion}")]
+    TypeAssertion {
+        /// The expression being asserted
+        expression: Box<Expression>,
+
+        /// The type assertion
+        type_assertion: TypeAssertion,
+    },
+
     /// A more complex value, such as `call().x`
     #[display(fmt = "{_0}")]
     Var(Var),
@@ -425,7 +420,7 @@ pub enum Stmt {
 pub enum Prefix {
     #[display(fmt = "{_0}")]
     /// A complicated expression, such as `("foo")`
-    Expression(Expression),
+    Expression(Box<Expression>),
     #[display(fmt = "{_0}")]
     /// Just a name, such as `foo`
     Name(TokenReference),
@@ -1518,7 +1513,7 @@ impl VarExpression {
 pub enum Var {
     /// An expression, such as `x.y.z` or `x()`
     #[display(fmt = "{_0}")]
-    Expression(VarExpression),
+    Expression(Box<VarExpression>),
     /// A literal identifier, such as `x`
     #[display(fmt = "{_0}")]
     Name(TokenReference),
@@ -2451,11 +2446,7 @@ mod tests {
             Vec::new(),
         );
 
-        let expression = Expression::Value {
-            value: Box::new(Value::Var(Var::Name(token.clone()))),
-            #[cfg(feature = "roblox")]
-            type_assertion: None,
-        };
+        let expression = Expression::Var(Var::Name(token.clone()));
 
         Assignment::new(Punctuated::new(), Punctuated::new());
         Do::new();
@@ -2497,15 +2488,11 @@ mod tests {
                 )
                 .with_equal_token(Some(TokenReference::symbol(" = ").unwrap()))
                 .with_expressions(
-                    std::iter::once(Pair::End(Expression::Value {
-                        value: Box::new(Value::Number(TokenReference::new(
-                            vec![],
-                            Token::new(TokenType::Number { text: "1".into() }),
-                            vec![],
-                        ))),
-                        #[cfg(feature = "roblox")]
-                        type_assertion: None,
-                    }))
+                    std::iter::once(Pair::End(Expression::Number(TokenReference::new(
+                        vec![],
+                        Token::new(TokenType::Number { text: "1".into() }),
+                        vec![],
+                    ))))
                     .collect(),
                 ),
             ),

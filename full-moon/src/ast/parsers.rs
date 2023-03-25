@@ -1,5 +1,5 @@
 use super::{
-    parser_util::{InternalAstError, Parser},
+    parser_util::{InternalAstError, ParseIntoBox, Parser},
     span::ContainedSpan,
     *,
 };
@@ -258,24 +258,19 @@ define_parser!(ParseParenExpression, Expression, |_, state| {
 struct ParseValueExpression;
 define_parser!(ParseValueExpression, Expression, |_, state| {
     let (state, value) = keep_going!(ParseValue.parse(state))?;
+
     #[cfg(feature = "roblox")]
-    let (state, type_assertion) =
-        if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
-            (state, Some(type_assertion))
-        } else {
-            (state, None)
-        };
+    if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
+        return Ok((
+            state,
+            Expression::TypeAssertion {
+                expression: Box::new(value),
+                type_assertion,
+            },
+        ));
+    }
 
-    let value = Box::new(value);
-
-    Ok((
-        state,
-        Expression::Value {
-            value,
-            #[cfg(feature = "roblox")]
-            type_assertion,
-        },
-    ))
+    Ok((state, value))
 });
 
 #[derive(Clone, Debug, PartialEq)]
@@ -352,22 +347,21 @@ define_roblox_parser!(
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseValue;
-define_parser!(ParseValue, Value, |_, state| parse_first_of!(state, {
-    ParseSymbol(Symbol::Nil) => Value::Symbol,
-    ParseSymbol(Symbol::False) => Value::Symbol,
-    ParseSymbol(Symbol::True) => Value::Symbol,
-    ParseNumber => Value::Number,
-    ParseStringLiteral => Value::String,
-    ParseSymbol(Symbol::Ellipse) => Value::Symbol,
-    ParseFunction => Value::Function,
-    ParseTableConstructor => Value::TableConstructor,
-    ParseFunctionCall => Value::FunctionCall,
-    ParseVar => Value::Var,
-    ParseParenExpression => Value::ParenthesesExpression,
+define_parser!(ParseValue, Expression, |_, state| parse_first_of!(state, {
+    ParseSymbol(Symbol::Nil) => Expression::Symbol,
+    ParseSymbol(Symbol::False) => Expression::Symbol,
+    ParseSymbol(Symbol::True) => Expression::Symbol,
+    ParseNumber => Expression::Number,
+    ParseStringLiteral => Expression::String,
+    ParseSymbol(Symbol::Ellipse) => Expression::Symbol,
+    ParseFunction => Expression::Function,
+    ParseTableConstructor => Expression::TableConstructor,
+    ParseFunctionCall => Expression::FunctionCall,
+    ParseVar => Expression::Var,
     @#[cfg(feature = "roblox")]
-    ParseIfExpression => Value::IfExpression,
+    ParseIfExpression => Expression::IfExpression,
     @#[cfg(feature = "roblox")]
-    ParseInterpolatedString => Value::InterpolatedString,
+    ParseInterpolatedString => Expression::InterpolatedString,
 }));
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -399,7 +393,7 @@ define_parser!(ParseStmt, Stmt, |_, state| parse_first_of!(state, {
 #[derive(Clone, Debug, PartialEq)]
 struct ParsePrefix;
 define_parser!(ParsePrefix, Prefix, |_, state| parse_first_of!(state, {
-    ParseParenExpression => Prefix::Expression,
+    ParseIntoBox(ParseParenExpression) => Prefix::Expression,
     ParseIdentifier => Prefix::Name,
 }));
 
@@ -871,12 +865,12 @@ define_parser!(ParseSuffix, Suffix, |_, state| parse_first_of!(state, {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParseVarExpression;
-define_parser!(ParseVarExpression, VarExpression, |_, state| {
+define_parser!(ParseVarExpression, Box<VarExpression>, |_, state| {
     let (state, prefix) = ParsePrefix.parse(state)?;
     let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
 
     if let Some(Suffix::Index(_)) = suffixes.last() {
-        Ok((state, VarExpression { prefix, suffixes }))
+        Ok((state, Box::new(VarExpression { prefix, suffixes })))
     } else {
         Err(InternalAstError::NoMatch)
     }
@@ -1430,12 +1424,12 @@ cfg_if::cfg_if! {
                     state,
                     IfExpression {
                         if_token,
-                        condition,
+                        condition: Box::new(condition),
                         then_token,
-                        if_expression,
+                        if_expression: Box::new(if_expression),
                         else_if_expressions: if else_if_expressions.is_empty() { None } else { Some(else_if_expressions) },
                         else_token,
-                        else_expression,
+                        else_expression: Box::new(else_expression),
                     },
                 ))
             }

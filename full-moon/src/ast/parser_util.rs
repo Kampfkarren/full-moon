@@ -408,3 +408,17 @@ where
 pub struct NoDelimiter;
 
 define_parser!(NoDelimiter, (), |_, state| Ok((state, ())));
+
+pub struct ParseIntoBox<P>(pub P);
+
+impl<P: Parser> Parser for ParseIntoBox<P> {
+    type Item = Box<P::Item>;
+
+    fn parse<'a>(
+        &self,
+        state: ParserState<'a>,
+    ) -> Result<(ParserState<'a>, Box<P::Item>), InternalAstError> {
+        let (state, item) = self.0.parse(state)?;
+        Ok((state, Box::new(item)))
+    }
+}
