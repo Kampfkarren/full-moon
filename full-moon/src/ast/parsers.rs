@@ -256,30 +256,62 @@ define_parser!(ParseParenExpression, Expression, |_, state| {
 
 #[derive(Clone, Debug, PartialEq)]
 struct ParsePartExpression;
-define_parser!(ParsePartExpression, Expression, |_, state| {
-    let (state, expression) =
-        if let Ok((state, expression)) = keep_going!(ParseUnaryExpression.parse(state)) {
-            Ok((state, expression))
-        } else if let Ok((state, expression)) = keep_going!(ParseValue.parse(state)) {
-            Ok((state, expression))
-        } else if let Ok((state, expression)) = keep_going!(ParseParenExpression.parse(state)) {
-            Ok((state, expression))
-        } else {
-            Err(InternalAstError::NoMatch)
-        }?;
 
-    #[cfg(feature = "roblox")]
-    if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
-        return Ok((
-            state,
-            Expression::TypeAssertion {
-                expression: Box::new(expression),
-                type_assertion,
-            },
-        ));
+// This looks really stupid because we save 66% of the stack allocation cost
+// by doing this.
+define_parser!(ParsePartExpression, Expression, |_, state| {
+    #[allow(clippy::result_large_err)]
+    fn parse_unary_expression(
+        state: ParserState,
+    ) -> Result<(ParserState, Expression), InternalAstError> {
+        ParseUnaryExpression.parse(state)
     }
 
-    Ok((state, expression))
+    #[allow(clippy::result_large_err)]
+    fn parse_value(state: ParserState) -> Result<(ParserState, Expression), InternalAstError> {
+        ParseValue.parse(state)
+    }
+
+    #[allow(clippy::result_large_err)]
+    fn parse_paren_expression(
+        state: ParserState,
+    ) -> Result<(ParserState, Expression), InternalAstError> {
+        ParseParenExpression.parse(state)
+    }
+
+    let (state, expression) = keep_going!(parse_unary_expression(state)).or_else(|_| {
+        keep_going!(parse_value(state)).or_else(|_| keep_going!(parse_paren_expression(state)))
+    })?;
+
+    #[cfg(feature = "roblox")]
+    #[allow(clippy::result_large_err)]
+    fn maybe_type_assertion(
+        state: ParserState,
+        expression: Expression,
+    ) -> Result<(ParserState, Expression), InternalAstError> {
+        if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
+            return Ok((
+                state,
+                Expression::TypeAssertion {
+                    expression: Box::new(expression),
+                    type_assertion,
+                },
+            ));
+        }
+
+        Ok((state, expression))
+    }
+
+    #[cfg(not(feature = "roblox"))]
+    #[allow(clippy::result_large_err)]
+    fn maybe_type_assertion(
+        state: ParserState,
+        expression: Expression,
+    ) -> Result<(ParserState, Expression), InternalAstError> {
+        Ok((state, expression))
+    }
+
+    maybe_type_assertion(state, expression)
 });
 
 #[derive(Clone, Debug, PartialEq)]
