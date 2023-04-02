@@ -1,8 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/cases/pass/unops
-
 ---
 stmts:
   - - LocalAssignment:
@@ -89,24 +89,24 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Minus:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 24
-                        line: 1
-                        character: 25
-                      end_position:
-                        bytes: 25
-                        line: 1
-                        character: 26
-                      token_type:
-                        type: Symbol
-                        symbol: "-"
-                    trailing_trivia: []
-                expression:
-                  value:
+                UnaryOperator:
+                  unop:
+                    Minus:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 24
+                          line: 1
+                          character: 25
+                        end_position:
+                          bytes: 25
+                          line: 1
+                          character: 26
+                        token_type:
+                          type: Symbol
+                          symbol: "-"
+                      trailing_trivia: []
+                  expression:
                     Number:
                       leading_trivia: []
                       token:
@@ -218,24 +218,24 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Minus:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 52
-                        line: 2
-                        character: 26
-                      end_position:
-                        bytes: 53
-                        line: 2
-                        character: 27
-                      token_type:
-                        type: Symbol
-                        symbol: "-"
-                    trailing_trivia: []
-                expression:
-                  value:
+                UnaryOperator:
+                  unop:
+                    Minus:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 52
+                          line: 2
+                          character: 26
+                        end_position:
+                          bytes: 53
+                          line: 2
+                          character: 27
+                        token_type:
+                          type: Symbol
+                          symbol: "-"
+                      trailing_trivia: []
+                  expression:
                     Var:
                       Name:
                         leading_trivia: []
@@ -348,35 +348,35 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Not:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 74
-                        line: 3
-                        character: 20
-                      end_position:
-                        bytes: 77
-                        line: 3
-                        character: 23
-                      token_type:
-                        type: Symbol
-                        symbol: not
-                    trailing_trivia:
-                      - start_position:
+                UnaryOperator:
+                  unop:
+                    Not:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 74
+                          line: 3
+                          character: 20
+                        end_position:
                           bytes: 77
                           line: 3
                           character: 23
-                        end_position:
-                          bytes: 78
-                          line: 3
-                          character: 24
                         token_type:
-                          type: Whitespace
-                          characters: " "
-                expression:
-                  value:
+                          type: Symbol
+                          symbol: not
+                      trailing_trivia:
+                        - start_position:
+                            bytes: 77
+                            line: 3
+                            character: 23
+                          end_position:
+                            bytes: 78
+                            line: 3
+                            character: 24
+                          token_type:
+                            type: Whitespace
+                            characters: " "
+                  expression:
                     Symbol:
                       leading_trivia: []
                       token:
@@ -488,35 +488,35 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Not:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 103
-                        line: 4
-                        character: 21
-                      end_position:
-                        bytes: 106
-                        line: 4
-                        character: 24
-                      token_type:
-                        type: Symbol
-                        symbol: not
-                    trailing_trivia:
-                      - start_position:
+                UnaryOperator:
+                  unop:
+                    Not:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 103
+                          line: 4
+                          character: 21
+                        end_position:
                           bytes: 106
                           line: 4
                           character: 24
-                        end_position:
-                          bytes: 107
-                          line: 4
-                          character: 25
                         token_type:
-                          type: Whitespace
-                          characters: " "
-                expression:
-                  value:
+                          type: Symbol
+                          symbol: not
+                      trailing_trivia:
+                        - start_position:
+                            bytes: 106
+                            line: 4
+                            character: 24
+                          end_position:
+                            bytes: 107
+                            line: 4
+                            character: 25
+                          token_type:
+                            type: Whitespace
+                            characters: " "
+                  expression:
                     Var:
                       Name:
                         leading_trivia: []
@@ -629,24 +629,24 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Hash:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 124
-                        line: 5
-                        character: 16
-                      end_position:
-                        bytes: 125
-                        line: 5
-                        character: 17
-                      token_type:
-                        type: Symbol
-                        symbol: "#"
-                    trailing_trivia: []
-                expression:
-                  value:
+                UnaryOperator:
+                  unop:
+                    Hash:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 124
+                          line: 5
+                          character: 16
+                        end_position:
+                          bytes: 125
+                          line: 5
+                          character: 17
+                        token_type:
+                          type: Symbol
+                          symbol: "#"
+                      trailing_trivia: []
+                  expression:
                     Var:
                       Name:
                         leading_trivia: []

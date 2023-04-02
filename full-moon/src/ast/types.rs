@@ -773,12 +773,12 @@ impl CompoundAssignment {
 )]
 pub struct IfExpression {
     pub(crate) if_token: TokenReference,
-    pub(crate) condition: Expression,
+    pub(crate) condition: Box<Expression>,
     pub(crate) then_token: TokenReference,
-    pub(crate) if_expression: Expression,
+    pub(crate) if_expression: Box<Expression>,
     pub(crate) else_if_expressions: Option<Vec<ElseIfExpression>>,
     pub(crate) else_token: TokenReference,
-    pub(crate) else_expression: Expression,
+    pub(crate) else_expression: Box<Expression>,
 }
 
 impl IfExpression {
@@ -790,12 +790,12 @@ impl IfExpression {
     ) -> Self {
         Self {
             if_token: TokenReference::symbol("if ").unwrap(),
-            condition,
+            condition: Box::new(condition),
             then_token: TokenReference::symbol(" then").unwrap(),
-            if_expression,
+            if_expression: Box::new(if_expression),
             else_if_expressions: None,
             else_token: TokenReference::symbol(" else ").unwrap(),
-            else_expression,
+            else_expression: Box::new(else_expression),
         }
     }
 
@@ -842,7 +842,10 @@ impl IfExpression {
 
     /// Returns a new IfExpression with the given condition
     pub fn with_condition(self, condition: Expression) -> Self {
-        Self { condition, ..self }
+        Self {
+            condition: Box::new(condition),
+            ..self
+        }
     }
 
     /// Returns a new IfExpression with the given `then` token
@@ -853,7 +856,7 @@ impl IfExpression {
     /// Returns a new IfExpression with the given if expression
     pub fn with_if_expression(self, if_expression: Expression) -> Self {
         Self {
-            if_expression,
+            if_expression: Box::new(if_expression),
             ..self
         }
     }
@@ -874,7 +877,7 @@ impl IfExpression {
     /// Returns a new IfExpression with the given `else` expression
     pub fn with_else(self, else_expression: Expression) -> Self {
         Self {
-            else_expression,
+            else_expression: Box::new(else_expression),
             ..self
         }
     }

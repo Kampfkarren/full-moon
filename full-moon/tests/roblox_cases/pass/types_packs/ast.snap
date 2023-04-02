@@ -1,8 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/types_packs
-
 ---
 stmts:
   - - FunctionDeclaration:
@@ -2987,21 +2987,20 @@ stmts:
         expr_list:
           pairs:
             - End:
-                value:
-                  Symbol:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 483
-                        line: 19
-                        character: 70
-                      end_position:
-                        bytes: 486
-                        line: 19
-                        character: 73
-                      token_type:
-                        type: Symbol
-                        symbol: nil
-                    trailing_trivia: []
+                Symbol:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 483
+                      line: 19
+                      character: 70
+                    end_position:
+                      bytes: 486
+                      line: 19
+                      character: 73
+                    token_type:
+                      type: Symbol
+                      symbol: nil
+                  trailing_trivia: []
     - ~
 

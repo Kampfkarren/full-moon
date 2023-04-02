@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
+input_file: full-moon/tests/lua53_cases/pass/unary-operators
 ---
 stmts:
   - - LocalAssignment:
@@ -87,24 +89,24 @@ stmts:
         expr_list:
           pairs:
             - End:
-                unop:
-                  Tilde:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 10
-                        line: 1
-                        character: 11
-                      end_position:
-                        bytes: 11
-                        line: 1
-                        character: 12
-                      token_type:
-                        type: Symbol
-                        symbol: "~"
-                    trailing_trivia: []
-                expression:
-                  value:
+                UnaryOperator:
+                  unop:
+                    Tilde:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 10
+                          line: 1
+                          character: 11
+                        end_position:
+                          bytes: 11
+                          line: 1
+                          character: 12
+                        token_type:
+                          type: Symbol
+                          symbol: "~"
+                      trailing_trivia: []
+                  expression:
                     Number:
                       leading_trivia: []
                       token:

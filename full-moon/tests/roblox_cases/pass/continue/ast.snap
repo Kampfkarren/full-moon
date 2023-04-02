@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/continue
 ---
 stmts:
   - - While:
@@ -53,33 +55,32 @@ stmts:
                 type: Whitespace
                 characters: " "
         condition:
-          value:
-            Symbol:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 34
-                  line: 2
-                  character: 7
-                end_position:
+          Symbol:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 34
+                line: 2
+                character: 7
+              end_position:
+                bytes: 38
+                line: 2
+                character: 11
+              token_type:
+                type: Symbol
+                symbol: "true"
+            trailing_trivia:
+              - start_position:
                   bytes: 38
                   line: 2
                   character: 11
+                end_position:
+                  bytes: 39
+                  line: 2
+                  character: 12
                 token_type:
-                  type: Symbol
-                  symbol: "true"
-              trailing_trivia:
-                - start_position:
-                    bytes: 38
-                    line: 2
-                    character: 11
-                  end_position:
-                    bytes: 39
-                    line: 2
-                    character: 12
-                  token_type:
-                    type: Whitespace
-                    characters: " "
+                  type: Whitespace
+                  characters: " "
         do_token:
           leading_trivia: []
           token:
@@ -334,32 +335,31 @@ stmts:
         expr_list:
           pairs:
             - End:
-                value:
-                  Number:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 85
-                        line: 7
-                        character: 18
-                      end_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 85
+                      line: 7
+                      character: 18
+                    end_position:
+                      bytes: 86
+                      line: 7
+                      character: 19
+                    token_type:
+                      type: Number
+                      text: "4"
+                  trailing_trivia:
+                    - start_position:
                         bytes: 86
                         line: 7
                         character: 19
+                      end_position:
+                        bytes: 87
+                        line: 7
+                        character: 19
                       token_type:
-                        type: Number
-                        text: "4"
-                    trailing_trivia:
-                      - start_position:
-                          bytes: 86
-                          line: 7
-                          character: 19
-                        end_position:
-                          bytes: 87
-                          line: 7
-                          character: 19
-                        token_type:
-                          type: Whitespace
-                          characters: "\n"
+                        type: Whitespace
+                        characters: "\n"
     - ~
 

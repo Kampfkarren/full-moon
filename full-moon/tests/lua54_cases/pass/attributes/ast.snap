@@ -2,6 +2,7 @@
 source: full-moon/tests/pass_cases.rs
 assertion_line: 52
 expression: ast.nodes()
+input_file: full-moon/tests/lua54_cases/pass/attributes
 ---
 stmts:
   - - LocalAssignment:
@@ -145,33 +146,32 @@ stmts:
         expr_list:
           pairs:
             - End:
-                value:
-                  Number:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 18
-                        line: 1
-                        character: 19
-                      end_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 18
+                      line: 1
+                      character: 19
+                    end_position:
+                      bytes: 19
+                      line: 1
+                      character: 20
+                    token_type:
+                      type: Number
+                      text: "5"
+                  trailing_trivia:
+                    - start_position:
                         bytes: 19
                         line: 1
                         character: 20
+                      end_position:
+                        bytes: 20
+                        line: 1
+                        character: 20
                       token_type:
-                        type: Number
-                        text: "5"
-                    trailing_trivia:
-                      - start_position:
-                          bytes: 19
-                          line: 1
-                          character: 20
-                        end_position:
-                          bytes: 20
-                          line: 1
-                          character: 20
-                        token_type:
-                          type: Whitespace
-                          characters: "\n"
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:
@@ -526,22 +526,21 @@ stmts:
         expr_list:
           pairs:
             - Punctuated:
-                - value:
-                    Number:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 65
-                          line: 3
-                          character: 30
-                        end_position:
-                          bytes: 66
-                          line: 3
-                          character: 31
-                        token_type:
-                          type: Number
-                          text: "1"
-                      trailing_trivia: []
+                - Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 65
+                        line: 3
+                        character: 30
+                      end_position:
+                        bytes: 66
+                        line: 3
+                        character: 31
+                      token_type:
+                        type: Number
+                        text: "1"
+                    trailing_trivia: []
                 - leading_trivia: []
                   token:
                     start_position:
@@ -568,33 +567,32 @@ stmts:
                         type: Whitespace
                         characters: " "
             - End:
-                value:
-                  Number:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 68
-                        line: 3
-                        character: 33
-                      end_position:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 68
+                      line: 3
+                      character: 33
+                    end_position:
+                      bytes: 69
+                      line: 3
+                      character: 34
+                    token_type:
+                      type: Number
+                      text: "2"
+                  trailing_trivia:
+                    - start_position:
                         bytes: 69
                         line: 3
                         character: 34
+                      end_position:
+                        bytes: 70
+                        line: 3
+                        character: 34
                       token_type:
-                        type: Number
-                        text: "2"
-                    trailing_trivia:
-                      - start_position:
-                          bytes: 69
-                          line: 3
-                          character: 34
-                        end_position:
-                          bytes: 70
-                          line: 3
-                          character: 34
-                        token_type:
-                          type: Whitespace
-                          characters: "\n"
+                        type: Whitespace
+                        characters: "\n"
     - ~
   - - LocalAssignment:
         local_token:

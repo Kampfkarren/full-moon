@@ -1,8 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/cases/pass/utf-8
-
 ---
 stmts:
   - - FunctionCall:
@@ -59,8 +59,8 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          lhs:
-                            value:
+                          BinaryOperator:
+                            lhs:
                               String:
                                 leading_trivia: []
                                 token:
@@ -88,35 +88,34 @@ stmts:
                                     token_type:
                                       type: Whitespace
                                       characters: " "
-                          binop:
-                            TwoDots:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 14
-                                  line: 1
-                                  character: 12
-                                end_position:
-                                  bytes: 16
-                                  line: 1
-                                  character: 14
-                                token_type:
-                                  type: Symbol
-                                  symbol: ".."
-                              trailing_trivia:
-                                - start_position:
+                            binop:
+                              TwoDots:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 14
+                                    line: 1
+                                    character: 12
+                                  end_position:
                                     bytes: 16
                                     line: 1
                                     character: 14
-                                  end_position:
-                                    bytes: 17
-                                    line: 1
-                                    character: 15
                                   token_type:
-                                    type: Whitespace
-                                    characters: " "
-                          rhs:
-                            value:
+                                    type: Symbol
+                                    symbol: ".."
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 16
+                                      line: 1
+                                      character: 14
+                                    end_position:
+                                      bytes: 17
+                                      line: 1
+                                      character: 15
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                            rhs:
                               Var:
                                 Name:
                                   leading_trivia: []

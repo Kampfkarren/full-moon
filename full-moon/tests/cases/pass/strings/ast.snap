@@ -1,8 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/cases/pass/strings
-
 ---
 stmts:
   - - FunctionCall:
@@ -70,23 +70,22 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          value:
-                            String:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 5
-                                  line: 1
-                                  character: 6
-                                end_position:
-                                  bytes: 13
-                                  line: 1
-                                  character: 14
-                                token_type:
-                                  type: StringLiteral
-                                  literal: double
-                                  quote_type: Double
-                              trailing_trivia: []
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 5
+                                line: 1
+                                character: 6
+                              end_position:
+                                bytes: 13
+                                line: 1
+                                character: 14
+                              token_type:
+                                type: StringLiteral
+                                literal: double
+                                quote_type: Double
+                            trailing_trivia: []
     - ~
   - - FunctionCall:
         prefix:
@@ -153,23 +152,22 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          value:
-                            String:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 20
-                                  line: 2
-                                  character: 6
-                                end_position:
-                                  bytes: 28
-                                  line: 2
-                                  character: 14
-                                token_type:
-                                  type: StringLiteral
-                                  literal: single
-                                  quote_type: Single
-                              trailing_trivia: []
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 20
+                                line: 2
+                                character: 6
+                              end_position:
+                                bytes: 28
+                                line: 2
+                                character: 14
+                              token_type:
+                                type: StringLiteral
+                                literal: single
+                                quote_type: Single
+                            trailing_trivia: []
     - ~
   - - FunctionCall:
         prefix:
@@ -236,23 +234,22 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          value:
-                            String:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 35
-                                  line: 3
-                                  character: 6
-                                end_position:
-                                  bytes: 45
-                                  line: 3
-                                  character: 16
-                                token_type:
-                                  type: StringLiteral
-                                  literal: "foo\\nbar"
-                                  quote_type: Double
-                              trailing_trivia: []
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 35
+                                line: 3
+                                character: 6
+                              end_position:
+                                bytes: 45
+                                line: 3
+                                character: 16
+                              token_type:
+                                type: StringLiteral
+                                literal: "foo\\nbar"
+                                quote_type: Double
+                            trailing_trivia: []
     - ~
   - - FunctionCall:
         prefix:
@@ -308,22 +305,21 @@ stmts:
                   arguments:
                     pairs:
                       - End:
-                          value:
-                            String:
-                              leading_trivia: []
-                              token:
-                                start_position:
-                                  bytes: 52
-                                  line: 4
-                                  character: 6
-                                end_position:
-                                  bytes: 54
-                                  line: 4
-                                  character: 8
-                                token_type:
-                                  type: StringLiteral
-                                  literal: ""
-                                  quote_type: Double
-                              trailing_trivia: []
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 52
+                                line: 4
+                                character: 6
+                              end_position:
+                                bytes: 54
+                                line: 4
+                                character: 8
+                              token_type:
+                                type: StringLiteral
+                                literal: ""
+                                quote_type: Double
+                            trailing_trivia: []
     - ~
 

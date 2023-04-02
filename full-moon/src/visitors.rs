@@ -272,7 +272,6 @@ create_visitor!(ast: {
     visit_table_constructor => TableConstructor,
     visit_token_reference => TokenReference,
     visit_un_op => UnOp,
-    visit_value => Value,
     visit_var => Var,
     visit_var_expression => VarExpression,
     visit_while => While,

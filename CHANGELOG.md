@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Flattened `Expression::Value` to all be variants of `Expression` directly, as this was not used anywhere else. The extra `type_assertion` field has been moved into a new variant `Expression::TypeAssertion`. None of these variants are boxed.
+- The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
+- When using serde, `Expression` will no longer act untagged.
 
 ## [0.18.1] - 2023-03-19
 ### Fixed

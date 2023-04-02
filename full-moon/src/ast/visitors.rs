@@ -96,18 +96,50 @@ impl Visit for Expression {
                 expression.visit(visitor);
                 contained.tokens.1.visit(visitor);
             }
+
             Expression::UnaryOperator { unop, expression } => {
                 unop.visit(visitor);
                 expression.visit(visitor);
             }
-            Expression::Value {
-                value,
-                #[cfg(feature = "roblox")]
+
+            Expression::Function((function_token, function_body)) => {
+                function_token.visit(visitor);
+                function_body.visit(visitor);
+            }
+
+            Expression::FunctionCall(function_call) => {
+                function_call.visit(visitor);
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::IfExpression(if_expression) => {
+                if_expression.visit(visitor);
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::InterpolatedString(interpolated_string) => {
+                interpolated_string.visit(visitor);
+            }
+
+            Expression::TableConstructor(table_constructor) => {
+                table_constructor.visit(visitor);
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::TypeAssertion {
+                expression,
                 type_assertion,
             } => {
-                value.visit(visitor);
-                #[cfg(feature = "roblox")]
+                expression.visit(visitor);
                 type_assertion.visit(visitor);
+            }
+
+            Expression::Number(token) | Expression::String(token) | Expression::Symbol(token) => {
+                token.visit(visitor);
+            }
+
+            Expression::Var(var) => {
+                var.visit(visitor);
             }
         };
 
@@ -144,15 +176,45 @@ impl VisitMut for Expression {
                 expression: expression.visit_mut(visitor),
             },
 
-            Expression::Value {
-                value,
-                #[cfg(feature = "roblox")]
+            Expression::Function((function_token, function_body)) => Expression::Function((
+                function_token.visit_mut(visitor),
+                function_body.visit_mut(visitor),
+            )),
+
+            Expression::FunctionCall(function_call) => {
+                Expression::FunctionCall(function_call.visit_mut(visitor))
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::IfExpression(if_expression) => {
+                Expression::IfExpression(if_expression.visit_mut(visitor))
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::InterpolatedString(interpolated_string) => {
+                Expression::InterpolatedString(interpolated_string.visit_mut(visitor))
+            }
+
+            Expression::TableConstructor(table_constructor) => {
+                Expression::TableConstructor(table_constructor.visit_mut(visitor))
+            }
+
+            #[cfg(feature = "roblox")]
+            Expression::TypeAssertion {
+                expression,
                 type_assertion,
-            } => Expression::Value {
-                value: value.visit_mut(visitor),
-                #[cfg(feature = "roblox")]
+            } => Expression::TypeAssertion {
+                expression: expression.visit_mut(visitor),
                 type_assertion: type_assertion.visit_mut(visitor),
             },
+
+            Expression::Number(token) => Expression::Number(token.visit_mut(visitor)),
+
+            Expression::String(token) => Expression::String(token.visit_mut(visitor)),
+
+            Expression::Symbol(token) => Expression::Symbol(token.visit_mut(visitor)),
+
+            Expression::Var(var) => Expression::Var(var.visit_mut(visitor)),
         };
 
         self = visitor.visit_expression_end(self);
