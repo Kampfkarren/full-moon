@@ -11,11 +11,13 @@ fn test_parser_fail_cases() {
     run_test_folder("./tests/cases/fail/parser", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-        let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
+        let tokens = tokenizer::Lexer::new(&source)
+            .collect::<Result<Vec<_>, _>>()
+            .expect("couldn't tokenize");
 
         assert_yaml_snapshot!("tokens", tokens);
 
-        match ast::Ast::from_tokens(tokens) {
+        match full_moon::parse(&source) {
             Ok(_) => panic!("fail case passed for {path:?}"),
             Err(error) => {
                 println!("error {error:#?}");
@@ -31,7 +33,7 @@ fn test_tokenizer_fail_cases() {
     run_test_folder("./tests/cases/fail/tokenizer", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-        match tokenizer::tokens(&source) {
+        match tokenizer::Lexer::new(&source).collect::<Result<Vec<_>, _>>() {
             Ok(tokens) => panic!("fail case passed for {path:?}\n{tokens:#?}"),
             Err(error) => {
                 assert_yaml_snapshot!("error", error);

@@ -1,4 +1,4 @@
-use super::Token;
+use super::{Token, TokenizerError};
 
 pub struct Lexer {
     source: LexerSource,
@@ -10,9 +10,12 @@ impl Lexer {
             source: LexerSource::new(source),
         }
     }
+}
 
-    pub fn next(&mut self) -> Option<Token> {
-        // todo
+impl Iterator for Lexer {
+    type Item = Result<Token, TokenizerError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
         None
     }
 }

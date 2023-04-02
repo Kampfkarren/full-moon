@@ -33,11 +33,13 @@ fn unpack_token_reference(token: &TokenReference) -> Vec<Token> {
 fn test_pass_case(path: &Path) {
     let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-    let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
+    let tokens = tokenizer::Lexer::new(&source)
+        .collect::<Result<Vec<_>, _>>()
+        .expect("couldn't tokenize");
 
     assert_yaml_snapshot!("tokens", tokens);
 
-    let ast = ast::Ast::from_tokens(tokens)
+    let ast = full_moon::parse(&source)
         .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:?}"));
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
