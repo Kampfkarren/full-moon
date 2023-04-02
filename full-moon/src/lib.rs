@@ -1,6 +1,7 @@
 #![warn(missing_docs)]
 #![allow(clippy::large_enum_variant)]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg))]
+#![allow(unused)] // rewrite todo: remove
 //! # Full Moon
 //!
 //! `full_moon` is a lossless parser for Lua, supporting Lua 5.1, 5.2, 5.3, 5.4 and Luau
@@ -19,7 +20,6 @@ pub mod tokenizer;
 /// Used to create visitors that recurse through [`Ast`](ast::Ast) nodes.
 pub mod visitors;
 
-mod atom;
 mod private;
 mod short_string;
 mod util;
@@ -73,8 +73,7 @@ impl std::error::Error for Error {}
 /// ```
 #[allow(clippy::result_large_err)]
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
-    let tokens = tokenizer::tokens(code).map_err(Error::TokenizerError)?;
-    ast::Ast::from_tokens(tokens).map_err(Error::AstError)
+    todo!()
 }
 
 /// Prints back Lua code from an [`Ast`](ast::Ast)

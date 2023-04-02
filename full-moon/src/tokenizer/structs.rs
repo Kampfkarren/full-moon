@@ -1,5 +1,4 @@
 use crate::{
-    atom::{trim_bracket_head, Atom},
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -12,9 +11,6 @@ use std::{
     convert::{TryFrom, TryInto},
     fmt::{self, Display},
 };
-
-#[cfg(feature = "roblox")]
-use crate::atom::{InterpolatedStringBegin, InterpolatedStringSection};
 
 #[cfg(feature = "roblox")]
 pub use crate::tokenizer_luau::InterpolatedStringKind;
@@ -185,97 +181,6 @@ pub enum Symbol {
 
     #[cfg_attr(feature = "serde", serde(rename = "~="))]
     TildeEqual,
-}
-
-impl TryFrom<Atom> for Symbol {
-    type Error = ();
-
-    fn try_from(value: Atom) -> Result<Self, Self::Error> {
-        Ok(match value {
-            Atom::And => Symbol::And,
-            Atom::Break => Symbol::Break,
-            Atom::Do => Symbol::Do,
-            Atom::Else => Symbol::Else,
-            Atom::ElseIf => Symbol::ElseIf,
-            Atom::End => Symbol::End,
-            Atom::False => Symbol::False,
-            Atom::For => Symbol::For,
-            Atom::Function => Symbol::Function,
-            Atom::If => Symbol::If,
-            Atom::In => Symbol::In,
-            Atom::Local => Symbol::Local,
-            Atom::Nil => Symbol::Nil,
-            Atom::Not => Symbol::Not,
-            Atom::Or => Symbol::Or,
-            Atom::Repeat => Symbol::Repeat,
-            Atom::Return => Symbol::Return,
-            Atom::Then => Symbol::Then,
-            Atom::True => Symbol::True,
-            Atom::Until => Symbol::Until,
-            Atom::While => Symbol::While,
-            #[cfg(feature = "lua52")]
-            Atom::Goto => Symbol::Goto,
-            #[cfg(feature = "roblox")]
-            Atom::PlusEqual => Symbol::PlusEqual,
-            #[cfg(feature = "roblox")]
-            Atom::MinusEqual => Symbol::MinusEqual,
-            #[cfg(feature = "roblox")]
-            Atom::StarEqual => Symbol::StarEqual,
-            #[cfg(feature = "roblox")]
-            Atom::SlashEqual => Symbol::SlashEqual,
-            #[cfg(feature = "roblox")]
-            Atom::PercentEqual => Symbol::PercentEqual,
-            #[cfg(feature = "roblox")]
-            Atom::CaretEqual => Symbol::CaretEqual,
-            #[cfg(feature = "roblox")]
-            Atom::TwoDotsEqual => Symbol::TwoDotsEqual,
-            Atom::Caret => Symbol::Caret,
-            Atom::Colon => Symbol::Colon,
-            Atom::Comma => Symbol::Comma,
-            Atom::Ellipse => Symbol::Ellipse,
-            Atom::TwoDots => Symbol::TwoDots,
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            Atom::Ampersand => Symbol::Ampersand,
-            #[cfg(feature = "roblox")]
-            Atom::ThinArrow => Symbol::ThinArrow,
-            #[cfg(any(feature = "roblox", feature = "lua52"))]
-            Atom::TwoColons => Symbol::TwoColons,
-            Atom::Dot => Symbol::Dot,
-            Atom::TwoEqual => Symbol::TwoEqual,
-            Atom::Equal => Symbol::Equal,
-            Atom::GreaterThanEqual => Symbol::GreaterThanEqual,
-            Atom::GreaterThan => Symbol::GreaterThan,
-            Atom::Hash => Symbol::Hash,
-            Atom::LeftBracket => Symbol::LeftBracket,
-            Atom::LeftBrace => Symbol::LeftBrace,
-            Atom::LeftParen => Symbol::LeftParen,
-            Atom::LessThanEqual => Symbol::LessThanEqual,
-            Atom::LessThan => Symbol::LessThan,
-            #[cfg(feature = "lua53")]
-            Atom::DoubleLessThan => Symbol::DoubleLessThan,
-            Atom::Minus => Symbol::Minus,
-            Atom::Percent => Symbol::Percent,
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            Atom::Pipe => Symbol::Pipe,
-            #[cfg(feature = "roblox")]
-            Atom::QuestionMark => Symbol::QuestionMark,
-            Atom::Plus => Symbol::Plus,
-            Atom::RightBrace(None) => Symbol::RightBrace,
-            Atom::RightBracket => Symbol::RightBracket,
-            Atom::RightParen => Symbol::RightParen,
-            Atom::Semicolon => Symbol::Semicolon,
-            Atom::Slash => Symbol::Slash,
-            #[cfg(feature = "lua53")]
-            Atom::DoubleSlash => Symbol::DoubleSlash,
-            Atom::Star => Symbol::Star,
-            #[cfg(feature = "lua53")]
-            Atom::Tilde => Symbol::Tilde,
-            Atom::TildeEqual => Symbol::TildeEqual,
-            _ => {
-                return Err(());
-            }
-        })
-    }
 }
 
 impl Display for Symbol {
@@ -778,40 +683,7 @@ impl TokenReference {
     /// # }
     /// ```
     pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        let mut lexer = Atom::lexer(text).spanned().peekable();
-
-        let leading_trivia = lexer
-            .next_if(|v| v.0 == Atom::Whitespace)
-            .map(|v| text[v.1].into())
-            .unwrap_or_default();
-
-        let (atom, span) = lexer.next().unwrap();
-        let symbol = atom.try_into().map_err(|_| {
-            let text = text[span].to_string();
-
-            TokenizerErrorType::InvalidSymbol(text)
-        })?;
-
-        let trailing_trivia = lexer
-            .next_if(|v| v.0 == Atom::Whitespace)
-            .map(|v| text[v.1].into())
-            .unwrap_or_default();
-
-        if let Some(v) = lexer.next() {
-            let ch = text[v.1].chars().next().unwrap();
-
-            return Err(TokenizerErrorType::UnexpectedToken(ch));
-        }
-
-        Ok(Self {
-            leading_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: leading_trivia,
-            })],
-            token: Token::new(TokenType::Symbol { symbol }),
-            trailing_trivia: vec![Token::new(TokenType::Whitespace {
-                characters: trailing_trivia,
-            })],
-        })
+        todo!()
     }
 
     /// Returns the inner token.
@@ -981,155 +853,6 @@ impl fmt::Display for StringLiteralQuoteType {
     }
 }
 
-type RawToken = Result<TokenType, TokenizerErrorType>;
-
-impl From<TokenType> for RawToken {
-    fn from(token_type: TokenType) -> RawToken {
-        Ok(token_type)
-    }
-}
-
-impl From<TokenizerErrorType> for RawToken {
-    fn from(error: TokenizerErrorType) -> RawToken {
-        Err(error)
-    }
-}
-
-fn tokenize(token: Atom, slice: &str) -> RawToken {
-    match token {
-        Atom::Identifier => {
-            let identifier = slice.into();
-
-            Ok(TokenType::Identifier { identifier })
-        }
-
-        Atom::Comment => {
-            let (comment, blocks) = trim_bracket_head(&slice[2..]);
-
-            match blocks {
-                Some(blocks) => Ok(TokenType::MultiLineComment { comment, blocks }),
-                None => Ok(TokenType::SingleLineComment { comment }),
-            }
-        }
-
-        Atom::Number => {
-            let text = slice.into();
-
-            Ok(TokenType::Number { text })
-        }
-
-        Atom::MultiLineString => {
-            let (literal, multi_line) = trim_bracket_head(slice);
-
-            Ok(TokenType::StringLiteral {
-                literal,
-                multi_line,
-                quote_type: StringLiteralQuoteType::Brackets,
-            })
-        }
-
-        Atom::ApostropheString => Ok(TokenType::new_string(
-            &slice[1..slice.len() - 1],
-            StringLiteralQuoteType::Single,
-        )),
-
-        Atom::QuoteString => Ok(TokenType::new_string(
-            &slice[1..slice.len() - 1],
-            StringLiteralQuoteType::Double,
-        )),
-
-        Atom::Whitespace => {
-            let characters = slice.into();
-
-            Ok(TokenType::Whitespace { characters })
-        }
-
-        Atom::Bom => Err(TokenizerErrorType::UnexpectedToken('\u{feff}')),
-
-        Atom::Shebang => Err(TokenizerErrorType::UnexpectedShebang),
-
-        #[cfg(feature = "roblox")]
-        Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple)
-        | Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted)
-        | Atom::RightBrace(Some(InterpolatedStringSection::Middle))
-        | Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
-            Ok(TokenType::InterpolatedString {
-                literal: ShortString::new(&slice[1..slice.len() - 1]),
-                kind: match token {
-                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Simple) => {
-                        InterpolatedStringKind::Simple
-                    }
-
-                    Atom::InterpolatedStringBegin(InterpolatedStringBegin::Formatted) => {
-                        InterpolatedStringKind::Begin
-                    }
-
-                    Atom::RightBrace(Some(InterpolatedStringSection::Middle)) => {
-                        InterpolatedStringKind::Middle
-                    }
-
-                    Atom::RightBrace(Some(InterpolatedStringSection::End)) => {
-                        InterpolatedStringKind::End
-                    }
-
-                    _ => unreachable!(),
-                },
-            })
-        }
-
-        Atom::Unknown => {
-            let first = slice.chars().next().unwrap();
-            let what = match first {
-                '`' if cfg!(feature = "roblox") => TokenizerErrorType::UnclosedString,
-                '\'' | '"' | '[' => TokenizerErrorType::UnclosedString,
-                '-' => TokenizerErrorType::UnclosedComment,
-                other => TokenizerErrorType::UnexpectedToken(other),
-            };
-
-            Err(what)
-        }
-
-        token => Ok(TokenType::Symbol {
-            symbol: token.try_into().unwrap(),
-        }),
-    }
-}
-
-fn next_if(lexer: &mut Lexer<Atom>, atom: Atom) -> Option<ShortString> {
-    if lexer.clone().next() == Some(atom) {
-        lexer.next();
-
-        Some(lexer.slice().into())
-    } else {
-        None
-    }
-}
-
-fn tokenize_code(code: &str) -> Vec<(RawToken, Span)> {
-    let mut lexer = Atom::lexer(code);
-    let mut list = Vec::new();
-
-    if let Some(characters) = next_if(&mut lexer, Atom::Bom) {
-        let raw = (Ok(TokenType::Whitespace { characters }), lexer.span());
-
-        list.push(raw);
-    }
-
-    if let Some(line) = next_if(&mut lexer, Atom::Shebang) {
-        let raw = (Ok(TokenType::Shebang { line }), lexer.span());
-
-        list.push(raw);
-    }
-
-    while let Some(atom) = lexer.next() {
-        let raw = (tokenize(atom, lexer.slice()), lexer.span());
-
-        list.push(raw);
-    }
-
-    list
-}
-
 /// Information about an error that occurs while tokenizing
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -1164,46 +887,6 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
-struct TokenCollector {
-    result: Vec<Token>,
-}
-
-// Collector
-impl TokenCollector {
-    fn new() -> Self {
-        Self { result: Vec::new() }
-    }
-    fn push(
-        &mut self,
-        start_position: Position,
-        raw_token: RawToken,
-        end_position: Position,
-    ) -> Result<(), TokenizerError> {
-        match raw_token {
-            Ok(token_type) => {
-                self.result.push(Token {
-                    start_position,
-                    end_position,
-                    token_type,
-                });
-                Ok(())
-            }
-            Err(error) => Err(TokenizerError {
-                error,
-                position: start_position,
-            }),
-        }
-    }
-    fn finish(mut self, eof_position: Position) -> Vec<Token> {
-        self.result.push(Token {
-            start_position: eof_position,
-            end_position: eof_position,
-            token_type: TokenType::Eof,
-        });
-        self.result
-    }
-}
-
 fn read_position(code: &str, position: &mut Position) -> bool {
     let mut has_newline = false;
 
@@ -1225,61 +908,8 @@ fn read_position(code: &str, position: &mut Position) -> bool {
     has_newline
 }
 
-/// Returns a list of tokens.
-/// You probably want [`parse`](crate::parse) instead.
-///
-/// # Errors
-///
-/// If the code passed is malformed from normal Lua expectations,
-/// a [`TokenizerError`] will be returned.
-///
-/// ```rust
-/// # use full_moon::tokenizer::tokens;
-/// assert!(tokens("local x = 1").is_ok());
-/// assert!(tokens("local 4 = end").is_ok()); // tokens does *not* check validity of code, only tokenizing
-/// assert!(tokens("--[[ Unclosed comment!").is_err());
-/// ```
-pub fn tokens(code: &str) -> Result<Vec<Token>, TokenizerError> {
-    let mut tokens = TokenCollector::new();
-
-    // Logos provides token start and end information,
-    // but not the line or column. We iterate over the
-    // characters to retrieve this.
-    let mut position = Position {
-        bytes: 0,
-        line: 1,
-        character: 1,
-    };
-
-    for (token, span) in tokenize_code(code) {
-        let start_position = position;
-
-        position.bytes = span.end;
-
-        if token
-            .as_ref()
-            .map(TokenType::is_extensive)
-            .unwrap_or_default()
-        {
-            let has_newline = read_position(&code[span.clone()], &mut position);
-
-            tokens.push(start_position, token, position)?;
-
-            if has_newline {
-                position.line += 1;
-                position.character = 1;
-            }
-        } else {
-            position.character += span.len();
-
-            tokens.push(start_position, token, position)?;
-        }
-    }
-
-    Ok(tokens.finish(position))
-}
-
-#[cfg(test)]
+// #[cfg(test)]
+#[cfg(feature = "rewrite todo: tokenizer tests")]
 mod tests {
     use crate::tokenizer::*;
     use pretty_assertions::assert_eq;

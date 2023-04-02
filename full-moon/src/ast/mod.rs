@@ -17,10 +17,6 @@ use full_moon_derive::{Node, Visit};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt};
 
-use parser_util::{
-    InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
-};
-
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
 
@@ -2207,79 +2203,6 @@ pub struct Ast {
 }
 
 impl Ast {
-    /// Create an Ast from the passed tokens. You probably want [`parse`](crate::parse)
-    ///
-    /// # Errors
-    ///
-    /// If the tokens passed are impossible to get through normal tokenization,
-    /// an error of Empty (if the vector is empty) or NoEof (if there is no eof token)
-    /// will be returned.
-    ///
-    /// More likely, if the tokens pass are invalid Lua 5.1 code, an
-    /// UnexpectedToken error will be returned.
-    #[allow(clippy::result_large_err)]
-    pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast, AstError> {
-        if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
-            return Err(AstError::NoEof);
-        }
-
-        let mut tokens = extract_token_references(tokens);
-        let mut state = ParserState::new(&tokens);
-
-        if tokens
-            .iter()
-            .filter(|token| !token.token_type().is_trivia())
-            .count()
-            == 1
-        {
-            // Entirely comments/whitespace
-            return Ok(Ast {
-                nodes: Block {
-                    stmts: Vec::new(),
-                    last_stmt: None,
-                },
-                eof: tokens
-                    .pop()
-                    .expect("(internal full-moon error) No EOF in tokens after checking for EOF."),
-            });
-        }
-
-        // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-        if state.peek().token_type().is_trivia() {
-            state = state.advance().unwrap();
-        }
-
-        match parsers::ParseBlock.parse(state) {
-            Ok((state, block)) => {
-                if state.index == tokens.len() - 1 {
-                    Ok(Ast {
-                        nodes: block,
-                        eof: tokens.pop().expect(
-                            "(internal full-moon error) No EOF in tokens after checking for EOF.",
-                        ),
-                    })
-                } else {
-                    Err(AstError::UnexpectedToken {
-                        token: state.peek().token.clone(),
-                        additional: Some(Cow::Borrowed("leftover token")),
-                    })
-                }
-            }
-
-            Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                token: state.peek().token.clone(),
-                additional: None,
-            }),
-
-            Err(InternalAstError::UnexpectedToken { token, additional }) => {
-                Err(AstError::UnexpectedToken {
-                    token: token.token,
-                    additional,
-                })
-            }
-        }
-    }
-
     /// Returns a new Ast with the given nodes
     pub fn with_nodes(self, nodes: Block) -> Self {
         Self { nodes, ..self }
@@ -2356,10 +2279,11 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
     references
 }
 
-#[cfg(test)]
+// #[cfg(test)]
+#[cfg(feature = "rewrite todo: ast tests")]
 mod tests {
     use super::*;
-    use crate::{parse, print, tokenizer::tokens, visitors::VisitorMut};
+    use crate::{parse, print, visitors::VisitorMut};
 
     #[test]
     fn test_extract_token_references() {
