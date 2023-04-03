@@ -3,7 +3,6 @@ use crate::{
     ShortString,
 };
 
-use logos::{Lexer, Logos, Span};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
@@ -263,6 +262,91 @@ impl Display for Symbol {
         };
 
         value.fmt(formatter)
+    }
+}
+
+// rewrite todo: bring back macro?
+impl TryFrom<&str> for Symbol {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, ()> {
+        match value {
+            "and" => Ok(Symbol::And),
+            "break" => Ok(Symbol::Break),
+            "do" => Ok(Symbol::Do),
+            "else" => Ok(Symbol::Else),
+            "elseif" => Ok(Symbol::ElseIf),
+            "end" => Ok(Symbol::End),
+            "false" => Ok(Symbol::False),
+            "for" => Ok(Symbol::For),
+            "function" => Ok(Symbol::Function),
+            "if" => Ok(Symbol::If),
+            "in" => Ok(Symbol::In),
+            "local" => Ok(Symbol::Local),
+            "nil" => Ok(Symbol::Nil),
+            "not" => Ok(Symbol::Not),
+            "or" => Ok(Symbol::Or),
+            "repeat" => Ok(Symbol::Repeat),
+            "return" => Ok(Symbol::Return),
+            "then" => Ok(Symbol::Then),
+            "true" => Ok(Symbol::True),
+            "until" => Ok(Symbol::Until),
+            "while" => Ok(Symbol::While),
+            #[cfg(feature = "lua52")]
+            "goto" => Ok(Symbol::Goto),
+            "+=" => Ok(Symbol::PlusEqual),
+            "-=" => Ok(Symbol::MinusEqual),
+            "*=" => Ok(Symbol::StarEqual),
+            "/=" => Ok(Symbol::SlashEqual),
+            "%=" => Ok(Symbol::PercentEqual),
+            "^=" => Ok(Symbol::CaretEqual),
+            "..=" => Ok(Symbol::TwoDotsEqual),
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
+            "&" => Ok(Symbol::Ampersand),
+            #[cfg(feature = "roblox")]
+            "->" => Ok(Symbol::ThinArrow),
+            #[cfg(any(feature = "roblox", feature = "lua52"))]
+            "::" => Ok(Symbol::TwoColons),
+            "^" => Ok(Symbol::Caret),
+            ":" => Ok(Symbol::Colon),
+            "," => Ok(Symbol::Comma),
+            "..." => Ok(Symbol::Ellipse),
+            ".." => Ok(Symbol::TwoDots),
+            "." => Ok(Symbol::Dot),
+            "==" => Ok(Symbol::TwoEqual),
+            "=" => Ok(Symbol::Equal),
+            ">=" => Ok(Symbol::GreaterThanEqual),
+            ">" => Ok(Symbol::GreaterThan),
+            #[cfg(feature = "lua53")]
+            ">>" => Ok(Symbol::DoubleGreaterThan),
+            "#" => Ok(Symbol::Hash),
+            "[" => Ok(Symbol::LeftBracket),
+            "{" => Ok(Symbol::LeftBrace),
+            "(" => Ok(Symbol::LeftParen),
+            "<=" => Ok(Symbol::LessThanEqual),
+            "<" => Ok(Symbol::LessThan),
+            #[cfg(feature = "lua53")]
+            "<<" => Ok(Symbol::DoubleLessThan),
+            "-" => Ok(Symbol::Minus),
+            "%" => Ok(Symbol::Percent),
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
+            "|" => Ok(Symbol::Pipe),
+            "+" => Ok(Symbol::Plus),
+            #[cfg(feature = "roblox")]
+            "?" => Ok(Symbol::QuestionMark),
+            "}" => Ok(Symbol::RightBrace),
+            "]" => Ok(Symbol::RightBracket),
+            ")" => Ok(Symbol::RightParen),
+            ";" => Ok(Symbol::Semicolon),
+            "/" => Ok(Symbol::Slash),
+            #[cfg(feature = "lua53")]
+            "//" => Ok(Symbol::DoubleSlash),
+            "*" => Ok(Symbol::Star),
+            #[cfg(feature = "lua53")]
+            "~" => Ok(Symbol::Tilde),
+            "~=" => Ok(Symbol::TildeEqual),
+            _ => Err(()),
+        }
     }
 }
 
@@ -858,9 +942,9 @@ impl fmt::Display for StringLiteralQuoteType {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct TokenizerError {
     /// The type of error
-    error: TokenizerErrorType,
+    pub(crate) error: TokenizerErrorType,
     /// The position of the token that caused the error
-    position: Position,
+    pub(crate) position: Position,
 }
 
 impl TokenizerError {
