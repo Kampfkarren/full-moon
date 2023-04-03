@@ -1,3 +1,4 @@
+mod parser_structs;
 #[macro_use]
 mod parser_util;
 mod parsers;
@@ -2234,6 +2235,12 @@ impl Ast {
     pub fn eof(&self) -> &TokenReference {
         &self.eof
     }
+}
+
+pub struct AstResult {
+    // rewrite todo: not pub
+    pub ast: Ast,
+    pub errors: Vec<crate::Error>,
 }
 
 /// Extracts leading and trailing trivia from tokens

@@ -5,14 +5,52 @@ use super::{Position, Symbol, Token, TokenType, TokenizerError, TokenizerErrorTy
 pub struct Lexer {
     source: LexerSource,
     sent_eof: bool,
+
+    // rewrite todo: maybe an array if we need more lookahead
+    next_token: Option<Result<Token, TokenizerError>>,
+    peek_token: Option<Result<Token, TokenizerError>>,
 }
 
 impl Lexer {
     pub fn new(source: &str) -> Self {
-        Self {
+        let mut lexer = Self {
             source: LexerSource::new(source),
             sent_eof: false,
+
+            next_token: None,
+            peek_token: None,
+        };
+
+        lexer.next_token = lexer.process_next();
+        lexer.peek_token = lexer.process_next();
+
+        lexer
+    }
+
+    pub fn current(&self) -> Option<Result<&Token, &TokenizerError>> {
+        self.next_token.as_ref().map(Result::as_ref)
+    }
+
+    pub fn peek(&self) -> Option<Result<&Token, &TokenizerError>> {
+        self.peek_token.as_ref().map(Result::as_ref)
+    }
+
+    pub fn next(&mut self) -> Option<Result<Token, TokenizerError>> {
+        let next = self.next_token.take()?;
+        self.next_token = self.peek_token.take();
+        self.peek_token = self.process_next();
+        Some(next)
+    }
+
+    pub fn collect(self) -> Result<Vec<Token>, TokenizerError> {
+        let mut tokens = Vec::new();
+        let mut lexer = self;
+
+        while let Some(token) = lexer.next() {
+            tokens.push(token?);
         }
+
+        Ok(tokens)
     }
 
     fn create(
@@ -26,16 +64,8 @@ impl Lexer {
             end_position: self.source.position,
         }))
     }
-}
 
-fn is_identifier_start(character: char) -> bool {
-    matches!(character, 'a'..='z' | 'A'..='Z' | '_')
-}
-
-impl Iterator for Lexer {
-    type Item = Result<Token, TokenizerError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
         let start_position = self.source.position;
 
         let Some(next) = self.source.next() else {
@@ -168,6 +198,10 @@ impl Iterator for Lexer {
             })),
         }
     }
+}
+
+fn is_identifier_start(character: char) -> bool {
+    matches!(character, 'a'..='z' | 'A'..='Z' | '_')
 }
 
 struct LexerSource {
