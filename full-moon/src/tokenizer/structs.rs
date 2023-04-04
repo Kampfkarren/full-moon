@@ -793,6 +793,11 @@ impl TokenReference {
             trailing_trivia: self.trailing_trivia.clone(),
         }
     }
+
+    /// Checks if the token is the given symbol
+    pub fn is_symbol(&self, symbol: Symbol) -> bool {
+        self.token.token_type() == &TokenType::Symbol { symbol }
+    }
 }
 
 impl std::borrow::Borrow<Token> for &TokenReference {

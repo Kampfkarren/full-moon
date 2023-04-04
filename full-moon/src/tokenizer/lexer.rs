@@ -1,14 +1,16 @@
 use crate::ShortString;
 
-use super::{Position, Symbol, Token, TokenType, TokenizerError, TokenizerErrorType};
+use super::{
+    Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
+};
 
 pub struct Lexer {
     source: LexerSource,
     sent_eof: bool,
 
     // rewrite todo: maybe an array if we need more lookahead
-    next_token: Option<Result<Token, TokenizerError>>,
-    peek_token: Option<Result<Token, TokenizerError>>,
+    next_token: Option<Result<TokenReference, TokenizerError>>,
+    peek_token: Option<Result<TokenReference, TokenizerError>>,
 }
 
 impl Lexer {
@@ -21,24 +23,24 @@ impl Lexer {
             peek_token: None,
         };
 
-        lexer.next_token = lexer.process_next();
-        lexer.peek_token = lexer.process_next();
+        lexer.next_token = lexer.process_next_with_trivia();
+        lexer.peek_token = lexer.process_next_with_trivia();
 
         lexer
     }
 
-    pub fn current(&self) -> Option<Result<&Token, &TokenizerError>> {
+    pub fn current(&self) -> Option<Result<&TokenReference, &TokenizerError>> {
         self.next_token.as_ref().map(Result::as_ref)
     }
 
-    pub fn peek(&self) -> Option<Result<&Token, &TokenizerError>> {
+    pub fn peek(&self) -> Option<Result<&TokenReference, &TokenizerError>> {
         self.peek_token.as_ref().map(Result::as_ref)
     }
 
-    pub fn next(&mut self) -> Option<Result<Token, TokenizerError>> {
+    pub fn consume(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
         let next = self.next_token.take()?;
         self.next_token = self.peek_token.take();
-        self.peek_token = self.process_next();
+        self.peek_token = self.process_next_with_trivia();
         Some(next)
     }
 
@@ -46,8 +48,12 @@ impl Lexer {
         let mut tokens = Vec::new();
         let mut lexer = self;
 
-        while let Some(token) = lexer.next() {
-            tokens.push(token?);
+        while let Some(token_reference) = lexer.consume() {
+            let mut token_reference = token_reference?;
+
+            tokens.append(&mut token_reference.leading_trivia);
+            tokens.push(token_reference.token);
+            tokens.append(&mut token_reference.trailing_trivia);
         }
 
         Ok(tokens)
@@ -62,6 +68,51 @@ impl Lexer {
             token_type,
             start_position,
             end_position: self.source.position,
+        }))
+    }
+
+    fn process_next_with_trivia(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
+        let mut leading_trivia = Vec::new();
+
+        let nontrivial_token = loop {
+            match self.process_next()? {
+                Ok(token) if token.token_type().is_trivia() => {
+                    leading_trivia.push(token);
+                }
+
+                Ok(token) => {
+                    break token;
+                }
+
+                Err(error) => {
+                    return Some(Err(error));
+                }
+            }
+        };
+
+        let mut trailing_trivia = Vec::new();
+
+        loop {
+            let sent_eof = self.sent_eof;
+            let start_position = self.source.position;
+
+            match self.process_next() {
+                Some(Ok(token)) if token.token_type().is_trivia() => {
+                    trailing_trivia.push(token);
+                }
+
+                _ => {
+                    self.source.position = start_position;
+                    self.sent_eof = sent_eof;
+                    break;
+                }
+            }
+        }
+
+        Some(Ok(TokenReference {
+            token: nontrivial_token,
+            leading_trivia,
+            trailing_trivia,
         }))
     }
 
@@ -222,7 +273,7 @@ impl LexerSource {
     }
 
     fn current(&self) -> Option<char> {
-        self.source.get(self.position.bytes as usize).copied()
+        self.source.get(self.position.bytes).copied()
     }
 
     fn next(&mut self) -> Option<char> {
@@ -241,7 +292,7 @@ impl LexerSource {
     }
 
     fn peek(&self) -> Option<char> {
-        self.source.get(self.position.bytes as usize + 1).copied()
+        self.source.get(self.position.bytes + 1).copied()
     }
 
     fn consume(&mut self, character: char) -> bool {

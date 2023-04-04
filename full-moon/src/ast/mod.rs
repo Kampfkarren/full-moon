@@ -21,6 +21,8 @@ use std::{borrow::Cow, fmt};
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
 
+pub use parser_structs::AstResult;
+
 #[cfg(feature = "roblox")]
 pub mod types;
 #[cfg(feature = "roblox")]
@@ -2235,55 +2237,6 @@ impl Ast {
     pub fn eof(&self) -> &TokenReference {
         &self.eof
     }
-}
-
-pub struct AstResult {
-    // rewrite todo: not pub
-    pub ast: Ast,
-    pub errors: Vec<crate::Error>,
-}
-
-/// Extracts leading and trailing trivia from tokens
-pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenReference> {
-    let mut references = Vec::new();
-    let (mut leading_trivia, mut trailing_trivia) = (Vec::new(), Vec::new());
-    let mut tokens = tokens.drain(..).peekable();
-
-    while let Some(token) = tokens.next() {
-        if token.token_type().is_trivia() {
-            leading_trivia.push(token);
-        } else {
-            while let Some(token) = tokens.peek() {
-                if token.token_type().is_trivia() {
-                    // Take all trivia up to and including the newline character. If we see a newline character
-                    // we should break once we have taken it in.
-                    let should_break =
-                        if let TokenType::Whitespace { ref characters } = token.token_type() {
-                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                            characters.contains('\n')
-                        } else {
-                            false
-                        };
-
-                    trailing_trivia.push(tokens.next().unwrap());
-
-                    if should_break {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            references.push(TokenReference {
-                leading_trivia: leading_trivia.drain(..).collect(),
-                trailing_trivia: trailing_trivia.drain(..).collect(),
-                token,
-            });
-        }
-    }
-
-    references
 }
 
 // #[cfg(test)]

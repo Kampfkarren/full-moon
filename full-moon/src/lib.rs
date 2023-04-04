@@ -83,7 +83,7 @@ pub fn parse(code: &str) -> Result<ast::Ast, Error> {
 }
 
 pub fn parse_fallible(code: &str) -> ast::AstResult {
-    todo!()
+    ast::AstResult::parse_fallible(code)
 }
 
 /// Prints back Lua code from an [`Ast`](ast::Ast)
