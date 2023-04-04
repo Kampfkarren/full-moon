@@ -118,12 +118,31 @@ fn expect_local_assignment(
 }
 
 fn parse_expression(state: &mut ParserState) -> ParserResult<Expression> {
-    ParserResult::NotFound
+    let primary_expression = match parse_primary_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::NotFound => return ParserResult::NotFound,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    parse_expression_with_precedence(state, primary_expression, 0)
+}
+
+fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression> {
+    todo!()
+}
+
+// rewrite todo: i think this should be iterative instead of recursive
+fn parse_expression_with_precedence(
+    state: &mut ParserState,
+    mut lhs: Expression,
+    precedence: u8,
+) -> ParserResult<Expression> {
+    ParserResult::Value(lhs)
 }
 
 struct Name {
     name: TokenReference,
-    // todo: this is where a type assignment can go
+    // rewrite todo: this is where a type assignment can go
 }
 
 fn names_to_tokens(names: Punctuated<Name>) -> Punctuated<TokenReference> {
