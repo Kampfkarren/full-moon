@@ -369,6 +369,9 @@ impl Lexer {
                             },
                         )
                     }
+                } else if matches!(self.source.current(), Some('0'..='9')) {
+                    let number = self.read_number(".".to_string());
+                    self.create(start_position, number)
                 } else {
                     self.create(
                         start_position,
@@ -401,8 +404,17 @@ impl Lexer {
     }
 
     fn read_number(&mut self, mut number: String) -> TokenType {
+        let mut hit_decimal = false;
+
         while let Some(next) = self.source.current() {
             if matches!(next, '0'..='9') {
+                number.push(self.source.next().expect("peeked, but no next"));
+            } else if matches!(next, '.') {
+                if hit_decimal {
+                    todo!("error: multiple decimal points in number")
+                }
+
+                hit_decimal = true;
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, 'e' | 'E') {
                 number.push(self.source.next().expect("peeked, but no next"));
