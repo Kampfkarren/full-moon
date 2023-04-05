@@ -262,6 +262,13 @@ impl Lexer {
                 },
             ),
 
+            ',' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Comma,
+                },
+            ),
+
             '.' => {
                 if self.source.consume('.') {
                     if self.source.consume('.') {
