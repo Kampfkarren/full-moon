@@ -123,6 +123,19 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         }
 
         TokenType::Symbol {
+            symbol: Symbol::Function,
+        } => {
+            let function_token = state.consume().unwrap();
+
+            let function_declaration = match expect_function_declaration(state, function_token) {
+                Ok(function_declaration) => function_declaration,
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            ParserResult::Value(ast::Stmt::FunctionDeclaration(function_declaration))
+        }
+
+        TokenType::Symbol {
             symbol: Symbol::LeftParen,
         }
         | TokenType::Identifier { .. } => {
@@ -264,6 +277,116 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
         _ => ParserResult::NotFound,
     }
+}
+
+fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionName> {
+    let mut names = Punctuated::new();
+
+    let name = match state.current() {
+        ParserResult::Value(token)
+            if matches!(token.token_type(), TokenType::Identifier { .. }) =>
+        {
+            state.consume().unwrap()
+        }
+
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected function name");
+            return ParserResult::NotFound;
+        }
+
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    names.push(Pair::End(name));
+
+    loop {
+        let current = match state.current() {
+            ParserResult::Value(token) => token,
+
+            ParserResult::NotFound => {
+                unreachable!("rewrite todo: this can't be possible because of eof")
+            }
+
+            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        };
+
+        let middle_token = if current.is_symbol(Symbol::Colon) || current.is_symbol(Symbol::Dot) {
+            state.consume().unwrap()
+        } else {
+            break;
+        };
+
+        let name = match state.current() {
+            ParserResult::Value(token)
+                if matches!(token.token_type(), TokenType::Identifier { .. }) =>
+            {
+                state.consume().unwrap()
+            }
+
+            ParserResult::Value(token) => {
+                state.token_error(
+                    token.clone(),
+                    format!("expected name after `{}`", middle_token.token()),
+                );
+                return ParserResult::NotFound;
+            }
+
+            ParserResult::NotFound => {
+                unreachable!("rewrite todo: this can't be possible because of eof")
+            }
+
+            ParserResult::LexerMoved => {
+                break;
+            }
+        };
+
+        if middle_token.is_symbol(Symbol::Dot) {
+            names.push(Pair::Punctuated(name, middle_token));
+        } else if middle_token.is_symbol(Symbol::Colon) {
+            return ParserResult::Value(ast::FunctionName {
+                names,
+                colon_name: Some((middle_token, name)),
+            });
+        } else {
+            unreachable!();
+        }
+    }
+
+    ParserResult::Value(ast::FunctionName {
+        names,
+        colon_name: None,
+    })
+}
+
+fn expect_function_declaration(
+    state: &mut ParserState,
+    function_token: TokenReference,
+) -> Result<ast::FunctionDeclaration, ()> {
+    let function_name = match expect_function_name(state) {
+        ParserResult::Value(name) => name,
+        ParserResult::NotFound | ParserResult::LexerMoved => return Err(()),
+    };
+
+    let function_body = match parse_function_body(state) {
+        ParserResult::Value(body) => body,
+
+        ParserResult::LexerMoved => ast::FunctionBody::new(),
+
+        ParserResult::NotFound => {
+            state.token_error(function_token.clone(), "expected a function body");
+            ast::FunctionBody::new()
+        }
+    };
+
+    Ok(ast::FunctionDeclaration {
+        function_token,
+        name: function_name,
+        body: function_body,
+    })
 }
 
 fn expect_local_assignment(
