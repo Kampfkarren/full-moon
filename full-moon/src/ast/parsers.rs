@@ -582,6 +582,13 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             }
         }
 
+        TokenType::Symbol {
+            symbol: Symbol::Minus | Symbol::Not | Symbol::Hash,
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
         _ => ParserResult::NotFound,
     }
 }
@@ -592,7 +599,133 @@ fn parse_expression_with_precedence(
     mut lhs: Expression,
     precedence: u8,
 ) -> ParserResult<Expression> {
-    ParserResult::Value(lhs)
+    loop {
+        let Some(bin_op_precedence) = ast::BinOp::precedence_of_token(state.current().unwrap()) else {
+            return ParserResult::Value(lhs);
+        };
+
+        if bin_op_precedence < precedence {
+            return ParserResult::Value(lhs);
+        }
+
+        let bin_op = consume_bin_op(state).unwrap();
+
+        let mut rhs = match parse_primary_expression(state) {
+            ParserResult::Value(expression) => expression,
+            ParserResult::NotFound => {
+                state.token_error(
+                    bin_op.token().clone(),
+                    "expected expression after binary operator",
+                );
+                return ParserResult::Value(lhs);
+            }
+            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        };
+
+        loop {
+            let next_bin_op_token = state.current().unwrap();
+
+            let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token) else {
+                break;
+            };
+
+            let precedence_to_search;
+
+            if next_bin_op_precedence > bin_op_precedence {
+                precedence_to_search = bin_op_precedence + 1;
+            } else if ast::BinOp::is_right_associative_token(next_bin_op_token)
+                && next_bin_op_precedence == bin_op_precedence
+            {
+                precedence_to_search = bin_op_precedence;
+            } else {
+                break;
+            }
+
+            rhs = match parse_expression_with_precedence(state, rhs, precedence_to_search) {
+                ParserResult::Value(expression) => expression,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        bin_op.token().clone(),
+                        "expected expression after binary operator",
+                    );
+                    return ParserResult::Value(lhs);
+                }
+                ParserResult::LexerMoved => return ParserResult::Value(lhs),
+            };
+        }
+
+        lhs = Expression::BinaryOperator {
+            lhs: Box::new(lhs),
+            binop: bin_op,
+            rhs: Box::new(rhs),
+        };
+    }
+}
+
+// rewrite todo: should probably all be done by the macro.
+// all the copy and paste i've been doing is bad
+fn consume_bin_op(state: &mut ParserState) -> Option<ast::BinOp> {
+    match state.current().unwrap().token_type() {
+        TokenType::Symbol { symbol } => match symbol {
+            Symbol::And => Some(ast::BinOp::And(state.consume().unwrap())),
+            Symbol::Caret => Some(ast::BinOp::Caret(state.consume().unwrap())),
+            Symbol::GreaterThan => Some(ast::BinOp::GreaterThan(state.consume().unwrap())),
+            Symbol::GreaterThanEqual => {
+                Some(ast::BinOp::GreaterThanEqual(state.consume().unwrap()))
+            }
+            Symbol::LessThan => Some(ast::BinOp::LessThan(state.consume().unwrap())),
+            Symbol::LessThanEqual => Some(ast::BinOp::LessThanEqual(state.consume().unwrap())),
+            Symbol::Minus => Some(ast::BinOp::Minus(state.consume().unwrap())),
+            Symbol::Or => Some(ast::BinOp::Or(state.consume().unwrap())),
+            Symbol::Percent => Some(ast::BinOp::Percent(state.consume().unwrap())),
+            Symbol::Plus => Some(ast::BinOp::Plus(state.consume().unwrap())),
+            Symbol::Slash => Some(ast::BinOp::Slash(state.consume().unwrap())),
+            Symbol::Star => Some(ast::BinOp::Star(state.consume().unwrap())),
+            Symbol::TildeEqual => Some(ast::BinOp::TildeEqual(state.consume().unwrap())),
+            Symbol::TwoDots => Some(ast::BinOp::TwoDots(state.consume().unwrap())),
+            Symbol::TwoEqual => Some(ast::BinOp::TwoEqual(state.consume().unwrap())),
+            _ => None,
+        },
+
+        _ => None,
+    }
+}
+
+fn parse_unary_expression(
+    state: &mut ParserState,
+    unary_operator_token: ast::TokenReference,
+) -> ParserResult<ast::Expression> {
+    let unary_operator = match unary_operator_token.token_type() {
+        TokenType::Symbol { symbol } => match symbol {
+            Symbol::Minus => ast::UnOp::Minus(unary_operator_token),
+            Symbol::Not => ast::UnOp::Not(unary_operator_token),
+            Symbol::Hash => ast::UnOp::Hash(unary_operator_token),
+            _ => unreachable!(),
+        },
+
+        _ => unreachable!(),
+    };
+
+    let expression = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        ParserResult::NotFound => {
+            state.token_error(
+                unary_operator.token().clone(),
+                format!(
+                    "expected an expression after {}",
+                    unary_operator.token().token()
+                ),
+            );
+            return ParserResult::LexerMoved;
+        }
+    };
+
+    // rewrite todo: when does unop precedence come into play?
+    ParserResult::Value(Expression::UnaryOperator {
+        unop: unary_operator,
+        expression: Box::new(expression),
+    })
 }
 
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
@@ -715,6 +848,7 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
         }
 
         values.push(Pair::End(value));
+        break;
     }
 
     if values.is_empty() {

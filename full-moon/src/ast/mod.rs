@@ -2058,22 +2058,35 @@ impl BinOp {
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
     #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
-        match *self {
-            BinOp::Caret(_) => 8,
-            BinOp::Star(_) | BinOp::Slash(_) | BinOp::Percent(_) => 6,
-            BinOp::Plus(_) | BinOp::Minus(_) => 5,
-            BinOp::TwoDots(_) => 4,
-            BinOp::GreaterThan(_)
-            | BinOp::LessThan(_)
-            | BinOp::GreaterThanEqual(_)
-            | BinOp::LessThanEqual(_)
-            | BinOp::TildeEqual(_)
-            | BinOp::TwoEqual(_) => 3,
-            BinOp::And(_) => 2,
-            BinOp::Or(_) => 1,
+        BinOp::precedence_of_token(&self.token()).expect("invalid token")
+    }
+
+    pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
+        match token.token_type() {
+            TokenType::Symbol { symbol } => match symbol {
+                Symbol::Caret => Some(8),
+                Symbol::Star => Some(6),
+                Symbol::Slash => Some(6),
+                Symbol::Percent => Some(6),
+                Symbol::Plus => Some(5),
+                Symbol::Minus => Some(5),
+                Symbol::TwoDots => Some(4),
+                Symbol::GreaterThan => Some(3),
+                Symbol::LessThan => Some(3),
+                Symbol::GreaterThanEqual => Some(3),
+                Symbol::LessThanEqual => Some(3),
+                Symbol::TildeEqual => Some(3),
+                Symbol::TwoEqual => Some(3),
+                Symbol::And => Some(2),
+                Symbol::Or => Some(1),
+                _ => None,
+            },
+
+            _ => None,
         }
     }
 
+    // rewrite todo: i haven't touched this
     /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
     /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
     #[cfg(feature = "lua53")]
@@ -2102,6 +2115,17 @@ impl BinOp {
     /// See more at <https://www.lua.org/pil/3.5.html>
     pub fn is_right_associative(&self) -> bool {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
+    }
+
+    pub fn is_right_associative_token(token: &TokenReference) -> bool {
+        matches!(
+            token.token_type(),
+            TokenType::Symbol {
+                symbol: Symbol::Caret
+            } | TokenType::Symbol {
+                symbol: Symbol::TwoDots
+            }
+        )
     }
 
     /// The token associated with the operator

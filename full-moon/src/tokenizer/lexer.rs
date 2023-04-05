@@ -296,6 +296,77 @@ impl Lexer {
                 },
             ),
 
+            '+' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Plus,
+                },
+            ),
+
+            '*' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Star,
+                },
+            ),
+
+            '/' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Slash,
+                },
+            ),
+
+            '%' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Percent,
+                },
+            ),
+
+            '^' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Caret,
+                },
+            ),
+
+            '<' => {
+                if self.source.consume('=') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::LessThanEqual,
+                        },
+                    )
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::LessThan,
+                        },
+                    )
+                }
+            }
+
+            '>' => {
+                if self.source.consume('=') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::GreaterThanEqual,
+                        },
+                    )
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::GreaterThan,
+                        },
+                    )
+                }
+            }
+
             '.' => {
                 if self.source.consume('.') {
                     if self.source.consume('.') {

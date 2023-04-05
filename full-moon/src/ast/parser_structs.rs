@@ -109,10 +109,13 @@ impl AstResult {
         }
 
         // rewrite todo: try to keep parsing??
-        assert_eq!(
-            parser_state.lexer.current().unwrap().unwrap().token_kind(),
-            TokenKind::Eof
-        );
+        let last_token = parser_state.lexer.current().unwrap().unwrap();
+        if last_token.token_kind() != TokenKind::Eof {
+            todo!(
+                "didn't finish, last token: {last_token:#?}, errors: {:#?}",
+                parser_state.todo_errors()
+            );
+        }
 
         Self {
             ast: Ast {
