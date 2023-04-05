@@ -13,7 +13,7 @@ use super::{
 use crate::{
     ast, // rewrite todo: make everything use this
     node::Node,
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
 
 pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
@@ -188,7 +188,17 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                         break;
                     }
 
-                    Some(ast::Suffix::Index(_)) => todo!(),
+                    Some(ast::Suffix::Index(_)) => {
+                        let last_var = var_list.pop().unwrap().into_value();
+                        var_list.push(Pair::Punctuated(last_var, next_comma));
+
+                        var_list.push(Pair::End(ast::Var::Expression(Box::new(
+                            ast::VarExpression {
+                                prefix: next_prefix,
+                                suffixes: next_suffixes,
+                            },
+                        ))))
+                    }
 
                     None => match next_prefix {
                         ast::Prefix::Name(name) => {
@@ -364,13 +374,59 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
         TokenType::Symbol {
             symbol: Symbol::Dot,
         } => {
-            todo!("dot index");
+            let dot = state.consume().unwrap();
+            let name = match state.current() {
+                ParserResult::Value(token) if token.token_kind() == TokenKind::Identifier => {
+                    state.consume().unwrap()
+                }
+
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+
+                ParserResult::Value(_) | ParserResult::NotFound => {
+                    state.token_error(dot, "expected identifier after `.`");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Dot { dot, name }))
         }
 
         TokenType::Symbol {
             symbol: Symbol::LeftBracket,
         } => {
-            todo!("bracket index");
+            let left_bracket = state.consume().unwrap();
+
+            let expression = match parse_expression(state) {
+                ParserResult::Value(expression) => expression,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    state.token_error(left_bracket, "expected expression after `[`");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            let right_bracket = match state.current() {
+                ParserResult::Value(token) if token.is_symbol(Symbol::RightBracket) => {
+                    state.consume().unwrap()
+                }
+
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+
+                ParserResult::Value(_) | ParserResult::NotFound => {
+                    state.token_error(
+                        left_bracket.clone(),
+                        "expected `]` to close index expression",
+                    );
+
+                    // rewrite todo: this feels weird to recover from
+                    TokenReference::symbol("]").unwrap()
+                }
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Brackets {
+                brackets: ContainedSpan::new(left_bracket, right_bracket),
+                expression,
+            }))
         }
 
         TokenType::Symbol {
@@ -379,6 +435,40 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
         | TokenType::StringLiteral { .. } => {
             let arguments = try_parser!(parse_arguments(state)).unwrap();
             ParserResult::Value(ast::Suffix::Call(ast::Call::AnonymousCall(arguments)))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::Colon,
+        } => {
+            let colon_token = state.consume().unwrap();
+
+            let name = match state.current() {
+                ParserResult::Value(token) if token.token_kind() == TokenKind::Identifier => {
+                    state.consume().unwrap()
+                }
+
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+
+                ParserResult::Value(_) | ParserResult::NotFound => {
+                    state.token_error(colon_token, "expected identifier after `:`");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            let args = match parse_arguments(state) {
+                ParserResult::Value(args) => args,
+                ParserResult::LexerMoved => ast::FunctionArgs::empty(),
+                ParserResult::NotFound => {
+                    state.token_error(colon_token.clone(), "expected arguments after `:`");
+                    ast::FunctionArgs::empty()
+                }
+            };
+
+            ParserResult::Value(ast::Suffix::Call(ast::Call::MethodCall(ast::MethodCall {
+                colon_token,
+                name,
+                args,
+            })))
         }
 
         _ => ParserResult::NotFound,
@@ -464,6 +554,32 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         TokenType::Number { .. } => {
             let number_token = state.consume().unwrap();
             ParserResult::Value(Expression::Number(number_token))
+        }
+
+        TokenType::Identifier { .. }
+        | TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        } => {
+            let (prefix, suffixes) = match parse_prefix_and_suffixes(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    unreachable!("identifier found but parse_prefix_and_suffixes didn't even move");
+                }
+            };
+
+            if suffixes.is_empty() {
+                match prefix {
+                    ast::Prefix::Expression(expression) => ParserResult::Value(*expression),
+                    ast::Prefix::Name(name) => {
+                        ParserResult::Value(Expression::Var(ast::Var::Name(name)))
+                    }
+                }
+            } else {
+                ParserResult::Value(Expression::Var(ast::Var::Expression(Box::new(
+                    ast::VarExpression { prefix, suffixes },
+                ))))
+            }
         }
 
         _ => ParserResult::NotFound,

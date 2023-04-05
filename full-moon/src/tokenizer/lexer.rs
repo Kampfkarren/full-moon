@@ -262,6 +262,33 @@ impl Lexer {
                 },
             ),
 
+            '[' => {
+                if self.source.consume('[') {
+                    todo!("multi-line string")
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::LeftBracket,
+                        },
+                    )
+                }
+            }
+
+            ']' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::RightBracket,
+                },
+            ),
+
+            ':' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Colon,
+                },
+            ),
+
             ',' => self.create(
                 start_position,
                 TokenType::Symbol {
@@ -291,6 +318,20 @@ impl Lexer {
                         start_position,
                         TokenType::Symbol {
                             symbol: Symbol::Dot,
+                        },
+                    )
+                }
+            }
+
+            '-' => {
+                if self.source.consume('-') {
+                    let comment = self.read_comment();
+                    self.create(start_position, comment)
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::Minus,
                         },
                     )
                 }
@@ -357,6 +398,31 @@ impl Lexer {
                     literal.push(next);
                 }
             }
+        }
+    }
+
+    fn read_comment(&mut self) -> TokenType {
+        if self.source.consume('[') {
+            todo!("read multi line comment")
+        }
+
+        let mut comment = String::new();
+
+        let mut position_before_new_line = self.source.position;
+
+        while let Some(next) = self.source.next() {
+            if next == '\n' {
+                break;
+            }
+
+            comment.push(next);
+            position_before_new_line = self.source.position;
+        }
+
+        self.source.position = position_before_new_line;
+
+        TokenType::SingleLineComment {
+            comment: comment.into(),
         }
     }
 }

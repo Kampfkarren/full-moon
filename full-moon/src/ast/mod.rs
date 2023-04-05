@@ -481,6 +481,19 @@ pub enum FunctionArgs {
     TableConstructor(TableConstructor),
 }
 
+impl FunctionArgs {
+    pub(crate) fn empty() -> Self {
+        FunctionArgs::Parentheses {
+            parentheses: ContainedSpan::new(
+                TokenReference::symbol("(").unwrap(),
+                TokenReference::symbol(")").unwrap(),
+            ),
+
+            arguments: Punctuated::new(),
+        }
+    }
+}
+
 /// A numeric for loop, such as `for index = 1, 10 do end`
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
