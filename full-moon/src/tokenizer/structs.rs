@@ -767,7 +767,7 @@ impl TokenReference {
     /// # }
     /// ```
     pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        todo!()
+        todo!("symbol(`{text}`)")
     }
 
     /// Returns the inner token.

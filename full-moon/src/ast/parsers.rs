@@ -355,6 +355,11 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             ParserResult::Value(Expression::Function((function_token, function_body)))
         }
 
+        TokenType::StringLiteral { .. } => {
+            let string_token = state.consume().unwrap();
+            ParserResult::Value(Expression::String(string_token))
+        }
+
         TokenType::Number { .. } => {
             let number_token = state.consume().unwrap();
             ParserResult::Value(Expression::Number(number_token))

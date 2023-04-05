@@ -1,4 +1,4 @@
-use crate::ShortString;
+use crate::{tokenizer::StringLiteralQuoteType, ShortString};
 
 use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
@@ -214,6 +214,11 @@ impl Lexer {
                 )
             }
 
+            quote @ ('"' | '\'') => {
+                let string = self.read_string(quote);
+                self.create(start_position, string)
+            }
+
             '=' => {
                 if self.source.consume('=') {
                     self.create(
@@ -261,6 +266,63 @@ impl Lexer {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 position: self.source.position,
             })),
+        }
+    }
+
+    fn read_string(&mut self, quote: char) -> TokenType {
+        let quote_type = match quote {
+            '"' => StringLiteralQuoteType::Double,
+            '\'' => StringLiteralQuoteType::Single,
+            _ => unreachable!(),
+        };
+
+        let mut literal = String::new();
+
+        let mut escape = false;
+        loop {
+            let next = match self.source.next() {
+                Some(next) => next,
+                None => {
+                    // return TokenType::StringLiteral {
+                    //     literal: literal.into(),
+                    //     multi_line: None,
+                    //     quote_type,
+                    // }
+                    todo!("this should return the string literal, and error")
+                }
+            };
+
+            match (escape, next) {
+                (true, ..) => {
+                    escape = false;
+                    literal.push(next);
+                }
+
+                (false, '\\') => {
+                    escape = true;
+                }
+
+                (false, '\n' | '\r') => {
+                    // return TokenType::StringLiteral {
+                    //     literal: literal.into(),
+                    //     multi_line: None,
+                    //     quote_type,
+                    // }
+                    todo!("this should return the string literal, and error")
+                }
+
+                (false, ..) if next == quote => {
+                    return TokenType::StringLiteral {
+                        literal: literal.into(),
+                        multi_line: None,
+                        quote_type,
+                    };
+                }
+
+                (false, ..) => {
+                    literal.push(next);
+                }
+            }
         }
     }
 }

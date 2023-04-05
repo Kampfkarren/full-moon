@@ -10,6 +10,10 @@ pub struct ParserState {
 }
 
 impl ParserState {
+    pub fn todo_errors(&self) -> &[crate::Error] {
+        &self.errors
+    }
+
     pub fn new(lexer: Lexer) -> Self {
         Self {
             errors: Vec::new(),
