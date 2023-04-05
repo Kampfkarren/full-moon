@@ -108,6 +108,20 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             }
         }
 
+        TokenType::Symbol { symbol: Symbol::Do } => {
+            let do_token = state.consume().unwrap();
+            let (block, end_token) = match parse_block_with_end(state, &do_token) {
+                Ok(block) => block,
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            ParserResult::Value(ast::Stmt::Do(ast::Do {
+                do_token,
+                block,
+                end_token,
+            }))
+        }
+
         TokenType::Symbol {
             symbol: Symbol::LeftParen,
         }
