@@ -452,6 +452,10 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             ParserResult::Value(Expression::Function((function_token, function_body)))
         }
 
+        TokenType::Symbol {
+            symbol: Symbol::True | Symbol::False | Symbol::Nil,
+        } => ParserResult::Value(Expression::Symbol(state.consume().unwrap())),
+
         TokenType::StringLiteral { .. } => {
             let string_token = state.consume().unwrap();
             ParserResult::Value(Expression::String(string_token))
