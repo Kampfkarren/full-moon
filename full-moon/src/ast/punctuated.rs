@@ -29,7 +29,7 @@ use std::{fmt::Display, iter::FromIterator};
 /// A punctuated sequence of node `T` separated by
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Default, Display, PartialEq, Eq)]
+#[derive(Clone, Debug, Display, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(bound = "T: Display")]
 #[display(fmt = "{}", "util::join_vec(pairs)")]
@@ -181,6 +181,13 @@ impl<T> Punctuated<T> {
     /// ```
     pub fn push(&mut self, pair: Pair<T>) {
         self.pairs.push(pair);
+    }
+}
+
+// rewrite todo: changelog, this used to be derive(Default)
+impl<T> Default for Punctuated<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

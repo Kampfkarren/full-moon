@@ -2,4 +2,5 @@
 	// "rust-analyzer.cargo.features": [
 	// 	"roblox"
 	// ],
+	"rust-analyzer.cargo.features": []
 }

@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{Lexer, Token, TokenReference, TokenizerError};
+use crate::tokenizer::{Lexer, Token, TokenKind, TokenReference, TokenType, TokenizerError};
 
 use super::{parsers::parse_block, Ast, Block};
 
@@ -60,6 +60,7 @@ impl ParserState {
     }
 }
 
+#[derive(Debug)]
 pub enum ParserResult<T> {
     // This doesn't necessarily mean that there were no errors,
     // because this can sometimes be a recovered value.
@@ -98,11 +99,23 @@ impl AstResult {
             _ => Block::new(),
         };
 
-        // todo: remove
+        // rewrite todo: remove
         if !parser_state.errors.is_empty() {
             panic!("{:#?}", parser_state.errors);
         }
 
-        todo!("Rest of parse_fallible, including getting eof")
+        // rewrite todo: try to keep parsing??
+        assert_eq!(
+            parser_state.lexer.current().unwrap().unwrap().token_kind(),
+            TokenKind::Eof
+        );
+
+        Self {
+            ast: Ast {
+                nodes: block,
+                eof: parser_state.lexer.consume().unwrap().unwrap(),
+            },
+            errors: parser_state.errors,
+        }
     }
 }

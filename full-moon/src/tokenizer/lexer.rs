@@ -98,7 +98,21 @@ impl Lexer {
 
             match self.process_next() {
                 Some(Ok(token)) if token.token_type().is_trivia() => {
+                    // Take all trivia up to and including the newline character. If we see a newline character
+                    // we should break once we have taken it in.
+                    let should_break =
+                        if let TokenType::Whitespace { ref characters } = token.token_type() {
+                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+                            characters.contains('\n')
+                        } else {
+                            false
+                        };
+
                     trailing_trivia.push(token);
+
+                    if should_break {
+                        break;
+                    }
                 }
 
                 _ => {
