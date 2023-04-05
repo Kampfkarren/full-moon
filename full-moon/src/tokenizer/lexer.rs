@@ -262,6 +262,33 @@ impl Lexer {
                 },
             ),
 
+            '.' => {
+                if self.source.consume('.') {
+                    if self.source.consume('.') {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::Ellipse,
+                            },
+                        )
+                    } else {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::TwoDots,
+                            },
+                        )
+                    }
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::Dot,
+                        },
+                    )
+                }
+            }
+
             unknown_char => Some(Err(TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 position: self.source.position,
@@ -372,7 +399,7 @@ impl LexerSource {
     }
 
     fn consume(&mut self, character: char) -> bool {
-        if self.peek() == Some(character) {
+        if self.current() == Some(character) {
             self.next();
             true
         } else {
