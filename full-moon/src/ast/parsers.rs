@@ -116,16 +116,126 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             // rewrite todo: i'm very skeptical of the fallibility of this
             let (prefix, suffixes) = try_parser!(parse_prefix_and_suffixes(state)).unwrap();
 
-            match suffixes.last().expect("suffixes should never be empty") {
-                ast::Suffix::Call(call) => {
-                    ParserResult::Value(ast::Stmt::FunctionCall(ast::FunctionCall {
+            let var = match suffixes.last() {
+                Some(ast::Suffix::Call(call)) => {
+                    return ParserResult::Value(ast::Stmt::FunctionCall(ast::FunctionCall {
                         prefix,
                         suffixes,
-                    }))
+                    }));
                 }
 
-                ast::Suffix::Index(_) => todo!(),
+                Some(ast::Suffix::Index(_)) => todo!(),
+
+                None => match prefix {
+                    ast::Prefix::Name(name) => ast::Var::Name(name),
+                    ast::Prefix::Expression(expr) => todo!("VarExpression?"),
+                },
+            };
+
+            const ASSIGNMENT_NEVER_CAME_ERROR: &str =
+                "unexpected expression when looking for a statement";
+
+            let current = match state.current() {
+                ParserResult::Value(token) => token,
+
+                // rewrite todo: this isn't even really possible to hit because of eof. none of these are.
+                // maybe it shouldn't be possible for current() to return this?
+                ParserResult::NotFound => {
+                    // rewrite todo: ranges for prefix
+                    state.token_error(
+                        var.tokens().last().unwrap().clone(),
+                        ASSIGNMENT_NEVER_CAME_ERROR,
+                    );
+
+                    // rewrite todo: recoverability?
+                    return ParserResult::LexerMoved;
+                }
+
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+            };
+
+            if !current.is_symbol(Symbol::Comma) && !current.is_symbol(Symbol::Equal) {
+                state.token_error(current.clone(), ASSIGNMENT_NEVER_CAME_ERROR);
+                return ParserResult::LexerMoved;
             }
+
+            let mut var_list = Punctuated::new();
+            var_list.push(Pair::End(var));
+
+            // rewrite todo: unwrap() here because of eof, like referenced in the last comment
+            while state.current().unwrap().is_symbol(Symbol::Comma) {
+                let next_comma = state.consume().unwrap();
+
+                let (next_prefix, next_suffixes) = match parse_prefix_and_suffixes(state) {
+                    ParserResult::Value((prefix, suffixes)) => (prefix, suffixes),
+
+                    ParserResult::LexerMoved => {
+                        break;
+                    }
+
+                    ParserResult::NotFound => {
+                        state.token_error(next_comma, "expected another variable");
+                        break;
+                    }
+                };
+
+                match next_suffixes.last() {
+                    Some(ast::Suffix::Call(call)) => {
+                        state.token_error(
+                            call.tokens().last().unwrap().clone(),
+                            "can't assign to the result of a call",
+                        );
+                        break;
+                    }
+
+                    Some(ast::Suffix::Index(_)) => todo!(),
+
+                    None => match next_prefix {
+                        ast::Prefix::Name(name) => {
+                            let last_var = var_list.pop().unwrap().into_value();
+                            var_list.push(Pair::Punctuated(last_var, next_comma));
+
+                            var_list.push(Pair::End(ast::Var::Name(name)));
+                        }
+
+                        ast::Prefix::Expression(expr) => todo!("VarExpression?"),
+                    },
+                }
+            }
+
+            let equal_token = match state.current() {
+                ParserResult::Value(token) if token.is_symbol(Symbol::Equal) => {
+                    state.consume().unwrap()
+                }
+
+                ParserResult::Value(token) => {
+                    state.token_error(token.clone(), "expected `=`");
+                    return ParserResult::LexerMoved;
+                }
+
+                ParserResult::NotFound => {
+                    unreachable!("rewrite todo: i'm now refusing to write these");
+                }
+
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+            };
+
+            let expr_list = match parse_expression_list(state) {
+                ParserResult::Value(expr_list) => expr_list,
+
+                ParserResult::NotFound => {
+                    state.token_error(equal_token.clone(), "expected values to set to");
+                    Punctuated::new()
+                }
+
+                ParserResult::LexerMoved => Punctuated::new(),
+            };
+
+            ParserResult::Value(ast::Stmt::Assignment(ast::Assignment {
+                var_list,
+                equal_token,
+                expr_list,
+            }))
         }
 
         _ => ParserResult::NotFound,
@@ -301,20 +411,7 @@ fn parse_prefix_and_suffixes(
             }
 
             ParserResult::NotFound => {
-                if suffixes.is_empty() {
-                    state.token_error(
-                        match state.current() {
-                            ParserResult::Value(token) => token.clone(),
-                            ParserResult::NotFound => prefix.tokens().last().unwrap().clone(),
-                            ParserResult::LexerMoved => unreachable!(),
-                        },
-                        "expected either a call or an index",
-                    );
-
-                    return ParserResult::LexerMoved;
-                } else {
-                    break;
-                }
+                break;
             }
         };
     }
