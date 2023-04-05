@@ -195,23 +195,8 @@ impl Lexer {
             }
 
             initial @ ('0'..='9') => {
-                let mut number = String::new();
-                number.push(initial);
-
-                while let Some(next) = self.source.current() {
-                    if matches!(next, '0'..='9') {
-                        number.push(self.source.next().expect("peeked, but no next"));
-                    } else {
-                        break;
-                    }
-                }
-
-                self.create(
-                    start_position,
-                    TokenType::Number {
-                        text: ShortString::from(number),
-                    },
-                )
+                let number = self.read_number(initial.to_string());
+                self.create(start_position, number)
             }
 
             quote @ ('"' | '\'') => {
@@ -412,6 +397,41 @@ impl Lexer {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 position: self.source.position,
             })),
+        }
+    }
+
+    fn read_number(&mut self, mut number: String) -> TokenType {
+        while let Some(next) = self.source.current() {
+            if matches!(next, '0'..='9') {
+                number.push(self.source.next().expect("peeked, but no next"));
+            } else if matches!(next, 'e' | 'E') {
+                number.push(self.source.next().expect("peeked, but no next"));
+
+                let next = self.source.current();
+                if matches!(next, Some('+') | Some('-')) {
+                    number.push(self.source.next().expect("peeked, but no next"));
+                }
+
+                if !matches!(self.source.current(), Some('0'..='9')) {
+                    todo!("error: expected digit after exponent (e.g. 2e+3), need to be able to put an error in and then give a fallible number-ish")
+                }
+
+                while let Some(next) = self.source.current() {
+                    if matches!(next, '0'..='9') {
+                        number.push(self.source.next().expect("peeked, but no next"));
+                    } else {
+                        break;
+                    }
+                }
+
+                break;
+            } else {
+                break;
+            }
+        }
+
+        TokenType::Number {
+            text: ShortString::from(number),
         }
     }
 
