@@ -352,6 +352,20 @@ impl Lexer {
                 }
             }
 
+            '{' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::LeftBrace,
+                },
+            ),
+
+            '}' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::RightBrace,
+                },
+            ),
+
             '.' => {
                 if self.source.consume('.') {
                     if self.source.consume('.') {

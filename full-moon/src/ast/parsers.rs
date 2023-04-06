@@ -434,6 +434,237 @@ fn expect_local_assignment(
     ParserResult::Value(local_assignment)
 }
 
+fn expect_expression_key(
+    state: &mut ParserState,
+    left_bracket: TokenReference,
+) -> Result<ast::Field, ()> {
+    let expression = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(left_bracket, "expected an expression after `[`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let right_bracket = match state.current() {
+        ParserResult::Value(token) => {
+            if token.is_symbol(Symbol::RightBracket) {
+                state.consume().unwrap()
+            } else {
+                state.token_error(
+                    // rewrite todo: raaaaange
+                    expression.tokens().last().unwrap().clone(),
+                    format!("expected `]` after key, found `{}`", token.token()),
+                );
+
+                return Err(());
+            }
+        }
+
+        ParserResult::NotFound => unreachable!("nope"),
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    // rewrite todo: we can realistically construct a field in error recovery
+
+    let equal_token = match state.current() {
+        ParserResult::Value(token) => {
+            if token.is_symbol(Symbol::Equal) {
+                state.consume().unwrap()
+            } else {
+                state.token_error(
+                    right_bracket,
+                    format!("expected `=` after key, found `{}`", token.token()),
+                );
+
+                return Err(());
+            }
+        }
+
+        ParserResult::NotFound => unreachable!("nope"),
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let value = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(equal_token, "expected an expression after `=`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    Ok(ast::Field::ExpressionKey {
+        brackets: ContainedSpan::new(left_bracket, right_bracket),
+        key: expression,
+        equal: equal_token,
+        value,
+    })
+}
+
+fn force_table_constructor(
+    state: &mut ParserState,
+    left_brace: TokenReference,
+) -> ast::TableConstructor {
+    let mut fields = Punctuated::new();
+
+    let unfinished_table =
+        |left_brace: TokenReference, fields: Punctuated<ast::Field>| ast::TableConstructor {
+            braces: ContainedSpan::new(left_brace, ast::TokenReference::symbol("}").unwrap()),
+            fields,
+        };
+
+    loop {
+        let current_token = match state.current() {
+            ParserResult::Value(token) => token,
+            ParserResult::NotFound => unreachable!("nope"),
+            ParserResult::LexerMoved => {
+                return unfinished_table(left_brace, fields);
+            }
+        };
+
+        let field = match current_token.token_type() {
+            TokenType::Symbol {
+                symbol: Symbol::RightBrace,
+            } => {
+                return ast::TableConstructor {
+                    braces: ContainedSpan::new(left_brace, state.consume().unwrap()),
+                    fields,
+                };
+            }
+
+            TokenType::Symbol {
+                symbol: Symbol::LeftBracket,
+            } => {
+                let left_bracket = state.consume().unwrap();
+
+                match expect_expression_key(state, left_bracket) {
+                    Ok(field) => field,
+                    Err(()) => {
+                        return unfinished_table(left_brace, fields);
+                    }
+                }
+            }
+
+            TokenType::Identifier { .. } if matches!(state.peek(), ParserResult::Value(peek_token) if peek_token.is_symbol(Symbol::Equal)) =>
+            {
+                let key = state.consume().unwrap();
+
+                let equal_token = state.consume().unwrap();
+
+                let value = match parse_expression(state) {
+                    ParserResult::Value(expression) => expression,
+
+                    ParserResult::NotFound => {
+                        state.token_error(equal_token, "expected an expression after `=`");
+
+                        return unfinished_table(left_brace, fields);
+                    }
+
+                    ParserResult::LexerMoved => {
+                        return unfinished_table(left_brace, fields);
+                    }
+                };
+
+                ast::Field::NameKey {
+                    key,
+                    equal: equal_token,
+                    value,
+                }
+            }
+
+            _ => {
+                let value = match parse_expression(state) {
+                    ParserResult::Value(expression) => expression,
+
+                    ParserResult::NotFound => {
+                        state.token_error(
+                            match fields.last() {
+                                Some(Pair::End(field)) => field.tokens().last().unwrap().clone(),
+                                Some(Pair::Punctuated(field, _)) => {
+                                    field.tokens().last().unwrap().clone()
+                                }
+                                None => left_brace.clone(),
+                            },
+                            "expected a field",
+                        );
+
+                        return unfinished_table(left_brace, fields);
+                    }
+
+                    ParserResult::LexerMoved => {
+                        return unfinished_table(left_brace, fields);
+                    }
+                };
+
+                ast::Field::NoKey(value)
+            }
+        };
+
+        match state.current() {
+            ParserResult::Value(token) => {
+                if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Semicolon) {
+                    fields.push(Pair::Punctuated(field, state.consume().unwrap()))
+                } else {
+                    fields.push(Pair::End(field));
+                    break;
+                }
+            }
+
+            ParserResult::NotFound => unreachable!("nope"),
+
+            ParserResult::LexerMoved => {
+                fields.push(Pair::End(field));
+                break;
+            }
+        };
+    }
+
+    let right_brace = match state.current() {
+        ParserResult::Value(token) => {
+            if token.is_symbol(Symbol::RightBrace) {
+                state.consume().unwrap()
+            } else {
+                state.token_error(
+                    match fields.last().map(Pair::value) {
+                        Some(field) => field.tokens().last().unwrap().clone(),
+                        None => left_brace.clone(),
+                    },
+                    format!("expected `}}` after last field, found `{}`", token.token()),
+                );
+
+                TokenReference::symbol("}").unwrap()
+            }
+        }
+
+        ParserResult::NotFound => unreachable!("nope"),
+
+        ParserResult::LexerMoved => TokenReference::symbol("}").unwrap(),
+    };
+
+    ast::TableConstructor {
+        braces: ContainedSpan::new(left_brace, right_brace),
+        fields,
+    }
+}
+
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
     let current_token = match try_parser!(state.current()) {
         Some(token) => token,
@@ -493,11 +724,15 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
         TokenType::Symbol {
             symbol: Symbol::LeftBrace,
         } => {
-            todo!("table call")
+            let left_brace = state.consume().unwrap();
+
+            ParserResult::Value(ast::FunctionArgs::TableConstructor(
+                force_table_constructor(state, left_brace),
+            ))
         }
 
         TokenType::StringLiteral { .. } => {
-            todo!("string call")
+            ParserResult::Value(ast::FunctionArgs::String(state.consume().unwrap()))
         }
 
         _ => ParserResult::NotFound,
@@ -962,6 +1197,7 @@ fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
     }
 }
 
+// rewrite todo: we're not gonna use this for fields, so just one delimiter
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
     state: &mut ParserState,
     parser: F,
