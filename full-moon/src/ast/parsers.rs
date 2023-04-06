@@ -345,7 +345,10 @@ fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionNa
         };
 
         if middle_token.is_symbol(Symbol::Dot) {
-            names.push(Pair::Punctuated(name, middle_token));
+            // rewrite todo: i've been doing this more, would be nice to have a helper
+            let last_name = names.pop().unwrap();
+            names.push(Pair::Punctuated(last_name.into_value(), middle_token));
+            names.push(Pair::End(name));
         } else if middle_token.is_symbol(Symbol::Colon) {
             return ParserResult::Value(ast::FunctionName {
                 names,

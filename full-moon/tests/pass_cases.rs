@@ -43,6 +43,10 @@ fn test_pass_case(path: &Path) {
         .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:?}"));
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
+
+    assert_yaml_snapshot!("ast", ast.nodes());
+    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
+
     let ast = ast.update_positions();
     assert_eq!(
         old_positions,
@@ -50,9 +54,6 @@ fn test_pass_case(path: &Path) {
             .flat_map(unpack_token_reference)
             .collect::<Vec<_>>(),
     );
-
-    assert_yaml_snapshot!("ast", ast.nodes());
-    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
 }
 
 #[test]

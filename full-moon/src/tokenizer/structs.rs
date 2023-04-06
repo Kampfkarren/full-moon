@@ -576,7 +576,7 @@ pub enum TokenKind {
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Token {
     pub(crate) start_position: Position,
@@ -665,16 +665,6 @@ impl fmt::Display for Token {
         }
     }
 }
-
-impl PartialEq<Self> for Token {
-    fn eq(&self, rhs: &Self) -> bool {
-        self.start_position() == rhs.start_position()
-            && self.end_position() == rhs.end_position()
-            && self.token_type == rhs.token_type
-    }
-}
-
-impl Eq for Token {}
 
 impl Ord for Token {
     fn cmp(&self, other: &Self) -> Ordering {
