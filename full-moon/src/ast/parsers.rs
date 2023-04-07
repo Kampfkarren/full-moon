@@ -1487,6 +1487,15 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             parse_unary_expression(state, unary_operator_token)
         }
 
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
+            ParserResult::Value(ast::Expression::TableConstructor(force_table_constructor(
+                state, left_brace,
+            )))
+        }
+
         _ => ParserResult::NotFound,
     }
 }
