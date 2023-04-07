@@ -592,6 +592,8 @@ impl Lexer {
                 for _ in 0..equal_signs {
                     body.push('=');
                 }
+
+                continue;
             }
 
             body.push(next);
