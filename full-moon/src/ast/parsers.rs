@@ -22,7 +22,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     loop {
         match parse_stmt(state) {
             ParserResult::Value(stmt) => {
-                // todo: parse semicolons
+                // rewrite todo: parse semicolons
                 stmts.push((stmt, None));
             }
             ParserResult::NotFound => break,
@@ -36,11 +36,12 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
         }
     }
 
-    // todo: parse last stmts
-    ParserResult::Value(ast::Block {
-        stmts,
-        last_stmt: None,
-    })
+    let last_stmt = match parse_last_stmt(state) {
+        ParserResult::Value(stmt) => Some(stmt),
+        ParserResult::LexerMoved | ParserResult::NotFound => None,
+    };
+
+    ParserResult::Value(ast::Block { stmts, last_stmt })
 }
 
 // Blocks in general are not very fallible. This means, for instance, not finishing `function()`
@@ -348,6 +349,44 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
         _ => ParserResult::NotFound,
     }
+}
+
+fn parse_last_stmt(
+    state: &mut ParserState,
+) -> ParserResult<(ast::LastStmt, Option<TokenReference>)> {
+    let last_stmt = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Return) => {
+            let return_token = state.consume().unwrap();
+
+            let expr_list = match parse_expression_list(state) {
+                ParserResult::Value(expr_list) => expr_list,
+                ParserResult::LexerMoved | ParserResult::NotFound => Punctuated::new(),
+            };
+
+            ast::LastStmt::Return(ast::Return {
+                token: return_token,
+                returns: expr_list,
+            })
+        }
+
+        ParserResult::Value(token) if token.is_symbol(Symbol::Break) => {
+            let break_token = state.consume().unwrap();
+            ast::LastStmt::Break(break_token)
+        }
+
+        _ => return ParserResult::NotFound,
+    };
+
+    // rewrite todo: consume
+    let semicolon = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Semicolon) => {
+            Some(state.consume().unwrap())
+        }
+
+        _ => None,
+    };
+
+    ParserResult::Value((last_stmt, semicolon))
 }
 
 fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionName> {
