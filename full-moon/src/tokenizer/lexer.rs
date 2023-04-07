@@ -590,6 +590,7 @@ impl Lexer {
         }
     }
 
+    // rewrite todo: single-line-comment-6 had its tokens changed
     fn read_comment(&mut self) -> TokenType {
         let mut comment = String::new();
 
