@@ -4,8 +4,6 @@
 // and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
 // maybe keep parsing until there's an `end`???? but then global blocks...aaa
 
-use std::thread::current;
-
 use super::{
     parser_structs::{ParserResult, ParserState},
     punctuated::{Pair, Punctuated},
@@ -1030,10 +1028,59 @@ fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
         TokenType::Symbol {
             symbol: Symbol::LeftParen,
         } => {
-            todo!()
+            let left_parenthesis = state.consume().unwrap();
+
+            let expression = Box::new(match try_parser!(parse_expression(state)) {
+                Some(expression) => expression,
+
+                None => {
+                    state.token_error(left_parenthesis, "expected an expression after `(`");
+                    return ParserResult::LexerMoved;
+                }
+            });
+
+            let right_parenthesis = match state.current() {
+                ParserResult::Value(token) if token.is_symbol(Symbol::RightParen) => {
+                    state.consume().unwrap()
+                }
+
+                // rewrite todo: i copy paste stuff between LexerMoved and NotFound a lot. i should make it an if or something
+                ParserResult::LexerMoved => {
+                    return ParserResult::Value(ast::Prefix::Expression(Box::new(
+                        ast::Expression::Parentheses {
+                            contained: ContainedSpan::new(
+                                left_parenthesis,
+                                TokenReference::symbol(")").unwrap(),
+                            ),
+                            expression,
+                        },
+                    )));
+                }
+
+                ParserResult::Value(_) | ParserResult::NotFound => {
+                    state.token_error(left_parenthesis.clone(), "expected `)` after expression");
+
+                    return ParserResult::Value(ast::Prefix::Expression(Box::new(
+                        ast::Expression::Parentheses {
+                            contained: ContainedSpan::new(
+                                left_parenthesis,
+                                TokenReference::symbol(")").unwrap(),
+                            ),
+                            expression,
+                        },
+                    )));
+                }
+            };
+
+            ParserResult::Value(ast::Prefix::Expression(Box::new(
+                ast::Expression::Parentheses {
+                    contained: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                    expression,
+                },
+            )))
         }
 
-        TokenType::Identifier { identifier } => {
+        TokenType::Identifier { .. } => {
             ParserResult::Value(ast::Prefix::Name(state.consume().unwrap()))
         }
 
