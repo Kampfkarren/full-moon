@@ -470,7 +470,11 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     }
 
     if name_list.len() == 1 && current_token.is_symbol(Symbol::Equal) {
-        todo!("numeric for loop")
+        return Ok(ast::Stmt::NumericFor(expect_for_numeric_stmt(
+            state,
+            for_token,
+            name_list.into_iter().next().unwrap(),
+        )?));
     }
 
     let in_token = match current_token {
@@ -516,6 +520,98 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         block,
         end_token: end,
     }))
+}
+
+fn expect_for_numeric_stmt(
+    state: &mut ParserState,
+    for_token: TokenReference,
+    index_variable: Name,
+) -> Result<ast::NumericFor, ()> {
+    let equal_token = state.consume().unwrap();
+    debug_assert!(equal_token.is_symbol(Symbol::Equal));
+
+    let start = match parse_expression(state) {
+        ParserResult::Value(start) => start,
+        ParserResult::NotFound => {
+            state.token_error(equal_token, "expected start expression after `=`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    // rewrite todo: this really should be consume()
+    let start_end_comma = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Comma) => state.consume().unwrap(),
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `,` after start expression");
+            return Err(());
+        }
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let end = match parse_expression(state) {
+        ParserResult::Value(end) => end,
+        ParserResult::NotFound => {
+            state.token_error(start_end_comma, "expected end expression after `,`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    // rewrite todo: this can recover into a numeric for loop with no step (or simulate the do..end)
+    let (end_step_comma, step) = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Comma) => {
+            let end_step_comma = state.consume().unwrap();
+
+            match parse_expression(state) {
+                ParserResult::Value(step) => (Some(end_step_comma), Some(step)),
+                ParserResult::NotFound => {
+                    state.token_error(start_end_comma, "expected step expression after `,`");
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            }
+        }
+        ParserResult::Value(token) => (None, None),
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let do_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `do` after step expression");
+            return Err(());
+        }
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let (block, end_token) = match parse_block_with_end(state, &do_token) {
+        Ok(block) => block,
+        Err(()) => (ast::Block::new(), TokenReference::symbol("end").unwrap()),
+    };
+
+    Ok(ast::NumericFor {
+        for_token,
+        index_variable: index_variable.name,
+        equal_token,
+        start,
+        start_end_comma,
+        end,
+        end_step_comma,
+        step,
+        do_token,
+        block,
+        end_token,
+    })
 }
 
 fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
