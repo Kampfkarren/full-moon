@@ -4,6 +4,8 @@
 // and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
 // maybe keep parsing until there's an `end`???? but then global blocks...aaa
 
+use std::thread::current;
+
 use super::{
     parser_structs::{ParserResult, ParserState},
     punctuated::{Pair, Punctuated},
@@ -128,6 +130,15 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 do_token,
                 block,
                 end_token,
+            }))
+        }
+
+        TokenType::Symbol { symbol: Symbol::If } => {
+            let if_token = state.consume().unwrap();
+
+            ParserResult::Value(ast::Stmt::If(match expect_if_stmt(state, if_token) {
+                Ok(if_stmt) => if_stmt,
+                Err(()) => return ParserResult::LexerMoved,
             }))
         }
 
@@ -465,6 +476,138 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         block,
         end_token: end,
     }))
+}
+
+fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
+    let condition = match parse_expression(state) {
+        ParserResult::Value(condition) => condition,
+        ParserResult::NotFound => {
+            state.token_error(if_token, "expected condition after `if`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let then_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Then) => state.consume().unwrap(),
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `then` after condition");
+            return Err(());
+        }
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let then_block = match parse_block(state) {
+        ParserResult::Value(block) => block,
+        ParserResult::NotFound => {
+            state.token_error(then_token, "expected block after `then`");
+            return Ok(ast::If::new(condition));
+        }
+        ParserResult::LexerMoved => {
+            return Ok(ast::If::new(condition));
+        }
+    };
+
+    let mut else_if = Vec::new();
+
+    let else_if_optional = |else_if: Vec<ast::ElseIf>| {
+        if else_if.is_empty() {
+            None
+        } else {
+            Some(else_if)
+        }
+    };
+
+    let unfinished_if =
+        |condition, else_if| Ok(ast::If::new(condition).with_else_if(else_if_optional(else_if)));
+
+    while state.current().unwrap().is_symbol(Symbol::ElseIf) {
+        let else_if_token = state.consume().unwrap();
+
+        let condition = match parse_expression(state) {
+            ParserResult::Value(condition) => condition,
+            ParserResult::NotFound => {
+                state.token_error(else_if_token, "expected condition after `elseif`");
+                return unfinished_if(condition, else_if);
+            }
+            ParserResult::LexerMoved => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        let then_token = match state.current() {
+            ParserResult::Value(token) if token.is_symbol(Symbol::Then) => state.consume().unwrap(),
+            ParserResult::Value(token) => {
+                state.token_error(token.clone(), "expected `then` after condition");
+                return unfinished_if(condition, else_if);
+            }
+            ParserResult::NotFound => {
+                unreachable!("rewrite todo: this can't be possible because of eof")
+            }
+            ParserResult::LexerMoved => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        let then_block = match parse_block(state) {
+            ParserResult::Value(block) => block,
+            ParserResult::NotFound => {
+                state.token_error(then_token, "expected block after `then`");
+                return unfinished_if(condition, else_if);
+            }
+            ParserResult::LexerMoved => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        else_if.push(ast::ElseIf {
+            else_if_token,
+            condition,
+            then_token,
+            block: then_block,
+        });
+    }
+
+    let (else_block, else_token) = if state.current().unwrap().is_symbol(Symbol::Else) {
+        let else_token = state.consume().unwrap();
+
+        match parse_block(state) {
+            ParserResult::Value(block) => (Some(block), Some(else_token)),
+            ParserResult::NotFound => {
+                state.token_error(else_token.clone(), "expected block after `else`");
+                (Some(ast::Block::new()), Some(else_token))
+            }
+            ParserResult::LexerMoved => (Some(ast::Block::new()), Some(else_token)),
+        }
+    } else {
+        (None, None)
+    };
+
+    let end_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `end` to conclude `if`");
+            TokenReference::symbol("end").unwrap()
+        }
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => TokenReference::symbol("end").unwrap(),
+    };
+
+    Ok(ast::If {
+        if_token,
+        condition,
+        then_token,
+        block: then_block,
+        else_if: else_if_optional(else_if),
+        else_token,
+        r#else: else_block,
+        end_token,
+    })
 }
 
 // rewrite todo: just result, i guess
