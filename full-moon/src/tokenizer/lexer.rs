@@ -23,7 +23,7 @@ impl Lexer {
             peek_token: None,
         };
 
-        lexer.next_token = lexer.process_next_with_trivia();
+        lexer.next_token = lexer.process_first_with_trivia();
         lexer.peek_token = lexer.process_next_with_trivia();
 
         lexer
@@ -90,6 +90,51 @@ impl Lexer {
             }
         };
 
+        let trailing_trivia = self.collect_trailing_trivia();
+
+        Some(Ok(TokenReference {
+            token: nontrivial_token,
+            leading_trivia,
+            trailing_trivia,
+        }))
+    }
+
+    fn process_first_with_trivia(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
+        if self.source.current() == Some('#') && self.source.peek() == Some('!') {
+            // rewrite todo: this changes shebang behavior to be more in line with the rest of full-moon. document
+            let start_position = self.source.position();
+            let mut line = "#!".to_string();
+
+            self.source.next();
+            self.source.next();
+
+            while let Some(next) = self.source.current() {
+                if next == '\n' {
+                    break;
+                }
+
+                self.source.next();
+                line.push(next);
+            }
+
+            let end_position = self.source.position();
+
+            let shebang = Token {
+                token_type: TokenType::Shebang { line: line.into() },
+                start_position,
+                end_position,
+            };
+
+            if let Some(Ok(mut token_reference)) = self.process_next_with_trivia() {
+                token_reference.leading_trivia.insert(0, shebang);
+                return Some(Ok(token_reference));
+            }
+        }
+
+        self.process_next_with_trivia()
+    }
+
+    fn collect_trailing_trivia(&mut self) -> Vec<Token> {
         let mut trailing_trivia = Vec::new();
 
         loop {
@@ -123,11 +168,7 @@ impl Lexer {
             }
         }
 
-        Some(Ok(TokenReference {
-            token: nontrivial_token,
-            leading_trivia,
-            trailing_trivia,
-        }))
+        trailing_trivia
     }
 
     fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
