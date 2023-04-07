@@ -94,11 +94,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             };
 
             match next_token.token_type() {
-                TokenType::Identifier { identifier } => {
-                    ParserResult::Value(ast::Stmt::LocalAssignment(
-                        try_parser!(expect_local_assignment(state, local_token)).unwrap(),
-                    ))
-                }
+                TokenType::Identifier { .. } => ParserResult::Value(ast::Stmt::LocalAssignment(
+                    try_parser!(expect_local_assignment(state, local_token)).unwrap(),
+                )),
 
                 _ => {
                     state.token_error(next_token.clone(), BAD_TOKEN_ERROR);
@@ -106,6 +104,17 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                     ParserResult::LexerMoved
                 }
             }
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::For,
+        } => {
+            let for_token = state.consume().unwrap();
+
+            ParserResult::Value(match expect_for_stmt(state, for_token) {
+                Ok(for_stmt) => for_stmt,
+                Err(()) => return ParserResult::LexerMoved,
+            })
         }
 
         TokenType::Symbol { symbol: Symbol::Do } => {
@@ -392,6 +401,73 @@ fn expect_function_declaration(
     })
 }
 
+fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result<ast::Stmt, ()> {
+    let name_list = match parse_name_list(state) {
+        ParserResult::Value(name_list) => name_list,
+        ParserResult::NotFound => {
+            state.token_error(for_token, "expected name after `for`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let current_token = state.current().unwrap();
+
+    if name_list.is_empty() {
+        state.token_error(current_token.clone(), "expected name after `for`");
+        return Err(());
+    }
+
+    if name_list.len() == 1 && current_token.is_symbol(Symbol::Equal) {
+        todo!("numeric for loop")
+    }
+
+    let in_token = match current_token {
+        token if token.is_symbol(Symbol::In) => state.consume().unwrap(),
+        token => {
+            state.token_error(token.clone(), "expected `in` after name list");
+            return Err(());
+        }
+    };
+
+    let expressions = match parse_expression_list(state) {
+        ParserResult::Value(expressions) => expressions,
+        ParserResult::NotFound => {
+            state.token_error(in_token, "expected expressions after `in`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let do_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `do` after expression list");
+            return Err(());
+        }
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: this can't be possible because of eof")
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let (block, end) = match parse_block_with_end(state, &do_token) {
+        Ok(block) => block,
+        Err(()) => (ast::Block::new(), TokenReference::symbol("end").unwrap()),
+    };
+
+    Ok(ast::Stmt::GenericFor(ast::GenericFor {
+        for_token,
+        names: names_to_tokens(name_list),
+        in_token,
+        expr_list: expressions,
+        do_token,
+        block,
+        end_token: end,
+    }))
+}
+
+// rewrite todo: just result, i guess
 fn expect_local_assignment(
     state: &mut ParserState,
     local_token: TokenReference,
@@ -950,6 +1026,11 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                         ParserResult::Value(Expression::Var(ast::Var::Name(name)))
                     }
                 }
+            } else if matches!(suffixes.last().unwrap(), ast::Suffix::Call(_)) {
+                ParserResult::Value(Expression::FunctionCall(ast::FunctionCall {
+                    prefix,
+                    suffixes,
+                }))
             } else {
                 ParserResult::Value(Expression::Var(ast::Var::Expression(Box::new(
                     ast::VarExpression { prefix, suffixes },
