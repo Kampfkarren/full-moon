@@ -248,8 +248,17 @@ impl Lexer {
             ),
 
             '[' => {
-                if self.source.consume('[') {
-                    todo!("multi-line string")
+                if self.source.current() == Some('[') || self.source.current() == Some('=') {
+                    let (blocks, string) = self.read_multi_line_body();
+
+                    self.create(
+                        start_position,
+                        TokenType::StringLiteral {
+                            literal: string.into(),
+                            multi_line: Some(blocks),
+                            quote_type: StringLiteralQuoteType::Brackets,
+                        },
+                    )
                 } else {
                     self.create(
                         start_position,
