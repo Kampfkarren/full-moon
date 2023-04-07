@@ -520,7 +520,11 @@ impl Lexer {
 
     fn read_comment(&mut self) -> TokenType {
         if self.source.consume('[') {
-            todo!("read multi line comment")
+            let (blocks, body) = self.read_multi_line_body();
+            return TokenType::MultiLineComment {
+                blocks,
+                comment: body.into(),
+            };
         }
 
         let mut comment = String::new();
@@ -541,6 +545,59 @@ impl Lexer {
         TokenType::SingleLineComment {
             comment: comment.into(),
         }
+    }
+
+    fn read_multi_line_body(&mut self) -> (usize, String) {
+        let mut blocks = 0;
+        while self.source.consume('=') {
+            blocks += 1;
+        }
+
+        if !self.source.consume('[') {
+            todo!("error: expected '[' after multi-line comment blocks")
+        }
+
+        let mut body = String::new();
+
+        'read_comment_char: loop {
+            let next = match self.source.next() {
+                Some(next) => next,
+                None => {
+                    todo!("error: expected ']' to end multi-line comment")
+                }
+            };
+
+            if next == ']' {
+                let mut equal_signs = 0;
+
+                while equal_signs < blocks {
+                    if !self.source.consume('=') {
+                        body.push(']');
+
+                        for _ in 0..equal_signs {
+                            body.push('=');
+                        }
+
+                        continue 'read_comment_char;
+                    }
+
+                    equal_signs += 1;
+                }
+
+                if self.source.consume(']') {
+                    break;
+                }
+
+                body.push(']');
+                for _ in 0..equal_signs {
+                    body.push('=');
+                }
+            }
+
+            body.push(next);
+        }
+
+        (blocks, body)
     }
 }
 
