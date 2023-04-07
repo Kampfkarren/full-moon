@@ -22,8 +22,15 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     loop {
         match parse_stmt(state) {
             ParserResult::Value(stmt) => {
-                // rewrite todo: parse semicolons
-                stmts.push((stmt, None));
+                // rewrite todo: consume
+                let semicolon = match state.current() {
+                    ParserResult::Value(token) if token.is_symbol(Symbol::Semicolon) => {
+                        Some(state.consume().unwrap())
+                    }
+                    _ => None,
+                };
+
+                stmts.push((stmt, semicolon));
             }
             ParserResult::NotFound => break,
             ParserResult::LexerMoved => {

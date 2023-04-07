@@ -419,6 +419,13 @@ impl Lexer {
                 }
             }
 
+            ';' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Semicolon,
+                },
+            ),
+
             unknown_char => Some(Err(TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 position: self.source.position(),
