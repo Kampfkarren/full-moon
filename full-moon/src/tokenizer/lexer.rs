@@ -289,17 +289,31 @@ impl Lexer {
             ),
 
             '[' => {
-                if self.source.current() == Some('[') || self.source.current() == Some('=') {
-                    let (blocks, string) = self.read_multi_line_body();
+                let start_lexer_position = self.source.lexer_position;
 
-                    self.create(
-                        start_position,
-                        TokenType::StringLiteral {
-                            literal: string.into(),
-                            multi_line: Some(blocks),
-                            quote_type: StringLiteralQuoteType::Brackets,
-                        },
-                    )
+                if self.source.current() == Some('[') || self.source.current() == Some('=') {
+                    match self.read_multi_line_body() {
+                        Ok((blocks, string)) => self.create(
+                            start_position,
+                            TokenType::StringLiteral {
+                                literal: string.into(),
+                                multi_line: Some(blocks),
+                                quote_type: StringLiteralQuoteType::Brackets,
+                            },
+                        ),
+
+                        Err(_) => {
+                            // Reset back, parse the one `[`, and let the rest be parsed again
+                            self.source.lexer_position = start_lexer_position;
+
+                            self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::LeftBracket,
+                                },
+                            )
+                        }
+                    }
                 } else {
                     self.create(
                         start_position,
@@ -577,15 +591,26 @@ impl Lexer {
     }
 
     fn read_comment(&mut self) -> TokenType {
-        if self.source.consume('[') {
-            let (blocks, body) = self.read_multi_line_body();
-            return TokenType::MultiLineComment {
-                blocks,
-                comment: body.into(),
-            };
-        }
-
         let mut comment = String::new();
+
+        if self.source.consume('[') {
+            match self.read_multi_line_body() {
+                Ok((blocks, body)) => {
+                    return TokenType::MultiLineComment {
+                        blocks,
+                        comment: body.into(),
+                    }
+                }
+
+                Err(blocks) => {
+                    comment.push('[');
+
+                    for _ in 0..blocks {
+                        comment.push('=');
+                    }
+                }
+            }
+        }
 
         let mut position_before_new_line = self.source.lexer_position;
 
@@ -605,14 +630,14 @@ impl Lexer {
         }
     }
 
-    fn read_multi_line_body(&mut self) -> (usize, String) {
+    fn read_multi_line_body(&mut self) -> Result<(usize, String), usize> {
         let mut blocks = 0;
         while self.source.consume('=') {
             blocks += 1;
         }
 
         if !self.source.consume('[') {
-            todo!("error: expected '[' after multi-line comment blocks")
+            return Err(blocks);
         }
 
         let mut body = String::new();
@@ -657,7 +682,7 @@ impl Lexer {
             body.push(next);
         }
 
-        (blocks, body)
+        Ok((blocks, body))
     }
 }
 
