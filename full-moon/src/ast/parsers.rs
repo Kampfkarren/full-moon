@@ -194,6 +194,19 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         }
 
         TokenType::Symbol {
+            symbol: Symbol::Repeat,
+        } => {
+            let repeat_token = state.consume().unwrap();
+
+            ParserResult::Value(ast::Stmt::Repeat(
+                match expect_repeat_stmt(state, repeat_token) {
+                    Ok(repeat_stmt) => repeat_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
+        }
+
+        TokenType::Symbol {
             symbol: Symbol::LeftParen,
         }
         | TokenType::Identifier { .. } => {
@@ -1016,6 +1029,63 @@ fn force_table_constructor(
         braces: ContainedSpan::new(left_brace, right_brace),
         fields,
     }
+}
+
+fn expect_repeat_stmt(
+    state: &mut ParserState,
+    repeat_token: TokenReference,
+) -> Result<ast::Repeat, ()> {
+    let block = match parse_block(state) {
+        ParserResult::Value(block) => block,
+
+        ParserResult::NotFound => {
+            state.token_error(repeat_token, "expected a block after `repeat`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let until_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Until) => state.consume().unwrap(),
+
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `until` after block");
+            return Err(());
+        }
+
+        ParserResult::NotFound => {
+            unreachable!("rewrite todo: not possible, this signature sucks");
+        }
+
+        ParserResult::LexerMoved => {
+            todo!("rewrite todo: we can make *some* form of recovery here");
+        }
+    };
+
+    let condition = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(until_token, "expected a condition after `until`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            todo!("rewrite todo: we can make *some* form of recovery here")
+        }
+    };
+
+    Ok(ast::Repeat {
+        repeat_token,
+        block,
+        until: condition,
+        until_token,
+    })
 }
 
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
