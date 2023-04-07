@@ -67,7 +67,7 @@ impl Lexer {
         Some(Ok(Token {
             token_type,
             start_position,
-            end_position: self.source.position,
+            end_position: self.source.position(),
         }))
     }
 
@@ -94,7 +94,7 @@ impl Lexer {
 
         loop {
             let sent_eof = self.sent_eof;
-            let start_position = self.source.position;
+            let start_position = self.source.lexer_position;
 
             match self.process_next() {
                 Some(Ok(token)) if token.token_type().is_trivia() => {
@@ -116,7 +116,7 @@ impl Lexer {
                 }
 
                 _ => {
-                    self.source.position = start_position;
+                    self.source.lexer_position = start_position;
                     self.sent_eof = sent_eof;
                     break;
                 }
@@ -131,7 +131,7 @@ impl Lexer {
     }
 
     fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
-        let start_position = self.source.position;
+        let start_position = self.source.position();
 
         let Some(next) = self.source.next() else {
             if self.sent_eof {
@@ -412,7 +412,7 @@ impl Lexer {
 
             unknown_char => Some(Err(TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
-                position: self.source.position,
+                position: self.source.position(),
             })),
         }
     }
@@ -529,7 +529,7 @@ impl Lexer {
 
         let mut comment = String::new();
 
-        let mut position_before_new_line = self.source.position;
+        let mut position_before_new_line = self.source.lexer_position;
 
         while let Some(next) = self.source.next() {
             if next == '\n' {
@@ -537,10 +537,10 @@ impl Lexer {
             }
 
             comment.push(next);
-            position_before_new_line = self.source.position;
+            position_before_new_line = self.source.lexer_position;
         }
 
-        self.source.position = position_before_new_line;
+        self.source.lexer_position = position_before_new_line;
 
         TokenType::SingleLineComment {
             comment: comment.into(),
@@ -609,42 +609,39 @@ fn is_identifier_start(character: char) -> bool {
 
 struct LexerSource {
     source: Vec<char>,
-    position: Position,
+    lexer_position: LexerPosition,
 }
 
 impl LexerSource {
     fn new(source: &str) -> Self {
         Self {
             source: source.chars().collect(),
-            position: Position {
-                line: 1,
-                character: 1,
-                bytes: 0,
-            },
+            lexer_position: LexerPosition::new(),
         }
     }
 
     fn current(&self) -> Option<char> {
-        self.source.get(self.position.bytes).copied()
+        self.source.get(self.lexer_position.index).copied()
     }
 
     fn next(&mut self) -> Option<char> {
         let next = self.current()?;
 
         if next == '\n' {
-            self.position.line += 1;
-            self.position.character = 1;
+            self.lexer_position.position.line += 1;
+            self.lexer_position.position.character = 1;
         } else {
-            self.position.character += 1;
+            self.lexer_position.position.character += 1;
         }
 
-        self.position.bytes += 1;
+        self.lexer_position.position.bytes += next.len_utf8();
+        self.lexer_position.index += 1;
 
         Some(next)
     }
 
     fn peek(&self) -> Option<char> {
-        self.source.get(self.position.bytes + 1).copied()
+        self.source.get(self.lexer_position.index + 1).copied()
     }
 
     fn consume(&mut self, character: char) -> bool {
@@ -653,6 +650,29 @@ impl LexerSource {
             true
         } else {
             false
+        }
+    }
+
+    fn position(&self) -> Position {
+        self.lexer_position.position
+    }
+}
+
+#[derive(Clone, Copy)]
+struct LexerPosition {
+    position: Position,
+    index: usize,
+}
+
+impl LexerPosition {
+    fn new() -> Self {
+        Self {
+            position: Position {
+                line: 1,
+                character: 1,
+                bytes: 0,
+            },
+            index: 0,
         }
     }
 }
