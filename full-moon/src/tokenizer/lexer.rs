@@ -501,6 +501,7 @@ impl Lexer {
 
                 (false, '\\') => {
                     escape = true;
+                    literal.push('\\');
                 }
 
                 (false, '\n' | '\r') => {
