@@ -100,6 +100,46 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                     try_parser!(expect_local_assignment(state, local_token)).unwrap(),
                 )),
 
+                TokenType::Symbol {
+                    symbol: Symbol::Function,
+                } => {
+                    let function_token = state.consume().unwrap();
+
+                    let function_name = match state.current() {
+                        ParserResult::Value(token)
+                            if token.token_kind() == TokenKind::Identifier =>
+                        {
+                            state.consume().unwrap()
+                        }
+
+                        ParserResult::Value(token) => {
+                            state.token_error(token.clone(), "expected a function name");
+                            return ParserResult::LexerMoved;
+                        }
+                        ParserResult::NotFound => {
+                            state.token_error(function_token, "expected a function name");
+                            return ParserResult::LexerMoved;
+                        }
+                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                    };
+
+                    let function_body = match parse_function_body(state) {
+                        ParserResult::Value(function_body) => function_body,
+                        ParserResult::NotFound => {
+                            state.token_error(function_token, "expected a function body");
+                            return ParserResult::LexerMoved;
+                        }
+                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                    };
+
+                    ParserResult::Value(ast::Stmt::LocalFunction(ast::LocalFunction {
+                        local_token,
+                        function_token,
+                        name: function_name,
+                        body: function_body,
+                    }))
+                }
+
                 _ => {
                     state.token_error(next_token.clone(), BAD_TOKEN_ERROR);
 
