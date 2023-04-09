@@ -380,6 +380,13 @@ impl Lexer {
                 },
             ),
 
+            '#' => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Hash,
+                },
+            ),
+
             '<' => {
                 if self.source.consume('=') {
                     self.create(
