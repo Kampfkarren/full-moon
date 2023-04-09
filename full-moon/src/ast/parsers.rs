@@ -1056,19 +1056,15 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
         } => {
             let left_parenthesis = state.consume().unwrap();
             let arguments = try_parser!(parse_expression_list(state)).unwrap_or_default();
-            let right_parenthesis =
-                match state.require(Symbol::RightParen, "expected `)` to close function call") {
-                    Some(token) => token,
+            let right_parenthesis = match state.require_with_reference_token(
+                Symbol::RightParen,
+                "expected `)` to close function call",
+                &left_parenthesis,
+            ) {
+                Some(token) => token,
 
-                    None => {
-                        state.token_error(
-                            left_parenthesis.clone(),
-                            "expected `)` to close function call",
-                        );
-
-                        TokenReference::symbol(")").unwrap()
-                    }
-                };
+                None => TokenReference::symbol(")").unwrap(),
+            };
 
             ParserResult::Value(ast::FunctionArgs::Parentheses {
                 parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),

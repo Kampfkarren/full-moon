@@ -77,6 +77,26 @@ impl ParserState {
         }
     }
 
+    pub fn require_with_reference_token(
+        &mut self,
+        symbol: Symbol,
+        error: &'static str,
+        reference_token: &TokenReference,
+    ) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if token.is_symbol(symbol) {
+                    Some(self.consume().unwrap())
+                } else {
+                    self.token_error(reference_token.clone(), error);
+                    None
+                }
+            }
+
+            Err(()) => None,
+        }
+    }
+
     pub fn token_error<S: Into<Cow<'static, str>>>(
         &mut self,
         token_reference: TokenReference,

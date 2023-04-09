@@ -2,22 +2,8 @@
 source: full-moon/tests/fail_cases.rs
 assertion_line: 26
 expression: result.errors
-input_file: full-moon/tests/cases/fail/parser/call-1
+input_file: full-moon/tests/cases/fail/parser/call-2
 ---
-- AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 5
-          line: 1
-          character: 6
-        end_position:
-          bytes: 5
-          line: 1
-          character: 6
-        token_type:
-          type: Eof
-      additional: "expected `)` to close function call"
 - AstError:
     UnexpectedToken:
       token:
