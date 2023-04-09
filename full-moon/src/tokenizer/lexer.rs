@@ -208,7 +208,7 @@ impl Lexer {
                 )
             }
 
-            initial @ (' ' | '\t') => {
+            initial @ (' ' | '\t' | '\r') => {
                 let mut whitespace = String::new();
                 whitespace.push(initial);
 

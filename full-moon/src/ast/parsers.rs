@@ -237,18 +237,20 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             let (prefix, suffixes) = try_parser!(parse_prefix_and_suffixes(state)).unwrap();
 
             let var = match suffixes.last() {
-                Some(ast::Suffix::Call(call)) => {
+                Some(ast::Suffix::Call(_)) => {
                     return ParserResult::Value(ast::Stmt::FunctionCall(ast::FunctionCall {
                         prefix,
                         suffixes,
                     }));
                 }
 
-                Some(ast::Suffix::Index(_)) => todo!(),
+                Some(ast::Suffix::Index(_)) => {
+                    ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
+                }
 
                 None => match prefix {
                     ast::Prefix::Name(name) => ast::Var::Name(name),
-                    ast::Prefix::Expression(expr) => todo!("VarExpression?"),
+                    ast::Prefix::Expression(_) => todo!("VarExpression?"),
                 },
             };
 
