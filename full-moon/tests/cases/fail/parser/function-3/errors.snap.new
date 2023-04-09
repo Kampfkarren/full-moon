@@ -1,0 +1,67 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 26
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/function-3
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 8
+          line: 1
+          character: 9
+        end_position:
+          bytes: 9
+          line: 1
+          character: 10
+        token_type:
+          type: Symbol
+          symbol: (
+      additional: expected function name
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 8
+          line: 1
+          character: 9
+        end_position:
+          bytes: 9
+          line: 1
+          character: 10
+        token_type:
+          type: Symbol
+          symbol: (
+      additional: "expected an expression after `(`"
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 9
+          line: 1
+          character: 10
+        end_position:
+          bytes: 10
+          line: 1
+          character: 11
+        token_type:
+          type: Symbol
+          symbol: )
+      additional: "unexpected token, this needs to be a statement"
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 11
+          line: 1
+          character: 12
+        end_position:
+          bytes: 14
+          line: 1
+          character: 15
+        token_type:
+          type: Symbol
+          symbol: end
+      additional: "unexpected token, this needs to be a statement"
+

@@ -89,6 +89,10 @@ impl ParserState {
             },
         ));
     }
+
+    pub fn current_offset(&self) -> usize {
+        self.lexer.source.lexer_position.index
+    }
 }
 
 #[derive(Debug)]
@@ -122,8 +126,12 @@ pub struct AstResult {
 
 impl AstResult {
     pub(crate) fn parse_fallible(code: &str) -> Self {
+        const UNEXPECTED_TOKEN_ERROR: &str = "unexpected token, this needs to be a statement";
+
         let lexer = Lexer::new(code);
         let mut parser_state = ParserState::new(lexer);
+
+        let mut last_lexer_position = parser_state.current_offset();
 
         let mut block = match parse_block(&mut parser_state) {
             ParserResult::Value(block) => block,
@@ -138,16 +146,27 @@ impl AstResult {
                 }
 
                 Some(Ok(_)) => {
+                    if parser_state.current_offset() == last_lexer_position {
+                        match parser_state.consume() {
+                            ParserResult::Value(token) => {
+                                parser_state.token_error(token, UNEXPECTED_TOKEN_ERROR);
+                            }
+
+                            ParserResult::LexerMoved => {}
+
+                            ParserResult::NotFound => unreachable!(),
+                        };
+
+                        continue;
+                    }
+
                     assert!(!parser_state.errors.is_empty());
 
                     if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
                         if new_block.stmts.is_empty() {
                             match parser_state.consume() {
                                 ParserResult::Value(token) => {
-                                    parser_state.token_error(
-                                        token,
-                                        "unexpected token, this needs to be a statement",
-                                    );
+                                    parser_state.token_error(token, UNEXPECTED_TOKEN_ERROR);
                                 }
 
                                 ParserResult::LexerMoved => {}

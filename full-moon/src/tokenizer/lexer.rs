@@ -5,7 +5,7 @@ use super::{
 };
 
 pub struct Lexer {
-    source: LexerSource,
+    pub source: LexerSource,
     sent_eof: bool,
 
     // rewrite todo: maybe an array if we need more lookahead
@@ -755,9 +755,9 @@ fn is_identifier_start(character: char) -> bool {
     matches!(character, 'a'..='z' | 'A'..='Z' | '_')
 }
 
-struct LexerSource {
+pub struct LexerSource {
     source: Vec<char>,
-    lexer_position: LexerPosition,
+    pub lexer_position: LexerPosition,
 }
 
 impl LexerSource {
@@ -807,9 +807,9 @@ impl LexerSource {
 }
 
 #[derive(Clone, Copy)]
-struct LexerPosition {
+pub struct LexerPosition {
     position: Position,
-    index: usize,
+    pub index: usize,
 }
 
 impl LexerPosition {
