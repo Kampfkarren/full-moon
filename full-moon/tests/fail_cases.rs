@@ -17,13 +17,17 @@ fn test_parser_fail_cases() {
 
         assert_yaml_snapshot!("tokens", tokens);
 
-        match full_moon::parse(&source) {
-            Ok(_) => panic!("fail case passed for {path:?}"),
-            Err(error) => {
-                println!("error {error:#?}");
-                assert_yaml_snapshot!("error", error);
-            }
+        let result = full_moon::parse_fallible(&source);
+
+        if result.errors.is_empty() {
+            panic!("fail case passed for {path:?}");
         }
+
+        assert_yaml_snapshot!("errors", result.errors);
+        assert_yaml_snapshot!("ast", result.ast);
+
+        let ast = result.ast.update_positions();
+        assert_yaml_snapshot!("ast_to_string", full_moon::print(&ast));
     })
 }
 

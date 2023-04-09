@@ -99,6 +99,15 @@ impl Block {
     pub fn with_last_stmt(self, last_stmt: Option<(LastStmt, Option<TokenReference>)>) -> Self {
         Self { last_stmt, ..self }
     }
+
+    pub(crate) fn merge_blocks(&mut self, other: Self) {
+        self.stmts.extend(other.stmts);
+
+        // rewrite todo: i don't like this. write a test and let's figure it out.
+        if self.last_stmt.is_none() {
+            self.last_stmt = other.last_stmt;
+        }
+    }
 }
 
 /// The last statement of a [`Block`]

@@ -12,10 +12,6 @@ pub struct ParserState {
 }
 
 impl ParserState {
-    pub fn todo_errors(&self) -> &[crate::Error] {
-        &self.errors
-    }
-
     pub fn new(lexer: Lexer) -> Self {
         Self {
             errors: Vec::new(),
@@ -126,26 +122,41 @@ pub struct AstResult {
 
 impl AstResult {
     pub(crate) fn parse_fallible(code: &str) -> Self {
-        let mut lexer = Lexer::new(code);
+        let lexer = Lexer::new(code);
         let mut parser_state = ParserState::new(lexer);
 
-        let block = match parse_block(&mut parser_state) {
+        let mut block = match parse_block(&mut parser_state) {
             ParserResult::Value(block) => block,
             _ => Block::new(),
         };
 
-        // rewrite todo: remove
-        if !parser_state.errors.is_empty() {
-            panic!("{:#?}", parser_state.errors);
-        }
-
         // rewrite todo: try to keep parsing??
-        let last_token = parser_state.lexer.current().unwrap().unwrap();
-        if last_token.token_kind() != TokenKind::Eof {
-            todo!(
-                "didn't finish, last token: {last_token:#?}, errors: {:#?}",
-                parser_state.todo_errors()
-            );
+        loop {
+            match parser_state.lexer.current() {
+                Some(Ok(token)) if token.token_kind() == TokenKind::Eof => {
+                    break;
+                }
+
+                Some(Ok(_)) => {
+                    assert!(!parser_state.errors.is_empty());
+
+                    match parse_block(&mut parser_state) {
+                        ParserResult::Value(new_block) => {
+                            block.merge_blocks(new_block);
+                        }
+
+                        _ => {}
+                    }
+                }
+
+                Some(Err(_)) => {
+                    parser_state.errors.push(crate::Error::TokenizerError(
+                        parser_state.lexer.consume().unwrap().unwrap_err(),
+                    ));
+                }
+
+                None => break,
+            }
         }
 
         Self {

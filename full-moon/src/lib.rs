@@ -71,7 +71,7 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 #[allow(clippy::result_large_err)]
-// rewrite todo: deprecate?
+// rewrite todo: replace error type with Vec<Error>
 pub fn parse(code: &str) -> Result<ast::Ast, Error> {
     let result = parse_fallible(code);
     if let Some(error) = result.errors.into_iter().next() {
