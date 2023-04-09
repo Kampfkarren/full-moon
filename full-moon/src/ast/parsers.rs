@@ -55,6 +55,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 // will result in a completely ignored function body.
 // This is an opinionated choice because I believe selene is going to produce terrible outputs if we don't.
 // rewrite todo: I don't love that this only accepts one token. it should be range(s?)
+// rewrite todo: expect_?
 fn parse_block_with_end(
     state: &mut ParserState,
     start_for_errors: &TokenReference,
@@ -209,6 +210,19 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             ParserResult::Value(ast::Stmt::Repeat(
                 match expect_repeat_stmt(state, repeat_token) {
                     Ok(repeat_stmt) => repeat_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::While,
+        } => {
+            let while_token = state.consume().unwrap();
+
+            ParserResult::Value(ast::Stmt::While(
+                match expect_while_stmt(state, while_token) {
+                    Ok(while_stmt) => while_stmt,
                     Err(()) => return ParserResult::LexerMoved,
                 },
             ))
@@ -1131,6 +1145,52 @@ fn expect_repeat_stmt(
         block,
         until: condition,
         until_token,
+    })
+}
+
+fn expect_while_stmt(
+    state: &mut ParserState,
+    while_token: TokenReference,
+) -> Result<ast::While, ()> {
+    let condition = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(while_token, "expected a condition after `while`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let do_token = match state.current() {
+        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
+
+        ParserResult::Value(token) => {
+            state.token_error(token.clone(), "expected `do` after condition");
+            return Ok(ast::While::new(condition));
+        }
+
+        _ => unreachable!("rewrite todo: state.current() is bad and this should be consume()"),
+    };
+
+    let (block, end_token) = match parse_block_with_end(state, &do_token) {
+        Ok((block, end_token)) => (block, end_token),
+
+        Err(()) => {
+            return Ok(ast::While::new(condition));
+        }
+    };
+
+    Ok(ast::While {
+        while_token,
+        condition,
+        do_token,
+        block,
+        end_token,
     })
 }
 
