@@ -4,5 +4,5 @@ assertion_line: 30
 expression: "full_moon::print(&ast)"
 input_file: full-moon/tests/cases/fail/parser/do-1
 ---
-""
+"do\n\tcall()end"
 

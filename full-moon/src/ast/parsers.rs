@@ -62,7 +62,7 @@ fn parse_block_with_end(
     };
 
     let Some(end_token) = state.require(Symbol::End, "expected `end` to close block") else {
-        return Err(());
+        return Ok((block, TokenReference::symbol("end").unwrap()));
     };
 
     Ok((block, end_token))

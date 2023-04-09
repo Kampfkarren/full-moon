@@ -58,13 +58,13 @@ nodes:
                 - leading_trivia: []
                   token:
                     start_position:
-                      bytes: 0
+                      bytes: 10
                       line: 1
-                      character: 1
+                      character: 11
                     end_position:
-                      bytes: 1
+                      bytes: 11
                       line: 1
-                      character: 2
+                      character: 12
                     token_type:
                       type: Symbol
                       symbol: (
@@ -72,13 +72,13 @@ nodes:
                 - leading_trivia: []
                   token:
                     start_position:
-                      bytes: 0
+                      bytes: 11
                       line: 1
-                      character: 1
+                      character: 12
                     end_position:
-                      bytes: 1
+                      bytes: 12
                       line: 1
-                      character: 2
+                      character: 13
                     token_type:
                       type: Symbol
                       symbol: )
@@ -88,26 +88,15 @@ nodes:
             block:
               stmts: []
             end_token:
-              leading_trivia:
-                - start_position:
-                    bytes: 0
-                    line: 1
-                    character: 1
-                  end_position:
-                    bytes: 1
-                    line: 1
-                    character: 1
-                  token_type:
-                    type: Whitespace
-                    characters: "\n"
+              leading_trivia: []
               token:
                 start_position:
-                  bytes: 1
-                  line: 2
+                  bytes: 0
+                  line: 1
                   character: 1
                 end_position:
-                  bytes: 4
-                  line: 2
+                  bytes: 3
+                  line: 1
                   character: 4
                 token_type:
                   type: Symbol
