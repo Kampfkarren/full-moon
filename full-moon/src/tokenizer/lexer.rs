@@ -235,7 +235,18 @@ impl Lexer {
                 )
             }
 
-            initial @ ('0'..='9') => {
+            initial @ '0' => {
+                if self.source.current() == Some('x') {
+                    self.source.next();
+                    let number = self.read_hex_number();
+                    self.create(start_position, number)
+                } else {
+                    let number = self.read_number(initial.to_string());
+                    self.create(start_position, number)
+                }
+            }
+
+            initial @ ('1'..='9') => {
                 let number = self.read_number(initial.to_string());
                 self.create(start_position, number)
             }
@@ -260,6 +271,22 @@ impl Lexer {
                             symbol: Symbol::Equal,
                         },
                     )
+                }
+            }
+
+            '~' => {
+                if self.source.consume('=') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::TildeEqual,
+                        },
+                    )
+                } else {
+                    Some(Err(TokenizerError {
+                        error: TokenizerErrorType::InvalidSymbol("~".to_owned()),
+                        position: start_position,
+                    }))
                 }
             }
 
@@ -532,6 +559,26 @@ impl Lexer {
             } else {
                 break;
             }
+        }
+
+        TokenType::Number {
+            text: ShortString::from(number),
+        }
+    }
+
+    fn read_hex_number(&mut self) -> TokenType {
+        let mut number = "0x".to_string();
+
+        while let Some(next) = self.source.current() {
+            if matches!(next, '0'..='9' | 'a'..='f' | 'A'..='F') {
+                number.push(self.source.next().expect("peeked, but no next"));
+            } else {
+                break;
+            }
+        }
+
+        if number.len() == 2 {
+            todo!("error: expected hex digit after 0x")
         }
 
         TokenType::Number {

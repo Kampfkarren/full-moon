@@ -55,12 +55,12 @@ impl ParserState {
         token_reference: TokenReference,
         error: S,
     ) {
-        self.errors.push(crate::Error::AstError(
+        self.errors.push(crate::Error::AstError(dbg!(
             crate::ast::AstError::UnexpectedToken {
                 token: token_reference.token,
                 additional: Some(error.into()),
-            },
-        ));
+            }
+        )));
     }
 }
 

@@ -1498,7 +1498,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         }
 
         TokenType::Symbol {
-            symbol: Symbol::True | Symbol::False | Symbol::Nil,
+            symbol: Symbol::True | Symbol::False | Symbol::Nil | Symbol::Ellipse,
         } => ParserResult::Value(Expression::Symbol(state.consume().unwrap())),
 
         TokenType::StringLiteral { .. } => {
