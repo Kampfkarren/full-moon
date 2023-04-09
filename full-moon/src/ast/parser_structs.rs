@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{Lexer, Token, TokenKind, TokenReference, TokenType, TokenizerError};
+use crate::tokenizer::{
+    Lexer, Symbol, Token, TokenKind, TokenReference, TokenType, TokenizerError,
+};
 
 use super::{parsers::parse_block, Ast, Block};
 
@@ -21,19 +23,19 @@ impl ParserState {
         }
     }
 
-    pub fn current(&self) -> ParserResult<&TokenReference> {
+    pub fn current(&self) -> Result<&TokenReference, ()> {
         match self.lexer.current() {
-            Some(Ok(token)) => ParserResult::Value(token),
-            Some(Err(error)) => ParserResult::LexerMoved,
-            None => ParserResult::NotFound,
+            Some(Ok(token)) => Ok(token),
+            Some(Err(error)) => Err(()),
+            None => unreachable!("current() called past EOF"),
         }
     }
 
-    pub fn peek(&self) -> ParserResult<&TokenReference> {
+    pub fn peek(&self) -> Result<&TokenReference, ()> {
         match self.lexer.peek() {
-            Some(Ok(token)) => ParserResult::Value(token),
-            Some(Err(error)) => ParserResult::LexerMoved,
-            None => ParserResult::NotFound,
+            Some(Ok(token)) => Ok(token),
+            Some(Err(error)) => Err(()),
+            None => unreachable!("peek() called past EOF"),
         }
     }
 
@@ -47,6 +49,35 @@ impl ParserState {
                 ParserResult::LexerMoved
             }
             None => ParserResult::NotFound,
+        }
+    }
+
+    pub fn consume_if(&mut self, symbol: Symbol) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if token.is_symbol(symbol) {
+                    Some(self.consume().unwrap())
+                } else {
+                    None
+                }
+            }
+
+            Err(()) => None,
+        }
+    }
+
+    pub fn require(&mut self, symbol: Symbol, error: &'static str) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if token.is_symbol(symbol) {
+                    Some(self.consume().unwrap())
+                } else {
+                    self.token_error(token.clone(), error);
+                    None
+                }
+            }
+
+            Err(()) => None,
         }
     }
 

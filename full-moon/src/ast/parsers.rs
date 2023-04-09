@@ -23,13 +23,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
         match parse_stmt(state) {
             ParserResult::Value(stmt) => {
                 // rewrite todo: consume
-                let semicolon = match state.current() {
-                    ParserResult::Value(token) if token.is_symbol(Symbol::Semicolon) => {
-                        Some(state.consume().unwrap())
-                    }
-                    _ => None,
-                };
-
+                let semicolon = state.consume_if(Symbol::Semicolon);
                 stmts.push((stmt, semicolon));
             }
             ParserResult::NotFound => break,
@@ -58,6 +52,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 // rewrite todo: expect_?
 fn parse_block_with_end(
     state: &mut ParserState,
+    // rewrite todo: use this, or the range
     start_for_errors: &TokenReference,
 ) -> Result<(ast::Block, TokenReference), ()> {
     let block = match parse_block(state) {
@@ -66,40 +61,26 @@ fn parse_block_with_end(
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let end_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
-
-        ParserResult::Value(_) | ParserResult::NotFound => {
-            state.token_error(start_for_errors.clone(), "expected `end` to close block");
-            return Err(());
-        }
-
-        ParserResult::LexerMoved => return Err(()),
+    let Some(end_token) = state.require(Symbol::End, "expected `end` to close block") else {
+        return Err(());
     };
 
     Ok((block, end_token))
 }
 
 fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
-    let current_token = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
     };
 
     match current_token.token_type() {
         TokenType::Symbol {
             symbol: Symbol::Local,
         } => {
-            const BAD_TOKEN_ERROR: &str = "expected either a variable name or `function`";
-
             let local_token = state.consume().unwrap();
             let next_token = match state.current() {
-                ParserResult::Value(token) => token,
-                ParserResult::NotFound => {
-                    state.token_error(local_token, BAD_TOKEN_ERROR);
-                    return ParserResult::LexerMoved;
-                }
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                Ok(token) => token,
+                Err(()) => return ParserResult::LexerMoved,
             };
 
             match next_token.token_type() {
@@ -113,21 +94,16 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                     let function_token = state.consume().unwrap();
 
                     let function_name = match state.current() {
-                        ParserResult::Value(token)
-                            if token.token_kind() == TokenKind::Identifier =>
-                        {
+                        Ok(token) if token.token_kind() == TokenKind::Identifier => {
                             state.consume().unwrap()
                         }
 
-                        ParserResult::Value(token) => {
+                        Ok(token) => {
                             state.token_error(token.clone(), "expected a function name");
                             return ParserResult::LexerMoved;
                         }
-                        ParserResult::NotFound => {
-                            state.token_error(function_token, "expected a function name");
-                            return ParserResult::LexerMoved;
-                        }
-                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+
+                        Err(()) => return ParserResult::LexerMoved,
                     };
 
                     let function_body = match parse_function_body(state) {
@@ -148,7 +124,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 }
 
                 _ => {
-                    state.token_error(next_token.clone(), BAD_TOKEN_ERROR);
+                    state.token_error(
+                        next_token.clone(),
+                        "expected either a variable name or `function`",
+                    );
 
                     ParserResult::LexerMoved
                 }
@@ -254,32 +233,20 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 },
             };
 
-            const ASSIGNMENT_NEVER_CAME_ERROR: &str =
-                "unexpected expression when looking for a statement";
+            match state.current() {
+                Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
-            let current = match state.current() {
-                ParserResult::Value(token) => token,
-
-                // rewrite todo: this isn't even really possible to hit because of eof. none of these are.
-                // maybe it shouldn't be possible for current() to return this?
-                ParserResult::NotFound => {
-                    // rewrite todo: ranges for prefix
+                Ok(_) => {
                     state.token_error(
-                        var.tokens().last().unwrap().clone(),
-                        ASSIGNMENT_NEVER_CAME_ERROR,
+                        state.current().unwrap().clone(),
+                        "unexpected expression when looking for a statement",
                     );
 
-                    // rewrite todo: recoverability?
                     return ParserResult::LexerMoved;
                 }
 
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                Err(()) => return ParserResult::LexerMoved,
             };
-
-            if !current.is_symbol(Symbol::Comma) && !current.is_symbol(Symbol::Equal) {
-                state.token_error(current.clone(), ASSIGNMENT_NEVER_CAME_ERROR);
-                return ParserResult::LexerMoved;
-            }
 
             let mut var_list = Punctuated::new();
             var_list.push(Pair::End(var));
@@ -335,21 +302,8 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 }
             }
 
-            let equal_token = match state.current() {
-                ParserResult::Value(token) if token.is_symbol(Symbol::Equal) => {
-                    state.consume().unwrap()
-                }
-
-                ParserResult::Value(token) => {
-                    state.token_error(token.clone(), "expected `=`");
-                    return ParserResult::LexerMoved;
-                }
-
-                ParserResult::NotFound => {
-                    unreachable!("rewrite todo: i'm now refusing to write these");
-                }
-
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+            let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after name") else {
+                return ParserResult::LexerMoved;
             };
 
             let expr_list = match parse_expression_list(state) {
@@ -378,7 +332,7 @@ fn parse_last_stmt(
     state: &mut ParserState,
 ) -> ParserResult<(ast::LastStmt, Option<TokenReference>)> {
     let last_stmt = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Return) => {
+        Ok(token) if token.is_symbol(Symbol::Return) => {
             let return_token = state.consume().unwrap();
 
             let expr_list = match parse_expression_list(state) {
@@ -392,7 +346,7 @@ fn parse_last_stmt(
             })
         }
 
-        ParserResult::Value(token) if token.is_symbol(Symbol::Break) => {
+        Ok(token) if token.is_symbol(Symbol::Break) => {
             let break_token = state.consume().unwrap();
             ast::LastStmt::Break(break_token)
         }
@@ -401,13 +355,7 @@ fn parse_last_stmt(
     };
 
     // rewrite todo: consume
-    let semicolon = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Semicolon) => {
-            Some(state.consume().unwrap())
-        }
-
-        _ => None,
-    };
+    let semicolon = state.consume_if(Symbol::Semicolon);
 
     ParserResult::Value((last_stmt, semicolon))
 }
@@ -416,51 +364,35 @@ fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionNa
     let mut names = Punctuated::new();
 
     let name = match state.current() {
-        ParserResult::Value(token)
-            if matches!(token.token_type(), TokenType::Identifier { .. }) =>
-        {
+        Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
             state.consume().unwrap()
         }
 
-        ParserResult::Value(token) => {
+        Ok(token) => {
             state.token_error(token.clone(), "expected function name");
             return ParserResult::NotFound;
         }
 
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-
-        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        Err(()) => return ParserResult::NotFound,
     };
 
     names.push(Pair::End(name));
 
     loop {
-        let current = match state.current() {
-            ParserResult::Value(token) => token,
-
-            ParserResult::NotFound => {
-                unreachable!("rewrite todo: this can't be possible because of eof")
+        let middle_token = match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Colon) || token.is_symbol(Symbol::Dot) => {
+                state.consume().unwrap()
             }
-
-            ParserResult::LexerMoved => return ParserResult::LexerMoved,
-        };
-
-        let middle_token = if current.is_symbol(Symbol::Colon) || current.is_symbol(Symbol::Dot) {
-            state.consume().unwrap()
-        } else {
-            break;
+            Ok(_) => break,
+            Err(()) => return ParserResult::LexerMoved,
         };
 
         let name = match state.current() {
-            ParserResult::Value(token)
-                if matches!(token.token_type(), TokenType::Identifier { .. }) =>
-            {
+            Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
                 state.consume().unwrap()
             }
 
-            ParserResult::Value(token) => {
+            Ok(token) => {
                 state.token_error(
                     token.clone(),
                     format!("expected name after `{}`", middle_token.token()),
@@ -468,12 +400,8 @@ fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionNa
                 return ParserResult::NotFound;
             }
 
-            ParserResult::NotFound => {
-                unreachable!("rewrite todo: this can't be possible because of eof")
-            }
-
-            ParserResult::LexerMoved => {
-                break;
+            Err(()) => {
+                return ParserResult::LexerMoved;
             }
         };
 
@@ -543,7 +471,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     }
 
     if name_list.len() == 1 && current_token.is_symbol(Symbol::Equal) {
-        return Ok(ast::Stmt::NumericFor(expect_for_numeric_stmt(
+        return Ok(ast::Stmt::NumericFor(expect_numeric_for_stmt(
             state,
             for_token,
             name_list.into_iter().next().unwrap(),
@@ -567,16 +495,8 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let do_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `do` after expression list");
-            return Err(());
-        }
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => return Err(()),
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
+        return Err(());
     };
 
     let (block, end) = match parse_block_with_end(state, &do_token) {
@@ -595,7 +515,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     }))
 }
 
-fn expect_for_numeric_stmt(
+fn expect_numeric_for_stmt(
     state: &mut ParserState,
     for_token: TokenReference,
     index_variable: Name,
@@ -612,17 +532,8 @@ fn expect_for_numeric_stmt(
         ParserResult::LexerMoved => return Err(()),
     };
 
-    // rewrite todo: this really should be consume()
-    let start_end_comma = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Comma) => state.consume().unwrap(),
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `,` after start expression");
-            return Err(());
-        }
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => return Err(()),
+    let Some(start_end_comma) = state.require(Symbol::Comma, "expected `,` after start expression") else {
+        return Err(());
     };
 
     let end = match parse_expression(state) {
@@ -635,36 +546,21 @@ fn expect_for_numeric_stmt(
     };
 
     // rewrite todo: this can recover into a numeric for loop with no step (or simulate the do..end)
-    let (end_step_comma, step) = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Comma) => {
-            let end_step_comma = state.consume().unwrap();
-
-            match parse_expression(state) {
-                ParserResult::Value(step) => (Some(end_step_comma), Some(step)),
-                ParserResult::NotFound => {
-                    state.token_error(start_end_comma, "expected step expression after `,`");
-                    return Err(());
-                }
-                ParserResult::LexerMoved => return Err(()),
+    let (end_step_comma, step) = match state.consume_if(Symbol::Comma) {
+        Some(end_step_comma) => match parse_expression(state) {
+            ParserResult::Value(step) => (Some(end_step_comma), Some(step)),
+            ParserResult::NotFound => {
+                state.token_error(start_end_comma, "expected step expression after `,`");
+                return Err(());
             }
-        }
-        ParserResult::Value(token) => (None, None),
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => return Err(()),
+            ParserResult::LexerMoved => return Err(()),
+        },
+
+        None => (None, None),
     };
 
-    let do_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `do` after step expression");
-            return Err(());
-        }
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => return Err(()),
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after step expression") else {
+        return Err(());
     };
 
     let (block, end_token) = match parse_block_with_end(state, &do_token) {
@@ -697,16 +593,8 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let then_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Then) => state.consume().unwrap(),
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `then` after condition");
-            return Err(());
-        }
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => return Err(()),
+    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        return Err(());
     };
 
     let then_block = match parse_block(state) {
@@ -747,18 +635,8 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             }
         };
 
-        let then_token = match state.current() {
-            ParserResult::Value(token) if token.is_symbol(Symbol::Then) => state.consume().unwrap(),
-            ParserResult::Value(token) => {
-                state.token_error(token.clone(), "expected `then` after condition");
-                return unfinished_if(condition, else_if);
-            }
-            ParserResult::NotFound => {
-                unreachable!("rewrite todo: this can't be possible because of eof")
-            }
-            ParserResult::LexerMoved => {
-                return unfinished_if(condition, else_if);
-            }
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+            return unfinished_if(condition, else_if);
         };
 
         let then_block = match parse_block(state) {
@@ -796,15 +674,13 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
     };
 
     let end_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
-        ParserResult::Value(token) => {
+        Ok(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
+        Ok(token) => {
             state.token_error(token.clone(), "expected `end` to conclude `if`");
             TokenReference::symbol("end").unwrap()
         }
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: this can't be possible because of eof")
-        }
-        ParserResult::LexerMoved => TokenReference::symbol("end").unwrap(),
+
+        Err(()) => TokenReference::symbol("end").unwrap(),
     };
 
     Ok(ast::If {
@@ -839,11 +715,10 @@ fn expect_local_assignment(
         expr_list: Punctuated::new(),
     };
 
-    if matches!(state.current(), ParserResult::Value(token) if token.is_symbol(Symbol::Equal)) {
-        local_assignment.equal_token = Some(state.consume().unwrap());
-    } else {
-        return ParserResult::Value(local_assignment);
-    }
+    local_assignment.equal_token = match state.consume_if(Symbol::Equal) {
+        Some(equal_token) => Some(equal_token),
+        None => return ParserResult::Value(local_assignment),
+    };
 
     match parse_expression_list(state) {
         ParserResult::Value(expr_list) => local_assignment.expr_list = expr_list,
@@ -880,49 +755,15 @@ fn expect_expression_key(
         }
     };
 
-    let right_bracket = match state.current() {
-        ParserResult::Value(token) => {
-            if token.is_symbol(Symbol::RightBracket) {
-                state.consume().unwrap()
-            } else {
-                state.token_error(
-                    // rewrite todo: raaaaange
-                    expression.tokens().last().unwrap().clone(),
-                    format!("expected `]` after key, found `{}`", token.token()),
-                );
-
-                return Err(());
-            }
-        }
-
-        ParserResult::NotFound => unreachable!("nope"),
-
-        ParserResult::LexerMoved => {
-            return Err(());
-        }
+    // rewrite todo: this should take a range ( `[a.b.c()` should have the whole range )
+    let Some(right_bracket) = state.require(Symbol::RightBracket, "expected `]` after expression") else {
+        return Err(());
     };
 
     // rewrite todo: we can realistically construct a field in error recovery
-
-    let equal_token = match state.current() {
-        ParserResult::Value(token) => {
-            if token.is_symbol(Symbol::Equal) {
-                state.consume().unwrap()
-            } else {
-                state.token_error(
-                    right_bracket,
-                    format!("expected `=` after key, found `{}`", token.token()),
-                );
-
-                return Err(());
-            }
-        }
-
-        ParserResult::NotFound => unreachable!("nope"),
-
-        ParserResult::LexerMoved => {
-            return Err(());
-        }
+    // rewrite todo: this should also be range
+    let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after expression") else {
+        return Err(());
     };
 
     let value = match parse_expression(state) {
@@ -960,12 +801,8 @@ fn force_table_constructor(
         };
 
     loop {
-        let current_token = match state.current() {
-            ParserResult::Value(token) => token,
-            ParserResult::NotFound => unreachable!("nope"),
-            ParserResult::LexerMoved => {
-                return unfinished_table(left_brace, fields);
-            }
+        let Ok(current_token) = state.current() else {
+            return unfinished_table(left_brace, fields);
         };
 
         let field = match current_token.token_type() {
@@ -991,7 +828,7 @@ fn force_table_constructor(
                 }
             }
 
-            TokenType::Identifier { .. } if matches!(state.peek(), ParserResult::Value(peek_token) if peek_token.is_symbol(Symbol::Equal)) =>
+            TokenType::Identifier { .. } if matches!(state.peek(), Ok(peek_token) if peek_token.is_symbol(Symbol::Equal)) =>
             {
                 let key = state.consume().unwrap();
 
@@ -1047,7 +884,7 @@ fn force_table_constructor(
         };
 
         match state.current() {
-            ParserResult::Value(token) => {
+            Ok(token) => {
                 if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Semicolon) {
                     fields.push(Pair::Punctuated(field, state.consume().unwrap()))
                 } else {
@@ -1056,35 +893,17 @@ fn force_table_constructor(
                 }
             }
 
-            ParserResult::NotFound => unreachable!("nope"),
-
-            ParserResult::LexerMoved => {
+            Err(()) => {
                 fields.push(Pair::End(field));
                 break;
             }
         };
     }
 
-    let right_brace = match state.current() {
-        ParserResult::Value(token) => {
-            if token.is_symbol(Symbol::RightBrace) {
-                state.consume().unwrap()
-            } else {
-                state.token_error(
-                    match fields.last().map(Pair::value) {
-                        Some(field) => field.tokens().last().unwrap().clone(),
-                        None => left_brace.clone(),
-                    },
-                    format!("expected `}}` after last field, found `{}`", token.token()),
-                );
-
-                TokenReference::symbol("}").unwrap()
-            }
-        }
-
-        ParserResult::NotFound => unreachable!("nope"),
-
-        ParserResult::LexerMoved => TokenReference::symbol("}").unwrap(),
+    // rewrite todo: range, or at least field.tokens().last().unwrap().clone()
+    let right_brace = match state.require(Symbol::RightBrace, "expected `}` after last field") {
+        Some(right_brace) => right_brace,
+        None => TokenReference::symbol("}").unwrap(),
     };
 
     ast::TableConstructor {
@@ -1111,21 +930,8 @@ fn expect_repeat_stmt(
         }
     };
 
-    let until_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Until) => state.consume().unwrap(),
-
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `until` after block");
-            return Err(());
-        }
-
-        ParserResult::NotFound => {
-            unreachable!("rewrite todo: not possible, this signature sucks");
-        }
-
-        ParserResult::LexerMoved => {
-            todo!("rewrite todo: we can make *some* form of recovery here");
-        }
+    let Some(until_token) = state.require(Symbol::Until, "expected `until` after block") else {
+        todo!("rewrite todo: we can make *some* form of recovery here")
     };
 
     let condition = match parse_expression(state) {
@@ -1168,15 +974,8 @@ fn expect_while_stmt(
         }
     };
 
-    let do_token = match state.current() {
-        ParserResult::Value(token) if token.is_symbol(Symbol::Do) => state.consume().unwrap(),
-
-        ParserResult::Value(token) => {
-            state.token_error(token.clone(), "expected `do` after condition");
-            return Ok(ast::While::new(condition));
-        }
-
-        _ => unreachable!("rewrite todo: state.current() is bad and this should be consume()"),
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after condition") else {
+        return Ok(ast::While::new(condition));
     };
 
     let (block, end_token) = match parse_block_with_end(state, &do_token) {
@@ -1197,9 +996,9 @@ fn expect_while_stmt(
 }
 
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
-    let current_token = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
     };
 
     match current_token.token_type() {
@@ -1217,37 +1016,16 @@ fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
                 }
             });
 
-            let right_parenthesis = match state.current() {
-                ParserResult::Value(token) if token.is_symbol(Symbol::RightParen) => {
-                    state.consume().unwrap()
-                }
-
-                // rewrite todo: i copy paste stuff between LexerMoved and NotFound a lot. i should make it an if or something
-                ParserResult::LexerMoved => {
-                    return ParserResult::Value(ast::Prefix::Expression(Box::new(
-                        ast::Expression::Parentheses {
-                            contained: ContainedSpan::new(
-                                left_parenthesis,
-                                TokenReference::symbol(")").unwrap(),
-                            ),
-                            expression,
-                        },
-                    )));
-                }
-
-                ParserResult::Value(_) | ParserResult::NotFound => {
-                    state.token_error(left_parenthesis.clone(), "expected `)` after expression");
-
-                    return ParserResult::Value(ast::Prefix::Expression(Box::new(
-                        ast::Expression::Parentheses {
-                            contained: ContainedSpan::new(
-                                left_parenthesis,
-                                TokenReference::symbol(")").unwrap(),
-                            ),
-                            expression,
-                        },
-                    )));
-                }
+            let Some(right_parenthesis) = state.require(Symbol::RightParen, "expected `)` after expression") else {
+                return ParserResult::Value(ast::Prefix::Expression(Box::new(
+                    ast::Expression::Parentheses {
+                        contained: ContainedSpan::new(
+                            left_parenthesis,
+                            TokenReference::symbol(")").unwrap(),
+                        ),
+                        expression,
+                    },
+                )));
             };
 
             ParserResult::Value(ast::Prefix::Expression(Box::new(
@@ -1267,9 +1045,9 @@ fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
 }
 
 fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
-    let current = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let current = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
     };
 
     match current.token_type() {
@@ -1278,22 +1056,19 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
         } => {
             let left_parenthesis = state.consume().unwrap();
             let arguments = try_parser!(parse_expression_list(state)).unwrap_or_default();
-            let right_parenthesis = match state.current() {
-                ParserResult::Value(token) if token.is_symbol(Symbol::RightParen) => {
-                    state.consume().unwrap()
-                }
+            let right_parenthesis =
+                match state.require(Symbol::RightParen, "expected `)` to close function call") {
+                    Some(token) => token,
 
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                    None => {
+                        state.token_error(
+                            left_parenthesis.clone(),
+                            "expected `)` to close function call",
+                        );
 
-                _ => {
-                    state.token_error(
-                        left_parenthesis.clone(),
-                        "expected `)` to close function call",
-                    );
-
-                    TokenReference::symbol(")").unwrap()
-                }
-            };
+                        TokenReference::symbol(")").unwrap()
+                    }
+                };
 
             ParserResult::Value(ast::FunctionArgs::Parentheses {
                 parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
@@ -1320,9 +1095,8 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
 }
 
 fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
-    let current = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let Ok(current) = state.current() else {
+        return ParserResult::NotFound;
     };
 
     match current.token_type() {
@@ -1331,16 +1105,16 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
         } => {
             let dot = state.consume().unwrap();
             let name = match state.current() {
-                ParserResult::Value(token) if token.token_kind() == TokenKind::Identifier => {
+                Ok(token) if token.token_kind() == TokenKind::Identifier => {
                     state.consume().unwrap()
                 }
 
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
-
-                ParserResult::Value(_) | ParserResult::NotFound => {
+                Ok(_) => {
                     state.token_error(dot, "expected identifier after `.`");
                     return ParserResult::LexerMoved;
                 }
+
+                Err(()) => return ParserResult::LexerMoved,
             };
 
             ParserResult::Value(ast::Suffix::Index(ast::Index::Dot { dot, name }))
@@ -1360,19 +1134,14 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 }
             };
 
-            let right_bracket = match state.current() {
-                ParserResult::Value(token) if token.is_symbol(Symbol::RightBracket) => {
-                    state.consume().unwrap()
-                }
+            // rewrite todo: this should use `[abc` as the error range
+            let right_bracket = match state.require(
+                Symbol::RightBracket,
+                "expected `]` to close index expression",
+            ) {
+                Some(right_bracket) => right_bracket,
 
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
-
-                ParserResult::Value(_) | ParserResult::NotFound => {
-                    state.token_error(
-                        left_bracket.clone(),
-                        "expected `]` to close index expression",
-                    );
-
+                None => {
                     // rewrite todo: this feels weird to recover from
                     TokenReference::symbol("]").unwrap()
                 }
@@ -1398,16 +1167,16 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             let colon_token = state.consume().unwrap();
 
             let name = match state.current() {
-                ParserResult::Value(token) if token.token_kind() == TokenKind::Identifier => {
+                Ok(token) if token.token_kind() == TokenKind::Identifier => {
                     state.consume().unwrap()
                 }
 
-                ParserResult::LexerMoved => return ParserResult::LexerMoved,
-
-                ParserResult::Value(_) | ParserResult::NotFound => {
+                Ok(_) => {
                     state.token_error(colon_token, "expected identifier after `:`");
                     return ParserResult::LexerMoved;
                 }
+
+                Err(()) => return ParserResult::LexerMoved,
             };
 
             let args = match parse_arguments(state) {
@@ -1475,9 +1244,9 @@ fn parse_expression(state: &mut ParserState) -> ParserResult<Expression> {
 }
 
 fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression> {
-    let current_token = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
     };
 
     match current_token.token_type() {
@@ -1698,24 +1467,19 @@ fn parse_unary_expression(
 }
 
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
-    let left_parenthesis = match try_parser!(state.current()) {
-        Some(token) if token.is_symbol(Symbol::LeftParen) => state.consume().unwrap(),
-        _ => return ParserResult::NotFound,
+    let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
+        return ParserResult::NotFound;
     };
 
-    let parameters = match one_or_more(state, parse_parameter, &[Symbol::Comma]) {
+    let parameters = match one_or_more(state, parse_parameter, Symbol::Comma) {
         ParserResult::Value(parameters) => parameters,
         ParserResult::NotFound => Punctuated::new(),
         // rewrite todo: i want to support function x(a, b, c,) as being fallible
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
     };
 
-    let right_parenthesis = match try_parser!(state.current()) {
-        Some(token) if token.is_symbol(Symbol::RightParen) => state.consume().unwrap(),
-        _ => {
-            state.token_error(left_parenthesis, "expected a `)`");
-            return ParserResult::LexerMoved;
-        }
+    let Some(right_parenthesis) = state.require(Symbol::RightParen, "expected a `)`") else {
+        return ParserResult::NotFound;
     };
 
     let (block, end) = match parse_block_with_end(state, &right_parenthesis) {
@@ -1741,9 +1505,8 @@ struct PackedParameter {
 }
 
 fn parse_parameter(state: &mut ParserState) -> ParserResult<PackedParameter> {
-    let current_token = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let Ok(current_token) =  state.current() else {
+        return ParserResult::NotFound;
     };
 
     match current_token.token_type() {
@@ -1777,9 +1540,8 @@ fn names_to_tokens(names: Punctuated<Name>) -> Punctuated<TokenReference> {
 }
 
 fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
-    let current_token = match try_parser!(state.current()) {
-        Some(token) => token,
-        None => return ParserResult::NotFound,
+    let Ok(current_token) =  state.current() else {
+        return ParserResult::NotFound;
     };
 
     match current_token.token_type() {
@@ -1791,11 +1553,10 @@ fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
     }
 }
 
-// rewrite todo: we're not gonna use this for fields, so just one delimiter
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
     state: &mut ParserState,
     parser: F,
-    delimiters: &[Symbol],
+    delimiter: Symbol,
 ) -> ParserResult<Punctuated<T>> {
     let mut values = Punctuated::new();
 
@@ -1805,20 +1566,16 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
             ParserResult::NotFound | ParserResult::LexerMoved => break,
         };
 
-        let next_token = match state.current() {
-            ParserResult::Value(token) => token,
-            ParserResult::NotFound | ParserResult::LexerMoved => break,
-        };
+        match state.consume_if(delimiter) {
+            Some(delimiter) => {
+                values.push(Pair::Punctuated(value, delimiter));
+            }
 
-        if let TokenType::Symbol { symbol } = next_token.token_type() {
-            if delimiters.contains(symbol) {
-                values.push(Pair::Punctuated(value, state.consume().unwrap()));
-                continue;
+            None => {
+                values.push(Pair::End(value));
+                break;
             }
         }
-
-        values.push(Pair::End(value));
-        break;
     }
 
     if values.is_empty() {
@@ -1829,9 +1586,9 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
 }
 
 fn parse_name_list(state: &mut ParserState) -> ParserResult<Punctuated<Name>> {
-    one_or_more(state, parse_name, &[Symbol::Comma])
+    one_or_more(state, parse_name, Symbol::Comma)
 }
 
 fn parse_expression_list(state: &mut ParserState) -> ParserResult<Punctuated<Expression>> {
-    one_or_more(state, parse_expression, &[Symbol::Comma])
+    one_or_more(state, parse_expression, Symbol::Comma)
 }
