@@ -140,12 +140,25 @@ impl AstResult {
                 Some(Ok(_)) => {
                     assert!(!parser_state.errors.is_empty());
 
-                    match parse_block(&mut parser_state) {
-                        ParserResult::Value(new_block) => {
-                            block.merge_blocks(new_block);
+                    if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
+                        if new_block.stmts.is_empty() {
+                            match parser_state.consume() {
+                                ParserResult::Value(token) => {
+                                    parser_state.token_error(
+                                        token,
+                                        "unexpected token, this needs to be a statement",
+                                    );
+                                }
+
+                                ParserResult::LexerMoved => {}
+
+                                ParserResult::NotFound => unreachable!(),
+                            }
+
+                            continue;
                         }
 
-                        _ => {}
+                        block.merge_blocks(new_block);
                     }
                 }
 
