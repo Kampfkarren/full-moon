@@ -252,6 +252,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             var_list.push(Pair::End(var));
 
             // rewrite todo: unwrap() here because of eof, like referenced in the last comment
+            // rewrite todo: this isn't correct because error case is real. search for everything that does this
             while state.current().unwrap().is_symbol(Symbol::Comma) {
                 let next_comma = state.consume().unwrap();
 
@@ -354,7 +355,6 @@ fn parse_last_stmt(
         _ => return ParserResult::NotFound,
     };
 
-    // rewrite todo: consume
     let semicolon = state.consume_if(Symbol::Semicolon);
 
     ParserResult::Value((last_stmt, semicolon))

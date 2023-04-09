@@ -29,6 +29,16 @@ impl Lexer {
         lexer
     }
 
+    pub fn new_lazy(source: &str) -> Self {
+        Self {
+            source: LexerSource::new(source),
+            sent_eof: false,
+
+            next_token: None,
+            peek_token: None,
+        }
+    }
+
     pub fn current(&self) -> Option<Result<&TokenReference, &TokenizerError>> {
         self.next_token.as_ref().map(Result::as_ref)
     }
@@ -171,7 +181,7 @@ impl Lexer {
         trailing_trivia
     }
 
-    fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
+    pub fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
         let start_position = self.source.position();
 
         let Some(next) = self.source.next() else {

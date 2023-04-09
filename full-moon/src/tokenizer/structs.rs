@@ -14,6 +14,8 @@ use std::{
 #[cfg(feature = "roblox")]
 pub use crate::tokenizer_luau::InterpolatedStringKind;
 
+use super::Lexer;
+
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[non_exhaustive]
@@ -757,7 +759,96 @@ impl TokenReference {
     /// # }
     /// ```
     pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        todo!("symbol(`{text}`)")
+        let mut lexer = Lexer::new_lazy(text);
+
+        let mut leading_trivia = Vec::new();
+        let symbol;
+
+        loop {
+            match lexer.process_next() {
+                Some(Ok(
+                    token @ Token {
+                        token_type: TokenType::Whitespace { .. },
+                        ..
+                    },
+                )) => {
+                    leading_trivia.push(token);
+                }
+
+                Some(Ok(
+                    token @ Token {
+                        token_type: TokenType::Symbol { .. },
+                        ..
+                    },
+                )) => {
+                    symbol = token;
+                    break;
+                }
+
+                Some(Ok(Token {
+                    token_type: TokenType::Eof,
+                    ..
+                })) => {
+                    return Err(TokenizerErrorType::InvalidSymbol(text.to_owned()));
+                }
+
+                Some(Ok(token)) => {
+                    // rewrite todo: I think buffing the lexer is going to result in
+                    // this actually receiving a Token and not just a char (or at least a variant for it)
+                    return Err(TokenizerErrorType::UnexpectedToken(
+                        token.to_string().chars().next().unwrap(),
+                    ));
+                }
+
+                Some(Err(error)) => {
+                    return Err(error.error);
+                }
+
+                None => unreachable!("we shouldn't have hit eof"),
+            }
+        }
+
+        let mut trailing_trivia = Vec::new();
+
+        loop {
+            match lexer.process_next() {
+                Some(Ok(
+                    token @ Token {
+                        token_type: TokenType::Whitespace { .. },
+                        ..
+                    },
+                )) => {
+                    trailing_trivia.push(token);
+                }
+
+                Some(Ok(Token {
+                    token_type: TokenType::Eof,
+                    ..
+                })) => {
+                    break;
+                }
+
+                Some(Ok(token)) => {
+                    return Err(TokenizerErrorType::UnexpectedToken(
+                        token.to_string().chars().next().unwrap(),
+                    ));
+                }
+
+                Some(Err(error)) => {
+                    return Err(error.error);
+                }
+
+                None => {
+                    unreachable!("we shouldn't have hit eof");
+                }
+            }
+        }
+
+        Ok(TokenReference {
+            leading_trivia,
+            token: symbol,
+            trailing_trivia,
+        })
     }
 
     /// Returns the inner token.
