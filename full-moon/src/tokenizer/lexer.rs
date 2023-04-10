@@ -94,6 +94,22 @@ impl Lexer {
         }))
     }
 
+    fn create_recovered(
+        &self,
+        start_position: Position,
+        token_type: TokenType,
+        errors: Vec<TokenizerError>,
+    ) -> Option<LexerResult<Token>> {
+        Some(LexerResult::new(
+            Token {
+                token_type,
+                start_position,
+                end_position: self.source.position(),
+            },
+            errors,
+        ))
+    }
+
     fn process_next_with_trivia(&mut self) -> Option<LexerResult<TokenReference>> {
         let mut leading_trivia = Vec::new();
         let mut errors: Option<Vec<TokenizerError>> = None;
@@ -364,16 +380,29 @@ impl Lexer {
 
                 if self.source.current() == Some('[') || self.source.current() == Some('=') {
                     match self.read_multi_line_body() {
-                        Ok((blocks, string)) => self.create(
+                        MultiLineBodyResult::Ok { blocks, body } => self.create(
                             start_position,
                             TokenType::StringLiteral {
-                                literal: string.into(),
+                                literal: body.into(),
                                 multi_line: Some(blocks),
                                 quote_type: StringLiteralQuoteType::Brackets,
                             },
                         ),
 
-                        Err(_) => {
+                        MultiLineBodyResult::Unclosed { blocks, body } => self.create_recovered(
+                            start_position,
+                            TokenType::StringLiteral {
+                                literal: body.into(),
+                                multi_line: Some(blocks),
+                                quote_type: StringLiteralQuoteType::Brackets,
+                            },
+                            vec![TokenizerError {
+                                error: TokenizerErrorType::UnclosedString,
+                                position: start_position,
+                            }],
+                        ),
+
+                        MultiLineBodyResult::NotMultiLine { .. } => {
                             // Reset back, parse the one `[`, and let the rest be parsed again
                             self.source.lexer_position = start_lexer_position;
 
@@ -540,8 +569,20 @@ impl Lexer {
 
             '-' => {
                 if self.source.consume('-') {
-                    let comment = self.read_comment();
-                    self.create(start_position, comment)
+                    let (token, recovered) = self.read_comment();
+
+                    self.create_recovered(
+                        start_position,
+                        token,
+                        if recovered {
+                            vec![TokenizerError {
+                                error: TokenizerErrorType::UnclosedComment,
+                                position: start_position,
+                            }]
+                        } else {
+                            Vec::new()
+                        },
+                    )
                 } else {
                     self.create(
                         start_position,
@@ -689,19 +730,33 @@ impl Lexer {
     }
 
     // rewrite todo: single-line-comment-6 had its tokens changed
-    fn read_comment(&mut self) -> TokenType {
+    // (comment, had to be recovered?)
+    fn read_comment(&mut self) -> (TokenType, bool) {
         let mut comment = String::new();
 
         if self.source.consume('[') {
             match self.read_multi_line_body() {
-                Ok((blocks, body)) => {
-                    return TokenType::MultiLineComment {
-                        blocks,
-                        comment: body.into(),
-                    }
+                MultiLineBodyResult::Ok { blocks, body } => {
+                    return (
+                        TokenType::MultiLineComment {
+                            blocks,
+                            comment: body.into(),
+                        },
+                        false,
+                    );
                 }
 
-                Err(blocks) => {
+                MultiLineBodyResult::Unclosed { blocks, body } => {
+                    return (
+                        TokenType::MultiLineComment {
+                            blocks,
+                            comment: body.into(),
+                        },
+                        true,
+                    );
+                }
+
+                MultiLineBodyResult::NotMultiLine { blocks } => {
                     comment.push('[');
 
                     for _ in 0..blocks {
@@ -724,19 +779,22 @@ impl Lexer {
 
         self.source.lexer_position = position_before_new_line;
 
-        TokenType::SingleLineComment {
-            comment: comment.into(),
-        }
+        (
+            TokenType::SingleLineComment {
+                comment: comment.into(),
+            },
+            false,
+        )
     }
 
-    fn read_multi_line_body(&mut self) -> Result<(usize, String), usize> {
+    fn read_multi_line_body(&mut self) -> MultiLineBodyResult {
         let mut blocks = 0;
         while self.source.consume('=') {
             blocks += 1;
         }
 
         if !self.source.consume('[') {
-            return Err(blocks);
+            return MultiLineBodyResult::NotMultiLine { blocks };
         }
 
         let mut body = String::new();
@@ -745,7 +803,10 @@ impl Lexer {
             let next = match self.source.next() {
                 Some(next) => next,
                 None => {
-                    todo!("error: expected ']' to end multi-line comment")
+                    return MultiLineBodyResult::Unclosed {
+                        blocks,
+                        body: body.into(),
+                    }
                 }
             };
 
@@ -781,7 +842,7 @@ impl Lexer {
             body.push(next);
         }
 
-        Ok((blocks, body))
+        MultiLineBodyResult::Ok { blocks, body }
     }
 }
 
@@ -896,4 +957,10 @@ impl<T: std::fmt::Debug> LexerResult<T> {
             _ => Vec::new(),
         }
     }
+}
+
+enum MultiLineBodyResult {
+    Ok { blocks: usize, body: String },
+    NotMultiLine { blocks: usize },
+    Unclosed { blocks: usize, body: String },
 }
