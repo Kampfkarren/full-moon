@@ -1187,7 +1187,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 ParserResult::Value(args) => args,
                 ParserResult::LexerMoved => ast::FunctionArgs::empty(),
                 ParserResult::NotFound => {
-                    state.token_error(colon_token.clone(), "expected arguments after `:`");
+                    state.token_error(name.clone(), "expected arguments after `:`");
                     ast::FunctionArgs::empty()
                 }
             };
@@ -1221,11 +1221,7 @@ fn parse_prefix_and_suffixes(
             }
 
             ParserResult::LexerMoved => {
-                if suffixes.is_empty() {
-                    return ParserResult::LexerMoved;
-                } else {
-                    break;
-                }
+                break;
             }
 
             ParserResult::NotFound => {

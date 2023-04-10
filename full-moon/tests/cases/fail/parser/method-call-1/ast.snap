@@ -35,7 +35,24 @@ nodes:
                 type: Whitespace
                 characters: " "
         returns:
-          pairs: []
+          pairs:
+            - End:
+                Var:
+                  Name:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 7
+                        line: 1
+                        character: 8
+                      end_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      token_type:
+                        type: Identifier
+                        identifier: name
+                    trailing_trivia: []
     - ~
 eof:
   leading_trivia: []

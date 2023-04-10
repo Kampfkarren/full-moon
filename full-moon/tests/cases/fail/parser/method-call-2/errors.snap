@@ -8,15 +8,15 @@ input_file: full-moon/tests/cases/fail/parser/method-call-2
     UnexpectedToken:
       token:
         start_position:
-          bytes: 11
-          line: 1
-          character: 12
-        end_position:
           bytes: 12
           line: 1
           character: 13
+        end_position:
+          bytes: 18
+          line: 1
+          character: 19
         token_type:
-          type: Symbol
-          symbol: ":"
+          type: Identifier
+          identifier: method
       additional: "expected arguments after `:`"
 

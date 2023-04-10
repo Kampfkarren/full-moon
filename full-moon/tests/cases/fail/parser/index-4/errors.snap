@@ -23,21 +23,6 @@ input_file: full-moon/tests/cases/fail/parser/index-4
     UnexpectedToken:
       token:
         start_position:
-          bytes: 8
-          line: 1
-          character: 9
-        end_position:
-          bytes: 9
-          line: 1
-          character: 10
-        token_type:
-          type: Symbol
-          symbol: "="
-      additional: expected an expression
-- AstError:
-    UnexpectedToken:
-      token:
-        start_position:
           bytes: 12
           line: 1
           character: 13

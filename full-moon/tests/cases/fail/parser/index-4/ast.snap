@@ -88,7 +88,24 @@ nodes:
                   type: Whitespace
                   characters: " "
           expr_list:
-            pairs: []
+            pairs:
+              - End:
+                  Var:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 10
+                          line: 1
+                          character: 11
+                        end_position:
+                          bytes: 11
+                          line: 1
+                          character: 12
+                        token_type:
+                          type: Identifier
+                          identifier: x
+                      trailing_trivia: []
       - ~
 eof:
   leading_trivia: []
