@@ -1,0 +1,22 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 26
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/numeric-for-2
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 6
+          line: 1
+          character: 7
+        end_position:
+          bytes: 7
+          line: 1
+          character: 8
+        token_type:
+          type: Symbol
+          symbol: "="
+      additional: "expected start expression after `=`"
+

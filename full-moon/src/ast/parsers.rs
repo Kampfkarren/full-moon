@@ -1643,6 +1643,17 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
         return ParserResult::NotFound;
     }
 
+    if let Some(Pair::Punctuated(..)) = values.last() {
+        let last_value = values.pop().unwrap();
+
+        state.token_error(
+            last_value.punctuation().unwrap().clone(),
+            "trailing commas are not allowed",
+        );
+
+        values.push(Pair::End(last_value.into_value()));
+    }
+
     ParserResult::Value(values)
 }
 

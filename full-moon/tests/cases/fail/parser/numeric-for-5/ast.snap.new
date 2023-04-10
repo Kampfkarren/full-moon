@@ -1,0 +1,68 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 27
+expression: result.ast
+input_file: full-moon/tests/cases/fail/parser/numeric-for-5
+---
+nodes:
+  stmts:
+    - - Do:
+          do_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 18
+                line: 1
+                character: 19
+              end_position:
+                bytes: 20
+                line: 1
+                character: 21
+              token_type:
+                type: Symbol
+                symbol: do
+            trailing_trivia:
+              - start_position:
+                  bytes: 20
+                  line: 1
+                  character: 21
+                end_position:
+                  bytes: 21
+                  line: 1
+                  character: 22
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          block:
+            stmts: []
+          end_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 21
+                line: 1
+                character: 22
+              end_position:
+                bytes: 24
+                line: 1
+                character: 25
+              token_type:
+                type: Symbol
+                symbol: end
+            trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 24
+      line: 1
+      character: 25
+    end_position:
+      bytes: 24
+      line: 1
+      character: 25
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

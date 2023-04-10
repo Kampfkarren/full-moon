@@ -1,0 +1,37 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 26
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/local-assignment-4
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 6
+          line: 1
+          character: 7
+        end_position:
+          bytes: 9
+          line: 1
+          character: 10
+        token_type:
+          type: Symbol
+          symbol: end
+      additional: "expected either a variable name or `function`"
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 6
+          line: 1
+          character: 7
+        end_position:
+          bytes: 9
+          line: 1
+          character: 10
+        token_type:
+          type: Symbol
+          symbol: end
+      additional: "unexpected token, this needs to be a statement"
+
