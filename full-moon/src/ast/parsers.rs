@@ -1463,20 +1463,104 @@ fn parse_unary_expression(
 }
 
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
+    const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
+
     let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
         return ParserResult::NotFound;
     };
 
-    let parameters = match one_or_more(state, parse_parameter, Symbol::Comma) {
-        ParserResult::Value(parameters) => parameters,
-        ParserResult::NotFound => Punctuated::new(),
-        // rewrite todo: i want to support function x(a, b, c,) as being fallible
-        ParserResult::LexerMoved => return ParserResult::LexerMoved,
-    };
+    let mut parameters = Punctuated::new();
+    let right_parenthesis;
 
-    let Some(right_parenthesis) = state.require(Symbol::RightParen, "expected a `)`") else {
-        return ParserResult::NotFound;
-    };
+    let unfinished_function_body =
+        |left_parenthesis: TokenReference, mut parameters: Punctuated<Parameter>| {
+            if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+                let last_parameter = parameters.pop().unwrap();
+                parameters.push(Pair::End(last_parameter.into_value()));
+            }
+
+            ParserResult::Value(FunctionBody {
+                parameters_parentheses: ContainedSpan::new(
+                    left_parenthesis,
+                    TokenReference::symbol(")").unwrap(),
+                ),
+                parameters,
+                block: ast::Block::new(),
+                end_token: TokenReference::symbol("end").unwrap(),
+            })
+        };
+
+    loop {
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::RightParen) => {
+                right_parenthesis = state.consume().unwrap();
+                break;
+            }
+
+            Ok(token) if token.is_symbol(Symbol::Ellipse) => {
+                let ellipse = state.consume().unwrap();
+                parameters.push(Pair::End(ast::Parameter::Ellipse(ellipse)));
+                right_parenthesis = match state.require(Symbol::RightParen, "expected a `)`") {
+                    Some(right_parenthesis) => right_parenthesis,
+                    None => return unfinished_function_body(left_parenthesis, parameters),
+                };
+
+                break;
+            }
+
+            Ok(TokenReference {
+                token:
+                    Token {
+                        token_type: TokenType::Identifier { .. },
+                        ..
+                    },
+                ..
+            }) => {
+                let name = state.consume().unwrap();
+                let name_parameter = ast::Parameter::Name(force_name(state, name).name);
+
+                let Some(comma) = state.consume_if(Symbol::Comma) else {
+                    parameters.push(Pair::End(name_parameter));
+
+                    match state.require(Symbol::RightParen, "expected a `)`") {
+                        Some(new_right_parenthesis) => {
+                            right_parenthesis = new_right_parenthesis;
+                            break;
+                        }
+
+                        None => return unfinished_function_body(left_parenthesis, parameters),
+                    };
+                };
+
+                parameters.push(Pair::Punctuated(name_parameter, comma));
+            }
+
+            Ok(token) => {
+                state.token_error(
+                    token.clone(),
+                    format!("expected a parameter name, got {}", token.token()),
+                );
+
+                return unfinished_function_body(left_parenthesis, parameters);
+            }
+
+            Err(()) => {
+                return unfinished_function_body(left_parenthesis, parameters);
+            }
+        }
+    }
+
+    // rewrite todo: accept `,)`, and discard?
+    if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+        let last_parameter = parameters.pop().unwrap();
+
+        state.token_error(
+            last_parameter.punctuation().unwrap().clone(),
+            NO_TRAILING_COMMAS_ERROR,
+        );
+
+        parameters.push(Pair::End(last_parameter.into_value()));
+    }
 
     let (block, end) = match parse_block_with_end(state, &right_parenthesis) {
         Ok((block, end)) => (block, end),
@@ -1485,39 +1569,10 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
 
     ParserResult::Value(FunctionBody {
         parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
-        parameters: parameters
-            .into_pairs()
-            .map(|parameter| parameter.map(|parameter| parameter.parameter))
-            .collect(),
-
+        parameters,
         block,
         end_token: end,
     })
-}
-
-struct PackedParameter {
-    parameter: Parameter,
-    // rewrite todo: this is where a type assignment can go
-}
-
-fn parse_parameter(state: &mut ParserState) -> ParserResult<PackedParameter> {
-    let Ok(current_token) =  state.current() else {
-        return ParserResult::NotFound;
-    };
-
-    match current_token.token_type() {
-        TokenType::Symbol {
-            symbol: Symbol::Ellipse,
-        } => ParserResult::Value(PackedParameter {
-            parameter: Parameter::Ellipse(state.consume().unwrap()),
-        }),
-
-        TokenType::Identifier { identifier } => ParserResult::Value(PackedParameter {
-            parameter: Parameter::Name(state.consume().unwrap()),
-        }),
-
-        _ => ParserResult::NotFound,
-    }
 }
 
 struct Name {
@@ -1541,12 +1596,17 @@ fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
     };
 
     match current_token.token_type() {
-        TokenType::Identifier { identifier } => ParserResult::Value(Name {
-            name: state.consume().unwrap(),
-        }),
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name(state, name_token))
+        }
 
         _ => ParserResult::NotFound,
     }
+}
+
+fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
+    Name { name }
 }
 
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(

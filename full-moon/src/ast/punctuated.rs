@@ -182,6 +182,21 @@ impl<T> Punctuated<T> {
     pub fn push(&mut self, pair: Pair<T>) {
         self.pairs.push(pair);
     }
+
+    pub fn push_punctuated(&mut self, value: T, punctuation: TokenReference) {
+        let last_pair = self.pairs.pop().expect(
+            "push_punctuated adds the punctuation onto the last element, but there are no elements",
+        );
+
+        if last_pair.punctuation().is_some() {
+            self.pairs.push(last_pair);
+            panic!("push_punctuated adds the punctuation onto the last element, but the last element already has punctuation");
+        }
+
+        self.pairs
+            .push(Pair::Punctuated(last_pair.into_value(), punctuation));
+        self.pairs.push(Pair::new(value, None));
+    }
 }
 
 // rewrite todo: changelog, this used to be derive(Default)
