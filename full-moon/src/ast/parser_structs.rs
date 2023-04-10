@@ -151,8 +151,6 @@ impl AstResult {
         let lexer = Lexer::new(code);
         let mut parser_state = ParserState::new(lexer);
 
-        let mut last_lexer_position = parser_state.current_offset();
-
         let mut block = match parse_block(&mut parser_state) {
             ParserResult::Value(block) => block,
             _ => Block::new(),
@@ -166,26 +164,22 @@ impl AstResult {
                 }
 
                 Some(Ok(_)) => {
-                    if parser_state.current_offset() == last_lexer_position {
-                        match parser_state.consume() {
-                            ParserResult::Value(token) => {
-                                parser_state.token_error(token, UNEXPECTED_TOKEN_ERROR);
-                            }
-
-                            ParserResult::LexerMoved => {}
-
-                            ParserResult::NotFound => unreachable!(),
-                        };
-
-                        continue;
-                    }
-
-                    assert!(!parser_state.errors.is_empty());
-
                     if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
                         if new_block.stmts.is_empty() {
                             match parser_state.consume() {
                                 ParserResult::Value(token) => {
+                                    if let Some(crate::Error::AstError(
+                                        crate::ast::AstError::UnexpectedToken {
+                                            additional: Some(additional),
+                                            ..
+                                        },
+                                    )) = parser_state.errors.last()
+                                    {
+                                        if additional == UNEXPECTED_TOKEN_ERROR {
+                                            continue;
+                                        }
+                                    }
+
                                     parser_state.token_error(token, UNEXPECTED_TOKEN_ERROR);
                                 }
 

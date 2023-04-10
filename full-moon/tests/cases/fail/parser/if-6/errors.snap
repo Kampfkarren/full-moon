@@ -34,19 +34,4 @@ input_file: full-moon/tests/cases/fail/parser/if-6
           type: Symbol
           symbol: then
       additional: "unexpected token, this needs to be a statement"
-- AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 28
-          line: 4
-          character: 1
-        end_position:
-          bytes: 31
-          line: 4
-          character: 4
-        token_type:
-          type: Symbol
-          symbol: end
-      additional: "unexpected token, this needs to be a statement"
 
