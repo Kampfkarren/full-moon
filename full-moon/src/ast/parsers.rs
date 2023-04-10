@@ -496,7 +496,15 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     };
 
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
-        return Err(());
+        return Ok(ast::Stmt::GenericFor(ast::GenericFor {
+            for_token,
+            names: names_to_tokens(name_list),
+            in_token,
+            expr_list: expressions,
+            do_token: TokenReference::symbol("do").unwrap(),
+            block: ast::Block::new(),
+            end_token: TokenReference::symbol("end").unwrap(),
+        }));
     };
 
     let (block, end) = match parse_block_with_end(state, &do_token) {
