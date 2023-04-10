@@ -1,0 +1,22 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 26
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/repeat-until-3
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 15
+          line: 3
+          character: 1
+        end_position:
+          bytes: 20
+          line: 3
+          character: 6
+        token_type:
+          type: Symbol
+          symbol: until
+      additional: "expected a condition after `until`"
+

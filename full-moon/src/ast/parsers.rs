@@ -186,12 +186,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let repeat_token = state.consume().unwrap();
 
-            ParserResult::Value(ast::Stmt::Repeat(
-                match expect_repeat_stmt(state, repeat_token) {
-                    Ok(repeat_stmt) => repeat_stmt,
-                    Err(()) => return ParserResult::LexerMoved,
-                },
-            ))
+            ParserResult::Value(match expect_repeat_stmt(state, repeat_token) {
+                Ok(repeat_stmt) => repeat_stmt,
+                Err(()) => return ParserResult::LexerMoved,
+            })
         }
 
         TokenType::Symbol {
@@ -923,7 +921,7 @@ fn force_table_constructor(
 fn expect_repeat_stmt(
     state: &mut ParserState,
     repeat_token: TokenReference,
-) -> Result<ast::Repeat, ()> {
+) -> Result<ast::Stmt, ()> {
     let block = match parse_block(state) {
         ParserResult::Value(block) => block,
 
@@ -939,7 +937,7 @@ fn expect_repeat_stmt(
     };
 
     let Some(until_token) = state.require(Symbol::Until, "expected `until` after block") else {
-        todo!("rewrite todo: we can make *some* form of recovery here")
+        return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
     };
 
     let condition = match parse_expression(state) {
@@ -947,21 +945,20 @@ fn expect_repeat_stmt(
 
         ParserResult::NotFound => {
             state.token_error(until_token, "expected a condition after `until`");
-
-            return Err(());
+            return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
         }
 
         ParserResult::LexerMoved => {
-            todo!("rewrite todo: we can make *some* form of recovery here")
+            return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
         }
     };
 
-    Ok(ast::Repeat {
+    Ok(ast::Stmt::Repeat(ast::Repeat {
         repeat_token,
         block,
         until: condition,
         until_token,
-    })
+    }))
 }
 
 fn expect_while_stmt(

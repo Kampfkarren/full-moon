@@ -1,0 +1,22 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 26
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/table-3
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 12
+          line: 2
+          character: 4
+        end_position:
+          bytes: 13
+          line: 2
+          character: 5
+        token_type:
+          type: Symbol
+          symbol: "="
+      additional: "expected an expression after `=`"
+
