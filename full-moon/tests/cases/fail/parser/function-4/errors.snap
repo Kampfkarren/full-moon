@@ -17,20 +17,5 @@ input_file: full-moon/tests/cases/fail/parser/function-4
           character: 12
         token_type:
           type: Eof
-      additional: "expected a `)`"
-- AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 0
-          line: 1
-          character: 1
-        end_position:
-          bytes: 8
-          line: 1
-          character: 9
-        token_type:
-          type: Symbol
-          symbol: function
-      additional: expected a function body
+      additional: "expected a parameter name or `)`"
 

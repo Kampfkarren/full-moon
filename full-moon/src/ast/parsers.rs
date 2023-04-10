@@ -1536,10 +1536,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             }
 
             Ok(token) => {
-                state.token_error(
-                    token.clone(),
-                    format!("expected a parameter name, got {}", token.token()),
-                );
+                state.token_error(token.clone(), "expected a parameter name or `)`");
 
                 return unfinished_function_body(left_parenthesis, parameters);
             }

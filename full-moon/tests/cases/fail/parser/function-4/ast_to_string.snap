@@ -4,5 +4,5 @@ assertion_line: 30
 expression: "full_moon::print(&ast)"
 input_file: full-moon/tests/cases/fail/parser/function-4
 ---
-"function x()\nend"
+function x()end
 
