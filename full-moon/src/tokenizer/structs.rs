@@ -14,7 +14,7 @@ use std::{
 #[cfg(feature = "roblox")]
 pub use crate::tokenizer_luau::InterpolatedStringKind;
 
-use super::Lexer;
+use super::{Lexer, LexerResult};
 
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
@@ -766,7 +766,7 @@ impl TokenReference {
 
         loop {
             match lexer.process_next() {
-                Some(Ok(
+                Some(LexerResult::Ok(
                     token @ Token {
                         token_type: TokenType::Whitespace { .. },
                         ..
@@ -775,7 +775,7 @@ impl TokenReference {
                     leading_trivia.push(token);
                 }
 
-                Some(Ok(
+                Some(LexerResult::Ok(
                     token @ Token {
                         token_type: TokenType::Symbol { .. },
                         ..
@@ -785,14 +785,14 @@ impl TokenReference {
                     break;
                 }
 
-                Some(Ok(Token {
+                Some(LexerResult::Ok(Token {
                     token_type: TokenType::Eof,
                     ..
                 })) => {
                     return Err(TokenizerErrorType::InvalidSymbol(text.to_owned()));
                 }
 
-                Some(Ok(token)) => {
+                Some(LexerResult::Ok(token)) => {
                     // rewrite todo: I think buffing the lexer is going to result in
                     // this actually receiving a Token and not just a char (or at least a variant for it)
                     return Err(TokenizerErrorType::UnexpectedToken(
@@ -800,8 +800,8 @@ impl TokenReference {
                     ));
                 }
 
-                Some(Err(error)) => {
-                    return Err(error.error);
+                Some(LexerResult::Fatal(mut errors) | LexerResult::Recovered(_, mut errors)) => {
+                    return Err(errors.remove(0).error);
                 }
 
                 None => unreachable!("we shouldn't have hit eof"),
@@ -812,7 +812,7 @@ impl TokenReference {
 
         loop {
             match lexer.process_next() {
-                Some(Ok(
+                Some(LexerResult::Ok(
                     token @ Token {
                         token_type: TokenType::Whitespace { .. },
                         ..
@@ -821,21 +821,21 @@ impl TokenReference {
                     trailing_trivia.push(token);
                 }
 
-                Some(Ok(Token {
+                Some(LexerResult::Ok(Token {
                     token_type: TokenType::Eof,
                     ..
                 })) => {
                     break;
                 }
 
-                Some(Ok(token)) => {
+                Some(LexerResult::Ok(token)) => {
                     return Err(TokenizerErrorType::UnexpectedToken(
                         token.to_string().chars().next().unwrap(),
                     ));
                 }
 
-                Some(Err(error)) => {
-                    return Err(error.error);
+                Some(LexerResult::Fatal(mut errors) | LexerResult::Recovered(_, mut errors)) => {
+                    return Err(errors.remove(0).error);
                 }
 
                 None => {

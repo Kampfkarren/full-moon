@@ -33,9 +33,7 @@ fn unpack_token_reference(token: &TokenReference) -> Vec<Token> {
 fn test_pass_case(path: &Path) {
     let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-    let tokens = tokenizer::Lexer::new(&source)
-        .collect()
-        .expect("couldn't tokenize");
+    let tokens = tokenizer::Lexer::new(&source).collect().unwrap();
 
     assert_yaml_snapshot!("tokens", tokens);
 

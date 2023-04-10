@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use crate::tokenizer::{
-    Lexer, Symbol, Token, TokenKind, TokenReference, TokenType, TokenizerError,
+    Lexer, LexerResult, Symbol, Token, TokenKind, TokenReference, TokenType, TokenizerError,
 };
 
 use super::{parsers::parse_block, Ast, Block};
@@ -21,16 +21,16 @@ impl ParserState {
 
     pub fn current(&self) -> Result<&TokenReference, ()> {
         match self.lexer.current() {
-            Some(Ok(token)) => Ok(token),
-            Some(Err(error)) => Err(()),
+            Some(LexerResult::Ok(token) | LexerResult::Recovered(token, _)) => Ok(token),
+            Some(LexerResult::Fatal(_)) => Err(()),
             None => unreachable!("current() called past EOF"),
         }
     }
 
     pub fn peek(&self) -> Result<&TokenReference, ()> {
         match self.lexer.peek() {
-            Some(Ok(token)) => Ok(token),
-            Some(Err(error)) => Err(()),
+            Some(LexerResult::Ok(token) | LexerResult::Recovered(token, _)) => Ok(token),
+            Some(LexerResult::Fatal(_)) => Err(()),
             None => unreachable!("peek() called past EOF"),
         }
     }
@@ -39,11 +39,24 @@ impl ParserState {
         let token = self.lexer.consume();
 
         match token {
-            Some(Ok(token)) => ParserResult::Value(token),
-            Some(Err(error)) => {
-                self.errors.push(crate::Error::TokenizerError(error));
+            Some(LexerResult::Ok(token)) => ParserResult::Value(token),
+
+            Some(LexerResult::Recovered(token, errors)) => {
+                for error in errors {
+                    self.errors.push(crate::Error::TokenizerError(error));
+                }
+
+                ParserResult::Value(token)
+            }
+
+            Some(LexerResult::Fatal(errors)) => {
+                for error in errors {
+                    self.errors.push(crate::Error::TokenizerError(error));
+                }
+
                 ParserResult::LexerMoved
             }
+
             None => ParserResult::NotFound,
         }
     }
@@ -159,11 +172,12 @@ impl AstResult {
         // rewrite todo: try to keep parsing??
         loop {
             match parser_state.lexer.current() {
-                Some(Ok(token)) if token.token_kind() == TokenKind::Eof => {
+                Some(LexerResult::Ok(token)) if token.token_kind() == TokenKind::Eof => {
                     break;
                 }
 
-                Some(Ok(_)) => {
+                // rewrite todo: im skeptical that i can just throw Recovered in here without losing errors
+                Some(LexerResult::Ok(_) | LexerResult::Recovered(_, _)) => {
                     if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
                         if new_block.stmts.is_empty() {
                             match parser_state.consume() {
@@ -195,10 +209,12 @@ impl AstResult {
                     }
                 }
 
-                Some(Err(_)) => {
-                    parser_state.errors.push(crate::Error::TokenizerError(
-                        parser_state.lexer.consume().unwrap().unwrap_err(),
-                    ));
+                Some(LexerResult::Fatal(_)) => {
+                    for error in parser_state.lexer.consume().unwrap().unwrap_errors() {
+                        parser_state
+                            .errors
+                            .push(crate::Error::TokenizerError(error));
+                    }
                 }
 
                 None => break,

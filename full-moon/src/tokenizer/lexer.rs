@@ -9,8 +9,8 @@ pub struct Lexer {
     sent_eof: bool,
 
     // rewrite todo: maybe an array if we need more lookahead
-    next_token: Option<Result<TokenReference, TokenizerError>>,
-    peek_token: Option<Result<TokenReference, TokenizerError>>,
+    next_token: Option<LexerResult<TokenReference>>,
+    peek_token: Option<LexerResult<TokenReference>>,
 }
 
 impl Lexer {
@@ -39,77 +39,110 @@ impl Lexer {
         }
     }
 
-    pub fn current(&self) -> Option<Result<&TokenReference, &TokenizerError>> {
-        self.next_token.as_ref().map(Result::as_ref)
+    pub fn current(&self) -> Option<&LexerResult<TokenReference>> {
+        self.next_token.as_ref()
     }
 
-    pub fn peek(&self) -> Option<Result<&TokenReference, &TokenizerError>> {
-        self.peek_token.as_ref().map(Result::as_ref)
+    pub fn peek(&self) -> Option<&LexerResult<TokenReference>> {
+        self.peek_token.as_ref()
     }
 
-    pub fn consume(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
+    pub fn consume(&mut self) -> Option<LexerResult<TokenReference>> {
         let next = self.next_token.take()?;
         self.next_token = self.peek_token.take();
         self.peek_token = self.process_next_with_trivia();
         Some(next)
     }
 
-    pub fn collect(self) -> Result<Vec<Token>, TokenizerError> {
+    pub fn collect(self) -> LexerResult<Vec<Token>> {
         let mut tokens = Vec::new();
         let mut lexer = self;
+        let mut errors = Vec::new();
 
         while let Some(token_reference) = lexer.consume() {
-            let mut token_reference = token_reference?;
+            let mut token_reference = match token_reference {
+                LexerResult::Ok(token_reference) => token_reference,
+
+                LexerResult::Recovered(token_reference, mut new_errors) => {
+                    errors.append(&mut new_errors);
+                    token_reference
+                }
+
+                LexerResult::Fatal(mut new_errors) => {
+                    errors.append(&mut new_errors);
+                    continue;
+                }
+            };
 
             tokens.append(&mut token_reference.leading_trivia);
             tokens.push(token_reference.token);
             tokens.append(&mut token_reference.trailing_trivia);
         }
 
-        Ok(tokens)
+        LexerResult::new(tokens, errors)
     }
 
     fn create(
         &self,
         start_position: Position,
         token_type: TokenType,
-    ) -> Option<Result<Token, TokenizerError>> {
-        Some(Ok(Token {
+    ) -> Option<LexerResult<Token>> {
+        Some(LexerResult::Ok(Token {
             token_type,
             start_position,
             end_position: self.source.position(),
         }))
     }
 
-    fn process_next_with_trivia(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
+    fn process_next_with_trivia(&mut self) -> Option<LexerResult<TokenReference>> {
         let mut leading_trivia = Vec::new();
+        let mut errors: Option<Vec<TokenizerError>> = None;
 
         let nontrivial_token = loop {
             match self.process_next()? {
-                Ok(token) if token.token_type().is_trivia() => {
+                LexerResult::Ok(token) if token.token_type().is_trivia() => {
                     leading_trivia.push(token);
                 }
 
-                Ok(token) => {
+                LexerResult::Ok(token) => {
                     break token;
                 }
 
-                Err(error) => {
-                    return Some(Err(error));
+                LexerResult::Fatal(error) => {
+                    return Some(LexerResult::Fatal(error));
+                }
+
+                LexerResult::Recovered(token, mut new_errors) => {
+                    if let Some(errors) = errors.as_mut() {
+                        errors.append(&mut new_errors);
+                    } else {
+                        errors = Some(new_errors);
+                    }
+
+                    if token.token_type().is_trivia() {
+                        leading_trivia.push(token);
+                    } else {
+                        break token;
+                    }
                 }
             }
         };
 
         let trailing_trivia = self.collect_trailing_trivia();
-
-        Some(Ok(TokenReference {
+        let token = TokenReference {
             token: nontrivial_token,
             leading_trivia,
             trailing_trivia,
-        }))
+        };
+
+        if let Some(errors) = errors {
+            Some(LexerResult::Recovered(token, errors))
+        } else {
+            Some(LexerResult::Ok(token))
+        }
     }
 
-    fn process_first_with_trivia(&mut self) -> Option<Result<TokenReference, TokenizerError>> {
+    fn process_first_with_trivia(&mut self) -> Option<LexerResult<TokenReference>> {
         if self.source.current() == Some('#') && self.source.peek() == Some('!') {
             // rewrite todo: this changes shebang behavior to be more in line with the rest of full-moon. document
             let start_position = self.source.position();
@@ -135,9 +168,10 @@ impl Lexer {
                 end_position,
             };
 
-            if let Some(Ok(mut token_reference)) = self.process_next_with_trivia() {
+            // rewrite todo: handle LexerResult better here
+            if let Some(LexerResult::Ok(mut token_reference)) = self.process_next_with_trivia() {
                 token_reference.leading_trivia.insert(0, shebang);
-                return Some(Ok(token_reference));
+                return Some(LexerResult::Ok(token_reference));
             }
         }
 
@@ -152,7 +186,7 @@ impl Lexer {
             let start_position = self.source.lexer_position;
 
             match self.process_next() {
-                Some(Ok(token)) if token.token_type().is_trivia() => {
+                Some(LexerResult::Ok(token)) if token.token_type().is_trivia() => {
                     // Take all trivia up to and including the newline character. If we see a newline character
                     // we should break once we have taken it in.
                     let should_break =
@@ -181,7 +215,7 @@ impl Lexer {
         trailing_trivia
     }
 
-    pub fn process_next(&mut self) -> Option<Result<Token, TokenizerError>> {
+    pub fn process_next(&mut self) -> Option<LexerResult<Token>> {
         let start_position = self.source.position();
 
         let Some(next) = self.source.next() else {
@@ -293,14 +327,14 @@ impl Lexer {
                         },
                     )
                 } else {
-                    Some(Err(TokenizerError {
+                    Some(LexerResult::Fatal(vec![TokenizerError {
                         error: TokenizerErrorType::InvalidSymbol("~".to_owned()),
                         position: start_position,
-                    }))
+                    }]))
                 }
             }
 
-            '\n' => Some(Ok(Token {
+            '\n' => Some(LexerResult::Ok(Token {
                 token_type: TokenType::Whitespace {
                     characters: ShortString::from("\n"),
                 },
@@ -525,10 +559,10 @@ impl Lexer {
                 },
             ),
 
-            unknown_char => Some(Err(TokenizerError {
+            unknown_char => Some(LexerResult::Fatal(vec![TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 position: self.source.position(),
-            })),
+            }])),
         }
     }
 
@@ -821,6 +855,45 @@ impl LexerPosition {
                 bytes: 0,
             },
             index: 0,
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum LexerResult<T> {
+    Ok(T),
+    Fatal(Vec<TokenizerError>),
+    Recovered(T, Vec<TokenizerError>),
+}
+
+impl<T: std::fmt::Debug> LexerResult<T> {
+    pub fn new(value: T, errors: Vec<TokenizerError>) -> Self {
+        if errors.is_empty() {
+            Self::Ok(value)
+        } else {
+            Self::Recovered(value, errors)
+        }
+    }
+
+    pub fn unwrap(self) -> T {
+        match self {
+            Self::Ok(value) => value,
+            _ => panic!("expected ok, got {self:#?}"),
+        }
+    }
+
+    pub fn unwrap_errors(self) -> Vec<TokenizerError> {
+        match self {
+            Self::Fatal(errors) | Self::Recovered(_, errors) => errors,
+            _ => panic!("expected fatal error, got {self:#?}"),
+        }
+    }
+
+    pub fn errors(self) -> Vec<TokenizerError> {
+        match self {
+            Self::Recovered(_, errors) => errors,
+            _ => Vec::new(),
         }
     }
 }
