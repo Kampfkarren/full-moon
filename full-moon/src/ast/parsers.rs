@@ -463,7 +463,10 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let current_token = state.current().unwrap();
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return Err(()),
+    };
 
     if name_list.is_empty() {
         state.token_error(current_token.clone(), "expected name after `for`");
@@ -629,8 +632,18 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
     let unfinished_if =
         |condition, else_if| Ok(ast::If::new(condition).with_else_if(else_if_optional(else_if)));
 
-    while state.current().unwrap().is_symbol(Symbol::ElseIf) {
-        let else_if_token = state.consume().unwrap();
+    loop {
+        let else_if_token = match state.current() {
+            Ok(else_if_token) if else_if_token.is_symbol(Symbol::ElseIf) => {
+                state.consume().unwrap()
+            }
+
+            Ok(_) => break,
+
+            Err(()) => {
+                return unfinished_if(condition, else_if);
+            }
+        };
 
         let condition = match parse_expression(state) {
             ParserResult::Value(condition) => condition,
@@ -666,19 +679,17 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         });
     }
 
-    let (else_block, else_token) = if state.current().unwrap().is_symbol(Symbol::Else) {
-        let else_token = state.consume().unwrap();
-
-        match parse_block(state) {
+    let (else_block, else_token) = match state.consume_if(Symbol::Else) {
+        Some(else_token) => match parse_block(state) {
             ParserResult::Value(block) => (Some(block), Some(else_token)),
             ParserResult::NotFound => {
                 state.token_error(else_token.clone(), "expected block after `else`");
                 (Some(ast::Block::new()), Some(else_token))
             }
             ParserResult::LexerMoved => (Some(ast::Block::new()), Some(else_token)),
-        }
-    } else {
-        (None, None)
+        },
+
+        None => (None, None),
     };
 
     let end_token = match state.current() {
@@ -1337,7 +1348,10 @@ fn parse_expression_with_precedence(
     precedence: u8,
 ) -> ParserResult<Expression> {
     loop {
-        let Some(bin_op_precedence) = ast::BinOp::precedence_of_token(state.current().unwrap()) else {
+        let Some(bin_op_precedence) = ast::BinOp::precedence_of_token(match state.current() {
+            Ok(token) => token,
+            Err(()) => return ParserResult::Value(lhs),
+        }) else {
             return ParserResult::Value(lhs);
         };
 
@@ -1360,7 +1374,10 @@ fn parse_expression_with_precedence(
         };
 
         loop {
-            let next_bin_op_token = state.current().unwrap();
+            let next_bin_op_token = match state.current() {
+                Ok(token) => token,
+                Err(()) => break,
+            }
 
             let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token) else {
                 break;
