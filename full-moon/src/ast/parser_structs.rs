@@ -1,8 +1,6 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{
-    Lexer, LexerResult, Symbol, Token, TokenKind, TokenReference, TokenType, TokenizerError,
-};
+use crate::tokenizer::{Lexer, LexerResult, Symbol, TokenKind, TokenReference};
 
 use super::{parsers::parse_block, Ast, Block};
 
@@ -121,10 +119,6 @@ impl ParserState {
                 additional: Some(error.into()),
             },
         ));
-    }
-
-    pub fn current_offset(&self) -> usize {
-        self.lexer.source.lexer_position.index
     }
 }
 

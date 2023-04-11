@@ -1,7 +1,4 @@
-use full_moon::{
-    ast::AstResult,
-    tokenizer::{self, LexerResult},
-};
+use full_moon::tokenizer::{self, LexerResult};
 use insta::assert_yaml_snapshot;
 use std::{fs, path::Path};
 

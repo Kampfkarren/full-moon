@@ -5,7 +5,7 @@ use super::{
 };
 
 pub struct Lexer {
-    pub source: LexerSource,
+    source: LexerSource,
     sent_eof: bool,
 
     // rewrite todo: maybe an array if we need more lookahead
@@ -249,7 +249,7 @@ impl Lexer {
                 identifier.push(initial);
 
                 while let Some(next) = self.source.current() {
-                    if is_identifier_start(next) || matches!(next, '0'..='9') {
+                    if is_identifier_start(next) || next.is_ascii_digit() {
                         identifier.push(self.source.next().expect("peeked, but no next"));
                     } else {
                         break;
@@ -620,7 +620,7 @@ impl Lexer {
         let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
-            if matches!(next, '0'..='9') {
+            if next.is_ascii_digit() {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
@@ -642,7 +642,7 @@ impl Lexer {
                 }
 
                 while let Some(next) = self.source.current() {
-                    if matches!(next, '0'..='9') {
+                    if next.is_ascii_digit() {
                         number.push(self.source.next().expect("peeked, but no next"));
                     } else {
                         break;
@@ -853,12 +853,7 @@ impl Lexer {
         'read_comment_char: loop {
             let next = match self.source.next() {
                 Some(next) => next,
-                None => {
-                    return MultiLineBodyResult::Unclosed {
-                        blocks,
-                        body: body.into(),
-                    }
-                }
+                None => return MultiLineBodyResult::Unclosed { blocks, body },
             };
 
             if next == ']' {
@@ -903,7 +898,7 @@ fn is_identifier_start(character: char) -> bool {
 
 pub struct LexerSource {
     source: Vec<char>,
-    pub lexer_position: LexerPosition,
+    lexer_position: LexerPosition,
 }
 
 impl LexerSource {
@@ -955,7 +950,7 @@ impl LexerSource {
 #[derive(Clone, Copy)]
 pub struct LexerPosition {
     position: Position,
-    pub index: usize,
+    index: usize,
 }
 
 impl LexerPosition {
@@ -1014,9 +1009,4 @@ enum MultiLineBodyResult {
     Ok { blocks: usize, body: String },
     NotMultiLine { blocks: usize },
     Unclosed { blocks: usize, body: String },
-}
-
-enum Recoverable<T> {
-    Ok(T),
-    Recovered(T, TokenizerError),
 }

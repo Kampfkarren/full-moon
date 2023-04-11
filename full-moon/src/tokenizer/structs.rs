@@ -7,7 +7,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::Ordering,
-    convert::{TryFrom, TryInto},
+    convert::TryFrom,
     fmt::{self, Display},
 };
 
@@ -471,33 +471,6 @@ pub enum TokenType {
 }
 
 impl TokenType {
-    fn new_string(literal: &str, quote_type: StringLiteralQuoteType) -> Self {
-        let literal = literal.into();
-
-        Self::StringLiteral {
-            literal,
-            quote_type,
-            multi_line: None,
-        }
-    }
-
-    /// Can this token type contain new lines?
-    fn is_extensive(&self) -> bool {
-        #[cfg(feature = "roblox")]
-        let is_interpolated_string = matches!(self, TokenType::InterpolatedString { .. });
-
-        #[cfg(not(feature = "roblox"))]
-        let is_interpolated_string = false;
-
-        matches!(
-            self,
-            TokenType::MultiLineComment { .. }
-                | TokenType::Shebang { .. }
-                | TokenType::StringLiteral { .. }
-                | TokenType::Whitespace { .. }
-        ) || is_interpolated_string
-    }
-
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
@@ -1061,27 +1034,6 @@ impl fmt::Display for TokenizerError {
 }
 
 impl std::error::Error for TokenizerError {}
-
-fn read_position(code: &str, position: &mut Position) -> bool {
-    let mut has_newline = false;
-
-    for c in code.chars() {
-        if has_newline {
-            position.line += 1;
-            position.character = 1;
-
-            has_newline = false;
-        }
-
-        if c == '\n' {
-            has_newline = true;
-        } else {
-            position.character += 1;
-        }
-    }
-
-    has_newline
-}
 
 // #[cfg(test)]
 #[cfg(feature = "rewrite todo: tokenizer tests")]

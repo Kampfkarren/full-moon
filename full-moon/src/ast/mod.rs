@@ -2067,7 +2067,7 @@ impl BinOp {
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
     #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
-        BinOp::precedence_of_token(&self.token()).expect("invalid token")
+        BinOp::precedence_of_token(self.token()).expect("invalid token")
     }
 
     pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {

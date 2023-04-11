@@ -53,7 +53,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 fn parse_block_with_end(
     state: &mut ParserState,
     // rewrite todo: use this, or the range
-    start_for_errors: &TokenReference,
+    _start_for_errors: &TokenReference,
 ) -> Result<(ast::Block, TokenReference), ()> {
     let block = match parse_block(state) {
         ParserResult::Value(block) => block,
