@@ -312,8 +312,19 @@ impl Lexer {
             }
 
             quote @ ('"' | '\'') => {
-                let string = self.read_string(quote);
-                self.create(start_position, string)
+                let (string, recovered) = self.read_string(quote);
+                self.create_recovered(
+                    start_position,
+                    string,
+                    if recovered {
+                        vec![TokenizerError {
+                            error: TokenizerErrorType::UnclosedString,
+                            position: start_position,
+                        }]
+                    } else {
+                        Vec::new()
+                    },
+                )
             }
 
             '=' => {
@@ -671,7 +682,8 @@ impl Lexer {
         }
     }
 
-    fn read_string(&mut self, quote: char) -> TokenType {
+    // (string, had to be recovered?)
+    fn read_string(&mut self, quote: char) -> (TokenType, bool) {
         let quote_type = match quote {
             '"' => StringLiteralQuoteType::Double,
             '\'' => StringLiteralQuoteType::Single,
@@ -685,12 +697,14 @@ impl Lexer {
             let next = match self.source.next() {
                 Some(next) => next,
                 None => {
-                    // return TokenType::StringLiteral {
-                    //     literal: literal.into(),
-                    //     multi_line: None,
-                    //     quote_type,
-                    // }
-                    todo!("this should return the string literal, and error")
+                    return (
+                        TokenType::StringLiteral {
+                            literal: literal.into(),
+                            multi_line: None,
+                            quote_type,
+                        },
+                        true,
+                    )
                 }
             };
 
@@ -706,20 +720,25 @@ impl Lexer {
                 }
 
                 (false, '\n' | '\r') => {
-                    // return TokenType::StringLiteral {
-                    //     literal: literal.into(),
-                    //     multi_line: None,
-                    //     quote_type,
-                    // }
-                    todo!("this should return the string literal, and error")
+                    return (
+                        TokenType::StringLiteral {
+                            literal: literal.into(),
+                            multi_line: None,
+                            quote_type,
+                        },
+                        true,
+                    )
                 }
 
                 (false, ..) if next == quote => {
-                    return TokenType::StringLiteral {
-                        literal: literal.into(),
-                        multi_line: None,
-                        quote_type,
-                    };
+                    return (
+                        TokenType::StringLiteral {
+                            literal: literal.into(),
+                            multi_line: None,
+                            quote_type,
+                        },
+                        false,
+                    );
                 }
 
                 (false, ..) => {
@@ -963,4 +982,9 @@ enum MultiLineBodyResult {
     Ok { blocks: usize, body: String },
     NotMultiLine { blocks: usize },
     Unclosed { blocks: usize, body: String },
+}
+
+enum Recoverable<T> {
+    Ok(T),
+    Recovered(T, TokenizerError),
 }

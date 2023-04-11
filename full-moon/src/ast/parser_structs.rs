@@ -243,7 +243,7 @@ impl AstResult {
             LexerResult::Fatal(error) => unreachable!("error: {error:?}"),
         };
 
-        debug_assert!(matches!(eof.token_kind(), TokenKind::Eof));
+        debug_assert_eq!(eof.token_kind(), TokenKind::Eof);
 
         Self {
             ast: Ast { nodes: block, eof },

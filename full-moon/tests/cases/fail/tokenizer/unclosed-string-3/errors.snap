@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 18
+expression: result.errors
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-3
+---
+- TokenizerError:
+    error: UnclosedString
+    position:
+      bytes: 10
+      line: 1
+      character: 11
+
