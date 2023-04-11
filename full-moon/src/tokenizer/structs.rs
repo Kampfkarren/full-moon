@@ -363,6 +363,9 @@ pub enum TokenizerErrorType {
     /// An unexpected #! was found
     // rewrite todo: remove
     UnexpectedShebang,
+    // rewrite todo: changelog
+    // rewrite todo: this only makes sense with RANGE
+    InvalidNumber,
     /// An unexpected token was found
     UnexpectedToken(char),
     /// Symbol passed is not valid
@@ -379,6 +382,7 @@ impl fmt::Display for TokenizerErrorType {
             TokenizerErrorType::UnexpectedToken(character) => {
                 write!(formatter, "unexpected character {character}")
             }
+            TokenizerErrorType::InvalidNumber => "invalid number".fmt(formatter),
             TokenizerErrorType::InvalidSymbol(symbol) => {
                 write!(formatter, "invalid symbol {symbol}")
             }

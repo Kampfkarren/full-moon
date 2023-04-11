@@ -301,15 +301,11 @@ impl Lexer {
                     let number = self.read_hex_number();
                     self.create(start_position, number)
                 } else {
-                    let number = self.read_number(initial.to_string());
-                    self.create(start_position, number)
+                    self.read_number(start_position, initial.to_string())
                 }
             }
 
-            initial @ ('1'..='9') => {
-                let number = self.read_number(initial.to_string());
-                self.create(start_position, number)
-            }
+            initial @ ('1'..='9') => self.read_number(start_position, initial.to_string()),
 
             quote @ ('"' | '\'') => {
                 let (string, recovered) = self.read_string(quote);
@@ -566,8 +562,7 @@ impl Lexer {
                         )
                     }
                 } else if matches!(self.source.current(), Some('0'..='9')) {
-                    let number = self.read_number(".".to_string());
-                    self.create(start_position, number)
+                    self.read_number(start_position, ".".to_string())
                 } else {
                     self.create(
                         start_position,
@@ -618,7 +613,11 @@ impl Lexer {
         }
     }
 
-    fn read_number(&mut self, mut number: String) -> TokenType {
+    fn read_number(
+        &mut self,
+        start_position: Position,
+        mut number: String,
+    ) -> Option<LexerResult<Token>> {
         let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
@@ -640,7 +639,24 @@ impl Lexer {
                 }
 
                 if !matches!(self.source.current(), Some('0'..='9')) {
-                    todo!("error: expected digit after exponent (e.g. 2e+3), need to be able to put an error in and then give a fallible number-ish")
+                    loop {
+                        if matches!(self.source.current(), Some(token) if token.is_ascii_whitespace())
+                            || self.source.current().is_none()
+                        {
+                            return self.create_recovered(
+                                start_position,
+                                TokenType::Number {
+                                    text: ShortString::from(number),
+                                },
+                                vec![TokenizerError {
+                                    error: TokenizerErrorType::InvalidNumber,
+                                    position: self.source.position(),
+                                }],
+                            );
+                        }
+
+                        number.push(self.source.next().expect("peeked, but no next"));
+                    }
                 }
 
                 while let Some(next) = self.source.current() {
@@ -657,9 +673,12 @@ impl Lexer {
             }
         }
 
-        TokenType::Number {
-            text: ShortString::from(number),
-        }
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
     }
 
     fn read_hex_number(&mut self) -> TokenType {
