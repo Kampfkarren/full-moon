@@ -1,5 +1,3 @@
-// rewrite todo: do a lot of tests for reasonable cases of recoverability (like local x = \n local y = 1)
-// rewrite todo: test function() true end, i think it's not going to highlight "true" and i want it to.
 // actually, it might but only because the last token isn't an eof. parser is going to have to throw out those tokens
 // and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
 // maybe keep parsing until there's an `end`???? but then global blocks...aaa
