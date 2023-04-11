@@ -1373,12 +1373,7 @@ fn parse_expression_with_precedence(
             ParserResult::LexerMoved => return ParserResult::LexerMoved,
         };
 
-        loop {
-            let next_bin_op_token = match state.current() {
-                Ok(token) => token,
-                Err(()) => break,
-            }
-
+        while let Ok(next_bin_op_token) = state.current() {
             let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token) else {
                 break;
             };
