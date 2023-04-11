@@ -9,7 +9,9 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-old_full_moon = { package = "full_moon", version = "0.18.1" }
+old_full_moon = { package = "full_moon", version = "0.18.1", features = [
+	"stacker",
+] }
 
 [dependencies.full_moon]
 path = ".."

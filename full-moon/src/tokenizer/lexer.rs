@@ -298,8 +298,7 @@ impl Lexer {
             initial @ '0' => {
                 if self.source.current() == Some('x') {
                     self.source.next();
-                    let number = self.read_hex_number();
-                    self.create(start_position, number)
+                    self.read_hex_number(start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -620,31 +619,12 @@ impl Lexer {
     ) -> Option<LexerResult<Token>> {
         let mut hit_decimal = false;
 
-        let eat_rest_of_number = |this: &mut Lexer, mut number: String| loop {
-            if matches!(this.source.current(), Some(token) if token.is_ascii_whitespace())
-                || this.source.current().is_none()
-            {
-                return this.create_recovered(
-                    start_position,
-                    TokenType::Number {
-                        text: ShortString::from(number),
-                    },
-                    vec![TokenizerError {
-                        error: TokenizerErrorType::InvalidNumber,
-                        position: this.source.position(),
-                    }],
-                );
-            }
-
-            number.push(this.source.next().expect("peeked, but no next"));
-        };
-
         while let Some(next) = self.source.current() {
             if matches!(next, '0'..='9') {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
-                    return eat_rest_of_number(self, number);
+                    return Some(self.eat_invalid_number(start_position, number));
                 }
 
                 hit_decimal = true;
@@ -658,7 +638,7 @@ impl Lexer {
                 }
 
                 if !matches!(self.source.current(), Some('0'..='9')) {
-                    return eat_rest_of_number(self, number);
+                    return Some(self.eat_invalid_number(start_position, number));
                 }
 
                 while let Some(next) = self.source.current() {
@@ -683,7 +663,35 @@ impl Lexer {
         )
     }
 
-    fn read_hex_number(&mut self) -> TokenType {
+    fn eat_invalid_number(
+        &mut self,
+        start_position: Position,
+        mut number: String,
+    ) -> LexerResult<Token> {
+        loop {
+            if matches!(self.source.current(), Some(token) if token.is_ascii_whitespace())
+                || self.source.current().is_none()
+            {
+                return LexerResult::new(
+                    Token {
+                        token_type: TokenType::Number {
+                            text: number.into(),
+                        },
+                        start_position,
+                        end_position: self.source.position(),
+                    },
+                    vec![TokenizerError {
+                        error: TokenizerErrorType::InvalidNumber,
+                        position: self.source.position(),
+                    }],
+                );
+            }
+
+            number.push(self.source.next().expect("peeked, but no next"));
+        }
+    }
+
+    fn read_hex_number(&mut self, start_position: Position) -> Option<LexerResult<Token>> {
         let mut number = "0x".to_string();
 
         while let Some(next) = self.source.current() {
@@ -695,12 +703,15 @@ impl Lexer {
         }
 
         if number.len() == 2 {
-            todo!("error: expected hex digit after 0x")
+            return Some(self.eat_invalid_number(start_position, number));
         }
 
-        TokenType::Number {
-            text: ShortString::from(number),
-        }
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
     }
 
     // (string, had to be recovered?)
