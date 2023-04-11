@@ -11,7 +11,7 @@ use super::{
     Expression, FunctionBody, Parameter,
 };
 use crate::{
-    ast, // rewrite todo: make everything use this
+    ast,
     node::Node,
     tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
