@@ -361,6 +361,7 @@ pub enum TokenizerErrorType {
     /// An unclosed string was found
     UnclosedString,
     /// An unexpected #! was found
+    // rewrite todo: remove
     UnexpectedShebang,
     /// An unexpected token was found
     UnexpectedToken(char),
