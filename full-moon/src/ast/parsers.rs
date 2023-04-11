@@ -296,13 +296,16 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
                     None => match next_prefix {
                         ast::Prefix::Name(name) => {
-                            let last_var = var_list.pop().unwrap().into_value();
-                            var_list.push(Pair::Punctuated(last_var, next_comma));
-
-                            var_list.push(Pair::End(ast::Var::Name(name)));
+                            var_list.push_punctuated(ast::Var::Name(name), next_comma);
                         }
 
-                        ast::Prefix::Expression(expr) => todo!("VarExpression?"),
+                        prefix @ ast::Prefix::Expression(_) => var_list.push_punctuated(
+                            ast::Var::Expression(Box::new(ast::VarExpression {
+                                prefix,
+                                suffixes: next_suffixes,
+                            })),
+                            next_comma,
+                        ),
                     },
                 }
             }
