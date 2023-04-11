@@ -227,7 +227,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
                 None => match prefix {
                     ast::Prefix::Name(name) => ast::Var::Name(name),
-                    ast::Prefix::Expression(_) => todo!("VarExpression?"),
+
+                    // I think this only happens in error cases
+                    prefix @ ast::Prefix::Expression(_) => {
+                        ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
+                    }
                 },
             };
 
