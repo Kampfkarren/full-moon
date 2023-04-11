@@ -234,9 +234,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             match state.current() {
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
-                Ok(_) => {
+                Ok(token) => {
                     state.token_error(
-                        state.current().unwrap().clone(),
+                        token.clone(),
                         "unexpected expression when looking for a statement",
                     );
 
@@ -249,10 +249,12 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             let mut var_list = Punctuated::new();
             var_list.push(Pair::End(var));
 
-            // rewrite todo: unwrap() here because of eof, like referenced in the last comment
-            // rewrite todo: this isn't correct because error case is real. search for everything that does this
-            while state.current().unwrap().is_symbol(Symbol::Comma) {
-                let next_comma = state.consume().unwrap();
+            loop {
+                let next_comma = match state.current() {
+                    Ok(token) if token.is_symbol(Symbol::Comma) => state.consume().unwrap(),
+                    Ok(_) => break,
+                    Err(()) => return ParserResult::LexerMoved,
+                };
 
                 let (next_prefix, next_suffixes) = match parse_prefix_and_suffixes(state) {
                     ParserResult::Value((prefix, suffixes)) => (prefix, suffixes),
