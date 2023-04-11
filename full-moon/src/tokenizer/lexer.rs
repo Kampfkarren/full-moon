@@ -620,12 +620,31 @@ impl Lexer {
     ) -> Option<LexerResult<Token>> {
         let mut hit_decimal = false;
 
+        let eat_rest_of_number = |this: &mut Lexer, mut number: String| loop {
+            if matches!(this.source.current(), Some(token) if token.is_ascii_whitespace())
+                || this.source.current().is_none()
+            {
+                return this.create_recovered(
+                    start_position,
+                    TokenType::Number {
+                        text: ShortString::from(number),
+                    },
+                    vec![TokenizerError {
+                        error: TokenizerErrorType::InvalidNumber,
+                        position: this.source.position(),
+                    }],
+                );
+            }
+
+            number.push(this.source.next().expect("peeked, but no next"));
+        };
+
         while let Some(next) = self.source.current() {
             if matches!(next, '0'..='9') {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
-                    todo!("error: multiple decimal points in number")
+                    return eat_rest_of_number(self, number);
                 }
 
                 hit_decimal = true;
@@ -639,24 +658,7 @@ impl Lexer {
                 }
 
                 if !matches!(self.source.current(), Some('0'..='9')) {
-                    loop {
-                        if matches!(self.source.current(), Some(token) if token.is_ascii_whitespace())
-                            || self.source.current().is_none()
-                        {
-                            return self.create_recovered(
-                                start_position,
-                                TokenType::Number {
-                                    text: ShortString::from(number),
-                                },
-                                vec![TokenizerError {
-                                    error: TokenizerErrorType::InvalidNumber,
-                                    position: self.source.position(),
-                                }],
-                            );
-                        }
-
-                        number.push(self.source.next().expect("peeked, but no next"));
-                    }
+                    return eat_rest_of_number(self, number);
                 }
 
                 while let Some(next) = self.source.current() {
