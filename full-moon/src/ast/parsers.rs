@@ -283,15 +283,13 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                     }
 
                     Some(ast::Suffix::Index(_)) => {
-                        let last_var = var_list.pop().unwrap().into_value();
-                        var_list.push(Pair::Punctuated(last_var, next_comma));
-
-                        var_list.push(Pair::End(ast::Var::Expression(Box::new(
-                            ast::VarExpression {
+                        var_list.push_punctuated(
+                            ast::Var::Expression(Box::new(ast::VarExpression {
                                 prefix: next_prefix,
                                 suffixes: next_suffixes,
-                            },
-                        ))))
+                            })),
+                            next_comma,
+                        );
                     }
 
                     None => match next_prefix {
