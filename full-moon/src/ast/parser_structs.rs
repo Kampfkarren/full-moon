@@ -180,6 +180,12 @@ impl AstResult {
                 Some(LexerResult::Ok(_) | LexerResult::Recovered(_, _)) => {
                     if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
                         if new_block.stmts.is_empty() {
+                            if let Ok(token) = parser_state.current() {
+                                if token.token_kind() == TokenKind::Eof {
+                                    break;
+                                }
+                            }
+
                             match parser_state.consume() {
                                 ParserResult::Value(token) => {
                                     if let Some(crate::Error::AstError(
@@ -221,11 +227,26 @@ impl AstResult {
             }
         }
 
+        let eof = match parser_state.lexer.consume().unwrap() {
+            LexerResult::Ok(token) => token,
+
+            LexerResult::Recovered(token, errors) => {
+                for error in errors {
+                    parser_state
+                        .errors
+                        .push(crate::Error::TokenizerError(error));
+                }
+
+                token
+            }
+
+            LexerResult::Fatal(error) => unreachable!("error: {error:?}"),
+        };
+
+        debug_assert!(matches!(eof.token_kind(), TokenKind::Eof));
+
         Self {
-            ast: Ast {
-                nodes: block,
-                eof: parser_state.lexer.consume().unwrap().unwrap(),
-            },
+            ast: Ast { nodes: block, eof },
             errors: parser_state.errors,
         }
     }

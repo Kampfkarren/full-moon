@@ -1,0 +1,35 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 19
+expression: result.ast
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-comment-1
+---
+nodes:
+  stmts: []
+eof:
+  leading_trivia:
+    - start_position:
+        bytes: 0
+        line: 1
+        character: 1
+      end_position:
+        bytes: 4
+        line: 1
+        character: 5
+      token_type:
+        type: MultiLineComment
+        blocks: 0
+        comment: ""
+  token:
+    start_position:
+      bytes: 4
+      line: 1
+      character: 5
+    end_position:
+      bytes: 4
+      line: 1
+      character: 5
+    token_type:
+      type: Eof
+  trailing_trivia: []
+
