@@ -163,7 +163,6 @@ impl AstResult {
             _ => Block::new(),
         };
 
-        // rewrite todo: try to keep parsing??
         loop {
             match parser_state.lexer.current() {
                 Some(LexerResult::Ok(token)) if token.token_kind() == TokenKind::Eof => {
