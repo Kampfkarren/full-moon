@@ -1359,7 +1359,7 @@ fn parse_expression_with_precedence(
             return ParserResult::Value(lhs);
         }
 
-        let bin_op = consume_bin_op(state).unwrap();
+        let bin_op = ast::BinOp::consume(state).unwrap();
 
         let mut rhs = match parse_primary_expression(state) {
             ParserResult::Value(expression) => expression,
@@ -1408,35 +1408,6 @@ fn parse_expression_with_precedence(
             binop: bin_op,
             rhs: Box::new(rhs),
         };
-    }
-}
-
-// rewrite todo: should probably all be done by the macro.
-// all the copy and paste i've been doing is bad
-fn consume_bin_op(state: &mut ParserState) -> Option<ast::BinOp> {
-    match state.current().unwrap().token_type() {
-        TokenType::Symbol { symbol } => match symbol {
-            Symbol::And => Some(ast::BinOp::And(state.consume().unwrap())),
-            Symbol::Caret => Some(ast::BinOp::Caret(state.consume().unwrap())),
-            Symbol::GreaterThan => Some(ast::BinOp::GreaterThan(state.consume().unwrap())),
-            Symbol::GreaterThanEqual => {
-                Some(ast::BinOp::GreaterThanEqual(state.consume().unwrap()))
-            }
-            Symbol::LessThan => Some(ast::BinOp::LessThan(state.consume().unwrap())),
-            Symbol::LessThanEqual => Some(ast::BinOp::LessThanEqual(state.consume().unwrap())),
-            Symbol::Minus => Some(ast::BinOp::Minus(state.consume().unwrap())),
-            Symbol::Or => Some(ast::BinOp::Or(state.consume().unwrap())),
-            Symbol::Percent => Some(ast::BinOp::Percent(state.consume().unwrap())),
-            Symbol::Plus => Some(ast::BinOp::Plus(state.consume().unwrap())),
-            Symbol::Slash => Some(ast::BinOp::Slash(state.consume().unwrap())),
-            Symbol::Star => Some(ast::BinOp::Star(state.consume().unwrap())),
-            Symbol::TildeEqual => Some(ast::BinOp::TildeEqual(state.consume().unwrap())),
-            Symbol::TwoDots => Some(ast::BinOp::TwoDots(state.consume().unwrap())),
-            Symbol::TwoEqual => Some(ast::BinOp::TwoEqual(state.consume().unwrap())),
-            _ => None,
-        },
-
-        _ => None,
     }
 }
 

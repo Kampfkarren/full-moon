@@ -2028,37 +2028,95 @@ impl FunctionDeclaration {
     }
 }
 
-make_op!(BinOp,
+#[doc(hidden)]
+#[macro_export]
+macro_rules! make_bin_op {
+    ($(#[$outer:meta])* { $($(#[$inner:meta])* $operator:ident = $precedence:expr,)+ }) => {
+        #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+        #[non_exhaustive]
+        $(#[$outer])*
+        #[display(fmt = "{}")]
+        pub enum BinOp {
+            $(
+                $(#[$inner])*
+                #[allow(missing_docs)]
+                $operator(TokenReference),
+            )+
+        }
+
+        impl BinOp {
+            /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
+            pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
+                match token.token_type() {
+                    TokenType::Symbol { symbol } => match symbol {
+                        $(
+                            Symbol::$operator => Some($precedence),
+                        )+
+                        _ => None,
+                    },
+
+                    _ => None
+                }
+            }
+
+            /// The token associated with this operator
+            pub fn token(&self) -> &TokenReference {
+                match self {
+                    $(
+                        BinOp::$operator(token) => token,
+                    )+
+                }
+            }
+
+            pub(crate) fn consume(state: &mut parser_structs::ParserState) -> Option<Self> {
+                match state.current().unwrap().token_type() {
+                    TokenType::Symbol { symbol } => match symbol {
+                        $(
+                            Symbol::$operator => Some(BinOp::$operator(state.consume().unwrap())),
+                        )+
+
+                        _ => None,
+                    },
+
+                    _ => None,
+                }
+            }
+        }
+    };
+}
+
+make_bin_op!(
     #[doc = "Operators that require two operands, such as X + Y or X - Y"]
     #[visit(skip_visit_self)]
     {
-        And,
-        Caret,
-        GreaterThan,
-        GreaterThanEqual,
-        LessThan,
-        LessThanEqual,
-        Minus,
-        Or,
-        Percent,
-        Plus,
-        Slash,
-        Star,
-        TildeEqual,
-        TwoDots,
-        TwoEqual,
-        #[cfg(feature = "lua53")]
-        Ampersand,
-        #[cfg(feature = "lua53")]
-        DoubleSlash,
-        #[cfg(feature = "lua53")]
-        DoubleLessThan,
-        #[cfg(feature = "lua53")]
-        Pipe,
-        #[cfg(feature = "lua53")]
-        DoubleGreaterThan,
-        #[cfg(feature = "lua53")]
-        Tilde,
+        And = 2,
+        Caret = 8,
+        GreaterThan = 3,
+        GreaterThanEqual = 3,
+        LessThan = 3,
+        LessThanEqual = 3,
+        Minus = 5,
+        Or = 1,
+        Percent = 6,
+        Plus = 5,
+        Slash = 6,
+        Star = 6,
+        TildeEqual = 3,
+        TwoDots = 4,
+        TwoEqual = 3,
+        // #[cfg(feature = "lua53")]
+        // Ampersand,
+        // #[cfg(feature = "lua53")]
+        // DoubleSlash,
+        // #[cfg(feature = "lua53")]
+        // DoubleLessThan,
+        // #[cfg(feature = "lua53")]
+        // Pipe,
+        // #[cfg(feature = "lua53")]
+        // DoubleGreaterThan,
+        // #[cfg(feature = "lua53")]
+        // Tilde,
     }
 );
 
@@ -2070,32 +2128,7 @@ impl BinOp {
         BinOp::precedence_of_token(self.token()).expect("invalid token")
     }
 
-    pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
-        match token.token_type() {
-            TokenType::Symbol { symbol } => match symbol {
-                Symbol::Caret => Some(8),
-                Symbol::Star => Some(6),
-                Symbol::Slash => Some(6),
-                Symbol::Percent => Some(6),
-                Symbol::Plus => Some(5),
-                Symbol::Minus => Some(5),
-                Symbol::TwoDots => Some(4),
-                Symbol::GreaterThan => Some(3),
-                Symbol::LessThan => Some(3),
-                Symbol::GreaterThanEqual => Some(3),
-                Symbol::LessThanEqual => Some(3),
-                Symbol::TildeEqual => Some(3),
-                Symbol::TwoEqual => Some(3),
-                Symbol::And => Some(2),
-                Symbol::Or => Some(1),
-                _ => None,
-            },
-
-            _ => None,
-        }
-    }
-
-    // rewrite todo: i haven't touched this
+    // rewrite todo: i haven't touched this. this is kept as reference.
     /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
     /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
     #[cfg(feature = "lua53")]
@@ -2135,34 +2168,6 @@ impl BinOp {
                 symbol: Symbol::TwoDots
             }
         )
-    }
-
-    /// The token associated with the operator
-    pub fn token(&self) -> &TokenReference {
-        match self {
-            BinOp::And(token)
-            | BinOp::Caret(token)
-            | BinOp::GreaterThan(token)
-            | BinOp::GreaterThanEqual(token)
-            | BinOp::LessThan(token)
-            | BinOp::LessThanEqual(token)
-            | BinOp::Minus(token)
-            | BinOp::Or(token)
-            | BinOp::Percent(token)
-            | BinOp::Plus(token)
-            | BinOp::Slash(token)
-            | BinOp::Star(token)
-            | BinOp::TildeEqual(token)
-            | BinOp::TwoDots(token)
-            | BinOp::TwoEqual(token) => token,
-            #[cfg(feature = "lua53")]
-            BinOp::Ampersand(token)
-            | BinOp::DoubleSlash(token)
-            | BinOp::DoubleLessThan(token)
-            | BinOp::Pipe(token)
-            | BinOp::DoubleGreaterThan(token)
-            | BinOp::Tilde(token) => token,
-        }
     }
 }
 
