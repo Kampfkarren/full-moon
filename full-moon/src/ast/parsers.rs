@@ -1562,7 +1562,6 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         }
     }
 
-    // rewrite todo: accept `,)`, and discard?
     if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
         let last_parameter = parameters.pop().unwrap();
 
