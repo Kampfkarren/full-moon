@@ -471,10 +471,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         Err(()) => return Err(()),
     };
 
-    if name_list.is_empty() {
-        state.token_error(current_token.clone(), "expected name after `for`");
-        return Err(());
-    }
+    debug_assert!(!name_list.is_empty());
 
     if name_list.len() == 1 && current_token.is_symbol(Symbol::Equal) {
         return Ok(ast::Stmt::NumericFor(expect_numeric_for_stmt(
