@@ -207,7 +207,6 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         }
         | TokenType::Identifier { .. } => {
             // unwrap() because we're always starting on the right path
-            // rewrite todo: i'm very skeptical of the fallibility of this
             let (prefix, suffixes) = try_parser!(parse_prefix_and_suffixes(state)).unwrap();
 
             let var = match suffixes.last() {
