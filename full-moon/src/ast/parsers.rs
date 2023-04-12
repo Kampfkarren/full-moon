@@ -20,7 +20,6 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     loop {
         match parse_stmt(state) {
             ParserResult::Value(stmt) => {
-                // rewrite todo: consume
                 let semicolon = state.consume_if(Symbol::Semicolon);
                 stmts.push((stmt, semicolon));
             }
