@@ -1,0 +1,8 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 19
+expression: "full_moon::print(&ast)"
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-4
+---
+"local x = 1\n"
+

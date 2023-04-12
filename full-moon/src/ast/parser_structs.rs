@@ -169,7 +169,6 @@ impl AstResult {
                     break;
                 }
 
-                // rewrite todo: im skeptical that i can just throw Recovered in here without losing errors
                 Some(LexerResult::Ok(_) | LexerResult::Recovered(_, _)) => {
                     if let ParserResult::Value(new_block) = parse_block(&mut parser_state) {
                         if new_block.stmts.is_empty() {
