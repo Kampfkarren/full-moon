@@ -2166,16 +2166,18 @@ impl BinOp {
     }
 }
 
-make_op!(UnOp,
-    #[doc = "Operators that require just one operand, such as #X"]
-    {
-        Minus,
-        Not,
-        Hash,
-        #[cfg(feature = "lua53")]
-        Tilde,
-    }
-);
+/// Operators that require just one operand, such as #X
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[non_exhaustive]
+#[display(fmt = "{}")]
+pub enum UnOp {
+    Minus(TokenReference),
+    Not(TokenReference),
+    Hash(TokenReference),
+    #[cfg(feature = "lua53")]
+    Tilde(TokenReference),
+}
 
 impl UnOp {
     /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
