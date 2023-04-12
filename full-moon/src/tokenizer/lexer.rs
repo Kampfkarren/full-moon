@@ -8,7 +8,6 @@ pub struct Lexer {
     source: LexerSource,
     sent_eof: bool,
 
-    // rewrite todo: maybe an array if we need more lookahead
     next_token: Option<LexerResult<TokenReference>>,
     peek_token: Option<LexerResult<TokenReference>>,
 }
