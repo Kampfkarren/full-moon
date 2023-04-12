@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 45
+assertion_line: 42
 expression: tokens
 input_file: full-moon/tests/cases/fail/tokenizer/bad-numbers-1
 ---
@@ -71,8 +71,11 @@ Recovered:
       token_type:
         type: Eof
   - - error: InvalidNumber
-      position:
-        bytes: 10
-        line: 1
-        character: 11
+      range:
+        - bytes: 4
+          line: 1
+          character: 5
+        - bytes: 10
+          line: 1
+          character: 11
 

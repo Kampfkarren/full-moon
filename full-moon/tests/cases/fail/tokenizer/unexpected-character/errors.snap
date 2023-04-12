@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 18
+assertion_line: 15
 expression: result.errors
 input_file: full-moon/tests/cases/fail/tokenizer/unexpected-character
 ---
@@ -22,8 +22,11 @@ input_file: full-moon/tests/cases/fail/tokenizer/unexpected-character
 - TokenizerError:
     error:
       UnexpectedToken: 🤔
-    position:
-      bytes: 14
-      line: 1
-      character: 12
+    range:
+      - bytes: 10
+        line: 1
+        character: 11
+      - bytes: 14
+        line: 1
+        character: 12
 

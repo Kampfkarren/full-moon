@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 18
+assertion_line: 15
 expression: result.errors
 input_file: full-moon/tests/cases/fail/tokenizer/wrong-place-shebang
 ---
@@ -22,10 +22,13 @@ input_file: full-moon/tests/cases/fail/tokenizer/wrong-place-shebang
 - TokenizerError:
     error:
       UnexpectedToken: "!"
-    position:
-      bytes: 3
-      line: 2
-      character: 3
+    range:
+      - bytes: 2
+        line: 2
+        character: 2
+      - bytes: 3
+        line: 2
+        character: 3
 - AstError:
     UnexpectedToken:
       token:

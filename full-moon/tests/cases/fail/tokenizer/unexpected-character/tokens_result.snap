@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 45
+assertion_line: 42
 expression: tokens
 input_file: full-moon/tests/cases/fail/tokenizer/unexpected-character
 ---
@@ -83,8 +83,11 @@ Recovered:
         type: Eof
   - - error:
         UnexpectedToken: 🤔
-      position:
-        bytes: 14
-        line: 1
-        character: 12
+      range:
+        - bytes: 10
+          line: 1
+          character: 11
+        - bytes: 14
+          line: 1
+          character: 12
 
