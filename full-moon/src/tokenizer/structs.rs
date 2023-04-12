@@ -1007,8 +1007,8 @@ impl fmt::Display for StringLiteralQuoteType {
 pub struct TokenizerError {
     /// The type of error
     pub(crate) error: TokenizerErrorType,
-    /// The position of the token that caused the error
-    pub(crate) position: Position,
+    /// The range of the token that caused the error
+    pub(crate) range: (Position, Position),
 }
 
 impl TokenizerError {
@@ -1017,9 +1017,14 @@ impl TokenizerError {
         &self.error
     }
 
-    /// The position of the token that caused the error
+    /// The position of the first token that caused the error
     pub fn position(&self) -> Position {
-        self.position
+        self.range.0
+    }
+
+    /// The range of the token that caused the error
+    pub fn range(&self) -> (Position, Position) {
+        self.range
     }
 }
 
@@ -1027,8 +1032,12 @@ impl fmt::Display for TokenizerError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
-            "{} at line {}, column {}",
-            self.error, self.position.line, self.position.character,
+            "{} ({}:{} to {}:{})",
+            self.error,
+            self.range.0.line,
+            self.range.0.character,
+            self.range.1.line,
+            self.range.1.character
         )
     }
 }

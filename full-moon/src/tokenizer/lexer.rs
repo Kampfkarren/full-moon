@@ -313,7 +313,7 @@ impl Lexer {
                     if recovered {
                         vec![TokenizerError {
                             error: TokenizerErrorType::UnclosedString,
-                            position: start_position,
+                            range: (start_position, self.source.position()),
                         }]
                     } else {
                         Vec::new()
@@ -350,7 +350,7 @@ impl Lexer {
                 } else {
                     Some(LexerResult::Fatal(vec![TokenizerError {
                         error: TokenizerErrorType::InvalidSymbol("~".to_owned()),
-                        position: start_position,
+                        range: (start_position, self.source.position()),
                     }]))
                 }
             }
@@ -403,7 +403,7 @@ impl Lexer {
                             },
                             vec![TokenizerError {
                                 error: TokenizerErrorType::UnclosedString,
-                                position: start_position,
+                                range: (start_position, self.source.position()),
                             }],
                         ),
 
@@ -581,7 +581,7 @@ impl Lexer {
                         if recovered {
                             vec![TokenizerError {
                                 error: TokenizerErrorType::UnclosedComment,
-                                position: start_position,
+                                range: (start_position, self.source.position()),
                             }]
                         } else {
                             Vec::new()
@@ -606,7 +606,7 @@ impl Lexer {
 
             unknown_char => Some(LexerResult::Fatal(vec![TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
-                position: self.source.position(),
+                range: (start_position, self.source.position()),
             }])),
         }
     }
@@ -681,7 +681,7 @@ impl Lexer {
                     },
                     vec![TokenizerError {
                         error: TokenizerErrorType::InvalidNumber,
-                        position: self.source.position(),
+                        range: (start_position, self.source.position()),
                     }],
                 );
             }
