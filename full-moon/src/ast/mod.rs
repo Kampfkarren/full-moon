@@ -2180,20 +2180,6 @@ pub enum UnOp {
 }
 
 impl UnOp {
-    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
-    /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
-    #[cfg(not(feature = "lua53"))]
-    pub fn precedence(&self) -> u8 {
-        7
-    }
-
-    /// The precedence of the operator, from a scale of 1 to 11. The larger the number, the higher the precedence.
-    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
-    #[cfg(feature = "lua53")]
-    pub fn precedence(&self) -> u8 {
-        11
-    }
-
     /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
@@ -2202,6 +2188,8 @@ impl UnOp {
             UnOp::Tilde(token) => token,
         }
     }
+
+    // rewrite todo, changelog: document removal of precedence()
 }
 
 /// An error that occurs when creating the ast *after* tokenizing
