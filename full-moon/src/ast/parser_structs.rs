@@ -117,6 +117,7 @@ impl ParserState {
             crate::ast::AstError::UnexpectedToken {
                 token: token_reference.token,
                 additional: Some(error.into()),
+                range: None,
             },
         ));
     }

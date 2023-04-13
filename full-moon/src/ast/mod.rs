@@ -8,7 +8,7 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
@@ -2211,27 +2211,51 @@ pub enum AstError {
         token: Token,
         /// Any additional information that could be provided for debugging
         additional: Option<Cow<'static, str>>,
+        /// If set, this is the complete range of the error
+        range: Option<(Position, Position)>,
     },
+}
+
+impl AstError {
+    pub fn range(&self) -> Option<(Position, Position)> {
+        if let AstError::UnexpectedToken { token, range, .. } = self {
+            range.or_else(|| Some((token.start_position(), token.end_position())))
+        } else {
+            None
+        }
+    }
 }
 
 impl fmt::Display for AstError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AstError::Empty => write!(formatter, "tokens passed was empty, which shouldn't happen normally"),
-            AstError::NoEof => write!(formatter, "tokens passed had no eof token, which shouldn't happen normally"),
-            AstError::UnexpectedToken { token, additional } => write!(
+            AstError::Empty => write!(
                 formatter,
-                "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
-                token,
-                token.start_position().line(),
-                token.start_position().character(),
-                token.end_position().line(),
-                token.end_position().character(),
-                match additional {
-                    Some(additional) => format!("\nadditional information: {additional}"),
-                    None => String::new(),
-                }
-            )
+                "tokens passed was empty, which shouldn't happen normally"
+            ),
+            AstError::NoEof => write!(
+                formatter,
+                "tokens passed had no eof token, which shouldn't happen normally"
+            ),
+            AstError::UnexpectedToken {
+                token, additional, ..
+            } => {
+                let range = self.range().unwrap();
+
+                write!(
+                    formatter,
+                    "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
+                    token,
+                    range.0.line(),
+                    range.0.character(),
+                    range.1.line(),
+                    range.1.character(),
+                    match additional {
+                        Some(additional) => format!("\nadditional information: {additional}"),
+                        None => String::new(),
+                    }
+                )
+            }
         }
     }
 }
