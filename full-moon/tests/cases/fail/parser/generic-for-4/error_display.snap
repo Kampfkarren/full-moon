@@ -4,25 +4,25 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/generic-for-4
 ---
-error[ast]: unexpected token `,`. , (trailing commas are not allowed)
+error[ast]: trailing commas are not allowed
   ┌─ source.lua:1:10
   │
 1 │ for index, local in pairs(list) do end
   │          ^
 
-error[ast]: unexpected token `local`. local (expected `in` after name list)
+error[ast]: expected `in` after name list
   ┌─ source.lua:1:12
   │
 1 │ for index, local in pairs(list) do end
   │            ^^^^^
 
-error[ast]: unexpected token `in`. in (expected either a variable name or `function`)
+error[ast]: expected either a variable name or `function`
   ┌─ source.lua:1:18
   │
 1 │ for index, local in pairs(list) do end
   │                  ^^
 
-error[ast]: unexpected token `in`. in (unexpected token, this needs to be a statement)
+error[ast]: unexpected token, this needs to be a statement
   ┌─ source.lua:1:18
   │
 1 │ for index, local in pairs(list) do end

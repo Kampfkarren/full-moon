@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/repeat-until-1
 ---
-error[ast]: unexpected token ``.  (expected `until` after block)
+error[ast]: expected `until` after block
   ┌─ source.lua:1:7
   │
 1 │ repeat

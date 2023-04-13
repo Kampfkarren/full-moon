@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/bin-op-1
 ---
-error[ast]: unexpected token `+`. + (expected expression after binary operator)
+error[ast]: expected expression after binary operator
   ┌─ source.lua:1:10
   │
 1 │ return 1 +

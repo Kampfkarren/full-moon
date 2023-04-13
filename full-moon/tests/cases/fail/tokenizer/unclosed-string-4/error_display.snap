@@ -11,7 +11,7 @@ error[tokenizer]: unclosed string (1:1 to 2:1)
 2 │ │ local x = 1
   │ ╰^
 
-error[ast]: unexpected token `"recover"`. "recover" (unexpected token, this needs to be a statement)
+error[ast]: unexpected token, this needs to be a statement
   ┌─ source.lua:1:1
   │  
 1 │ ╭ "recover

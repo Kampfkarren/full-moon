@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/local-assignment-3
 ---
-error[ast]: unexpected token `,`. , (trailing commas are not allowed)
+error[ast]: trailing commas are not allowed
   ┌─ source.lua:1:12
   │
 1 │ local x = 1,

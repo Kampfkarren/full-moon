@@ -2225,17 +2225,8 @@ impl AstError {
         match self {
             AstError::Empty | AstError::NoEof => self.to_string(),
 
-            AstError::UnexpectedToken {
-                token, additional, ..
-            } => {
-                format!(
-                    "unexpected token `{}`.{}",
-                    token,
-                    match additional {
-                        Some(additional) => format!(" {} ({})", token, additional),
-                        None => "".to_owned(),
-                    }
-                )
+            AstError::UnexpectedToken { additional, .. } => {
+                additional.as_deref().unwrap().to_owned()
             }
         }
     }

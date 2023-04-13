@@ -4,19 +4,19 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/index-3
 ---
-error[ast]: unexpected token `[`. [ (expected expression after `[`)
+error[ast]: expected expression after `[`
   ┌─ source.lua:1:2
   │
 1 │ x[] = 1
   │  ^
 
-error[ast]: unexpected token `]`. ] (unexpected expression when looking for a statement)
+error[ast]: unexpected expression when looking for a statement
   ┌─ source.lua:1:3
   │
 1 │ x[] = 1
   │   ^
 
-error[ast]: unexpected token `]`. ] (unexpected token, this needs to be a statement)
+error[ast]: unexpected token, this needs to be a statement
   ┌─ source.lua:1:3
   │
 1 │ x[] = 1

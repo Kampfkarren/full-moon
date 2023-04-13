@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/numeric-for-1
 ---
-error[ast]: unexpected token ``.  (expected `in` after name list)
+error[ast]: expected `in` after name list
   ┌─ source.lua:1:6
   │
 1 │ for x

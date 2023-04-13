@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/table-3
 ---
-error[ast]: unexpected token `=`. = (expected an expression after `=`)
+error[ast]: expected an expression after `=`
   ┌─ source.lua:2:4
   │
 2 │     a =

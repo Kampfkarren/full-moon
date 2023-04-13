@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/method-call-1
 ---
-error[ast]: unexpected token `:`. : (expected identifier after `:`)
+error[ast]: expected identifier after `:`
   ┌─ source.lua:1:12
   │
 1 │ return name:

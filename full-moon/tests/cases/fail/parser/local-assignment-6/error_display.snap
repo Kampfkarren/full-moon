@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/local-assignment-6
 ---
-error[ast]: unexpected token `=`. = (expected an expression)
+error[ast]: expected an expression
   ┌─ source.lua:1:9
   │
 1 │ local x =
