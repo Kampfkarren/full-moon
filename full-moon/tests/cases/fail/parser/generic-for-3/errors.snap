@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
+assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/generic-for-3
 ---
@@ -17,5 +17,12 @@ input_file: full-moon/tests/cases/fail/parser/generic-for-3
           character: 21
         token_type:
           type: Eof
-      additional: "expected `end` to close block"
+      additional: "expected `end` to close for loop block"
+      range:
+        - bytes: 18
+          line: 1
+          character: 19
+        - bytes: 20
+          line: 1
+          character: 21
 

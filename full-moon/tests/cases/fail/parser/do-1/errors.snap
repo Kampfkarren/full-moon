@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
+assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/do-1
 ---
@@ -17,5 +17,12 @@ input_file: full-moon/tests/cases/fail/parser/do-1
           character: 8
         token_type:
           type: Eof
-      additional: "expected `end` to close block"
+      additional: "expected `end` to close do block"
+      range:
+        - bytes: 4
+          line: 2
+          character: 2
+        - bytes: 10
+          line: 2
+          character: 8
 

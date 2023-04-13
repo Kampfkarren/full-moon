@@ -111,7 +111,7 @@ impl ParserState {
     pub fn require_with_reference_range(
         &mut self,
         symbol: Symbol,
-        error: &'static str,
+        error: impl MaybeLazyString,
         start_token: &TokenReference,
         end_token: &TokenReference,
     ) -> Option<TokenReference> {
@@ -122,7 +122,7 @@ impl ParserState {
                 } else {
                     self.token_error_ranged(
                         token.clone(),
-                        error,
+                        error.to_str(),
                         start_token.clone(),
                         end_token.clone(),
                     );
@@ -162,6 +162,22 @@ impl ParserState {
                 range: Some((start_token.start_position(), end_token.end_position())),
             },
         ));
+    }
+}
+
+pub trait MaybeLazyString {
+    fn to_str(self) -> Cow<'static, str>;
+}
+
+impl MaybeLazyString for &'static str {
+    fn to_str(self) -> Cow<'static, str> {
+        Cow::Borrowed(self)
+    }
+}
+
+impl<F: FnOnce() -> String> MaybeLazyString for F {
+    fn to_str(self) -> Cow<'static, str> {
+        Cow::Owned(self())
     }
 }
 

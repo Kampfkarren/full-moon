@@ -4,10 +4,10 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/numeric-for-4
 ---
-error[ast]: expected `end` to close block
-  ┌─ source.lua:1:17
+error[ast]: expected `end` to close numeric for loop block
+  ┌─ source.lua:1:15
   │
 1 │ for x = 1, 10 do
-  │                 ^
+  │               ^^
 
 

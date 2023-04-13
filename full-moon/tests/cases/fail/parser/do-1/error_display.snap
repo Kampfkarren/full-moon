@@ -4,10 +4,10 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/do-1
 ---
-error[ast]: expected `end` to close block
-  ┌─ source.lua:2:8
+error[ast]: expected `end` to close do block
+  ┌─ source.lua:2:2
   │
 2 │     call()
-  │           ^
+  │     ^^^^^^
 
 

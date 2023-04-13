@@ -49,8 +49,9 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 // rewrite todo: expect_?
 fn parse_block_with_end(
     state: &mut ParserState,
+    name: &str,
     // rewrite todo: use this, or the range
-    _start_for_errors: &TokenReference,
+    start_for_errors: &TokenReference,
 ) -> Result<(ast::Block, TokenReference), ()> {
     let block = match parse_block(state) {
         ParserResult::Value(block) => block,
@@ -58,7 +59,21 @@ fn parse_block_with_end(
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(end_token) = state.require(Symbol::End, "expected `end` to close block") else {
+    let (start, end) = if let Some(last_stmt) = block.last_stmt() {
+        let mut tokens = last_stmt.tokens();
+        let start = tokens.next().unwrap();
+        let end = tokens.last().unwrap_or(start);
+        (start, end)
+    } else if let Some(the_last_of_the_stmts) = block.stmts().last() {
+        let mut tokens = the_last_of_the_stmts.tokens();
+        let start = tokens.next().unwrap();
+        let end = tokens.last().unwrap_or(start);
+        (start, end)
+    } else {
+        (start_for_errors, start_for_errors)
+    };
+
+    let Some(end_token) = state.require_with_reference_range(Symbol::End, || format!("expected `end` to close {} block", name), start, end) else {
         return Ok((block, TokenReference::symbol("end").unwrap()));
     };
 
@@ -144,7 +159,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
         TokenType::Symbol { symbol: Symbol::Do } => {
             let do_token = state.consume().unwrap();
-            let (block, end_token) = match parse_block_with_end(state, &do_token) {
+            let (block, end_token) = match parse_block_with_end(state, "do", &do_token) {
                 Ok(block) => block,
                 Err(()) => return ParserResult::LexerMoved,
             };
@@ -508,7 +523,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         }));
     };
 
-    let (block, end) = match parse_block_with_end(state, &do_token) {
+    let (block, end) = match parse_block_with_end(state, "for loop", &do_token) {
         Ok(block) => block,
         Err(()) => (ast::Block::new(), TokenReference::symbol("end").unwrap()),
     };
@@ -572,7 +587,7 @@ fn expect_numeric_for_stmt(
         return Err(());
     };
 
-    let (block, end_token) = match parse_block_with_end(state, &do_token) {
+    let (block, end_token) = match parse_block_with_end(state, "numeric for loop", &do_token) {
         Ok(block) => block,
         Err(()) => (ast::Block::new(), TokenReference::symbol("end").unwrap()),
     };
@@ -994,7 +1009,7 @@ fn expect_while_stmt(
         return Ok(ast::While::new(condition));
     };
 
-    let (block, end_token) = match parse_block_with_end(state, &do_token) {
+    let (block, end_token) = match parse_block_with_end(state, "while loop", &do_token) {
         Ok((block, end_token)) => (block, end_token),
 
         Err(()) => {
@@ -1543,7 +1558,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         parameters.push(Pair::End(last_parameter.into_value()));
     }
 
-    let (block, end) = match parse_block_with_end(state, &right_parenthesis) {
+    let (block, end) = match parse_block_with_end(state, "function body", &right_parenthesis) {
         Ok((block, end)) => (block, end),
         Err(()) => return ParserResult::LexerMoved,
     };

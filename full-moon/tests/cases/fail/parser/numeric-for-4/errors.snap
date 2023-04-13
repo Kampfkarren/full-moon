@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
+assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/numeric-for-4
 ---
@@ -17,5 +17,12 @@ input_file: full-moon/tests/cases/fail/parser/numeric-for-4
           character: 17
         token_type:
           type: Eof
-      additional: "expected `end` to close block"
+      additional: "expected `end` to close numeric for loop block"
+      range:
+        - bytes: 14
+          line: 1
+          character: 15
+        - bytes: 16
+          line: 1
+          character: 17
 
