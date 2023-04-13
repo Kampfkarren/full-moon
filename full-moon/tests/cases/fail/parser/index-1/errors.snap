@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
+assertion_line: 15
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/index-1
 ---
@@ -18,6 +18,13 @@ input_file: full-moon/tests/cases/fail/parser/index-1
         token_type:
           type: Eof
       additional: "expected `]` to close index expression"
+      range:
+        - bytes: 1
+          line: 1
+          character: 2
+        - bytes: 3
+          line: 1
+          character: 4
 - AstError:
     UnexpectedToken:
       token:

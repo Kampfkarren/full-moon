@@ -1146,10 +1146,11 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 }
             };
 
-            // rewrite todo: this should use `[abc` as the error range
-            let right_bracket = match state.require(
+            let right_bracket = match state.require_with_reference_range(
                 Symbol::RightBracket,
                 "expected `]` to close index expression",
+                &left_bracket,
+                expression.tokens().last().unwrap(),
             ) {
                 Some(right_bracket) => right_bracket,
 

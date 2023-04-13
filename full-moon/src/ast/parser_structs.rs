@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{Lexer, LexerResult, Symbol, TokenKind, TokenReference};
+use crate::tokenizer::{Lexer, LexerResult, Position, Symbol, TokenKind, TokenReference};
 
 use super::{parsers::parse_block, Ast, Block};
 
@@ -108,6 +108,32 @@ impl ParserState {
         }
     }
 
+    pub fn require_with_reference_range(
+        &mut self,
+        symbol: Symbol,
+        error: &'static str,
+        start_token: &TokenReference,
+        end_token: &TokenReference,
+    ) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if token.is_symbol(symbol) {
+                    Some(self.consume().unwrap())
+                } else {
+                    self.token_error_ranged(
+                        token.clone(),
+                        error,
+                        start_token.clone(),
+                        end_token.clone(),
+                    );
+                    None
+                }
+            }
+
+            Err(()) => None,
+        }
+    }
+
     pub fn token_error<S: Into<Cow<'static, str>>>(
         &mut self,
         token_reference: TokenReference,
@@ -118,6 +144,22 @@ impl ParserState {
                 token: token_reference.token,
                 additional: Some(error.into()),
                 range: None,
+            },
+        ));
+    }
+
+    pub fn token_error_ranged<S: Into<Cow<'static, str>>>(
+        &mut self,
+        token_reference: TokenReference,
+        error: S,
+        start_token: TokenReference,
+        end_token: TokenReference,
+    ) {
+        self.errors.push(crate::Error::AstError(
+            crate::ast::AstError::UnexpectedToken {
+                token: token_reference.token,
+                additional: Some(error.into()),
+                range: Some((start_token.start_position(), end_token.end_position())),
             },
         ));
     }
