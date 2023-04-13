@@ -1,5 +1,12 @@
-use full_moon::tokenizer::{self, LexerResult};
-use insta::assert_yaml_snapshot;
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFiles,
+};
+use full_moon::{
+    ast::AstResult,
+    tokenizer::{self, LexerResult},
+};
+use insta::{assert_display_snapshot, assert_yaml_snapshot};
 use std::{fs, path::Path};
 
 mod common;
@@ -15,8 +22,41 @@ fn process_fail_case(path: &Path, source: &str) {
     assert_yaml_snapshot!("errors", result.errors);
     assert_yaml_snapshot!("ast", result.ast);
 
+    process_codespan_display(source, &result);
+
     let ast = result.ast.update_positions();
     assert_yaml_snapshot!("ast_to_string", full_moon::print(&ast));
+}
+
+fn process_codespan_display(source: &str, result: &AstResult) {
+    let mut files = SimpleFiles::new();
+
+    let file_id = files.add("source.lua", source);
+
+    let config = codespan_reporting::term::Config::default();
+    let mut output = termcolor::NoColor::new(Vec::new());
+
+    for error in &result.errors {
+        let range = error.range();
+
+        let diagnostic = Diagnostic::error()
+            .with_message(error.error_message())
+            .with_code(match error {
+                full_moon::Error::AstError(_) => "ast",
+                full_moon::Error::TokenizerError(_) => "tokenizer",
+            })
+            .with_labels(vec![Label::primary(
+                file_id,
+                (range.0.bytes())..(range.1.bytes()),
+            )]);
+
+        codespan_reporting::term::emit(&mut output, &config, &files, &diagnostic).unwrap();
+    }
+
+    assert_display_snapshot!(
+        "error_display",
+        String::from_utf8(output.into_inner()).unwrap()
+    );
 }
 
 #[test]

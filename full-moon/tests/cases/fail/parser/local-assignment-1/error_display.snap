@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/local-assignment-1
+---
+error[ast]: unexpected token ``.  (unexpected expression when looking for a statement)
+  ┌─ source.lua:1:10
+  │
+1 │ local x y
+  │          ^
+
+

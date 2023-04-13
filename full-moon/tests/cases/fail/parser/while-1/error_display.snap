@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/while-1
+---
+error[ast]: unexpected token `while`. while (expected a condition after `while`)
+  ┌─ source.lua:1:1
+  │
+1 │ while
+  │ ^^^^^
+
+

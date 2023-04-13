@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/paren-expression-5
+---
+error[ast]: unexpected token `(`. ( (expected an expression after `(`)
+  ┌─ source.lua:1:8
+  │
+1 │ return (until)
+  │        ^
+
+error[ast]: unexpected token `until`. until (unexpected token, this needs to be a statement)
+  ┌─ source.lua:1:9
+  │
+1 │ return (until)
+  │         ^^^^^
+
+

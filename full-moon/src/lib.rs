@@ -27,6 +27,7 @@ mod util;
 mod tokenizer_luau;
 
 pub use short_string::ShortString;
+use tokenizer::Position;
 
 use std::fmt;
 
@@ -42,6 +43,22 @@ pub enum Error {
     AstError(ast::AstError),
     /// Triggered if there's an issue when tokenizing, and an AST can't be made
     TokenizerError(tokenizer::TokenizerError),
+}
+
+impl Error {
+    pub fn error_message(&self) -> String {
+        match self {
+            Error::AstError(error) => error.error_message(),
+            Error::TokenizerError(error) => error.to_string(),
+        }
+    }
+
+    pub fn range(&self) -> (Position, Position) {
+        match self {
+            Error::AstError(error) => error.range(),
+            Error::TokenizerError(error) => error.range(),
+        }
+    }
 }
 
 impl fmt::Display for Error {

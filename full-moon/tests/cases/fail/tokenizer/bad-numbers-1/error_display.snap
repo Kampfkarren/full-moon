@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/tokenizer/bad-numbers-1
+---
+error[tokenizer]: invalid number (1:5 to 1:11)
+  ┌─ source.lua:1:5
+  │
+1 │ _ = 1edoge
+  │     ^^^^^^
+
+

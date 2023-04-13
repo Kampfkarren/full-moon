@@ -2197,6 +2197,7 @@ impl UnOp {
     // rewrite todo, changelog: document removal of precedence()
 }
 
+// rewrite todo: we don't need any of this. these are panics
 /// An error that occurs when creating the ast *after* tokenizing
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -2220,11 +2221,32 @@ pub enum AstError {
 }
 
 impl AstError {
-    pub fn range(&self) -> Option<(Position, Position)> {
+    pub fn error_message(&self) -> String {
+        match self {
+            AstError::Empty | AstError::NoEof => self.to_string(),
+
+            AstError::UnexpectedToken {
+                token, additional, ..
+            } => {
+                format!(
+                    "unexpected token `{}`.{}",
+                    token,
+                    match additional {
+                        Some(additional) => format!(" {} ({})", token, additional),
+                        None => "".to_owned(),
+                    }
+                )
+            }
+        }
+    }
+
+    pub fn range(&self) -> (Position, Position) {
         if let AstError::UnexpectedToken { token, range, .. } = self {
-            range.or_else(|| Some((token.start_position(), token.end_position())))
+            range
+                .or_else(|| Some((token.start_position(), token.end_position())))
+                .unwrap()
         } else {
-            None
+            unreachable!()
         }
     }
 }
@@ -2243,7 +2265,7 @@ impl fmt::Display for AstError {
             AstError::UnexpectedToken {
                 token, additional, ..
             } => {
-                let range = self.range().unwrap();
+                let range = self.range();
 
                 write!(
                     formatter,
