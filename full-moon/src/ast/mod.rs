@@ -2209,9 +2209,12 @@ pub enum AstError {
     UnexpectedToken {
         /// The token that caused the error
         token: Token,
+
         /// Any additional information that could be provided for debugging
         additional: Option<Cow<'static, str>>,
+
         /// If set, this is the complete range of the error
+        #[serde(skip_serializing_if = "Option::is_none")]
         range: Option<(Position, Position)>,
     },
 }
