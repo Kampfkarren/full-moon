@@ -88,13 +88,13 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 #[allow(clippy::result_large_err)]
-// rewrite todo: replace error type with Vec<Error>
-pub fn parse(code: &str) -> Result<ast::Ast, Error> {
+// rewrite todo: changelog, log new signature
+pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
     let result = parse_fallible(code);
-    if let Some(error) = result.errors.into_iter().next() {
-        Err(error)
-    } else {
+    if result.errors.is_empty() {
         Ok(result.ast)
+    } else {
+        Err(result.errors)
     }
 }
 
