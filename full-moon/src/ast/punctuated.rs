@@ -8,7 +8,7 @@
 //! Everything with punctuation uses the [`Punctuated<T>`](Punctuated) type with the following logic.
 //! ```rust
 //! # use full_moon::parse;
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Vec<full_moon::Error>> {
 //! let ast = parse("call(arg1, arg2, arg3)")?;
 //! //                   ^^^^^ ~~~~~ ^^^^^
 //! # Ok(())

@@ -1,0 +1,8 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 28
+expression: "full_moon::print(&ast)"
+input_file: full-moon/tests/cases/fail/parser/last-stmt-1
+---
+"local function x()\n\treturn 1\nend\treturn 2\n"
+

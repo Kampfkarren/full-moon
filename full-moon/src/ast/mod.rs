@@ -103,7 +103,6 @@ impl Block {
     pub(crate) fn merge_blocks(&mut self, other: Self) {
         self.stmts.extend(other.stmts);
 
-        // rewrite todo: i don't like this. write a test and let's figure it out.
         if self.last_stmt.is_none() {
             self.last_stmt = other.last_stmt;
         }
@@ -2300,7 +2299,7 @@ impl Ast {
     /// The entire code of the function
     ///
     /// ```rust
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Vec<full_moon::Error>> {
     /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().stmts().count(), 2);
     /// # Ok(())
     /// # }

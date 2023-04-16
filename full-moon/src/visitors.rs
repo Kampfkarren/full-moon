@@ -31,7 +31,7 @@ macro_rules! create_visitor {
         /// ```rust
         /// # use full_moon::ast;
         /// # use full_moon::visitors::*;
-        /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+        /// # fn main() -> Result<(), Vec<full_moon::Error>> {
         /// // A visitor that logs every local assignment made
         /// #[derive(Default)]
         /// struct LocalVariableVisitor {
