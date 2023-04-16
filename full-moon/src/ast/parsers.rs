@@ -95,7 +95,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
             match next_token.token_type() {
                 TokenType::Identifier { .. } => ParserResult::Value(ast::Stmt::LocalAssignment(
-                    try_parser!(expect_local_assignment(state, local_token)).unwrap(),
+                    match expect_local_assignment(state, local_token) {
+                        Ok(local_assignment) => local_assignment,
+                        Err(()) => return ParserResult::LexerMoved,
+                    },
                 )),
 
                 TokenType::Symbol {
@@ -722,17 +725,16 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
     })
 }
 
-// rewrite todo: just result, i guess
 fn expect_local_assignment(
     state: &mut ParserState,
     local_token: TokenReference,
-) -> ParserResult<ast::LocalAssignment> {
+) -> Result<ast::LocalAssignment, ()> {
     let names = match parse_name_list(state) {
         ParserResult::Value(names) => names,
         ParserResult::NotFound => {
             unreachable!("expect_local_assignment called without upcoming identifier");
         }
-        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        ParserResult::LexerMoved => return Err(()),
     };
 
     let mut local_assignment = ast::LocalAssignment {
@@ -744,7 +746,7 @@ fn expect_local_assignment(
 
     local_assignment.equal_token = match state.consume_if(Symbol::Equal) {
         Some(equal_token) => Some(equal_token),
-        None => return ParserResult::Value(local_assignment),
+        None => return Ok(local_assignment),
     };
 
     match parse_expression_list(state) {
@@ -761,7 +763,7 @@ fn expect_local_assignment(
         ParserResult::LexerMoved => {}
     };
 
-    ParserResult::Value(local_assignment)
+    Ok(local_assignment)
 }
 
 fn expect_expression_key(
