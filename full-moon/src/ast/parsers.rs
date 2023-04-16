@@ -45,12 +45,10 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 // Blocks in general are not very fallible. This means, for instance, not finishing `function()`
 // will result in a completely ignored function body.
 // This is an opinionated choice because I believe selene is going to produce terrible outputs if we don't.
-// rewrite todo: I don't love that this only accepts one token. it should be range(s?)
 // rewrite todo: expect_?
 fn parse_block_with_end(
     state: &mut ParserState,
     name: &str,
-    // rewrite todo: use this, or the range
     start_for_errors: &TokenReference,
 ) -> Result<(ast::Block, TokenReference), ()> {
     let block = match parse_block(state) {
