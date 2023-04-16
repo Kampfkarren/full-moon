@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{Lexer, LexerResult, Position, Symbol, TokenKind, TokenReference};
+use crate::tokenizer::{Lexer, LexerResult, Symbol, TokenKind, TokenReference};
 
 use super::{parsers::parse_block, Ast, Block};
 
