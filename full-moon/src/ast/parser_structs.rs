@@ -126,6 +126,30 @@ impl ParserState {
                         start_token.clone(),
                         end_token.clone(),
                     );
+
+                    None
+                }
+            }
+
+            Err(()) => None,
+        }
+    }
+
+    pub fn require_with_reference_range_callback<'a>(
+        &mut self,
+        symbol: Symbol,
+        error: impl MaybeLazyString,
+        tokens: impl FnOnce() -> (TokenReference, TokenReference),
+    ) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if token.is_symbol(symbol) {
+                    Some(self.consume().unwrap())
+                } else {
+                    let (start_token, end_token) = tokens();
+
+                    self.token_error_ranged(token.clone(), error.to_str(), start_token, end_token);
+
                     None
                 }
             }

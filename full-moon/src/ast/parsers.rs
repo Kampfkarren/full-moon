@@ -787,14 +787,18 @@ fn expect_expression_key(
         }
     };
 
-    // rewrite todo: this should take a range ( `[a.b.c()` should have the whole range )
-    let Some(right_bracket) = state.require(Symbol::RightBracket, "expected `]` after expression") else {
+    let Some(right_bracket) = state.require_with_reference_range_callback(Symbol::RightBracket, "expected `]` after expression", || {
+        (
+            left_bracket.clone(),
+            expression.tokens().last().unwrap().clone(),
+        )
+    }) else {
         return Err(());
     };
 
     // rewrite todo: we can realistically construct a field in error recovery
     // rewrite todo: this should also be range
-    let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after expression") else {
+    let Some(equal_token) = state.require_with_reference_range(Symbol::Equal, "expected `=` after expression", &left_bracket, &right_bracket) else {
         return Err(());
     };
 
