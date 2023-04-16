@@ -1168,10 +1168,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             ) {
                 Some(right_bracket) => right_bracket,
 
-                None => {
-                    // rewrite todo: this feels weird to recover from
-                    TokenReference::symbol("]").unwrap()
-                }
+                None => TokenReference::symbol("]").unwrap(),
             };
 
             ParserResult::Value(ast::Suffix::Index(ast::Index::Brackets {
