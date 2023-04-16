@@ -1454,7 +1454,6 @@ fn parse_unary_expression(
         }
     };
 
-    // rewrite todo: when does unop precedence come into play?
     ParserResult::Value(Expression::UnaryOperator {
         unop: unary_operator,
         expression: Box::new(expression),
