@@ -12,8 +12,8 @@ use std::{fs, path::Path};
 mod common;
 use common::run_test_folder;
 
-fn process_fail_case(path: &Path, source: &str) {
-    let result = full_moon::parse_fallible(source);
+fn process_fail_case(path: &Path, source: &str, lua_version: LuaVersion) {
+    let result = full_moon::parse_fallible(source, lua_version);
 
     if result.errors.is_empty() {
         panic!("fail case passed for {path:?}");
@@ -69,7 +69,7 @@ fn test_parser_fail_cases() {
             .unwrap();
         assert_yaml_snapshot!("tokens", tokens);
 
-        process_fail_case(path, &source);
+        process_fail_case(path, &source, LuaVersion::lua51());
     });
 }
 
@@ -83,7 +83,7 @@ fn test_tokenizer_fail_cases() {
         assert!(!matches!(tokens, LexerResult::Ok(_)));
         assert_yaml_snapshot!("tokens_result", tokens);
 
-        process_fail_case(path, &source);
+        process_fail_case(path, &source, LuaVersion::lua51());
     });
 }
 

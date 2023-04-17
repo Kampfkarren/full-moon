@@ -26,6 +26,7 @@ mod util;
 #[cfg(feature = "roblox")]
 mod tokenizer_luau;
 
+pub use ast::LuaVersion;
 pub use short_string::ShortString;
 use tokenizer::Position;
 
@@ -90,7 +91,7 @@ impl std::error::Error for Error {}
 #[allow(clippy::result_large_err)]
 // rewrite todo: changelog, log new signature
 pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
-    let result = parse_fallible(code);
+    let result = parse_fallible(code, LuaVersion::new());
     if result.errors.is_empty() {
         Ok(result.ast)
     } else {
@@ -98,9 +99,8 @@ pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
     }
 }
 
-pub fn parse_fallible(code: &str) -> ast::AstResult {
-    // rewrite todo: specify this through parameter i guess
-    ast::AstResult::parse_fallible(code, ast::LuaVersion::Lua51)
+pub fn parse_fallible(code: &str, lua_version: LuaVersion) -> ast::AstResult {
+    ast::AstResult::parse_fallible(code, lua_version)
 }
 
 /// Prints back Lua code from an [`Ast`](ast::Ast)

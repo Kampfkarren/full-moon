@@ -738,7 +738,18 @@ impl TokenReference {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn symbol(text: &str, lua_version: LuaVersion) -> Result<Self, TokenizerErrorType> {
+    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
+        TokenReference::symbol_specific_lua_version(text, LuaVersion::new())
+    }
+
+    pub(crate) fn basic_symbol(text: &str) -> Self {
+        TokenReference::symbol_specific_lua_version(text, LuaVersion::lua51()).unwrap()
+    }
+
+    pub fn symbol_specific_lua_version(
+        text: &str,
+        lua_version: LuaVersion,
+    ) -> Result<Self, TokenizerErrorType> {
         let mut lexer = Lexer::new_lazy(text, lua_version);
 
         let mut leading_trivia = Vec::new();

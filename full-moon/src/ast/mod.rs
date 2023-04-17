@@ -141,7 +141,7 @@ impl Return {
     /// Default return token is followed by a single space
     pub fn new() -> Self {
         Self {
-            token: TokenReference::symbol("return ", LuaVersion::Lua51).unwrap(),
+            token: TokenReference::basic_symbol("return "),
             returns: Punctuated::new(),
         }
     }
@@ -231,8 +231,8 @@ impl TableConstructor {
     pub fn new() -> Self {
         Self {
             braces: ContainedSpan::new(
-                TokenReference::symbol("{ ", LuaVersion::Lua51).unwrap(),
-                TokenReference::symbol(" }", LuaVersion::Lua51).unwrap(),
+                TokenReference::basic_symbol("{ "),
+                TokenReference::basic_symbol(" }"),
             ),
             fields: Punctuated::new(),
         }
@@ -496,8 +496,8 @@ impl FunctionArgs {
     pub(crate) fn empty() -> Self {
         FunctionArgs::Parentheses {
             parentheses: ContainedSpan::new(
-                TokenReference::symbol("(", LuaVersion::Lua51).unwrap(),
-                TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
             ),
 
             arguments: Punctuated::new(),
@@ -529,17 +529,17 @@ impl NumericFor {
     /// Creates a new NumericFor from the given index variable, start, and end expressions
     pub fn new(index_variable: TokenReference, start: Expression, end: Expression) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ", LuaVersion::Lua51).unwrap(),
+            for_token: TokenReference::basic_symbol("for "),
             index_variable,
-            equal_token: TokenReference::symbol(" = ", LuaVersion::Lua51).unwrap(),
+            equal_token: TokenReference::basic_symbol(" = "),
             start,
-            start_end_comma: TokenReference::symbol(", ", LuaVersion::Lua51).unwrap(),
+            start_end_comma: TokenReference::basic_symbol(", "),
             end,
             end_step_comma: None,
             step: None,
-            do_token: TokenReference::symbol(" do\n", LuaVersion::Lua51).unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
             #[cfg(feature = "roblox")]
             type_specifier: None,
         }
@@ -751,13 +751,13 @@ impl GenericFor {
     /// Creates a new GenericFor from the given names and expressions
     pub fn new(names: Punctuated<TokenReference>, expr_list: Punctuated<Expression>) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ", LuaVersion::Lua51).unwrap(),
+            for_token: TokenReference::basic_symbol("for "),
             names,
-            in_token: TokenReference::symbol(" in ", LuaVersion::Lua51).unwrap(),
+            in_token: TokenReference::basic_symbol(" in "),
             expr_list,
-            do_token: TokenReference::symbol(" do\n", LuaVersion::Lua51).unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
         }
@@ -917,14 +917,14 @@ impl If {
     /// Creates a new If from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            if_token: TokenReference::symbol("if ", LuaVersion::Lua51).unwrap(),
+            if_token: TokenReference::basic_symbol("if "),
             condition,
-            then_token: TokenReference::symbol(" then", LuaVersion::Lua51).unwrap(),
+            then_token: TokenReference::basic_symbol(" then"),
             block: Block::new(),
             else_if: None,
             else_token: None,
             r#else: None,
-            end_token: TokenReference::symbol("\nend", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1026,9 +1026,9 @@ impl ElseIf {
     /// Creates a new ElseIf from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            else_if_token: TokenReference::symbol("elseif ", LuaVersion::Lua51).unwrap(),
+            else_if_token: TokenReference::basic_symbol("elseif "),
             condition,
-            then_token: TokenReference::symbol(" then\n", LuaVersion::Lua51).unwrap(),
+            then_token: TokenReference::basic_symbol(" then\n"),
             block: Block::new(),
         }
     }
@@ -1093,11 +1093,11 @@ impl While {
     /// Creates a new While from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            while_token: TokenReference::symbol("while ", LuaVersion::Lua51).unwrap(),
+            while_token: TokenReference::basic_symbol("while "),
             condition,
-            do_token: TokenReference::symbol(" do\n", LuaVersion::Lua51).unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("end\n", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("end\n"),
         }
     }
 
@@ -1170,9 +1170,9 @@ impl Repeat {
     /// Creates a new Repeat from the given expression to repeat until
     pub fn new(until: Expression) -> Self {
         Self {
-            repeat_token: TokenReference::symbol("repeat\n", LuaVersion::Lua51).unwrap(),
+            repeat_token: TokenReference::basic_symbol("repeat\n"),
             block: Block::new(),
-            until_token: TokenReference::symbol("\nuntil ", LuaVersion::Lua51).unwrap(),
+            until_token: TokenReference::basic_symbol("\nuntil "),
             until,
         }
     }
@@ -1238,7 +1238,7 @@ impl MethodCall {
     /// Returns a new MethodCall from the given name and args
     pub fn new(name: TokenReference, args: FunctionArgs) -> Self {
         Self {
-            colon_token: TokenReference::symbol(":", LuaVersion::Lua51).unwrap(),
+            colon_token: TokenReference::basic_symbol(":"),
             name,
             args,
         }
@@ -1320,8 +1320,8 @@ impl FunctionBody {
             generics: None,
 
             parameters_parentheses: ContainedSpan::new(
-                TokenReference::symbol("(", LuaVersion::Lua51).unwrap(),
-                TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
             ),
             parameters: Punctuated::new(),
 
@@ -1332,7 +1332,7 @@ impl FunctionBody {
             return_type: None,
 
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1556,7 +1556,7 @@ impl Assignment {
     pub fn new(var_list: Punctuated<Var>, expr_list: Punctuated<Expression>) -> Self {
         Self {
             var_list,
-            equal_token: TokenReference::symbol(" = ", LuaVersion::Lua51).unwrap(),
+            equal_token: TokenReference::basic_symbol(" = "),
             expr_list,
         }
     }
@@ -1619,8 +1619,8 @@ impl LocalFunction {
     /// Returns a new LocalFunction from the given name
     pub fn new(name: TokenReference) -> Self {
         LocalFunction {
-            local_token: TokenReference::symbol("local ", LuaVersion::Lua51).unwrap(),
-            function_token: TokenReference::symbol("function ", LuaVersion::Lua51).unwrap(),
+            local_token: TokenReference::basic_symbol("local "),
+            function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }
@@ -1699,7 +1699,7 @@ impl LocalAssignment {
     /// Returns a new LocalAssignment from the given name list
     pub fn new(name_list: Punctuated<TokenReference>) -> Self {
         Self {
-            local_token: TokenReference::symbol("local ", LuaVersion::Lua51).unwrap(),
+            local_token: TokenReference::basic_symbol("local "),
             #[cfg(feature = "roblox")]
             type_specifiers: Vec::new(),
             name_list,
@@ -1829,9 +1829,9 @@ impl Do {
     /// Creates an empty Do
     pub fn new() -> Self {
         Self {
-            do_token: TokenReference::symbol("do\n", LuaVersion::Lua51).unwrap(),
+            do_token: TokenReference::basic_symbol("do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1891,8 +1891,8 @@ impl FunctionCall {
                 FunctionArgs::Parentheses {
                     arguments: Punctuated::new(),
                     parentheses: ContainedSpan::new(
-                        TokenReference::symbol("(", LuaVersion::Lua51).unwrap(),
-                        TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                        TokenReference::basic_symbol("("),
+                        TokenReference::basic_symbol(")"),
                     ),
                 },
             ))],
@@ -1990,7 +1990,7 @@ impl FunctionDeclaration {
     /// Creates a new FunctionDeclaration from the given name
     pub fn new(name: FunctionName) -> Self {
         Self {
-            function_token: TokenReference::symbol("function ", LuaVersion::Lua51).unwrap(),
+            function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }

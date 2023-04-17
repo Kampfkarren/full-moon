@@ -6,7 +6,7 @@ use super::{
     parser_structs::{ParserResult, ParserState},
     punctuated::{Pair, Punctuated},
     span::ContainedSpan,
-    Expression, FunctionBody, LuaVersion, Parameter,
+    Expression, FunctionBody, Parameter,
 };
 use crate::{
     ast,
@@ -72,7 +72,7 @@ fn parse_block_with_end(
     };
 
     let Some(end_token) = state.require_with_reference_range(Symbol::End, || format!("expected `end` to close {} block", name), start, end) else {
-        return Ok((block, TokenReference::symbol("end", LuaVersion::Lua51).unwrap()));
+        return Ok((block, TokenReference::basic_symbol("end")));
     };
 
     Ok((block, end_token))
@@ -515,18 +515,15 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
             names: names_to_tokens(name_list),
             in_token,
             expr_list: expressions,
-            do_token: TokenReference::symbol("do", LuaVersion::Lua51).unwrap(),
+            do_token: TokenReference::basic_symbol("do"),
             block: ast::Block::new(),
-            end_token: TokenReference::symbol("end", LuaVersion::Lua51).unwrap(),
+            end_token: TokenReference::basic_symbol("end"),
         }));
     };
 
     let (block, end) = match parse_block_with_end(state, "for loop", &do_token) {
         Ok(block) => block,
-        Err(()) => (
-            ast::Block::new(),
-            TokenReference::symbol("end", LuaVersion::Lua51).unwrap(),
-        ),
+        Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
     };
 
     Ok(ast::Stmt::GenericFor(ast::GenericFor {
@@ -590,10 +587,7 @@ fn expect_numeric_for_stmt(
 
     let (block, end_token) = match parse_block_with_end(state, "numeric for loop", &do_token) {
         Ok(block) => block,
-        Err(()) => (
-            ast::Block::new(),
-            TokenReference::symbol("end", LuaVersion::Lua51).unwrap(),
-        ),
+        Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
     };
 
     Ok(ast::NumericFor {
@@ -713,10 +707,10 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         Ok(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
         Ok(token) => {
             state.token_error(token.clone(), "expected `end` to conclude `if`");
-            TokenReference::symbol("end", LuaVersion::Lua51).unwrap()
+            TokenReference::basic_symbol("end")
         }
 
-        Err(()) => TokenReference::symbol("end", LuaVersion::Lua51).unwrap(),
+        Err(()) => TokenReference::basic_symbol("end"),
     };
 
     Ok(ast::If {
@@ -835,10 +829,7 @@ fn force_table_constructor(
 
     let unfinished_table =
         |left_brace: TokenReference, fields: Punctuated<ast::Field>| ast::TableConstructor {
-            braces: ContainedSpan::new(
-                left_brace,
-                ast::TokenReference::symbol("}", LuaVersion::Lua51).unwrap(),
-            ),
+            braces: ContainedSpan::new(left_brace, TokenReference::basic_symbol("}")),
             fields,
         };
 
@@ -945,7 +936,7 @@ fn force_table_constructor(
     // rewrite todo: range, or at least field.tokens().last().unwrap().clone()
     let right_brace = match state.require(Symbol::RightBrace, "expected `}` after last field") {
         Some(right_brace) => right_brace,
-        None => TokenReference::symbol("}", LuaVersion::Lua51).unwrap(),
+        None => TokenReference::basic_symbol("}"),
     };
 
     ast::TableConstructor {
@@ -1062,7 +1053,7 @@ fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
                     ast::Expression::Parentheses {
                         contained: ContainedSpan::new(
                             left_parenthesis,
-                            TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                            TokenReference::basic_symbol(")"),
                         ),
                         expression,
                     },
@@ -1104,7 +1095,7 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
             ) {
                 Some(token) => token,
 
-                None => TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                None => TokenReference::basic_symbol(")"),
             };
 
             ParserResult::Value(ast::FunctionArgs::Parentheses {
@@ -1179,7 +1170,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             ) {
                 Some(right_bracket) => right_bracket,
 
-                None => TokenReference::symbol("]", LuaVersion::Lua51).unwrap(),
+                None => TokenReference::basic_symbol("]"),
             };
 
             ParserResult::Value(ast::Suffix::Index(ast::Index::Brackets {
@@ -1488,11 +1479,11 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             ParserResult::Value(FunctionBody {
                 parameters_parentheses: ContainedSpan::new(
                     left_parenthesis,
-                    TokenReference::symbol(")", LuaVersion::Lua51).unwrap(),
+                    TokenReference::basic_symbol(")"),
                 ),
                 parameters,
                 block: ast::Block::new(),
-                end_token: TokenReference::symbol("end", LuaVersion::Lua51).unwrap(),
+                end_token: TokenReference::basic_symbol("end"),
             })
         };
 
