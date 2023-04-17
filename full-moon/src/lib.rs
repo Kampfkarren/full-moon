@@ -99,7 +99,8 @@ pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
 }
 
 pub fn parse_fallible(code: &str) -> ast::AstResult {
-    ast::AstResult::parse_fallible(code)
+    // rewrite todo: specify this through parameter i guess
+    ast::AstResult::parse_fallible(code, ast::LuaVersion::Lua51)
 }
 
 /// Prints back Lua code from an [`Ast`](ast::Ast)

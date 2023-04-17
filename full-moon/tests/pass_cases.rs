@@ -1,4 +1,5 @@
 use full_moon::{
+    ast::LuaVersion,
     node::Node,
     print,
     tokenizer::{self, Token, TokenReference},
@@ -29,10 +30,12 @@ fn unpack_token_reference(token: &TokenReference) -> Vec<Token> {
         .collect()
 }
 
-fn test_pass_case(path: &Path) {
+fn test_pass_case(path: &Path, lua_version: LuaVersion) {
     let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-    let tokens = tokenizer::Lexer::new(&source).collect().unwrap();
+    let tokens = tokenizer::Lexer::new(&source, lua_version)
+        .collect()
+        .unwrap();
 
     assert_yaml_snapshot!("tokens", tokens);
 
@@ -54,11 +57,11 @@ fn test_pass_case(path: &Path) {
 }
 
 #[test]
-#[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
-#[cfg_attr(feature = "lua52", ignore)] // Lua 5.2 collides with this implementation
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
-    run_test_folder("./tests/cases/pass", test_pass_case);
+    run_test_folder("./tests/cases/pass", |path| {
+        test_pass_case(path, LuaVersion::Lua51)
+    });
 }
 
 #[test]

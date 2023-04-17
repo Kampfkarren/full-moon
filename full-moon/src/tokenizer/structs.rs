@@ -1,4 +1,5 @@
 use crate::{
+    ast::LuaVersion,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
     ShortString,
 };
@@ -723,21 +724,22 @@ impl TokenReference {
     /// Returns a symbol with the leading and trailing whitespace
     /// Only whitespace is supported
     /// ```rust
+    /// # use full_moon::ast::LuaVersion;
     /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
     /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
-    /// let symbol = TokenReference::symbol("\nreturn ")?;
+    /// let symbol = TokenReference::symbol("\nreturn ", LuaVersion::Lua51)?;
     /// assert_eq!(symbol.leading_trivia().next().unwrap().to_string(), "\n");
     /// assert_eq!(symbol.token().token_type(), &TokenType::Symbol {
     ///     symbol: Symbol::Return,
     /// });
     /// assert_eq!(symbol.trailing_trivia().next().unwrap().to_string(), " ");
-    /// assert!(TokenReference::symbol("isnt whitespace").is_err());
-    /// assert!(TokenReference::symbol(" notasymbol ").is_err());
+    /// assert!(TokenReference::symbol("isnt whitespace", LuaVersion::Lua51).is_err());
+    /// assert!(TokenReference::symbol(" notasymbol ", LuaVersion::Lua51).is_err());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn symbol(text: &str) -> Result<Self, TokenizerErrorType> {
-        let mut lexer = Lexer::new_lazy(text);
+    pub fn symbol(text: &str, lua_version: LuaVersion) -> Result<Self, TokenizerErrorType> {
+        let mut lexer = Lexer::new_lazy(text, lua_version);
 
         let mut leading_trivia = Vec::new();
         let symbol;

@@ -2,17 +2,19 @@ use std::borrow::Cow;
 
 use crate::tokenizer::{Lexer, LexerResult, Symbol, TokenKind, TokenReference};
 
-use super::{parsers::parse_block, Ast, Block};
+use super::{parsers::parse_block, Ast, Block, LuaVersion};
 
 pub struct ParserState {
     errors: Vec<crate::Error>,
     lexer: Lexer,
+    lua_version: LuaVersion,
 }
 
 impl ParserState {
     pub fn new(lexer: Lexer) -> Self {
         Self {
             errors: Vec::new(),
+            lua_version: lexer.lua_version,
             lexer,
         }
     }
@@ -235,10 +237,10 @@ pub struct AstResult {
 }
 
 impl AstResult {
-    pub(crate) fn parse_fallible(code: &str) -> Self {
+    pub(crate) fn parse_fallible(code: &str, lua_version: LuaVersion) -> Self {
         const UNEXPECTED_TOKEN_ERROR: &str = "unexpected token, this needs to be a statement";
 
-        let lexer = Lexer::new(code);
+        let lexer = Lexer::new(code, lua_version);
         let mut parser_state = ParserState::new(lexer);
 
         let mut block = match parse_block(&mut parser_state) {

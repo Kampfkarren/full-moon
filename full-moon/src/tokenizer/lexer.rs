@@ -1,4 +1,4 @@
-use crate::{tokenizer::StringLiteralQuoteType, ShortString};
+use crate::{ast::LuaVersion, tokenizer::StringLiteralQuoteType, ShortString};
 
 use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
@@ -10,16 +10,20 @@ pub struct Lexer {
 
     next_token: Option<LexerResult<TokenReference>>,
     peek_token: Option<LexerResult<TokenReference>>,
+
+    pub lua_version: LuaVersion,
 }
 
 impl Lexer {
-    pub fn new(source: &str) -> Self {
+    pub fn new(source: &str, lua_version: LuaVersion) -> Self {
         let mut lexer = Self {
             source: LexerSource::new(source),
             sent_eof: false,
 
             next_token: None,
             peek_token: None,
+
+            lua_version,
         };
 
         lexer.next_token = lexer.process_first_with_trivia();
@@ -28,13 +32,15 @@ impl Lexer {
         lexer
     }
 
-    pub fn new_lazy(source: &str) -> Self {
+    pub fn new_lazy(source: &str, lua_version: LuaVersion) -> Self {
         Self {
             source: LexerSource::new(source),
             sent_eof: false,
 
             next_token: None,
             peek_token: None,
+
+            lua_version,
         }
     }
 
