@@ -64,7 +64,7 @@ fn process_codespan_display(source: &str, result: &AstResult) {
 fn test_parser_fail_cases() {
     run_test_folder("./tests/cases/fail/parser", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
-        let tokens = tokenizer::Lexer::new(&source, LuaVersion::Lua51)
+        let tokens = tokenizer::Lexer::new(&source, LuaVersion::lua51())
             .collect()
             .unwrap();
         assert_yaml_snapshot!("tokens", tokens);
@@ -79,7 +79,7 @@ fn test_tokenizer_fail_cases() {
     run_test_folder("./tests/cases/fail/tokenizer", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-        let tokens = tokenizer::Lexer::new(&source, LuaVersion::Lua51).collect();
+        let tokens = tokenizer::Lexer::new(&source, LuaVersion::lua51()).collect();
         assert!(!matches!(tokens, LexerResult::Ok(_)));
         assert_yaml_snapshot!("tokens_result", tokens);
 

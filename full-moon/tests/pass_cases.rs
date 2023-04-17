@@ -60,7 +60,7 @@ fn test_pass_case(path: &Path, lua_version: LuaVersion) {
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     run_test_folder("./tests/cases/pass", |path| {
-        test_pass_case(path, LuaVersion::Lua51)
+        test_pass_case(path, LuaVersion::lua51())
     });
 }
 
