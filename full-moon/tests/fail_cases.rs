@@ -59,18 +59,22 @@ fn process_codespan_display(source: &str, result: &AstResult) {
     );
 }
 
-#[test]
-#[cfg_attr(feature = "no-source-tests", ignore)]
-fn test_parser_fail_cases() {
-    run_test_folder("./tests/cases/fail/parser", |path| {
+fn run_parser_fail_cases(folder: &str, lua_version: LuaVersion) {
+    run_test_folder(folder, |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
-        let tokens = tokenizer::Lexer::new(&source, LuaVersion::lua51())
+        let tokens = tokenizer::Lexer::new(&source, lua_version)
             .collect()
             .unwrap();
         assert_yaml_snapshot!("tokens", tokens);
 
-        process_fail_case(path, &source, LuaVersion::lua51());
+        process_fail_case(path, &source, lua_version);
     });
+}
+
+#[test]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_parser_fail_cases() {
+    run_parser_fail_cases("./tests/cases/fail/parser", LuaVersion::lua51());
 }
 
 #[test]
@@ -128,21 +132,7 @@ fn test_roblox_tokenizer_fail_cases() {
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_parser_fail_cases() {
-    run_test_folder("./tests/lua52_cases/fail/parser", |path| {
-        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
-
-        let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
-
-        assert_yaml_snapshot!("tokens", tokens);
-
-        match ast::Ast::from_tokens(tokens) {
-            Ok(_) => panic!("fail case passed for {:?}", path),
-            Err(error) => {
-                println!("error {:#?}", error);
-                assert_yaml_snapshot!("error", error);
-            }
-        }
-    })
+    run_parser_fail_cases("./tests/lua52_cases/fail/parser", LuaVersion::lua52());
 }
 
 #[test]

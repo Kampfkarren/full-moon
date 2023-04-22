@@ -15,3 +15,24 @@ macro_rules! try_parser {
         }
     };
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! version_switch {
+    ($lua_version:expr, {
+        $(
+            $($version:ident)|* => $value:expr
+        )+
+    }) => {
+        paste::paste! {
+            $(
+                $(
+                    #[cfg(feature = "" $version)]
+                    if $lua_version.[<has_ $version>]() {
+                        $value
+                    }
+                )*
+            )+
+        }
+    };
+}

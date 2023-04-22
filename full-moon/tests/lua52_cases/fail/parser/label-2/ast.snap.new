@@ -1,10 +1,13 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: error
-input_file: full-moon/tests/lua52_cases/fail/parser/label-1
-
+assertion_line: 23
+expression: result.ast
+input_file: full-moon/tests/lua52_cases/fail/parser/label-2
 ---
-UnexpectedToken:
+nodes:
+  stmts: []
+eof:
+  leading_trivia: []
   token:
     start_position:
       bytes: 7
@@ -16,5 +19,5 @@ UnexpectedToken:
       character: 8
     token_type:
       type: Eof
-  additional: "expected `::`"
+  trailing_trivia: []
 

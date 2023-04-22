@@ -1,4 +1,4 @@
-use crate::{ast::LuaVersion, tokenizer::StringLiteralQuoteType, ShortString};
+use crate::{ast::LuaVersion, tokenizer::StringLiteralQuoteType, version_switch, ShortString};
 
 use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
@@ -442,12 +442,28 @@ impl Lexer {
                 },
             ),
 
-            ':' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Colon,
-                },
-            ),
+            ':' => {
+                version_switch!(self.lua_version, {
+                    lua52 | luau => {
+                        if self.source.current() == Some(':') {
+                            self.source.next();
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::TwoColons,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Colon,
+                    },
+                )
+            }
 
             ',' => self.create(
                 start_position,

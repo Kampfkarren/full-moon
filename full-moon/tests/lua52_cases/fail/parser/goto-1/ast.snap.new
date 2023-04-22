@@ -1,10 +1,13 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: error
+assertion_line: 23
+expression: result.ast
 input_file: full-moon/tests/lua52_cases/fail/parser/goto-1
-
 ---
-UnexpectedToken:
+nodes:
+  stmts: []
+eof:
+  leading_trivia: []
   token:
     start_position:
       bytes: 4
@@ -16,5 +19,5 @@ UnexpectedToken:
       character: 5
     token_type:
       type: Eof
-  additional: "expected identifier after `goto`"
+  trailing_trivia: []
 
