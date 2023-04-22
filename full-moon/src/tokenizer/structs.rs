@@ -42,6 +42,7 @@ macro_rules! symbol {
             }
 
             impl Symbol {
+                #[allow(unused)] // Without any features, lua_version is unused
                 pub fn from_str(symbol: &str, lua_version: LuaVersion) -> Option<Self> {
                     match symbol {
                         $(
