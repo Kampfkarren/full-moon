@@ -8,7 +8,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::Ordering,
-    convert::TryFrom,
     fmt::{self, Display},
 };
 
@@ -17,339 +16,159 @@ pub use crate::tokenizer_luau::InterpolatedStringKind;
 
 use super::{Lexer, LexerResult};
 
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[non_exhaustive]
-#[allow(missing_docs)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-/// A literal symbol, used for both words important to syntax (like while) and operators (like +)
-pub enum Symbol {
-    And,
-    Break,
-    Do,
-    Else,
-    ElseIf,
-    End,
-    False,
-    For,
-    Function,
-    If,
-    In,
-    Local,
-    Nil,
-    Not,
-    Or,
-    Repeat,
-    Return,
-    Then,
-    True,
-    Until,
-    While,
-
-    #[cfg(feature = "lua52")]
-    Goto,
-
-    #[cfg_attr(feature = "serde", serde(rename = "+="))]
-    PlusEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "-="))]
-    MinusEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "*="))]
-    StarEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "/="))]
-    SlashEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "%="))]
-    PercentEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "^="))]
-    CaretEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "..="))]
-    TwoDotsEqual,
-
-    #[cfg(any(feature = "roblox", feature = "lua53"))]
-    #[cfg_attr(feature = "serde", serde(rename = "&"))]
-    Ampersand,
-
-    #[cfg(feature = "roblox")]
-    #[cfg_attr(feature = "serde", serde(rename = "->"))]
-    ThinArrow,
-
-    #[cfg(any(feature = "roblox", feature = "lua52"))]
-    #[cfg_attr(feature = "serde", serde(rename = "::"))]
-    TwoColons,
-
-    #[cfg_attr(feature = "serde", serde(rename = "^"))]
-    Caret,
-
-    #[cfg_attr(feature = "serde", serde(rename = ":"))]
-    Colon,
-
-    #[cfg_attr(feature = "serde", serde(rename = ","))]
-    Comma,
-
-    #[cfg_attr(feature = "serde", serde(rename = "..."))]
-    Ellipse,
-
-    #[cfg_attr(feature = "serde", serde(rename = ".."))]
-    TwoDots,
-
-    #[cfg_attr(feature = "serde", serde(rename = "."))]
-    Dot,
-
-    #[cfg_attr(feature = "serde", serde(rename = "=="))]
-    TwoEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "="))]
-    Equal,
-
-    #[cfg_attr(feature = "serde", serde(rename = ">="))]
-    GreaterThanEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = ">"))]
-    GreaterThan,
-
-    #[cfg(feature = "lua53")]
-    #[cfg_attr(feature = "serde", serde(rename = ">>"))]
-    DoubleGreaterThan,
-
-    #[cfg_attr(feature = "serde", serde(rename = "#"))]
-    Hash,
-
-    #[cfg_attr(feature = "serde", serde(rename = "["))]
-    LeftBracket,
-
-    #[cfg_attr(feature = "serde", serde(rename = "{"))]
-    LeftBrace,
-
-    #[cfg_attr(feature = "serde", serde(rename = "("))]
-    LeftParen,
-
-    #[cfg_attr(feature = "serde", serde(rename = "<="))]
-    LessThanEqual,
-
-    #[cfg_attr(feature = "serde", serde(rename = "<"))]
-    LessThan,
-
-    #[cfg(feature = "lua53")]
-    #[cfg_attr(feature = "serde", serde(rename = "<<"))]
-    DoubleLessThan,
-
-    #[cfg_attr(feature = "serde", serde(rename = "-"))]
-    Minus,
-
-    #[cfg_attr(feature = "serde", serde(rename = "%"))]
-    Percent,
-
-    #[cfg(any(feature = "roblox", feature = "lua53"))]
-    #[cfg_attr(feature = "serde", serde(rename = "|"))]
-    Pipe,
-
-    #[cfg_attr(feature = "serde", serde(rename = "+"))]
-    Plus,
-
-    #[cfg(feature = "roblox")]
-    #[cfg_attr(feature = "serde", serde(rename = "?"))]
-    QuestionMark,
-
-    #[cfg_attr(feature = "serde", serde(rename = "}"))]
-    RightBrace,
-
-    #[cfg_attr(feature = "serde", serde(rename = "]"))]
-    RightBracket,
-
-    #[cfg_attr(feature = "serde", serde(rename = ")"))]
-    RightParen,
-
-    #[cfg_attr(feature = "serde", serde(rename = ";"))]
-    Semicolon,
-
-    #[cfg_attr(feature = "serde", serde(rename = "/"))]
-    Slash,
-
-    #[cfg(feature = "lua53")]
-    #[cfg_attr(feature = "serde", serde(rename = "//"))]
-    DoubleSlash,
-
-    #[cfg_attr(feature = "serde", serde(rename = "*"))]
-    Star,
-
-    #[cfg(feature = "lua53")]
-    #[cfg_attr(feature = "serde", serde(rename = "~"))]
-    Tilde,
-
-    #[cfg_attr(feature = "serde", serde(rename = "~="))]
-    TildeEqual,
-}
-
-impl Display for Symbol {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Symbol::And => "and",
-            Symbol::Break => "break",
-            Symbol::Do => "do",
-            Symbol::Else => "else",
-            Symbol::ElseIf => "elseif",
-            Symbol::End => "end",
-            Symbol::False => "false",
-            Symbol::For => "for",
-            Symbol::Function => "function",
-            Symbol::If => "if",
-            Symbol::In => "in",
-            Symbol::Local => "local",
-            Symbol::Nil => "nil",
-            Symbol::Not => "not",
-            Symbol::Or => "or",
-            Symbol::Repeat => "repeat",
-            Symbol::Return => "return",
-            Symbol::Then => "then",
-            Symbol::True => "true",
-            Symbol::Until => "until",
-            Symbol::While => "while",
-            #[cfg(feature = "lua52")]
-            Symbol::Goto => "goto",
-            Symbol::PlusEqual => "+=",
-            Symbol::MinusEqual => "-=",
-            Symbol::StarEqual => "*=",
-            Symbol::SlashEqual => "/=",
-            Symbol::PercentEqual => "%=",
-            Symbol::CaretEqual => "^=",
-            Symbol::TwoDotsEqual => "..=",
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            Symbol::Ampersand => "&",
-            #[cfg(feature = "roblox")]
-            Symbol::ThinArrow => "->",
-            #[cfg(any(feature = "roblox", feature = "lua52"))]
-            Symbol::TwoColons => "::",
-            Symbol::Caret => "^",
-            Symbol::Colon => ":",
-            Symbol::Comma => ",",
-            Symbol::Ellipse => "...",
-            Symbol::TwoDots => "..",
-            Symbol::Dot => ".",
-            Symbol::TwoEqual => "==",
-            Symbol::Equal => "=",
-            Symbol::GreaterThanEqual => ">=",
-            Symbol::GreaterThan => ">",
-            #[cfg(feature = "lua53")]
-            Symbol::DoubleGreaterThan => ">>",
-            Symbol::Hash => "#",
-            Symbol::LeftBracket => "[",
-            Symbol::LeftBrace => "{",
-            Symbol::LeftParen => "(",
-            Symbol::LessThanEqual => "<=",
-            Symbol::LessThan => "<",
-            #[cfg(feature = "lua53")]
-            Symbol::DoubleLessThan => "<<",
-            Symbol::Minus => "-",
-            Symbol::Percent => "%",
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            Symbol::Pipe => "|",
-            Symbol::Plus => "+",
-            #[cfg(feature = "roblox")]
-            Symbol::QuestionMark => "?",
-            Symbol::RightBrace => "}",
-            Symbol::RightBracket => "]",
-            Symbol::RightParen => ")",
-            Symbol::Semicolon => ";",
-            Symbol::Slash => "/",
-            #[cfg(feature = "lua53")]
-            Symbol::DoubleSlash => "//",
-            Symbol::Star => "*",
-            #[cfg(feature = "lua53")]
-            Symbol::Tilde => "~",
-            Symbol::TildeEqual => "~=",
-        };
-
-        value.fmt(formatter)
-    }
-}
-
-// rewrite todo: bring back macro?
-impl TryFrom<&str> for Symbol {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, ()> {
-        match value {
-            "and" => Ok(Symbol::And),
-            "break" => Ok(Symbol::Break),
-            "do" => Ok(Symbol::Do),
-            "else" => Ok(Symbol::Else),
-            "elseif" => Ok(Symbol::ElseIf),
-            "end" => Ok(Symbol::End),
-            "false" => Ok(Symbol::False),
-            "for" => Ok(Symbol::For),
-            "function" => Ok(Symbol::Function),
-            "if" => Ok(Symbol::If),
-            "in" => Ok(Symbol::In),
-            "local" => Ok(Symbol::Local),
-            "nil" => Ok(Symbol::Nil),
-            "not" => Ok(Symbol::Not),
-            "or" => Ok(Symbol::Or),
-            "repeat" => Ok(Symbol::Repeat),
-            "return" => Ok(Symbol::Return),
-            "then" => Ok(Symbol::Then),
-            "true" => Ok(Symbol::True),
-            "until" => Ok(Symbol::Until),
-            "while" => Ok(Symbol::While),
-            #[cfg(feature = "lua52")]
-            "goto" => Ok(Symbol::Goto),
-            "+=" => Ok(Symbol::PlusEqual),
-            "-=" => Ok(Symbol::MinusEqual),
-            "*=" => Ok(Symbol::StarEqual),
-            "/=" => Ok(Symbol::SlashEqual),
-            "%=" => Ok(Symbol::PercentEqual),
-            "^=" => Ok(Symbol::CaretEqual),
-            "..=" => Ok(Symbol::TwoDotsEqual),
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            "&" => Ok(Symbol::Ampersand),
-            #[cfg(feature = "roblox")]
-            "->" => Ok(Symbol::ThinArrow),
-            #[cfg(any(feature = "roblox", feature = "lua52"))]
-            "::" => Ok(Symbol::TwoColons),
-            "^" => Ok(Symbol::Caret),
-            ":" => Ok(Symbol::Colon),
-            "," => Ok(Symbol::Comma),
-            "..." => Ok(Symbol::Ellipse),
-            ".." => Ok(Symbol::TwoDots),
-            "." => Ok(Symbol::Dot),
-            "==" => Ok(Symbol::TwoEqual),
-            "=" => Ok(Symbol::Equal),
-            ">=" => Ok(Symbol::GreaterThanEqual),
-            ">" => Ok(Symbol::GreaterThan),
-            #[cfg(feature = "lua53")]
-            ">>" => Ok(Symbol::DoubleGreaterThan),
-            "#" => Ok(Symbol::Hash),
-            "[" => Ok(Symbol::LeftBracket),
-            "{" => Ok(Symbol::LeftBrace),
-            "(" => Ok(Symbol::LeftParen),
-            "<=" => Ok(Symbol::LessThanEqual),
-            "<" => Ok(Symbol::LessThan),
-            #[cfg(feature = "lua53")]
-            "<<" => Ok(Symbol::DoubleLessThan),
-            "-" => Ok(Symbol::Minus),
-            "%" => Ok(Symbol::Percent),
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            "|" => Ok(Symbol::Pipe),
-            "+" => Ok(Symbol::Plus),
-            #[cfg(feature = "roblox")]
-            "?" => Ok(Symbol::QuestionMark),
-            "}" => Ok(Symbol::RightBrace),
-            "]" => Ok(Symbol::RightBracket),
-            ")" => Ok(Symbol::RightParen),
-            ";" => Ok(Symbol::Semicolon),
-            "/" => Ok(Symbol::Slash),
-            #[cfg(feature = "lua53")]
-            "//" => Ok(Symbol::DoubleSlash),
-            "*" => Ok(Symbol::Star),
-            #[cfg(feature = "lua53")]
-            "~" => Ok(Symbol::Tilde),
-            "~=" => Ok(Symbol::TildeEqual),
-            _ => Err(()),
+macro_rules! symbol {
+    {
+        $(#[$symbol_meta:meta])*
+        pub enum Symbol {
+            $(
+                $(#[$meta:meta])*
+                $([$($version:ident)|+])? $name:ident => $string:literal,
+            )+
         }
+    } => {
+        paste::paste! {
+            $(#[$symbol_meta])*
+            pub enum Symbol {
+                $(
+                    $(#[$meta])*
+                    $(
+                        #[cfg(any(
+                            $(feature = "" $version),+
+                        ))]
+                    )*
+                    #[serde(rename = $string)]
+                    $name,
+                )+
+            }
+
+            impl Symbol {
+                pub fn from_str(symbol: &str, lua_version: LuaVersion) -> Option<Self> {
+                    match symbol {
+                        $(
+                            $(
+                                #[cfg(any(
+                                    $(feature = "" $version),+
+                                ))]
+                            )?
+                            $string => {
+                                $(
+                                    let mut version_passes = false;
+
+                                    $(
+                                        #[cfg(feature = "" $version)]
+                                        if lua_version.[<has_ $version>]() {
+                                            version_passes = true;
+                                        }
+                                    )+
+
+                                    if !version_passes {
+                                        return None;
+                                    }
+                                )?
+
+                                Some(Self::$name)
+                            },
+                        )+
+
+                        _ => None,
+                    }
+                }
+            }
+
+            impl Display for Symbol {
+                fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    match self {
+                        $(
+                            $(
+                                #[cfg(any(
+                                    $(feature = "" $version),+
+                                ))]
+                            )*
+                            Self::$name => f.write_str($string),
+                        )+
+                    }
+                }
+            }
+        }
+    };
+}
+
+symbol! {
+    #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+    #[non_exhaustive]
+    #[allow(missing_docs)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// A literal symbol, used for both words important to syntax (like while) and operators (like +)
+    pub enum Symbol {
+        And => "and",
+        Break => "break",
+        Do => "do",
+        Else => "else",
+        ElseIf => "elseif",
+        End => "end",
+        False => "false",
+        For => "for",
+        Function => "function",
+        If => "if",
+        In => "in",
+        Local => "local",
+        Nil => "nil",
+        Not => "not",
+        Or => "or",
+        Repeat => "repeat",
+        Return => "return",
+        Then => "then",
+        True => "true",
+        Until => "until",
+        While => "while",
+
+        [lua52] Goto => "goto",
+
+        // rewrite todo CHANGELOG: these used to be available everywhere incorrectly
+        [luau] PlusEqual => "+=",
+        [luau] MinusEqual => "-=",
+        [luau] StarEqual => "*=",
+        [luau] SlashEqual => "/=",
+        [luau] PercentEqual => "%=",
+        [luau] CaretEqual => "^=",
+        [luau] TwoDotsEqual => "..=",
+
+        [luau | lua53] Ampersand => "&",
+        [luau] ThinArrow => "->",
+        [luau | lua52] TwoColons => "::",
+
+        Caret => "^",
+        Colon => ":",
+        Comma => ",",
+        Dot => ".",
+        TwoDots => "..",
+        Ellipse => "...",
+        Equal => "=",
+        TwoEqual => "==",
+        GreaterThan => ">",
+        GreaterThanEqual => ">=",
+        [lua53] DoubleGreaterThan => ">>",
+        Hash => "#",
+        LeftBrace => "{",
+        LeftBracket => "[",
+        LeftParen => "(",
+        LessThan => "<",
+        LessThanEqual => "<=",
+        [lua53] DoubleLessThan => "<<",
+        Minus => "-",
+        Percent => "%",
+        [luau | lua53] Pipe => "|",
+        Plus => "+",
+        [luau] QuestionMark => "?",
+        RightBrace => "}",
+        RightBracket => "]",
+        RightParen => ")",
+        Semicolon => ";",
+        Slash => "/",
+        [lua53] DoubleSlash => "//",
+        Star => "*",
+        [lua53] Tilde => "~",
+        TildeEqual => "~=",
     }
 }
 

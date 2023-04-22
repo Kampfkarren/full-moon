@@ -263,7 +263,7 @@ impl Lexer {
 
                 self.create(
                     start_position,
-                    if let Ok(symbol) = Symbol::try_from(identifier.as_str()) {
+                    if let Some(symbol) = Symbol::from_str(&identifier, self.lua_version) {
                         TokenType::Symbol { symbol }
                     } else {
                         TokenType::Identifier {
