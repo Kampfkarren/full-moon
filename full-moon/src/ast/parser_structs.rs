@@ -19,6 +19,10 @@ impl ParserState {
         }
     }
 
+    pub fn lua_version(&self) -> LuaVersion {
+        self.lua_version
+    }
+
     pub fn current(&self) -> Result<&TokenReference, ()> {
         match self.lexer.current() {
             Some(LexerResult::Ok(token) | LexerResult::Recovered(token, _)) => Ok(token),
@@ -122,13 +126,7 @@ impl ParserState {
                 if token.is_symbol(symbol) {
                     Some(self.consume().unwrap())
                 } else {
-                    self.token_error_ranged(
-                        token.clone(),
-                        error.to_str(),
-                        start_token.clone(),
-                        end_token.clone(),
-                    );
-
+                    self.token_error_ranged(token.clone(), error.to_str(), start_token, end_token);
                     None
                 }
             }
@@ -137,7 +135,7 @@ impl ParserState {
         }
     }
 
-    pub fn require_with_reference_range_callback<'a>(
+    pub fn require_with_reference_range_callback(
         &mut self,
         symbol: Symbol,
         error: impl MaybeLazyString,
@@ -150,7 +148,12 @@ impl ParserState {
                 } else {
                     let (start_token, end_token) = tokens();
 
-                    self.token_error_ranged(token.clone(), error.to_str(), start_token, end_token);
+                    self.token_error_ranged(
+                        token.clone(),
+                        error.to_str(),
+                        &start_token,
+                        &end_token,
+                    );
 
                     None
                 }
@@ -174,12 +177,13 @@ impl ParserState {
         ));
     }
 
+    // This takes start_token and end_token as owned references because otherwise, we tend to stack an immutable over mutable borrow.
     pub fn token_error_ranged<S: Into<Cow<'static, str>>>(
         &mut self,
         token_reference: TokenReference,
         error: S,
-        start_token: TokenReference,
-        end_token: TokenReference,
+        start_token: &TokenReference,
+        end_token: &TokenReference,
     ) {
         self.errors.push(crate::Error::AstError(
             crate::ast::AstError::UnexpectedToken {

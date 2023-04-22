@@ -342,6 +342,76 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             }))
         }
 
+        #[cfg(feature = "lua52")]
+        TokenType::Symbol {
+            symbol: Symbol::Goto,
+        } => {
+            let goto_token = state.consume().unwrap();
+
+            match state.current() {
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                    let label_name = state.consume().unwrap();
+                    ParserResult::Value(ast::Stmt::Goto(ast::Goto {
+                        goto_token,
+                        label_name,
+                    }))
+                }
+
+                Ok(token) => {
+                    state.token_error_ranged(
+                        token.clone(),
+                        "expected label name after `goto`",
+                        &goto_token,
+                        &token.clone(),
+                    );
+
+                    ParserResult::LexerMoved
+                }
+
+                Err(()) => {
+                    state.token_error(goto_token, "expected label name after `goto`");
+                    ParserResult::LexerMoved
+                }
+            }
+        }
+
+        #[cfg(feature = "lua52")]
+        TokenType::Symbol {
+            symbol: Symbol::TwoColons,
+        } if state.lua_version().has_lua52() => {
+            let left_colons = state.consume().unwrap();
+
+            let name = match state.current() {
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                    state.consume().unwrap()
+                }
+
+                Ok(token) => {
+                    state.token_error_ranged(
+                        token.clone(),
+                        "expected label name after `::`",
+                        &left_colons,
+                        &token.clone(),
+                    );
+
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            let right_colons = match state.require(Symbol::TwoColons, "expected `::` after label") {
+                Some(token) => token,
+                None => TokenReference::symbol("::").unwrap(),
+            };
+
+            ParserResult::Value(ast::Stmt::Label(ast::Label {
+                left_colons,
+                name,
+                right_colons,
+            }))
+        }
+
         _ => ParserResult::NotFound,
     }
 }
