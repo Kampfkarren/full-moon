@@ -784,6 +784,8 @@ impl Lexer {
         let mut literal = String::new();
 
         let mut escape = false;
+        let mut z_escaped = false;
+
         loop {
             let next = match self.source.next() {
                 Some(next) => next,
@@ -800,14 +802,30 @@ impl Lexer {
             };
 
             match (escape, next) {
+                (true, 'z') if self.lua_version.has_lua52() => {
+                    escape = false;
+                    z_escaped = true;
+                    literal.push('z');
+                }
+
                 (true, ..) => {
                     escape = false;
+
+                    if self.lua_version.has_lua52() {
+                        z_escaped = true; // support for '\' followed by a new line
+                    }
+
                     literal.push(next);
                 }
 
                 (false, '\\') => {
                     escape = true;
                     literal.push('\\');
+                }
+
+                (false, '\n' | '\r') if z_escaped => {
+                    z_escaped = false;
+                    literal.push(next);
                 }
 
                 (false, '\n' | '\r') => {
