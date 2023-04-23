@@ -301,9 +301,9 @@ impl Lexer {
             }
 
             initial @ '0' => {
-                if self.source.current() == Some('x') {
-                    self.source.next();
-                    self.read_hex_number(start_position)
+                if matches!(self.source.current(), Some('x' | 'X')) {
+                    let hex_character = self.source.next().unwrap();
+                    self.read_hex_number(hex_character, start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -651,26 +651,7 @@ impl Lexer {
                 hit_decimal = true;
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, 'e' | 'E') {
-                number.push(self.source.next().expect("peeked, but no next"));
-
-                let next = self.source.current();
-                if matches!(next, Some('+') | Some('-')) {
-                    number.push(self.source.next().expect("peeked, but no next"));
-                }
-
-                if !matches!(self.source.current(), Some('0'..='9')) {
-                    return Some(self.eat_invalid_number(start_position, number));
-                }
-
-                while let Some(next) = self.source.current() {
-                    if next.is_ascii_digit() {
-                        number.push(self.source.next().expect("peeked, but no next"));
-                    } else {
-                        break;
-                    }
-                }
-
-                break;
+                return self.read_exponent_part(start_position, number);
             } else {
                 break;
             }
@@ -712,14 +693,71 @@ impl Lexer {
         }
     }
 
-    fn read_hex_number(&mut self, start_position: Position) -> Option<LexerResult<Token>> {
-        let mut number = "0x".to_string();
+    // Starts from the exponent marker (like 'e')
+    fn read_exponent_part(
+        &mut self,
+        start_position: Position,
+        mut number: String,
+    ) -> Option<LexerResult<Token>> {
+        number.push(self.source.next().expect("peeked, but no next"));
+
+        let next = self.source.current();
+        if matches!(next, Some('+') | Some('-')) {
+            number.push(self.source.next().expect("peeked, but no next"));
+        }
+
+        if !matches!(self.source.current(), Some('0'..='9')) {
+            return Some(self.eat_invalid_number(start_position, number));
+        }
 
         while let Some(next) = self.source.current() {
-            if matches!(next, '0'..='9' | 'a'..='f' | 'A'..='F') {
+            if next.is_ascii_digit() {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else {
                 break;
+            }
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_hex_number(
+        &mut self,
+        hex_character: char,
+        start_position: Position,
+    ) -> Option<LexerResult<Token>> {
+        let mut number = String::from_iter(['0', hex_character]);
+        let mut hit_decimal = false;
+
+        while let Some(next) = self.source.current() {
+            match next {
+                '0'..='9' | 'a'..='f' | 'A'..='F' => {
+                    number.push(self.source.next().expect("peeked, but no next"));
+                }
+
+                '.' if self.lua_version.has_lua52() => {
+                    if hit_decimal {
+                        return Some(self.eat_invalid_number(start_position, number));
+                    }
+
+                    hit_decimal = true;
+                    number.push(self.source.next().expect("peeked, but no next"));
+                }
+
+                'p' | 'P' if self.lua_version.has_lua52() => {
+                    if number.len() == 2 {
+                        return Some(self.eat_invalid_number(start_position, number));
+                    }
+
+                    return self.read_exponent_part(start_position, number);
+                }
+
+                _ => break,
             }
         }
 

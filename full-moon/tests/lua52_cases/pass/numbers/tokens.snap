@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 40
 expression: tokens
+input_file: full-moon/tests/lua52_cases/pass/numbers
 ---
 - start_position:
     bytes: 0
@@ -414,262 +416,97 @@ expression: tokens
     line: 12
     character: 1
   end_position:
-    bytes: 280
+    bytes: 343
     line: 12
-    character: 6
+    character: 69
   token_type:
-    type: Symbol
-    symbol: local
+    type: SingleLineComment
+    comment: " rewrite todo: add this back, but in a separate luajit pass folder"
 - start_position:
-    bytes: 280
+    bytes: 343
     line: 12
-    character: 6
+    character: 69
   end_position:
-    bytes: 281
+    bytes: 344
     line: 12
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 281
-    line: 12
-    character: 7
-  end_position:
-    bytes: 282
-    line: 12
-    character: 8
-  token_type:
-    type: Identifier
-    identifier: d
-- start_position:
-    bytes: 282
-    line: 12
-    character: 8
-  end_position:
-    bytes: 283
-    line: 12
-    character: 9
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 283
-    line: 12
-    character: 9
-  end_position:
-    bytes: 284
-    line: 12
-    character: 10
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 284
-    line: 12
-    character: 10
-  end_position:
-    bytes: 285
-    line: 12
-    character: 11
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 285
-    line: 12
-    character: 11
-  end_position:
-    bytes: 289
-    line: 12
-    character: 15
-  token_type:
-    type: Number
-    text: 42LL
-- start_position:
-    bytes: 289
-    line: 12
-    character: 15
-  end_position:
-    bytes: 290
-    line: 12
-    character: 15
+    character: 69
   token_type:
     type: Whitespace
     characters: "\n"
 - start_position:
-    bytes: 290
+    bytes: 344
     line: 13
     character: 1
   end_position:
-    bytes: 295
+    bytes: 361
     line: 13
-    character: 6
+    character: 18
   token_type:
-    type: Symbol
-    symbol: local
+    type: SingleLineComment
+    comment: " local d = 42LL"
 - start_position:
-    bytes: 295
+    bytes: 361
     line: 13
-    character: 6
+    character: 18
   end_position:
-    bytes: 296
+    bytes: 362
     line: 13
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 296
-    line: 13
-    character: 7
-  end_position:
-    bytes: 297
-    line: 13
-    character: 8
-  token_type:
-    type: Identifier
-    identifier: e
-- start_position:
-    bytes: 297
-    line: 13
-    character: 8
-  end_position:
-    bytes: 298
-    line: 13
-    character: 9
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 298
-    line: 13
-    character: 9
-  end_position:
-    bytes: 299
-    line: 13
-    character: 10
-  token_type:
-    type: Symbol
-    symbol: "="
-- start_position:
-    bytes: 299
-    line: 13
-    character: 10
-  end_position:
-    bytes: 300
-    line: 13
-    character: 11
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 300
-    line: 13
-    character: 11
-  end_position:
-    bytes: 306
-    line: 13
-    character: 17
-  token_type:
-    type: Number
-    text: "0x2aLL"
-- start_position:
-    bytes: 306
-    line: 13
-    character: 17
-  end_position:
-    bytes: 307
-    line: 13
-    character: 17
+    character: 18
   token_type:
     type: Whitespace
     characters: "\n"
 - start_position:
-    bytes: 307
+    bytes: 362
     line: 14
     character: 1
   end_position:
-    bytes: 312
+    bytes: 381
     line: 14
-    character: 6
+    character: 20
   token_type:
-    type: Symbol
-    symbol: local
+    type: SingleLineComment
+    comment: " local e = 0x2aLL"
 - start_position:
-    bytes: 312
+    bytes: 381
     line: 14
-    character: 6
+    character: 20
   end_position:
-    bytes: 313
+    bytes: 382
     line: 14
-    character: 7
-  token_type:
-    type: Whitespace
-    characters: " "
-- start_position:
-    bytes: 313
-    line: 14
-    character: 7
-  end_position:
-    bytes: 314
-    line: 14
-    character: 8
-  token_type:
-    type: Identifier
-    identifier: f
-- start_position:
-    bytes: 314
-    line: 14
-    character: 8
-  end_position:
-    bytes: 315
-    line: 14
-    character: 9
+    character: 20
   token_type:
     type: Whitespace
-    characters: " "
+    characters: "\n"
 - start_position:
-    bytes: 315
-    line: 14
-    character: 9
+    bytes: 382
+    line: 15
+    character: 1
   end_position:
-    bytes: 316
-    line: 14
-    character: 10
+    bytes: 400
+    line: 15
+    character: 19
   token_type:
-    type: Symbol
-    symbol: "="
+    type: SingleLineComment
+    comment: " local f = 12.5i"
 - start_position:
-    bytes: 316
-    line: 14
-    character: 10
+    bytes: 400
+    line: 15
+    character: 19
   end_position:
-    bytes: 317
-    line: 14
-    character: 11
+    bytes: 401
+    line: 15
+    character: 19
   token_type:
     type: Whitespace
-    characters: " "
+    characters: "\n"
 - start_position:
-    bytes: 317
-    line: 14
-    character: 11
+    bytes: 401
+    line: 16
+    character: 1
   end_position:
-    bytes: 322
-    line: 14
-    character: 16
-  token_type:
-    type: Number
-    text: 12.5i
-- start_position:
-    bytes: 322
-    line: 14
-    character: 16
-  end_position:
-    bytes: 322
-    line: 14
-    character: 16
+    bytes: 401
+    line: 16
+    character: 1
   token_type:
     type: Eof
 

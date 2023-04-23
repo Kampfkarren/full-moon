@@ -25,9 +25,8 @@ impl LuaVersion {
         }
     }
 
-    #[cfg(feature = "roblox")]
     pub fn has_luau(self) -> bool {
-        self.bitfield & VERSION_LUAU != 0
+        cfg!(feature = "roblox") && (self.bitfield & VERSION_LUAU != 0)
     }
 
     #[cfg(feature = "lua52")]
@@ -44,9 +43,8 @@ impl LuaVersion {
         }
     }
 
-    #[cfg(feature = "lua52")]
     pub fn has_lua52(self) -> bool {
-        self.bitfield & VERSION_LUA52 != 0
+        cfg!(feature = "lua52") && (self.bitfield & VERSION_LUA52 != 0)
     }
 }
 
