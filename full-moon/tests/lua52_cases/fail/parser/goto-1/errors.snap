@@ -1,0 +1,28 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 22
+expression: result.errors
+input_file: full-moon/tests/lua52_cases/fail/parser/goto-1
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 4
+          line: 1
+          character: 5
+        end_position:
+          bytes: 4
+          line: 1
+          character: 5
+        token_type:
+          type: Eof
+      additional: "expected label name after `goto`"
+      range:
+        - bytes: 0
+          line: 1
+          character: 1
+        - bytes: 4
+          line: 1
+          character: 5
+

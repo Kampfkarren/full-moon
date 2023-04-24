@@ -1403,6 +1403,15 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             }
         }
 
+        #[cfg(feature = "lua53")]
+        TokenType::Symbol {
+            symbol: Symbol::Minus | Symbol::Not | Symbol::Hash | Symbol::Tilde,
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
+        #[cfg(not(feature = "lua53"))]
         TokenType::Symbol {
             symbol: Symbol::Minus | Symbol::Not | Symbol::Hash,
         } => {
@@ -1502,6 +1511,10 @@ fn parse_unary_expression(
             Symbol::Minus => ast::UnOp::Minus(unary_operator_token),
             Symbol::Not => ast::UnOp::Not(unary_operator_token),
             Symbol::Hash => ast::UnOp::Hash(unary_operator_token),
+            #[cfg(feature = "lua53")]
+            Symbol::Tilde if state.lua_version().has_lua53() => {
+                ast::UnOp::Tilde(unary_operator_token)
+            }
             _ => unreachable!(),
         },
 

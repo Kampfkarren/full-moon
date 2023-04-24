@@ -354,6 +354,17 @@ impl Lexer {
                         },
                     )
                 } else {
+                    version_switch!(self.lua_version, {
+                        lua53 => {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::Tilde,
+                                },
+                            )
+                        }
+                    });
+
                     Some(LexerResult::Fatal(vec![TokenizerError {
                         error: TokenizerErrorType::InvalidSymbol("~".to_owned()),
                         range: (start_position, self.source.position()),
@@ -445,8 +456,7 @@ impl Lexer {
             ':' => {
                 version_switch!(self.lua_version, {
                     lua52 | luau => {
-                        if self.source.current() == Some(':') {
-                            self.source.next();
+                        if self.source.consume(':') {
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
@@ -486,12 +496,28 @@ impl Lexer {
                 },
             ),
 
-            '/' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Slash,
-                },
-            ),
+            '/' => {
+                version_switch!(self.lua_version, {
+                    lua53 => {
+                        if self.source.current() == Some('/') {
+                            self.source.next();
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::DoubleSlash,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Slash,
+                    },
+                )
+            }
 
             '%' => self.create(
                 start_position,
@@ -515,6 +541,19 @@ impl Lexer {
             ),
 
             '<' => {
+                version_switch!(self.lua_version, {
+                    lua53 => {
+                        if self.source.consume('<') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::DoubleLessThan,
+                                },
+                            );
+                        }
+                    }
+                });
+
                 if self.source.consume('=') {
                     self.create(
                         start_position,
@@ -533,6 +572,23 @@ impl Lexer {
             }
 
             '>' => {
+                // rewrite todo: https://github.com/Kampfkarren/full-moon/pull/239 made this instead two separate tokens
+                // to disambiguate some Luau syntax.
+                // that was fine, but we can do it better now.
+                // do that hack (in both lexer and parser) only if lua53 and luau are enabled.
+                version_switch!(self.lua_version, {
+                    lua53 => {
+                        if self.source.consume('>') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::DoubleGreaterThan,
+                                },
+                            );
+                        }
+                    }
+                });
+
                 if self.source.consume('=') {
                     self.create(
                         start_position,
@@ -623,6 +679,22 @@ impl Lexer {
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::Semicolon,
+                },
+            ),
+
+            #[cfg(feature = "lua53")]
+            '&' if self.lua_version.has_lua53() => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Ampersand,
+                },
+            ),
+
+            #[cfg(feature = "lua53")]
+            '|' if self.lua_version.has_lua53() => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::Pipe,
                 },
             ),
 

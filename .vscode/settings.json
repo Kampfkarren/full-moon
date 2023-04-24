@@ -3,6 +3,7 @@
 	// 	"roblox"
 	// ],
 	"rust-analyzer.cargo.features": [
-		"lua52"
+		"lua52",
+		"lua53"
 	]
 }

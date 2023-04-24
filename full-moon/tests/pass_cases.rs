@@ -84,7 +84,9 @@ fn test_lua52_pass_cases() {
 #[cfg(feature = "lua53")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua53_pass_cases() {
-    run_test_folder("./tests/lua53_cases/pass", test_pass_case);
+    run_test_folder("./tests/lua53_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua53())
+    });
 }
 
 #[test]

@@ -2033,55 +2033,96 @@ impl FunctionDeclaration {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! make_bin_op {
-    ($(#[$outer:meta])* { $($(#[$inner:meta])* $operator:ident = $precedence:expr,)+ }) => {
-        #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
-        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        #[non_exhaustive]
-        $(#[$outer])*
-        #[display(fmt = "{}")]
-        pub enum BinOp {
-            $(
-                $(#[$inner])*
-                #[allow(missing_docs)]
-                $operator(TokenReference),
-            )+
-        }
-
-        impl BinOp {
-            /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
-            pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
-                match token.token_type() {
-                    TokenType::Symbol { symbol } => match symbol {
-                        $(
-                            Symbol::$operator => Some($precedence),
-                        )+
-                        _ => None,
-                    },
-
-                    _ => None
-                }
-            }
-
-            /// The token associated with this operator
-            pub fn token(&self) -> &TokenReference {
-                match self {
+    ($(#[$outer:meta])* { $(
+        $([$($version:ident)|+])? $operator:ident = $precedence:expr,
+    )+ }) => {
+        paste::paste! {
+            #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+            #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+            #[non_exhaustive]
+            $(#[$outer])*
+            #[display(fmt = "{}")]
+            pub enum BinOp {
+                $(
+                    #[allow(missing_docs)]
                     $(
-                        BinOp::$operator(token) => token,
-                    )+
-                }
+                        #[cfg(any(
+                            $(feature = "" $version),+
+                        ))]
+                    )*
+                    $operator(TokenReference),
+                )+
             }
 
-            pub(crate) fn consume(state: &mut parser_structs::ParserState) -> Option<Self> {
-                match state.current().unwrap().token_type() {
-                    TokenType::Symbol { symbol } => match symbol {
+            impl BinOp {
+                /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
+                pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
+                    match token.token_type() {
+                        TokenType::Symbol { symbol } => match symbol {
+                            $(
+                                $(
+                                    #[cfg(any(
+                                        $(feature = "" $version),+
+                                    ))]
+                                )*
+                                Symbol::$operator => Some($precedence),
+                            )+
+                            _ => None,
+                        },
+
+                        _ => None
+                    }
+                }
+
+                /// The token associated with this operator
+                pub fn token(&self) -> &TokenReference {
+                    match self {
                         $(
-                            Symbol::$operator => Some(BinOp::$operator(state.consume().unwrap())),
+                            $(
+                                #[cfg(any(
+                                    $(feature = "" $version),+
+                                ))]
+                            )*
+                            BinOp::$operator(token) => token,
                         )+
+                    }
+                }
+
+                pub(crate) fn consume(state: &mut parser_structs::ParserState) -> Option<Self> {
+                    match state.current().unwrap().token_type() {
+                        TokenType::Symbol { symbol } => match symbol {
+                            $(
+                                $(
+                                    #[cfg(any(
+                                        $(feature = "" $version),+
+                                    ))]
+                                )*
+                                Symbol::$operator => {
+                                    // rewrite todo: this is copied and pasted from the symbol stuff
+                                    $(
+                                        let mut version_passes = false;
+
+                                        $(
+                                            #[cfg(feature = "" $version)]
+                                            if state.lua_version().[<has_ $version>]() {
+                                                version_passes = true;
+                                            }
+                                        )+
+
+                                        if !version_passes {
+                                            return None;
+                                        }
+                                    )?
+
+                                    Some(BinOp::$operator(state.consume().unwrap()))
+                                },
+                            )+
+
+                            _ => None,
+                        },
 
                         _ => None,
-                    },
-
-                    _ => None,
+                    }
                 }
             }
         }
@@ -2092,67 +2133,44 @@ make_bin_op!(
     #[doc = "Operators that require two operands, such as X + Y or X - Y"]
     #[visit(skip_visit_self)]
     {
-        And = 2,
-        Caret = 8,
+        Caret = 12,
+
+        Percent = 10,
+        Slash = 10,
+        Star = 10,
+        [lua53] DoubleSlash = 10,
+
+        Minus = 9,
+        Plus = 9,
+
+        TwoDots = 8,
+        [lua53] DoubleLessThan = 7,
+        [lua53] DoubleGreaterThan = 7,
+
+        [lua53] Ampersand = 6,
+
+        [lua53] Tilde = 5,
+
+        [lua53] Pipe = 4,
+
         GreaterThan = 3,
         GreaterThanEqual = 3,
         LessThan = 3,
         LessThanEqual = 3,
-        Minus = 5,
-        Or = 1,
-        Percent = 6,
-        Plus = 5,
-        Slash = 6,
-        Star = 6,
         TildeEqual = 3,
-        TwoDots = 4,
         TwoEqual = 3,
-        // #[cfg(feature = "lua53")]
-        // Ampersand,
-        // #[cfg(feature = "lua53")]
-        // DoubleSlash,
-        // #[cfg(feature = "lua53")]
-        // DoubleLessThan,
-        // #[cfg(feature = "lua53")]
-        // Pipe,
-        // #[cfg(feature = "lua53")]
-        // DoubleGreaterThan,
-        // #[cfg(feature = "lua53")]
-        // Tilde,
+
+        And = 2,
+
+        Or = 1,
     }
 );
 
 impl BinOp {
-    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
+    /// The precedence of the operator. The larger the number, the higher the precedence.
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
-    #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
         BinOp::precedence_of_token(self.token()).expect("invalid token")
-    }
-
-    // rewrite todo: i haven't touched this. this is kept as reference.
-    /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
-    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
-    #[cfg(feature = "lua53")]
-    pub fn precedence(&self) -> u8 {
-        match *self {
-            BinOp::Caret(_) => 12,
-            BinOp::Star(_) | BinOp::Slash(_) | BinOp::DoubleSlash(_) | BinOp::Percent(_) => 10,
-            BinOp::Plus(_) | BinOp::Minus(_) => 9,
-            BinOp::TwoDots(_) => 8,
-            BinOp::DoubleLessThan(_) | BinOp::DoubleGreaterThan(_) => 7,
-            BinOp::Ampersand(_) => 6,
-            BinOp::Tilde(_) => 5,
-            BinOp::Pipe(_) => 4,
-            BinOp::GreaterThan(_)
-            | BinOp::LessThan(_)
-            | BinOp::GreaterThanEqual(_)
-            | BinOp::LessThanEqual(_)
-            | BinOp::TildeEqual(_)
-            | BinOp::TwoEqual(_) => 3,
-            BinOp::And(_) => 2,
-            BinOp::Or(_) => 1,
-        }
     }
 
     /// Whether the operator is right associative. If not, it is left associative.
