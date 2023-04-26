@@ -2098,21 +2098,9 @@ macro_rules! make_bin_op {
                                     ))]
                                 )*
                                 Symbol::$operator => {
-                                    // rewrite todo: this is copied and pasted from the symbol stuff
-                                    $(
-                                        let mut version_passes = false;
-
-                                        $(
-                                            #[cfg(feature = "" $version)]
-                                            if state.lua_version().[<has_ $version>]() {
-                                                version_passes = true;
-                                            }
-                                        )+
-
-                                        if !version_passes {
-                                            return None;
-                                        }
-                                    )?
+                                    if !$crate::has_version!(state.lua_version(), $($($version,)+)?) {
+                                        return None;
+                                    }
 
                                     Some(BinOp::$operator(state.consume().unwrap()))
                                 },

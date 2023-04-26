@@ -146,7 +146,5 @@ fn test_lua53_parser_fail_cases() {
 #[cfg(feature = "lua54")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua54_parser_fail_cases() {
-    run_test_folder("./tests/lua54_cases/fail/parser", |path| {
-        run_parser_fail_cases("./tests/lua54_cases/fail/parser", LuaVersion::lua54());
-    });
+    run_parser_fail_cases("./tests/lua54_cases/fail/parser", LuaVersion::lua54());
 }

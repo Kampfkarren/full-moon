@@ -64,20 +64,9 @@ macro_rules! symbol {
                                 ))]
                             )?
                             $string => {
-                                $(
-                                    let mut version_passes = false;
-
-                                    $(
-                                        #[cfg(feature = "" $version)]
-                                        if lua_version.[<has_ $version>]() {
-                                            version_passes = true;
-                                        }
-                                    )+
-
-                                    if !version_passes {
-                                        return None;
-                                    }
-                                )?
+                                if !crate::has_version!(lua_version, $($($version,)+)?) {
+                                    return None;
+                                }
 
                                 Some(Self::$name)
                             },

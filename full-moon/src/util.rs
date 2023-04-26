@@ -96,3 +96,26 @@ pub fn join_iterators<
 
     string
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! has_version {
+    ($lua_state:expr, ) => {
+        true
+    };
+
+    ($lua_version:expr, $($version:ident,)+) => {{
+        paste::paste! {
+            let mut version_passes = false;
+
+            $(
+                #[cfg(feature = "" $version)]
+                if $lua_version.[<has_ $version>]() {
+                    version_passes = true;
+                }
+            )+
+
+            version_passes
+        }}
+    };
+}
