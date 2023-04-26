@@ -2214,8 +2214,7 @@ pub struct AstError {
     token: Token,
 
     /// Any additional information that could be provided for debugging
-    // rewrite todo: no more optional
-    additional: Option<Cow<'static, str>>,
+    additional: Cow<'static, str>,
 
     /// If set, this is the complete range of the error
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2223,9 +2222,8 @@ pub struct AstError {
 }
 
 impl AstError {
-    // rewrite todo: return da cow
-    pub fn error_message(&self) -> String {
-        self.additional.as_deref().unwrap().to_owned()
+    pub fn error_message(&self) -> Cow<'static, str> {
+        self.additional.clone()
     }
 
     pub fn range(&self) -> (Position, Position) {
@@ -2241,16 +2239,13 @@ impl fmt::Display for AstError {
 
         write!(
             formatter,
-            "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
+            "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {})\nadditional information: {}",
             self.token,
             range.0.line(),
             range.0.character(),
             range.1.line(),
             range.1.character(),
-            match self.additional.as_ref() {
-                Some(additional) => format!("\nadditional information: {additional}"),
-                None => String::new(),
-            }
+            self.additional,
         )
     }
 }

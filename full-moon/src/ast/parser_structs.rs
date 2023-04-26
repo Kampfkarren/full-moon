@@ -171,7 +171,7 @@ impl ParserState {
         self.errors
             .push(crate::Error::AstError(crate::ast::AstError {
                 token: token_reference.token,
-                additional: Some(error.into()),
+                additional: error.into(),
                 range: None,
             }));
     }
@@ -187,7 +187,7 @@ impl ParserState {
         self.errors
             .push(crate::Error::AstError(crate::ast::AstError {
                 token: token_reference.token,
-                additional: Some(error.into()),
+                additional: error.into(),
                 range: Some((start_token.start_position(), end_token.end_position())),
             }));
     }
@@ -268,7 +268,7 @@ impl AstResult {
                             match parser_state.consume() {
                                 ParserResult::Value(token) => {
                                     if let Some(crate::Error::AstError(crate::ast::AstError {
-                                        additional: Some(additional),
+                                        additional,
                                         ..
                                     })) = parser_state.errors.last()
                                     {

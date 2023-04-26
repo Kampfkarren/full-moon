@@ -30,7 +30,7 @@ pub use ast::LuaVersion;
 pub use short_string::ShortString;
 use tokenizer::Position;
 
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 #[cfg(all(test, not(feature = "serde")))]
 compile_error!("Serde feature must be enabled for tests");
@@ -47,10 +47,10 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn error_message(&self) -> String {
+    pub fn error_message(&self) -> Cow<'static, str> {
         match self {
             Error::AstError(error) => error.error_message(),
-            Error::TokenizerError(error) => error.to_string(),
+            Error::TokenizerError(error) => error.to_string().into(),
         }
     }
 
