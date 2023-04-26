@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Flattened `Expression::Value` to all be variants of `Expression` directly, as this was not used anywhere else. The extra `type_assertion` field has been moved into a new variant `Expression::TypeAssertion`. None of these variants are boxed.
+- Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
 - The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
 - When using serde, `Expression` will no longer act untagged.
+- `Symbol::PlusEqual` and friends are now only available when using Luau.
+
+### Fixed
+- `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
+
+### Removed
+- Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
 
 ## [0.18.1] - 2023-03-19
 ### Fixed

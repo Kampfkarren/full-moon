@@ -126,7 +126,6 @@ symbol! {
 
         [lua52] Goto => "goto",
 
-        // rewrite todo CHANGELOG: these used to be available everywhere incorrectly
         [luau] PlusEqual => "+=",
         [luau] MinusEqual => "-=",
         [luau] StarEqual => "*=",

@@ -199,7 +199,6 @@ impl<T> Punctuated<T> {
     }
 }
 
-// rewrite todo: changelog, this used to be derive(Default)
 impl<T> Default for Punctuated<T> {
     fn default() -> Self {
         Self::new()

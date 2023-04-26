@@ -2201,12 +2201,9 @@ impl UnOp {
             UnOp::Tilde(token) => token,
         }
     }
-
-    // rewrite todo, changelog: document removal of precedence()
 }
 
 /// An error that occurs when creating the AST.
-// rewrite todo: changelog
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct AstError {
