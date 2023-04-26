@@ -584,7 +584,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
         return Ok(ast::Stmt::GenericFor(ast::GenericFor {
             for_token,
-            names: names_to_tokens(name_list),
+            names: name_list.into_pairs().map(|pair| pair.map(|name| name.name)).collect(),
             in_token,
             expr_list: expressions,
             do_token: TokenReference::basic_symbol("do"),
@@ -600,7 +600,10 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
 
     Ok(ast::Stmt::GenericFor(ast::GenericFor {
         for_token,
-        names: names_to_tokens(name_list),
+        names: name_list
+            .into_pairs()
+            .map(|pair| pair.map(|name| name.name))
+            .collect(),
         in_token,
         expr_list: expressions,
         do_token,
@@ -801,7 +804,7 @@ fn expect_local_assignment(
     state: &mut ParserState,
     local_token: TokenReference,
 ) -> Result<ast::LocalAssignment, ()> {
-    let names = match parse_name_list(state) {
+    let names = match one_or_more(state, parse_name_with_attributes, Symbol::Comma) {
         ParserResult::Value(names) => names,
         ParserResult::NotFound => {
             unreachable!("expect_local_assignment called without upcoming identifier");
@@ -809,11 +812,28 @@ fn expect_local_assignment(
         ParserResult::LexerMoved => return Err(()),
     };
 
+    let mut name_list = Punctuated::new();
+    let mut attributes = Vec::new();
+
+    for name in names.into_pairs() {
+        let (name, punctuation) = name.into_tuple();
+
+        #[cfg(feature = "lua54")]
+        attributes.push(name.attribute);
+
+        name_list.push(match punctuation {
+            Some(punctuation) => Pair::Punctuated(name.name, punctuation),
+            None => Pair::End(name.name),
+        });
+    }
+
     let mut local_assignment = ast::LocalAssignment {
         local_token,
-        name_list: names_to_tokens(names),
+        name_list,
         equal_token: None,
         expr_list: Punctuated::new(),
+        #[cfg(feature = "lua54")]
+        attributes,
     };
 
     local_assignment.equal_token = match state.consume_if(Symbol::Equal) {
@@ -1598,6 +1618,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                     },
                 ..
             }) => {
+                // rewrite todo: i think i wanted this to be parse_name?
                 let name = state.consume().unwrap();
                 let name_parameter = ast::Parameter::Name(force_name(state, name).name);
 
@@ -1655,17 +1676,9 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
 
 struct Name {
     name: TokenReference,
+    #[cfg(feature = "lua54")]
+    attribute: Option<super::lua54::Attribute>,
     // rewrite todo: this is where a type assignment can go
-}
-
-fn names_to_tokens(names: Punctuated<Name>) -> Punctuated<TokenReference> {
-    names
-        .into_pairs()
-        .map(|pair| match pair {
-            Pair::Punctuated(name, punct) => Pair::Punctuated(name.name, punct),
-            Pair::End(name) => Pair::End(name.name),
-        })
-        .collect()
 }
 
 fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
@@ -1683,8 +1696,93 @@ fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
     }
 }
 
+fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) =  state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name_with_attributes(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
 fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
-    Name { name }
+    Name {
+        name,
+        attribute: None,
+    }
+}
+
+#[cfg(feature = "lua54")]
+fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    if !state.lua_version().has_lua54() {
+        return force_name(state, name);
+    }
+
+    #[cfg(feature = "lua54")]
+    if let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) {
+        const ERROR_INVALID_ATTRIBUTE: &str = "expected identifier after `<` for attribute";
+
+        let attribute_name = match state.current() {
+            Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                state.consume().unwrap()
+            }
+
+            Ok(token) => {
+                state.token_error_ranged(
+                    token.clone(),
+                    ERROR_INVALID_ATTRIBUTE,
+                    &left_angle_bracket,
+                    &token.clone(),
+                );
+
+                return Name {
+                    name,
+                    attribute: None,
+                };
+            }
+
+            Err(()) => {
+                state.token_error(left_angle_bracket, ERROR_INVALID_ATTRIBUTE);
+
+                return Name {
+                    name,
+                    attribute: None,
+                };
+            }
+        };
+
+        let Some(right_angle_bracket) =
+            state.require(Symbol::GreaterThan, "expected `>` to close attribute") else {
+                return Name {
+                    name,
+                    attribute: Some(super::lua54::Attribute {
+                        brackets: ContainedSpan::new(left_angle_bracket, TokenReference::basic_symbol(">")),
+                        name: attribute_name,
+                    })
+                };
+            };
+
+        return Name {
+            name,
+            attribute: Some(super::lua54::Attribute {
+                brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+                name: attribute_name,
+            }),
+        };
+    }
+
+    force_name(state, name)
+}
+
+#[cfg(not(feature = "lua54"))]
+fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    force_name(state, name)
 }
 
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(

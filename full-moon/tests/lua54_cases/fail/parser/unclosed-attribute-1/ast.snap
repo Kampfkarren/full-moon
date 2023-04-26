@@ -1,0 +1,127 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast
+input_file: full-moon/tests/lua54_cases/fail/parser/unclosed-attribute-1
+---
+nodes:
+  stmts:
+    - - LocalAssignment:
+          local_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Symbol
+                symbol: local
+            trailing_trivia:
+              - start_position:
+                  bytes: 5
+                  line: 1
+                  character: 6
+                end_position:
+                  bytes: 6
+                  line: 1
+                  character: 7
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name_list:
+            pairs:
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 6
+                      line: 1
+                      character: 7
+                    end_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    token_type:
+                      type: Identifier
+                      identifier: name
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 10
+                        line: 1
+                        character: 11
+                      end_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+          attributes:
+            - brackets:
+                tokens:
+                  - leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      end_position:
+                        bytes: 12
+                        line: 1
+                        character: 13
+                      token_type:
+                        type: Symbol
+                        symbol: "<"
+                    trailing_trivia: []
+                  - leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 0
+                        line: 1
+                        character: 1
+                      end_position:
+                        bytes: 1
+                        line: 1
+                        character: 2
+                      token_type:
+                        type: Symbol
+                        symbol: ">"
+                    trailing_trivia: []
+              name:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 12
+                    line: 1
+                    character: 13
+                  end_position:
+                    bytes: 17
+                    line: 1
+                    character: 18
+                  token_type:
+                    type: Identifier
+                    identifier: const
+                trailing_trivia: []
+          equal_token: ~
+          expr_list:
+            pairs: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 17
+      line: 1
+      character: 18
+    end_position:
+      bytes: 17
+      line: 1
+      character: 18
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

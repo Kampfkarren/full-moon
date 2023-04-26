@@ -1,0 +1,21 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/lua54_cases/fail/parser/unclosed-attribute-2
+---
+- AstError:
+    UnexpectedToken:
+      token:
+        start_position:
+          bytes: 18
+          line: 1
+          character: 19
+        end_position:
+          bytes: 19
+          line: 1
+          character: 20
+        token_type:
+          type: Symbol
+          symbol: "="
+      additional: "expected `>` to close attribute"
+
