@@ -1,22 +1,20 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/method-call-2
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 12
-          line: 1
-          character: 13
-        end_position:
-          bytes: 18
-          line: 1
-          character: 19
-        token_type:
-          type: Identifier
-          identifier: method
-      additional: "expected arguments after `:`"
+    token:
+      start_position:
+        bytes: 12
+        line: 1
+        character: 13
+      end_position:
+        bytes: 18
+        line: 1
+        character: 19
+      token_type:
+        type: Identifier
+        identifier: method
+    additional: "expected arguments after `:`"
 

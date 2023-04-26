@@ -1,43 +1,40 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/lua52_cases/fail/parser/label-2
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 5
-          line: 1
-          character: 6
-        end_position:
-          bytes: 7
-          line: 1
-          character: 8
-        token_type:
-          type: Symbol
-          symbol: "::"
-      additional: unexpected expression when looking for a statement
+    token:
+      start_position:
+        bytes: 5
+        line: 1
+        character: 6
+      end_position:
+        bytes: 7
+        line: 1
+        character: 8
+      token_type:
+        type: Symbol
+        symbol: "::"
+    additional: unexpected expression when looking for a statement
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 7
-          line: 1
-          character: 8
-        end_position:
-          bytes: 7
-          line: 1
-          character: 8
-        token_type:
-          type: Eof
-      additional: "expected label name after `::`"
-      range:
-        - bytes: 5
-          line: 1
-          character: 6
-        - bytes: 7
-          line: 1
-          character: 8
+    token:
+      start_position:
+        bytes: 7
+        line: 1
+        character: 8
+      end_position:
+        bytes: 7
+        line: 1
+        character: 8
+      token_type:
+        type: Eof
+    additional: "expected label name after `::`"
+    range:
+      - bytes: 5
+        line: 1
+        character: 6
+      - bytes: 7
+        line: 1
+        character: 8
 

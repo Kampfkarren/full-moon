@@ -168,13 +168,12 @@ impl ParserState {
         token_reference: TokenReference,
         error: S,
     ) {
-        self.errors.push(crate::Error::AstError(
-            crate::ast::AstError::UnexpectedToken {
+        self.errors
+            .push(crate::Error::AstError(crate::ast::AstError {
                 token: token_reference.token,
                 additional: Some(error.into()),
                 range: None,
-            },
-        ));
+            }));
     }
 
     // This takes start_token and end_token as owned references because otherwise, we tend to stack an immutable over mutable borrow.
@@ -185,13 +184,12 @@ impl ParserState {
         start_token: &TokenReference,
         end_token: &TokenReference,
     ) {
-        self.errors.push(crate::Error::AstError(
-            crate::ast::AstError::UnexpectedToken {
+        self.errors
+            .push(crate::Error::AstError(crate::ast::AstError {
                 token: token_reference.token,
                 additional: Some(error.into()),
                 range: Some((start_token.start_position(), end_token.end_position())),
-            },
-        ));
+            }));
     }
 }
 
@@ -269,12 +267,10 @@ impl AstResult {
 
                             match parser_state.consume() {
                                 ParserResult::Value(token) => {
-                                    if let Some(crate::Error::AstError(
-                                        crate::ast::AstError::UnexpectedToken {
-                                            additional: Some(additional),
-                                            ..
-                                        },
-                                    )) = parser_state.errors.last()
+                                    if let Some(crate::Error::AstError(crate::ast::AstError {
+                                        additional: Some(additional),
+                                        ..
+                                    })) = parser_state.errors.last()
                                     {
                                         if additional == UNEXPECTED_TOKEN_ERROR {
                                             continue;

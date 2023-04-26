@@ -1,73 +1,68 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/lua52_cases/fail/parser/goto-as-identifier
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 57
-          line: 2
-          character: 5
-        end_position:
-          bytes: 58
-          line: 2
-          character: 6
-        token_type:
-          type: Symbol
-          symbol: "."
-      additional: "expected identifier after `.`"
+    token:
+      start_position:
+        bytes: 57
+        line: 2
+        character: 5
+      end_position:
+        bytes: 58
+        line: 2
+        character: 6
+      token_type:
+        type: Symbol
+        symbol: "."
+    additional: "expected identifier after `.`"
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 58
-          line: 2
-          character: 6
-        end_position:
-          bytes: 62
-          line: 2
-          character: 10
-        token_type:
-          type: Symbol
-          symbol: goto
-      additional: unexpected expression when looking for a statement
+    token:
+      start_position:
+        bytes: 58
+        line: 2
+        character: 6
+      end_position:
+        bytes: 62
+        line: 2
+        character: 10
+      token_type:
+        type: Symbol
+        symbol: goto
+    additional: unexpected expression when looking for a statement
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 62
-          line: 2
-          character: 10
-        end_position:
-          bytes: 63
-          line: 2
-          character: 11
-        token_type:
-          type: Symbol
-          symbol: (
-      additional: "expected label name after `goto`"
-      range:
-        - bytes: 58
-          line: 2
-          character: 6
-        - bytes: 63
-          line: 2
-          character: 11
+    token:
+      start_position:
+        bytes: 62
+        line: 2
+        character: 10
+      end_position:
+        bytes: 63
+        line: 2
+        character: 11
+      token_type:
+        type: Symbol
+        symbol: (
+    additional: "expected label name after `goto`"
+    range:
+      - bytes: 58
+        line: 2
+        character: 6
+      - bytes: 63
+        line: 2
+        character: 11
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 69
-          line: 2
-          character: 17
-        end_position:
-          bytes: 69
-          line: 2
-          character: 17
-        token_type:
-          type: Eof
-      additional: unexpected expression when looking for a statement
+    token:
+      start_position:
+        bytes: 69
+        line: 2
+        character: 17
+      end_position:
+        bytes: 69
+        line: 2
+        character: 17
+      token_type:
+        type: Eof
+    additional: unexpected expression when looking for a statement
 

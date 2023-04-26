@@ -1,44 +1,41 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/last-stmt-1
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 30
-          line: 3
-          character: 2
-        end_position:
-          bytes: 36
-          line: 3
-          character: 8
-        token_type:
-          type: Symbol
-          symbol: return
-      additional: "expected `end` to close function body block"
-      range:
-        - bytes: 20
-          line: 2
-          character: 2
-        - bytes: 28
-          line: 2
-          character: 10
+    token:
+      start_position:
+        bytes: 30
+        line: 3
+        character: 2
+      end_position:
+        bytes: 36
+        line: 3
+        character: 8
+      token_type:
+        type: Symbol
+        symbol: return
+    additional: "expected `end` to close function body block"
+    range:
+      - bytes: 20
+        line: 2
+        character: 2
+      - bytes: 28
+        line: 2
+        character: 10
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 39
-          line: 4
-          character: 1
-        end_position:
-          bytes: 42
-          line: 4
-          character: 4
-        token_type:
-          type: Symbol
-          symbol: end
-      additional: "unexpected token, this needs to be a statement"
+    token:
+      start_position:
+        bytes: 39
+        line: 4
+        character: 1
+      end_position:
+        bytes: 42
+        line: 4
+        character: 4
+      token_type:
+        type: Symbol
+        symbol: end
+    additional: "unexpected token, this needs to be a statement"
 

@@ -1,28 +1,26 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 22
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/while-3
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 21
-          line: 2
-          character: 8
-        end_position:
-          bytes: 21
-          line: 2
-          character: 8
-        token_type:
-          type: Eof
-      additional: "expected `end` to close while loop block"
-      range:
-        - bytes: 15
-          line: 2
-          character: 2
-        - bytes: 21
-          line: 2
-          character: 8
+    token:
+      start_position:
+        bytes: 21
+        line: 2
+        character: 8
+      end_position:
+        bytes: 21
+        line: 2
+        character: 8
+      token_type:
+        type: Eof
+    additional: "expected `end` to close while loop block"
+    range:
+      - bytes: 15
+        line: 2
+        character: 2
+      - bytes: 21
+        line: 2
+        character: 8
 

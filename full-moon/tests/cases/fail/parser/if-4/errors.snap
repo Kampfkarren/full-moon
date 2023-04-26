@@ -1,21 +1,19 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/if-4
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 23
-          line: 2
-          character: 14
-        end_position:
-          bytes: 23
-          line: 2
-          character: 14
-        token_type:
-          type: Eof
-      additional: "expected `end` to conclude `if`"
+    token:
+      start_position:
+        bytes: 23
+        line: 2
+        character: 14
+      end_position:
+        bytes: 23
+        line: 2
+        character: 14
+      token_type:
+        type: Eof
+    additional: "expected `end` to conclude `if`"
 

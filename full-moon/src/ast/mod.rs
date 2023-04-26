@@ -2205,82 +2205,53 @@ impl UnOp {
     // rewrite todo, changelog: document removal of precedence()
 }
 
-// rewrite todo: we don't need any of this. these are panics
-/// An error that occurs when creating the ast *after* tokenizing
+/// An error that occurs when creating the AST.
+// rewrite todo: changelog
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub enum AstError {
-    /// There were no tokens passed, which shouldn't happen normally
-    Empty,
-    /// Tokens passed had no end of file token, which shouldn't happen normally
-    NoEof,
-    /// An unexpected token, the most likely scenario when getting an AstError
-    UnexpectedToken {
-        /// The token that caused the error
-        token: Token,
+pub struct AstError {
+    /// The token that caused the error
+    token: Token,
 
-        /// Any additional information that could be provided for debugging
-        additional: Option<Cow<'static, str>>,
+    /// Any additional information that could be provided for debugging
+    // rewrite todo: no more optional
+    additional: Option<Cow<'static, str>>,
 
-        /// If set, this is the complete range of the error
-        #[serde(skip_serializing_if = "Option::is_none")]
-        range: Option<(Position, Position)>,
-    },
+    /// If set, this is the complete range of the error
+    #[serde(skip_serializing_if = "Option::is_none")]
+    range: Option<(Position, Position)>,
 }
 
 impl AstError {
+    // rewrite todo: return da cow
     pub fn error_message(&self) -> String {
-        match self {
-            AstError::Empty | AstError::NoEof => self.to_string(),
-
-            AstError::UnexpectedToken { additional, .. } => {
-                additional.as_deref().unwrap().to_owned()
-            }
-        }
+        self.additional.as_deref().unwrap().to_owned()
     }
 
     pub fn range(&self) -> (Position, Position) {
-        if let AstError::UnexpectedToken { token, range, .. } = self {
-            range
-                .or_else(|| Some((token.start_position(), token.end_position())))
-                .unwrap()
-        } else {
-            unreachable!()
-        }
+        self.range
+            .or_else(|| Some((self.token.start_position(), self.token.end_position())))
+            .unwrap()
     }
 }
 
 impl fmt::Display for AstError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            AstError::Empty => write!(
-                formatter,
-                "tokens passed was empty, which shouldn't happen normally"
-            ),
-            AstError::NoEof => write!(
-                formatter,
-                "tokens passed had no eof token, which shouldn't happen normally"
-            ),
-            AstError::UnexpectedToken {
-                token, additional, ..
-            } => {
-                let range = self.range();
+        let range = self.range();
 
-                write!(
-                    formatter,
-                    "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
-                    token,
-                    range.0.line(),
-                    range.0.character(),
-                    range.1.line(),
-                    range.1.character(),
-                    match additional {
-                        Some(additional) => format!("\nadditional information: {additional}"),
-                        None => String::new(),
-                    }
-                )
+        write!(
+            formatter,
+            "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
+            self.token,
+            range.0.line(),
+            range.0.character(),
+            range.1.line(),
+            range.1.character(),
+            match self.additional.as_ref() {
+                Some(additional) => format!("\nadditional information: {additional}"),
+                None => String::new(),
             }
-        }
+        )
     }
 }
 

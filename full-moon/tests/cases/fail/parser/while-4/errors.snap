@@ -1,37 +1,34 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 26
 expression: result.errors
 input_file: full-moon/tests/cases/fail/parser/while-4
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 12
-          line: 2
-          character: 2
-        end_position:
-          bytes: 16
-          line: 2
-          character: 6
-        token_type:
-          type: Identifier
-          identifier: call
-      additional: "expected `do` after condition"
+    token:
+      start_position:
+        bytes: 12
+        line: 2
+        character: 2
+      end_position:
+        bytes: 16
+        line: 2
+        character: 6
+      token_type:
+        type: Identifier
+        identifier: call
+    additional: "expected `do` after condition"
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 19
-          line: 3
-          character: 1
-        end_position:
-          bytes: 22
-          line: 3
-          character: 4
-        token_type:
-          type: Symbol
-          symbol: end
-      additional: "unexpected token, this needs to be a statement"
+    token:
+      start_position:
+        bytes: 19
+        line: 3
+        character: 1
+      end_position:
+        bytes: 22
+        line: 3
+        character: 4
+      token_type:
+        type: Symbol
+        symbol: end
+    additional: "unexpected token, this needs to be a statement"
 

@@ -4,17 +4,16 @@ expression: result.errors
 input_file: full-moon/tests/lua54_cases/fail/parser/unclosed-attribute-1
 ---
 - AstError:
-    UnexpectedToken:
-      token:
-        start_position:
-          bytes: 17
-          line: 1
-          character: 18
-        end_position:
-          bytes: 17
-          line: 1
-          character: 18
-        token_type:
-          type: Eof
-      additional: "expected `>` to close attribute"
+    token:
+      start_position:
+        bytes: 17
+        line: 1
+        character: 18
+      end_position:
+        bytes: 17
+        line: 1
+        character: 18
+      token_type:
+        type: Eof
+    additional: "expected `>` to close attribute"
 
