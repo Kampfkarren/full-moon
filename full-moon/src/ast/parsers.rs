@@ -813,6 +813,8 @@ fn expect_local_assignment(
     };
 
     let mut name_list = Punctuated::new();
+
+    #[cfg(feature = "lua54")]
     let mut attributes = Vec::new();
 
     for name in names.into_pairs() {
@@ -1714,6 +1716,7 @@ fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
 fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
     Name {
         name,
+        #[cfg(feature = "lua54")]
         attribute: None,
     }
 }
