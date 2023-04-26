@@ -50,6 +50,7 @@ macro_rules! symbol {
                 /// # use full_moon::{LuaVersion, tokenizer::Symbol};
                 /// assert_eq!(Symbol::from_str("local", LuaVersion::lua51()), Some(Symbol::Local));
                 ///
+                /// # #[cfg(feature = "lua52")]
                 /// assert_eq!(Symbol::from_str("goto", LuaVersion::lua52()), Some(Symbol::Goto));
                 /// assert_eq!(Symbol::from_str("goto", LuaVersion::lua51()), None);
                 /// ```
