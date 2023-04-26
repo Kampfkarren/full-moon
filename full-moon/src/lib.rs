@@ -91,12 +91,7 @@ impl std::error::Error for Error {}
 #[allow(clippy::result_large_err)]
 // rewrite todo: changelog, log new signature
 pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
-    let result = parse_fallible(code, LuaVersion::new());
-    if result.errors.is_empty() {
-        Ok(result.ast)
-    } else {
-        Err(result.errors)
-    }
+    parse_fallible(code, LuaVersion::new()).into_result()
 }
 
 pub fn parse_fallible(code: &str, lua_version: LuaVersion) -> ast::AstResult {

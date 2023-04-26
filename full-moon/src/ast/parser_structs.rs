@@ -331,4 +331,18 @@ impl AstResult {
             errors: parser_state.errors,
         }
     }
+
+    pub fn into_result(self) -> Result<Ast, Vec<crate::Error>> {
+        self.into()
+    }
+}
+
+impl From<AstResult> for Result<Ast, Vec<crate::Error>> {
+    fn from(ast_result: AstResult) -> Self {
+        if ast_result.errors.is_empty() {
+            Ok(ast_result.ast)
+        } else {
+            Err(ast_result.errors)
+        }
+    }
 }

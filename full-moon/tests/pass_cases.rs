@@ -39,8 +39,9 @@ fn test_pass_case(path: &Path, lua_version: LuaVersion) {
 
     assert_yaml_snapshot!("tokens", tokens);
 
-    let ast = full_moon::parse(&source)
-        .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:?}"));
+    let ast = full_moon::parse_fallible(&source, lua_version)
+        .into_result()
+        .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:#?}"));
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
 

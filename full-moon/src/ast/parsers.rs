@@ -346,6 +346,8 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         TokenType::Symbol {
             symbol: Symbol::Goto,
         } => {
+            debug_assert!(state.lua_version().has_lua52());
+
             let goto_token = state.consume().unwrap();
 
             match state.current() {

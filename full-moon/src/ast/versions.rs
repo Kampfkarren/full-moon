@@ -81,3 +81,14 @@ impl Default for LuaVersion {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lua51_sanity() {
+        assert!(!LuaVersion::lua51().has_lua52());
+        assert!(!LuaVersion::lua51().has_lua53());
+    }
+}
