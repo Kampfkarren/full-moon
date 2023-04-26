@@ -5,10 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- **full-moon now has the ability to return multiple errors.** Added `parse_fallible`, which will return a struct containing the best possible AST, and a vector of errors. Read the documentation for guarantees on the partial AST.
+- The Lua version used to parse is no longer strictly based on features set, and can now be configured precisely using `LuaVersion`. `LuaVersion` is a bitfield that can attempt to parse multiple versions of Lua at once, or be used to pin down a specific version. `parse` will use the most completely available set possible (`LuaVersion::new()`), but `parse_fallible` accepts a `LuaVersion`.
+
 ### Changed
+- `parse`'s error type has changed from `Error` to `Vec<Error>`.
 - Flattened `Expression::Value` to all be variants of `Expression` directly, as this was not used anywhere else. The extra `type_assertion` field has been moved into a new variant `Expression::TypeAssertion`. None of these variants are boxed.
 - Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
 - The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
+- Significantly optimized the entire codebase, helping both time to parse and wasting less stack in debug mode (rewrite todo: is it less in release mode too?).
 - When using serde, `Expression` will no longer act untagged.
 - `Symbol::PlusEqual` and friends are now only available when using Luau.
 
@@ -17,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
+- Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
 
 ## [0.18.1] - 2023-03-19
 ### Fixed

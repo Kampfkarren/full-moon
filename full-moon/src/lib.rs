@@ -89,7 +89,6 @@ impl std::error::Error for Error {}
 /// assert!(full_moon::parse("local x = ").is_err());
 /// ```
 #[allow(clippy::result_large_err)]
-// rewrite todo: changelog, log new signature
 pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
     parse_fallible(code, LuaVersion::new()).into_result()
 }
