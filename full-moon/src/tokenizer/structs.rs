@@ -42,6 +42,17 @@ macro_rules! symbol {
             }
 
             impl Symbol {
+                /// Given just the symbol text (no whitespace) and the Lua version,
+                /// returns the associated symbol, if it exists.
+                /// If you want a TokenReference instead, consider [`TokenReference::symbol`].
+                // rewrite todo: does this link?
+                /// ```rust
+                /// # use full_moon::{LuaVersion, tokenizer::Symbol};
+                /// assert_eq!(Symbol::from_str("local", LuaVersion::lua51()), Some(Symbol::Local));
+                ///
+                /// assert_eq!(Symbol::from_str("goto", LuaVersion::lua52()), Some(Symbol::Goto));
+                /// assert_eq!(Symbol::from_str("goto", LuaVersion::lua51()), None);
+                /// ```
                 #[allow(unused)] // Without any features, lua_version is unused
                 pub fn from_str(symbol: &str, lua_version: LuaVersion) -> Option<Self> {
                     match symbol {
