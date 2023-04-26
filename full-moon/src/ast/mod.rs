@@ -2328,44 +2328,10 @@ impl Ast {
     }
 }
 
-// #[cfg(test)]
-#[cfg(feature = "rewrite todo: ast tests")]
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::{parse, print, visitors::VisitorMut};
-
-    #[test]
-    fn test_extract_token_references() {
-        let tokens = tokens("print(1)\n-- hello world\nlocal foo -- this is the word foo").unwrap();
-
-        let references = extract_token_references(tokens);
-        assert_eq!(references.len(), 7);
-
-        assert!(references[0].trailing_trivia.is_empty());
-        assert_eq!(references[0].token.to_string(), "print");
-        assert!(references[0].leading_trivia.is_empty());
-
-        assert!(references[1].trailing_trivia.is_empty());
-        assert_eq!(references[1].token.to_string(), "(");
-        assert!(references[1].leading_trivia.is_empty());
-
-        assert!(references[2].trailing_trivia.is_empty());
-        assert_eq!(references[2].token.to_string(), "1");
-        assert!(references[2].leading_trivia.is_empty());
-
-        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
-        assert_eq!(references[3].token.to_string(), ")");
-        assert!(references[3].leading_trivia.is_empty());
-
-        assert_eq!(
-            references[4].leading_trivia[0].to_string(),
-            "-- hello world",
-        );
-
-        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
-        assert_eq!(references[4].token.to_string(), "local");
-        assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
-    }
 
     #[test]
     fn test_with_eof_safety() {
