@@ -77,7 +77,8 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// Creates an [`Ast`](ast::Ast) from Lua code
+/// Creates an [`Ast`](ast::Ast) from Lua code.
+/// Will use the most complete set of Lua versions enabled in your feature set.
 ///
 /// # Errors
 /// If the code passed cannot be tokenized, a TokenizerError will be returned.
@@ -93,6 +94,18 @@ pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
     parse_fallible(code, LuaVersion::new()).into_result()
 }
 
+/// Given code and a pinned Lua version, will produce an [`ast::AstResult`].
+/// This AstResult always produces some [`Ast`](ast::Ast), regardless of errors.
+/// If a partial Ast is produced (i.e. if there are any errors), a few guarantees are lost.
+/// 1. Tokens may be produced that aren't in the code itself. For example, `if x == 2 code()`
+/// will produce a phantom `then` token in order to produce a usable [`If`](ast::If) struct.
+/// These phantom tokens will have a null position. If you need accurate positions from the
+/// phantom tokens, you can call [`Ast::update_positions`](ast::Ast::update_positions).
+/// 2. The code, when printed, is not guaranteed to be valid Lua.
+/// This can happen in the case of something like `local x = if`, which will produce a
+/// [`LocalAssignment`](ast::LocalAssignment) that would print to `local x =`.
+/// 3. There are no stability guarantees for partial Ast results, but they are consistent
+/// within the same exact version of full-moon.
 pub fn parse_fallible(code: &str, lua_version: LuaVersion) -> ast::AstResult {
     ast::AstResult::parse_fallible(code, lua_version)
 }
