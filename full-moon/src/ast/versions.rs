@@ -11,7 +11,6 @@ pub struct LuaVersion {
 }
 
 impl LuaVersion {
-    // rewrite todo: bad name?
     pub fn new() -> Self {
         Self::default()
     }
@@ -90,7 +89,7 @@ impl LuaVersion {
 impl Default for LuaVersion {
     fn default() -> Self {
         Self {
-            bitfield: VERSION_LUAU | VERSION_LUA52 | VERSION_LUA53,
+            bitfield: VERSION_LUAU | VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54,
         }
     }
 }
