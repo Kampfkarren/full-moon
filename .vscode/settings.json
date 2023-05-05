@@ -1,10 +1,6 @@
 {
-	// "rust-analyzer.cargo.features": [
-	// 	"roblox"
-	// ],
-	"rust-analyzer.cargo.features": [
-		"lua52",
-		"lua53",
-		"lua54"
-	]
+  // "rust-analyzer.cargo.features": [
+  // 	"roblox"
+  // ],
+  "rust-analyzer.cargo.features": ["roblox", "lua52", "lua53", "lua54"]
 }

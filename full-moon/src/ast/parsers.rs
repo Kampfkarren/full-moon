@@ -414,6 +414,56 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             }))
         }
 
+        #[cfg(feature = "roblox")]
+        TokenType::Identifier { identifier }
+            if state.lua_version().has_luau() && identifier.as_str() == "type" =>
+        {
+            let type_token = state.consume().unwrap();
+
+            ParserResult::Value(ast::Stmt::TypeDeclaration(
+                match expect_type_declaration(state, type_token) {
+                    Ok(type_declaration) => type_declaration,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
+        }
+
+        #[cfg(feature = "roblox")]
+        TokenType::Identifier { identifier }
+            if state.lua_version().has_luau() && identifier.as_str() == "export" =>
+        {
+            let export_token = state.consume().unwrap();
+
+            let type_token = match state.current() {
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "type") => {
+                    state.consume().unwrap()
+                }
+
+                Ok(token) => {
+                    state.token_error_ranged(
+                        token.clone(),
+                        "expected `type` after `export`",
+                        &export_token,
+                        &token.clone(),
+                    );
+
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            ParserResult::Value(ast::Stmt::ExportedTypeDeclaration(
+                ast::ExportedTypeDeclaration {
+                    export_token,
+                    type_declaration: match expect_type_declaration(state, type_token) {
+                        Ok(type_declaration) => type_declaration,
+                        Err(()) => return ParserResult::LexerMoved,
+                    },
+                },
+            ))
+        }
+
         _ => ParserResult::NotFound,
     }
 }
@@ -439,6 +489,15 @@ fn parse_last_stmt(
         Ok(token) if token.is_symbol(Symbol::Break) => {
             let break_token = state.consume().unwrap();
             ast::LastStmt::Break(break_token)
+        }
+
+        #[cfg(feature = "roblox")]
+        Ok(token)
+            if state.lua_version().has_luau()
+                && matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "continue") =>
+        {
+            let continue_token = state.consume().unwrap();
+            ast::LastStmt::Continue(continue_token)
         }
 
         _ => return ParserResult::NotFound,
@@ -585,6 +644,8 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         return Ok(ast::Stmt::GenericFor(ast::GenericFor {
             for_token,
             names: name_list.into_pairs().map(|pair| pair.map(|name| name.name)).collect(),
+            #[cfg(feature = "roblox")]
+            type_specifiers: name_list.into_iter().map(|name| name.type_specifier).collect(),
             in_token,
             expr_list: expressions,
             do_token: TokenReference::basic_symbol("do"),
@@ -603,6 +664,11 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         names: name_list
             .into_pairs()
             .map(|pair| pair.map(|name| name.name))
+            .collect(),
+        #[cfg(feature = "roblox")]
+        type_specifiers: name_list
+            .into_iter()
+            .map(|name| name.type_specifier)
             .collect(),
         in_token,
         expr_list: expressions,
@@ -668,6 +734,8 @@ fn expect_numeric_for_stmt(
     Ok(ast::NumericFor {
         for_token,
         index_variable: index_variable.name,
+        #[cfg(feature = "roblox")]
+        type_specifier: index_variable.type_specifier,
         equal_token,
         start,
         start_end_comma,
@@ -814,6 +882,8 @@ fn expect_local_assignment(
 
     let mut name_list = Punctuated::new();
 
+    #[cfg(feature = "roblox")]
+    let mut type_specifiers = Vec::new();
     #[cfg(feature = "lua54")]
     let mut attributes = Vec::new();
 
@@ -822,6 +892,9 @@ fn expect_local_assignment(
 
         #[cfg(feature = "lua54")]
         attributes.push(name.attribute);
+
+        #[cfg(feature = "roblox")]
+        type_specifiers.push(name.type_specifier);
 
         name_list.push(match punctuation {
             Some(punctuation) => Pair::Punctuated(name.name, punctuation),
@@ -832,6 +905,8 @@ fn expect_local_assignment(
     let mut local_assignment = ast::LocalAssignment {
         local_token,
         name_list,
+        #[cfg(feature = "roblox")]
+        type_specifiers,
         equal_token: None,
         expr_list: Punctuated::new(),
         #[cfg(feature = "lua54")]
@@ -1119,6 +1194,14 @@ fn expect_while_stmt(
         block,
         end_token,
     })
+}
+
+#[cfg(feature = "roblox")]
+fn expect_type_declaration(
+    state: &mut ParserState,
+    type_token: TokenReference,
+) -> Result<ast::TypeDeclaration, ()> {
+    todo!("expect_type_declaration");
 }
 
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
@@ -1569,11 +1652,20 @@ fn parse_unary_expression(
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
 
+    #[cfg(feature = "roblox")]
+    let generics = match parse_generic_type_list(state, false) {
+        ParserResult::Value(generic_declaration) => Some(generic_declaration),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
     let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
         return ParserResult::NotFound;
     };
 
     let mut parameters = Punctuated::new();
+    #[cfg(feature = "roblox")]
+    let mut type_specifiers = Vec::new();
     let right_parenthesis;
 
     let unfinished_function_body =
@@ -1584,16 +1676,23 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             }
 
             ParserResult::Value(FunctionBody {
+                #[cfg(feature = "roblox")]
+                generics,
                 parameters_parentheses: ContainedSpan::new(
                     left_parenthesis,
                     TokenReference::basic_symbol(")"),
                 ),
                 parameters,
+                #[cfg(feature = "roblox")]
+                type_specifiers,
+                #[cfg(feature = "roblox")]
+                return_type: None, // rewrite todo: is this correct?
                 block: ast::Block::new(),
                 end_token: TokenReference::basic_symbol("end"),
             })
         };
 
+    // rewrite todo: parse type specifiers for parameters
     loop {
         match state.current() {
             Ok(token) if token.is_symbol(Symbol::RightParen) => {
@@ -1663,24 +1762,293 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         parameters.push(Pair::End(last_parameter.into_value()));
     }
 
+    #[cfg(feature = "roblox")]
+    let return_type = if state.lua_version().has_luau() {
+        // rewrite todo: we should emit a warning if the user tried to use `->` instead of `:`
+        if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+            match expect_return_type(state) {
+                Ok(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                Err(()) => return ParserResult::LexerMoved,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     let (block, end) = match parse_block_with_end(state, "function body", &right_parenthesis) {
         Ok((block, end)) => (block, end),
         Err(()) => return ParserResult::LexerMoved,
     };
 
     ParserResult::Value(FunctionBody {
+        #[cfg(feature = "roblox")]
+        generics,
         parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
         parameters,
+        #[cfg(feature = "roblox")]
+        type_specifiers,
+        #[cfg(feature = "roblox")]
+        return_type,
         block,
         end_token: end,
     })
+}
+
+#[cfg(feature = "roblox")]
+fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let ParserResult::Value(simple_type) = parse_simple_type(state) else {
+        return ParserResult::LexerMoved;
+    };
+
+    parse_type_suffix(state, simple_type)
+}
+
+#[cfg(feature = "roblox")]
+fn parse_simple_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Nil,
+        } => {
+            let nil_token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Basic(nil_token))
+        }
+        TokenType::Symbol {
+            symbol: Symbol::True,
+        }
+        | TokenType::Symbol {
+            symbol: Symbol::False,
+        } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Boolean(token))
+        }
+        TokenType::StringLiteral { .. } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::String(token))
+        }
+        // Interpolated strings cannot be used as types
+        TokenType::InterpolatedString { .. } => {
+            let token = state.consume().unwrap();
+            state.token_error(
+                token,
+                "interpolated string literals cannot be used as types",
+            );
+            ParserResult::LexerMoved
+        }
+        TokenType::Identifier { identifier } => {
+            let name = state.consume().unwrap();
+
+            if identifier.as_str() == "typeof" {
+                let left_parenthesis =
+                    match state.require(Symbol::LeftParen, "expected `(` after `typeof`") {
+                        Some(token) => token,
+                        None => TokenReference::basic_symbol("("),
+                    };
+
+                let ParserResult::Value(expression) = parse_expression(state) else {
+                    return ParserResult::LexerMoved
+                };
+
+                let right_parenthesis = match state.require_with_reference_token(
+                    Symbol::RightParen,
+                    "expected `)` to close typeof call",
+                    &left_parenthesis,
+                ) {
+                    Some(token) => token,
+                    None => TokenReference::basic_symbol(")"),
+                };
+
+                ParserResult::Value(ast::TypeInfo::Typeof {
+                    typeof_token: name,
+                    parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                    inner: Box::new(expression),
+                })
+            } else {
+                match state.current() {
+                    Ok(token)
+                        if matches!(
+                            token.token_type(),
+                            TokenType::Symbol {
+                                symbol: Symbol::Dot
+                            }
+                        ) =>
+                    {
+                        let dot = state.consume().unwrap();
+                        todo!("parse indexed type info type name and optional generics")
+                    }
+                    Ok(token)
+                        if matches!(
+                            token.token_type(),
+                            TokenType::Symbol {
+                                symbol: Symbol::LessThan
+                            }
+                        ) =>
+                    {
+                        todo!("parse identifier type with generics")
+                    }
+                    _ => ParserResult::Value(ast::TypeInfo::Basic(name)),
+                }
+            }
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            todo!("parse type table")
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        } => {
+            todo!("parse function type (or potentially type pack)")
+        }
+        _ => ParserResult::NotFound,
+    }
+}
+
+#[cfg(feature = "roblox")]
+fn parse_type_suffix(
+    state: &mut ParserState,
+    simple_type: ast::TypeInfo,
+) -> ParserResult<ast::TypeInfo> {
+    let mut is_union = false;
+    let mut is_intersection = false;
+
+    let mut current_type = simple_type;
+
+    loop {
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
+        };
+
+        match current_token.token_type() {
+            TokenType::Symbol {
+                symbol: Symbol::Pipe,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let pipe = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state) else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Union {
+                    left: Box::new(current_type),
+                    pipe,
+                    right: Box::new(right),
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::QuestionMark,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let question_mark = state.consume().unwrap();
+                current_type = ast::TypeInfo::Optional {
+                    base: Box::new(current_type),
+                    question_mark,
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::Ampersand,
+            } => {
+                if is_union {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let ampersand = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state) else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Intersection {
+                    left: Box::new(current_type),
+                    ampersand,
+                    right: Box::new(right),
+                };
+                is_intersection = true;
+            }
+            _ => break,
+        }
+    }
+
+    ParserResult::Value(current_type)
+}
+
+#[cfg(feature = "roblox")]
+fn expect_type_specifier(
+    state: &mut ParserState,
+    colon: TokenReference,
+) -> Result<ast::TypeSpecifier, ()> {
+    todo!("parse type specifier");
+}
+
+#[cfg(feature = "roblox")]
+fn expect_return_type(state: &mut ParserState) -> Result<ast::TypeInfo, ()> {
+    todo!("parse return type");
+}
+
+#[cfg(feature = "roblox")]
+fn parse_generic_type_list(
+    state: &mut ParserState,
+    with_defaults: bool,
+) -> ParserResult<ast::GenericDeclaration> {
+    if !state.lua_version().has_luau() {
+        return ParserResult::NotFound;
+    }
+
+    let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) else {
+        return ParserResult::NotFound;
+    };
+
+    // loop {
+    //     let name = match state.current() {
+    //         Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+    //         Ok(token) => {
+    //             state.token_error(token.clone(), "expected a generic type name");
+    //             return ParserResult::LexerMoved;
+    //         }
+
+    //         Err(()) => return ParserResult::LexerMoved,
+    //     };
+    // }
+
+    todo!("parse generics declaration");
 }
 
 struct Name {
     name: TokenReference,
     #[cfg(feature = "lua54")]
     attribute: Option<super::lua54::Attribute>,
-    // rewrite todo: this is where a type assignment can go
+    #[cfg(feature = "roblox")]
+    type_specifier: Option<ast::TypeSpecifier>,
 }
 
 fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
@@ -1713,18 +2081,38 @@ fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
     }
 }
 
+fn parse_name_with_type_specifiers(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) =  state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name_with_type_specifiers(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
 fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
     Name {
         name,
         #[cfg(feature = "lua54")]
         attribute: None,
+        #[cfg(feature = "luau")]
+        type_specifier: None,
     }
 }
 
 #[cfg(feature = "lua54")]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    // NOTE: whenever attributes can be parsed, type specifiers are possible
+    // so we should fall back to parsing type specifiers if an attribute is not found.
+    // NOTE: we do not attempt to parse both type specifiers and attributes at the same time
     if !state.lua_version().has_lua54() {
-        return force_name(state, name);
+        return force_name_with_type_specifiers(state, name);
     }
 
     #[cfg(feature = "lua54")]
@@ -1747,6 +2135,8 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 return Name {
                     name,
                     attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
                 };
             }
 
@@ -1756,6 +2146,8 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 return Name {
                     name,
                     attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
                 };
             }
         };
@@ -1767,7 +2159,9 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                     attribute: Some(super::lua54::Attribute {
                         brackets: ContainedSpan::new(left_angle_bracket, TokenReference::basic_symbol(">")),
                         name: attribute_name,
-                    })
+                    }),
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
                 };
             };
 
@@ -1777,10 +2171,53 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
                 name: attribute_name,
             }),
+            #[cfg(feature = "luau")]
+            type_specifier: None,
         };
     }
 
+    force_name_with_type_specifiers(state, name)
+}
+
+#[cfg(feature = "luau")]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
+    if !state.lua_version().has_luau() {
+        return force_name(state, name);
+    }
+
+    if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            state.token_error(punctuation, "expected type info after `:`");
+            return Name {
+                name,
+                #[cfg(feature = "lua52")]
+                attribute: None,
+                type_specifier: None,
+            }
+        };
+
+        Name {
+            name,
+            #[cfg(feature = "lua52")]
+            attribute: None,
+            type_specifier: Some(ast::TypeSpecifier {
+                punctuation,
+                type_info,
+            }),
+        }
+    } else {
+        force_name(state, name)
+    }
+}
+
+#[cfg(not(feature = "luau"))]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
     force_name(state, name)
+}
+
+#[cfg(all(feature = "luau", not(feature = "lua54")))]
+fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    force_name_with_type_specifiers(state, name)
 }
 
 #[cfg(not(feature = "lua54"))]
@@ -1832,7 +2269,7 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
 }
 
 fn parse_name_list(state: &mut ParserState) -> ParserResult<Punctuated<Name>> {
-    one_or_more(state, parse_name, Symbol::Comma)
+    one_or_more(state, parse_name_with_type_specifiers, Symbol::Comma)
 }
 
 fn parse_expression_list(state: &mut ParserState) -> ParserResult<Punctuated<Expression>> {
