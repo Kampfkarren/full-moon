@@ -2215,14 +2215,9 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
     force_name(state, name)
 }
 
-#[cfg(all(feature = "luau", not(feature = "lua54")))]
-fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
-    force_name_with_type_specifiers(state, name)
-}
-
 #[cfg(not(feature = "lua54"))]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
-    force_name(state, name)
+    force_name_with_type_specifiers(state, name)
 }
 
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
