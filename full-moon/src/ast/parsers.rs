@@ -279,6 +279,73 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
                 Ok(token) => {
+                    // Check if the consumed token is a potential context-sensitive keyword
+                    #[cfg(feature = "luau")]
+                    if state.lua_version().has_luau() {
+                        if let ast::Var::Name(token) = var {
+                            match token.token_type() {
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "export" =>
+                                {
+                                    let export_token = token;
+
+                                    let type_token = match state.current() {
+                                        Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "type") => {
+                                            state.consume().unwrap()
+                                        }
+
+                                        Ok(token) => {
+                                            state.token_error_ranged(
+                                                token.clone(),
+                                                "expected `type` after `export`",
+                                                &export_token,
+                                                &token.clone(),
+                                            );
+
+                                            return ParserResult::LexerMoved;
+                                        }
+
+                                        Err(()) => return ParserResult::LexerMoved,
+                                    };
+
+                                    return ParserResult::Value(
+                                        ast::Stmt::ExportedTypeDeclaration(
+                                            ast::ExportedTypeDeclaration {
+                                                export_token,
+                                                type_declaration: match expect_type_declaration(
+                                                    state, type_token,
+                                                ) {
+                                                    Ok(type_declaration) => type_declaration,
+                                                    Err(()) => return ParserResult::LexerMoved,
+                                                },
+                                            },
+                                        ),
+                                    );
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "type" =>
+                                {
+                                    let type_token = token;
+
+                                    return ParserResult::Value(ast::Stmt::TypeDeclaration(
+                                        match expect_type_declaration(state, type_token) {
+                                            Ok(type_declaration) => type_declaration,
+                                            Err(()) => return ParserResult::LexerMoved,
+                                        },
+                                    ));
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "continue" =>
+                                {
+                                    // Let this be parsed by parse_last_stmt
+                                    // FIXME: this doesn't work, since we've already consumed the "continue" keyword!
+                                    return ParserResult::NotFound;
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+
                     state.token_error(
                         token.clone(),
                         "unexpected expression when looking for a statement",
@@ -442,56 +509,6 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             }))
         }
 
-        #[cfg(feature = "roblox")]
-        TokenType::Identifier { identifier }
-            if state.lua_version().has_luau() && identifier.as_str() == "type" =>
-        {
-            let type_token = state.consume().unwrap();
-
-            ParserResult::Value(ast::Stmt::TypeDeclaration(
-                match expect_type_declaration(state, type_token) {
-                    Ok(type_declaration) => type_declaration,
-                    Err(()) => return ParserResult::LexerMoved,
-                },
-            ))
-        }
-
-        #[cfg(feature = "roblox")]
-        TokenType::Identifier { identifier }
-            if state.lua_version().has_luau() && identifier.as_str() == "export" =>
-        {
-            let export_token = state.consume().unwrap();
-
-            let type_token = match state.current() {
-                Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "type") => {
-                    state.consume().unwrap()
-                }
-
-                Ok(token) => {
-                    state.token_error_ranged(
-                        token.clone(),
-                        "expected `type` after `export`",
-                        &export_token,
-                        &token.clone(),
-                    );
-
-                    return ParserResult::LexerMoved;
-                }
-
-                Err(()) => return ParserResult::LexerMoved,
-            };
-
-            ParserResult::Value(ast::Stmt::ExportedTypeDeclaration(
-                ast::ExportedTypeDeclaration {
-                    export_token,
-                    type_declaration: match expect_type_declaration(state, type_token) {
-                        Ok(type_declaration) => type_declaration,
-                        Err(()) => return ParserResult::LexerMoved,
-                    },
-                },
-            ))
-        }
-
         _ => ParserResult::NotFound,
     }
 }
@@ -499,6 +516,8 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 fn parse_last_stmt(
     state: &mut ParserState,
 ) -> ParserResult<(ast::LastStmt, Option<TokenReference>)> {
+    dbg!(state.current());
+
     let last_stmt = match state.current() {
         Ok(token) if token.is_symbol(Symbol::Return) => {
             let return_token = state.consume().unwrap();
@@ -524,6 +543,7 @@ fn parse_last_stmt(
             if state.lua_version().has_luau()
                 && matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "continue") =>
         {
+            dbg!("HUZZAH");
             let continue_token = state.consume().unwrap();
             ast::LastStmt::Continue(continue_token)
         }
