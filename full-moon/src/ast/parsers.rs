@@ -248,6 +248,34 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             };
 
             match state.current() {
+                #[cfg(feature = "luau")]
+                // Compound Assignment
+                Ok(token)
+                    if state.lua_version().has_luau()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::PercentEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::TwoDotsEqual)) =>
+                {
+                    let compound_operator = state.consume().unwrap();
+
+                    let ParserResult::Value(expr) = parse_expression(state) else {
+                                    state.token_error(compound_operator.clone(), "expected expression to set to");
+                                    return ParserResult::LexerMoved;
+                                };
+
+                    return ParserResult::Value(ast::Stmt::CompoundAssignment(
+                        ast::CompoundAssignment {
+                            lhs: var,
+                            compound_operator: ast::CompoundOp::from_token(compound_operator),
+                            rhs: expr,
+                        },
+                    ));
+                }
+
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
                 Ok(token) => {
@@ -643,7 +671,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
         return Ok(ast::Stmt::GenericFor(ast::GenericFor {
             for_token,
-            names: name_list.into_pairs().map(|pair| pair.map(|name| name.name)).collect(),
+            names: name_list.clone().into_pairs().map(|pair| pair.map(|name| name.name)).collect(),
             #[cfg(feature = "roblox")]
             type_specifiers: name_list.into_iter().map(|name| name.type_specifier).collect(),
             in_token,
@@ -662,6 +690,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     Ok(ast::Stmt::GenericFor(ast::GenericFor {
         for_token,
         names: name_list
+            .clone()
             .into_pairs()
             .map(|pair| pair.map(|name| name.name))
             .collect(),
@@ -1677,14 +1706,14 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
 
             ParserResult::Value(FunctionBody {
                 #[cfg(feature = "roblox")]
-                generics,
+                generics: None, // rewrite todo: fix
                 parameters_parentheses: ContainedSpan::new(
                     left_parenthesis,
                     TokenReference::basic_symbol(")"),
                 ),
                 parameters,
                 #[cfg(feature = "roblox")]
-                type_specifiers,
+                type_specifiers: Vec::new(), // rewrite todo: fix
                 #[cfg(feature = "roblox")]
                 return_type: None, // rewrite todo: is this correct?
                 block: ast::Block::new(),
@@ -1843,10 +1872,10 @@ fn parse_simple_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
             );
             ParserResult::LexerMoved
         }
-        TokenType::Identifier { identifier } => {
+        TokenType::Identifier { .. } => {
             let name = state.consume().unwrap();
 
-            if identifier.as_str() == "typeof" {
+            if name.to_string() == "typeof" {
                 let left_parenthesis =
                     match state.require(Symbol::LeftParen, "expected `(` after `typeof`") {
                         Some(token) => token,
@@ -2043,6 +2072,7 @@ fn parse_generic_type_list(
     todo!("parse generics declaration");
 }
 
+#[derive(Clone)]
 struct Name {
     name: TokenReference,
     #[cfg(feature = "lua54")]

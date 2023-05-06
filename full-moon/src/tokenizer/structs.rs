@@ -11,9 +11,6 @@ use std::{
     fmt::{self, Display},
 };
 
-#[cfg(feature = "roblox")]
-pub use crate::tokenizer_luau::InterpolatedStringKind;
-
 use super::{Lexer, LexerResult};
 
 macro_rules! symbol {
@@ -171,6 +168,24 @@ symbol! {
         [lua53] Tilde => "~",
         TildeEqual => "~=",
     }
+}
+
+#[cfg(feature = "luau")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// Whether or not this section is the beginning, middle, end, or if this is a standalone string.
+pub enum InterpolatedStringKind {
+    /// `begin{
+    Begin,
+
+    /// }middle{
+    Middle,
+
+    /// }end`
+    End,
+
+    /// `simple`
+    Simple,
 }
 
 /// The possible errors that can happen while tokenizing.

@@ -482,19 +482,49 @@ impl Lexer {
                 },
             ),
 
-            '+' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Plus,
-                },
-            ),
+            '+' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::PlusEqual,
+                                },
+                            );
+                        }
+                    }
+                });
 
-            '*' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Star,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Plus,
+                    },
+                )
+            }
+
+            '*' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::StarEqual,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Star,
+                    },
+                )
+            }
 
             '/' => {
                 version_switch!(self.lua_version, {
@@ -509,6 +539,16 @@ impl Lexer {
                             );
                         }
                     }
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::SlashEqual,
+                                },
+                            );
+                        }
+                    }
                 });
 
                 self.create(
@@ -519,19 +559,49 @@ impl Lexer {
                 )
             }
 
-            '%' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Percent,
-                },
-            ),
+            '%' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::PercentEqual,
+                                },
+                            );
+                        }
+                    }
+                });
 
-            '^' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Caret,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Percent,
+                    },
+                )
+            }
+
+            '^' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::CaretEqual,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Caret,
+                    },
+                )
+            }
 
             '#' => self.create(
                 start_position,
@@ -630,6 +700,19 @@ impl Lexer {
                             },
                         )
                     } else {
+                        version_switch!(self.lua_version, {
+                            luau => {
+                                if self.source.consume('=') {
+                                    return self.create(
+                                        start_position,
+                                        TokenType::Symbol {
+                                            symbol: Symbol::TwoDotsEqual,
+                                        },
+                                    );
+                                }
+                            }
+                        });
+
                         self.create(
                             start_position,
                             TokenType::Symbol {
@@ -650,6 +733,19 @@ impl Lexer {
             }
 
             '-' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::MinusEqual,
+                                },
+                            );
+                        }
+                    }
+                });
+
                 if self.source.consume('-') {
                     let (token, recovered) = self.read_comment();
 

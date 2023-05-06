@@ -69,7 +69,9 @@ fn test_pass_cases() {
 #[cfg(feature = "roblox")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_pass_cases() {
-    run_test_folder("./tests/roblox_cases/pass", test_pass_case);
+    run_test_folder("./tests/roblox_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::luau())
+    });
 }
 
 #[test]
