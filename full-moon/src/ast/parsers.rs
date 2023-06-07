@@ -1260,7 +1260,37 @@ fn expect_type_declaration(
     state: &mut ParserState,
     type_token: TokenReference,
 ) -> Result<ast::TypeDeclaration, ()> {
-    todo!("expect_type_declaration");
+    let base = match state.current()? {
+        token if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+        token => {
+            state.token_error(token.clone(), "expected type name");
+            // rewrite todo: maybe we can add an error name here to continue parsing?
+            return Err(());
+        }
+    };
+
+    let generics = match parse_generic_type_list(state, true) {
+        ParserResult::Value(generics) => Some(generics),
+        ParserResult::NotFound => None,
+        _ => return Err(()),
+    };
+
+    let equal_token = state
+        .require(Symbol::Equal, "expected `=` after type name")
+        .unwrap_or_else(|| TokenReference::basic_symbol("="));
+
+    let declare_as = match parse_type(state) {
+        ParserResult::Value(declare_as) => declare_as,
+        _ => return Err(()),
+    };
+
+    Ok(ast::TypeDeclaration {
+        type_token,
+        base,
+        generics,
+        equal_token,
+        declare_as,
+    })
 }
 
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
@@ -2086,20 +2116,127 @@ fn parse_generic_type_list(
         return ParserResult::NotFound;
     };
 
-    // loop {
-    //     let name = match state.current() {
-    //         Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+    let mut generics = Punctuated::new();
 
-    //         Ok(token) => {
-    //             state.token_error(token.clone(), "expected a generic type name");
-    //             return ParserResult::LexerMoved;
-    //         }
+    let mut seen_pack = false;
+    let mut seen_default = false;
 
-    //         Err(()) => return ParserResult::LexerMoved,
-    //     };
-    // }
+    loop {
+        let name = match state.current() {
+            Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
 
-    todo!("parse generics declaration");
+            Ok(token) => {
+                state.token_error(token.clone(), "expected a generic type name");
+                return ParserResult::LexerMoved;
+            }
+
+            Err(()) => return ParserResult::LexerMoved,
+        };
+
+        let current_token = match state.current() {
+            Ok(token) => token,
+            Err(()) => return ParserResult::NotFound,
+        };
+
+        let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipse) {
+            seen_pack = true;
+
+            let ellipse = match state.consume_if(Symbol::Ellipse) {
+                Some(token) => token,
+                None => {
+                    // rewrite todo:
+                    // state.token_error(
+                    //     current_token.clone(),
+                    //     "generic types come before generic type packs",
+                    // );
+                    TokenReference::basic_symbol("...")
+                }
+            };
+
+            let default = if with_defaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
+
+                todo!("parse default type pack");
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (
+                ast::GenericParameterInfo::Variadic { name, ellipse },
+                default,
+            )
+        } else {
+            let default = if with_defaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
+                let default_type = match parse_type(state) {
+                    ParserResult::Value(default_type) => default_type,
+                    _ => return ParserResult::LexerMoved,
+                };
+
+                Some((equal_token, default_type))
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (ast::GenericParameterInfo::Name(name), default)
+        };
+
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Comma) => {
+                let punctuation = state.consume().unwrap();
+                generics.push(Pair::Punctuated(
+                    ast::GenericDeclarationParameter { parameter, default },
+                    punctuation,
+                ));
+
+                if let Ok(token) = state.current() {
+                    if token.is_symbol(Symbol::GreaterThan) {
+                        state.token_error(
+                            token.clone(),
+                            "expected type after `,` but got `>` instead",
+                        );
+                    }
+                }
+            }
+            Ok(_) => {
+                generics.push(Pair::End(ast::GenericDeclarationParameter {
+                    parameter,
+                    default,
+                }));
+                break;
+            }
+            Err(()) => return ParserResult::LexerMoved,
+        };
+    }
+
+    let right_angle_bracket = state
+        .require(Symbol::GreaterThan, "expected `>` to close generic list")
+        .unwrap_or_else(|| TokenReference::basic_symbol(">"));
+
+    ParserResult::Value(ast::GenericDeclaration {
+        arrows: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+        generics,
+    })
 }
 
 #[derive(Clone)]
