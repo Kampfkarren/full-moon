@@ -304,6 +304,11 @@ impl Lexer {
                 if matches!(self.source.current(), Some('x' | 'X')) {
                     let hex_character = self.source.next().unwrap();
                     self.read_hex_number(hex_character, start_position)
+                } else if self.lua_version.has_luau()
+                    && matches!(self.source.current(), Some('b' | 'B'))
+                {
+                    let binary_character = self.source.next().unwrap();
+                    self.read_binary_number(binary_character, start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -809,7 +814,7 @@ impl Lexer {
         let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
-            if next.is_ascii_digit() {
+            if next.is_ascii_digit() || (self.lua_version.has_luau() && matches!(next, '_')) {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
@@ -879,7 +884,7 @@ impl Lexer {
         }
 
         while let Some(next) = self.source.current() {
-            if next.is_ascii_digit() {
+            if next.is_ascii_digit() || (self.lua_version.has_luau() && matches!(next, '_')) {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else {
                 break;
@@ -908,6 +913,10 @@ impl Lexer {
                     number.push(self.source.next().expect("peeked, but no next"));
                 }
 
+                '_' if self.lua_version.has_luau() => {
+                    number.push(self.source.next().expect("peeked, but no next"));
+                }
+
                 '.' if self.lua_version.has_lua52() => {
                     if hit_decimal {
                         return Some(self.eat_invalid_number(start_position, number));
@@ -923,6 +932,38 @@ impl Lexer {
                     }
 
                     return self.read_exponent_part(start_position, number);
+                }
+
+                _ => break,
+            }
+        }
+
+        if number.len() == 2 {
+            return Some(self.eat_invalid_number(start_position, number));
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_binary_number(
+        &mut self,
+        binary_character: char,
+        start_position: Position,
+    ) -> Option<LexerResult<Token>> {
+        debug_assert!(self.lua_version.has_luau());
+
+        let mut number = String::from_iter(['0', binary_character]);
+        let mut hit_decimal = false;
+
+        while let Some(next) = self.source.current() {
+            match next {
+                '0' | '1' | '_' => {
+                    number.push(self.source.next().expect("peeked, but no next"));
                 }
 
                 _ => break,
