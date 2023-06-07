@@ -747,6 +747,13 @@ impl Lexer {
                                     symbol: Symbol::MinusEqual,
                                 },
                             );
+                        } else if self.source.consume('>') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::ThinArrow
+                                }
+                            );
                         }
                     }
                 });
@@ -783,19 +790,27 @@ impl Lexer {
                 },
             ),
 
-            #[cfg(feature = "lua53")]
-            '&' if self.lua_version.has_lua53() => self.create(
+            #[cfg(any(feature = "lua53", feature = "luau"))]
+            '&' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::Ampersand,
                 },
             ),
 
-            #[cfg(feature = "lua53")]
-            '|' if self.lua_version.has_lua53() => self.create(
+            #[cfg(any(feature = "lua53", feature = "luau"))]
+            '|' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::Pipe,
+                },
+            ),
+
+            #[cfg(feature = "luau")]
+            '?' if self.lua_version.has_luau() => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::QuestionMark,
                 },
             ),
 
