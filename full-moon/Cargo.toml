@@ -17,7 +17,7 @@ rustdoc-args = ["--cfg", "doc_cfg"]
 
 [features]
 default = ["serde"]
-luau = []
+luau = ["roblox"]
 roblox = ["luau"]
 lua52 = []
 lua53 = ["lua52"]
