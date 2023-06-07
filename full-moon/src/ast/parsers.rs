@@ -19,10 +19,17 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 
     loop {
         match parse_stmt(state) {
-            ParserResult::Value(stmt) => {
-                let semicolon = state.consume_if(Symbol::Semicolon);
-                stmts.push((stmt, semicolon));
-            }
+            ParserResult::Value(stmt) => match stmt {
+                StmtVariant::Stmt(stmt) => {
+                    let semicolon = state.consume_if(Symbol::Semicolon);
+                    stmts.push((stmt, semicolon));
+                }
+                StmtVariant::LastStmt(last_stmt) => {
+                    let semicolon = state.consume_if(Symbol::Semicolon);
+                    let last_stmt = Some((last_stmt, semicolon));
+                    return ParserResult::Value(ast::Block { stmts, last_stmt });
+                }
+            },
             ParserResult::NotFound => break,
             ParserResult::LexerMoved => {
                 if stmts.is_empty() {
@@ -78,7 +85,12 @@ fn parse_block_with_end(
     Ok((block, end_token))
 }
 
-fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
+enum StmtVariant {
+    Stmt(ast::Stmt),
+    LastStmt(ast::LastStmt),
+}
+
+fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
     let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
     };
@@ -94,11 +106,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             };
 
             match next_token.token_type() {
-                TokenType::Identifier { .. } => ParserResult::Value(ast::Stmt::LocalAssignment(
-                    match expect_local_assignment(state, local_token) {
+                TokenType::Identifier { .. } => ParserResult::Value(StmtVariant::Stmt(
+                    ast::Stmt::LocalAssignment(match expect_local_assignment(state, local_token) {
                         Ok(local_assignment) => local_assignment,
                         Err(()) => return ParserResult::LexerMoved,
-                    },
+                    }),
                 )),
 
                 TokenType::Symbol {
@@ -128,12 +140,14 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                         ParserResult::LexerMoved => return ParserResult::LexerMoved,
                     };
 
-                    ParserResult::Value(ast::Stmt::LocalFunction(ast::LocalFunction {
-                        local_token,
-                        function_token,
-                        name: function_name,
-                        body: function_body,
-                    }))
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
+                        ast::LocalFunction {
+                            local_token,
+                            function_token,
+                            name: function_name,
+                            body: function_body,
+                        },
+                    )))
                 }
 
                 _ => {
@@ -152,10 +166,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let for_token = state.consume().unwrap();
 
-            ParserResult::Value(match expect_for_stmt(state, for_token) {
+            ParserResult::Value(StmtVariant::Stmt(match expect_for_stmt(state, for_token) {
                 Ok(for_stmt) => for_stmt,
                 Err(()) => return ParserResult::LexerMoved,
-            })
+            }))
         }
 
         TokenType::Symbol { symbol: Symbol::Do } => {
@@ -165,20 +179,22 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(ast::Stmt::Do(ast::Do {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Do(ast::Do {
                 do_token,
                 block,
                 end_token,
-            }))
+            })))
         }
 
         TokenType::Symbol { symbol: Symbol::If } => {
             let if_token = state.consume().unwrap();
 
-            ParserResult::Value(ast::Stmt::If(match expect_if_stmt(state, if_token) {
-                Ok(if_stmt) => if_stmt,
-                Err(()) => return ParserResult::LexerMoved,
-            }))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::If(
+                match expect_if_stmt(state, if_token) {
+                    Ok(if_stmt) => if_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            )))
         }
 
         TokenType::Symbol {
@@ -191,7 +207,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(ast::Stmt::FunctionDeclaration(function_declaration))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
+                function_declaration,
+            )))
         }
 
         TokenType::Symbol {
@@ -199,10 +217,12 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let repeat_token = state.consume().unwrap();
 
-            ParserResult::Value(match expect_repeat_stmt(state, repeat_token) {
-                Ok(repeat_stmt) => repeat_stmt,
-                Err(()) => return ParserResult::LexerMoved,
-            })
+            ParserResult::Value(StmtVariant::Stmt(
+                match expect_repeat_stmt(state, repeat_token) {
+                    Ok(repeat_stmt) => repeat_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
         }
 
         TokenType::Symbol {
@@ -210,12 +230,12 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let while_token = state.consume().unwrap();
 
-            ParserResult::Value(ast::Stmt::While(
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::While(
                 match expect_while_stmt(state, while_token) {
                     Ok(while_stmt) => while_stmt,
                     Err(()) => return ParserResult::LexerMoved,
                 },
-            ))
+            )))
         }
 
         TokenType::Symbol {
@@ -227,10 +247,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
             let var = match suffixes.last() {
                 Some(ast::Suffix::Call(_)) => {
-                    return ParserResult::Value(ast::Stmt::FunctionCall(ast::FunctionCall {
-                        prefix,
-                        suffixes,
-                    }));
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionCall(
+                        ast::FunctionCall { prefix, suffixes },
+                    )));
                 }
 
                 Some(ast::Suffix::Index(_)) => {
@@ -263,17 +282,17 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                     let compound_operator = state.consume().unwrap();
 
                     let ParserResult::Value(expr) = parse_expression(state) else {
-                                    state.token_error(compound_operator.clone(), "expected expression to set to");
+                                    state.token_error(compound_operator, "expected expression to set to");
                                     return ParserResult::LexerMoved;
                                 };
 
-                    return ParserResult::Value(ast::Stmt::CompoundAssignment(
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
                         ast::CompoundAssignment {
                             lhs: var,
                             compound_operator: ast::CompoundOp::from_token(compound_operator),
                             rhs: expr,
                         },
-                    ));
+                    )));
                 }
 
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
@@ -308,7 +327,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                                         Err(()) => return ParserResult::LexerMoved,
                                     };
 
-                                    return ParserResult::Value(
+                                    return ParserResult::Value(StmtVariant::Stmt(
                                         ast::Stmt::ExportedTypeDeclaration(
                                             ast::ExportedTypeDeclaration {
                                                 export_token,
@@ -320,26 +339,29 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                                                 },
                                             },
                                         ),
-                                    );
+                                    ));
                                 }
                                 TokenType::Identifier { identifier }
                                     if identifier.as_str() == "type" =>
                                 {
                                     let type_token = token;
 
-                                    return ParserResult::Value(ast::Stmt::TypeDeclaration(
-                                        match expect_type_declaration(state, type_token) {
-                                            Ok(type_declaration) => type_declaration,
-                                            Err(()) => return ParserResult::LexerMoved,
-                                        },
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::TypeDeclaration(
+                                            match expect_type_declaration(state, type_token) {
+                                                Ok(type_declaration) => type_declaration,
+                                                Err(()) => return ParserResult::LexerMoved,
+                                            },
+                                        ),
                                     ));
                                 }
                                 TokenType::Identifier { identifier }
                                     if identifier.as_str() == "continue" =>
                                 {
-                                    // Let this be parsed by parse_last_stmt
-                                    // FIXME: this doesn't work, since we've already consumed the "continue" keyword!
-                                    return ParserResult::NotFound;
+                                    let continue_token = token;
+                                    return ParserResult::Value(StmtVariant::LastStmt(
+                                        ast::LastStmt::Continue(continue_token),
+                                    ));
                                 }
                                 _ => (),
                             }
@@ -430,11 +452,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 ParserResult::LexerMoved => Punctuated::new(),
             };
 
-            ParserResult::Value(ast::Stmt::Assignment(ast::Assignment {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Assignment(ast::Assignment {
                 var_list,
                 equal_token,
                 expr_list,
-            }))
+            })))
         }
 
         #[cfg(feature = "lua52")]
@@ -448,10 +470,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             match state.current() {
                 Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
                     let label_name = state.consume().unwrap();
-                    ParserResult::Value(ast::Stmt::Goto(ast::Goto {
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Goto(ast::Goto {
                         goto_token,
                         label_name,
-                    }))
+                    })))
                 }
 
                 Ok(token) => {
@@ -502,11 +524,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 None => TokenReference::symbol("::").unwrap(),
             };
 
-            ParserResult::Value(ast::Stmt::Label(ast::Label {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Label(ast::Label {
                 left_colons,
                 name,
                 right_colons,
-            }))
+            })))
         }
 
         _ => ParserResult::NotFound,
@@ -516,8 +538,6 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 fn parse_last_stmt(
     state: &mut ParserState,
 ) -> ParserResult<(ast::LastStmt, Option<TokenReference>)> {
-    dbg!(state.current());
-
     let last_stmt = match state.current() {
         Ok(token) if token.is_symbol(Symbol::Return) => {
             let return_token = state.consume().unwrap();
@@ -536,16 +556,6 @@ fn parse_last_stmt(
         Ok(token) if token.is_symbol(Symbol::Break) => {
             let break_token = state.consume().unwrap();
             ast::LastStmt::Break(break_token)
-        }
-
-        #[cfg(feature = "roblox")]
-        Ok(token)
-            if state.lua_version().has_luau()
-                && matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "continue") =>
-        {
-            dbg!("HUZZAH");
-            let continue_token = state.consume().unwrap();
-            ast::LastStmt::Continue(continue_token)
         }
 
         _ => return ParserResult::NotFound,
