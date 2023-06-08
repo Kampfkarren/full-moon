@@ -1910,8 +1910,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     let return_type = if state.lua_version().has_luau() {
         // rewrite todo: we should emit a warning if the user tried to use `->` instead of `:`
         if let Some(punctuation) = state.consume_if(Symbol::Colon) {
-            // rewrite todo: need to allow standard type packs
-            match parse_type_or_pack(state) {
+            match parse_return_type(state) {
                 ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
                     punctuation,
                     type_info,
@@ -2024,10 +2023,43 @@ fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
         ast::TypeInfo::Tuple { ref types, .. } if types.len() != 1 => {
             ParserResult::Value(simple_type)
         }
-        ast::TypeInfo::VariadicPack { .. } | ast::TypeInfo::GenericPack { .. } => {
-            ParserResult::Value(simple_type)
-        }
+        ast::TypeInfo::VariadicPack { .. } | ast::TypeInfo::GenericPack { .. } => unreachable!(),
         _ => parse_type_suffix(state, simple_type),
+    }
+}
+
+fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    if current_token.is_symbol(Symbol::Ellipse) {
+        let ellipse = state.consume().unwrap();
+        let type_info = match parse_type(state) {
+            ParserResult::Value(type_info) => type_info,
+            _ => return ParserResult::LexerMoved,
+        };
+
+        ParserResult::Value(ast::TypeInfo::Variadic {
+            ellipse,
+            type_info: Box::new(type_info),
+        })
+    } else if current_token.token_kind() == TokenKind::Identifier
+        && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+    {
+        let name = match parse_name(state) {
+            ParserResult::Value(name) => name.name,
+            _ => unreachable!(),
+        };
+
+        let Some(ellipse) = state.require(Symbol::Ellipse, "expected `...` after type name") else {
+            unreachable!()
+        };
+
+        ParserResult::Value(ast::TypeInfo::GenericPack { name, ellipse })
+    } else {
+        // rewrite todo: should we be returning this? or should this be unreachable
+        ParserResult::NotFound
     }
 }
 
@@ -2096,26 +2128,20 @@ fn parse_simple_type(state: &mut ParserState, allow_pack: bool) -> ParserResult<
                 })
             } else {
                 match state.current() {
-                    Ok(token)
-                        if matches!(
-                            token.token_type(),
-                            TokenType::Symbol {
-                                symbol: Symbol::Dot
-                            }
-                        ) =>
-                    {
+                    Ok(token) if token.is_symbol(Symbol::Dot) => {
                         let dot = state.consume().unwrap();
                         todo!("parse indexed type info type name and optional generics")
                     }
-                    Ok(token)
-                        if matches!(
-                            token.token_type(),
-                            TokenType::Symbol {
-                                symbol: Symbol::LessThan
-                            }
-                        ) =>
-                    {
-                        todo!("parse identifier type with generics")
+                    Ok(token) if token.is_symbol(Symbol::LessThan) => {
+                        let left_arrow = state.consume().unwrap();
+                        let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                            return ParserResult::LexerMoved;
+                        };
+                        ParserResult::Value(ast::TypeInfo::Generic {
+                            base: name,
+                            arrows: generics.arrows,
+                            generics: generics.generics,
+                        })
                     }
                     _ => ParserResult::Value(ast::TypeInfo::Basic(name)),
                 }
@@ -2438,6 +2464,19 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
             return Err(())
         };
 
+        // rewrite todo: vararg annotation
+        // match parse_type_pack(state) {
+        //     ParserResult::Value(type_info) => {
+        //         arguments.push(Pair::End(ast::TypeArgument {
+        //             name: None,
+        //             type_info,
+        //         }));
+        //         break;
+        //     }
+        //     ParserResult::LexerMoved => return Err(()),
+        //     ParserResult::NotFound => (),
+        // }
+
         let name = if current_token.token_kind() == TokenKind::Identifier
             && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
         {
@@ -2505,7 +2544,7 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
         return Err(())
     };
 
-    let return_type = match parse_type_or_pack(state) {
+    let return_type = match parse_return_type(state) {
         ParserResult::Value(return_type) => return_type,
         ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
     };
@@ -2536,8 +2575,13 @@ fn expect_type_specifier(
 }
 
 #[cfg(feature = "roblox")]
-fn expect_return_type(state: &mut ParserState) -> Result<ast::TypeInfo, ()> {
-    todo!("parse return type");
+fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    // rewrite todo: should this be gated behind a check?
+    match parse_type_pack(state) {
+        ParserResult::Value(type_info) => ParserResult::Value(type_info),
+        ParserResult::NotFound => parse_type_or_pack(state),
+        ParserResult::LexerMoved => ParserResult::LexerMoved,
+    }
 }
 
 #[cfg(feature = "roblox")]
@@ -2672,6 +2716,60 @@ fn parse_generic_type_list(
 
     ParserResult::Value(ast::GenericDeclaration {
         arrows: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+        generics,
+    })
+}
+
+struct GenericTypeParams {
+    arrows: ContainedSpan,
+    generics: Punctuated<ast::TypeInfo>,
+}
+
+#[cfg(feature = "luau")]
+fn expect_generic_type_params(
+    state: &mut ParserState,
+    left_arrow: TokenReference,
+) -> Result<GenericTypeParams, ()> {
+    let mut generics = Punctuated::new();
+
+    loop {
+        if state.current()?.is_symbol(Symbol::GreaterThan) {
+            break;
+        }
+
+        let type_info = match parse_type_pack(state) {
+            ParserResult::Value(type_info) => type_info,
+            ParserResult::NotFound => match parse_type_or_pack(state) {
+                ParserResult::Value(type_info) => type_info,
+                _ => return Err(()),
+            },
+            ParserResult::LexerMoved => return Err(()),
+        };
+
+        if let Some(punctuation) = state.consume_if(Symbol::Comma) {
+            generics.push(Pair::Punctuated(type_info, punctuation));
+            if state.current()?.is_symbol(Symbol::GreaterThan) {
+                state.token_error(
+                    state.current()?.clone(),
+                    "expected type after ',' but got '>' instead",
+                );
+                break;
+            }
+        } else {
+            generics.push(Pair::End(type_info));
+            break;
+        }
+    }
+
+    let Some(right_arrow) = state.require(
+        Symbol::GreaterThan,
+        "expected '>' to close generic type parameter list",
+    ) else {
+        return Err(())
+    };
+
+    Ok(GenericTypeParams {
+        arrows: ContainedSpan::new(left_arrow, right_arrow),
         generics,
     })
 }
