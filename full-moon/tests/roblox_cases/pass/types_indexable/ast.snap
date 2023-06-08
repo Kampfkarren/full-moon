@@ -1,8 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/types_indexable
 ---
 stmts:
   - - LocalAssignment:
@@ -1076,7 +1074,7 @@ stmts:
                     generics:
                       pairs:
                         - End:
-                            VariadicPack:
+                            Variadic:
                               ellipse:
                                 leading_trivia: []
                                 token:
@@ -1092,21 +1090,22 @@ stmts:
                                     type: Symbol
                                     symbol: "..."
                                 trailing_trivia: []
-                              name:
-                                leading_trivia: []
-                                token:
-                                  start_position:
-                                    bytes: 155
-                                    line: 5
-                                    character: 24
-                                  end_position:
-                                    bytes: 161
-                                    line: 5
-                                    character: 30
-                                  token_type:
-                                    type: Identifier
-                                    identifier: string
-                                trailing_trivia: []
+                              type_info:
+                                Basic:
+                                  leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 155
+                                      line: 5
+                                      character: 24
+                                    end_position:
+                                      bytes: 161
+                                      line: 5
+                                      character: 30
+                                    token_type:
+                                      type: Identifier
+                                      identifier: string
+                                  trailing_trivia: []
         name_list:
           pairs:
             - End:

@@ -1,8 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
-
 ---
 stmts:
   - - TypeDeclaration:
@@ -755,7 +753,7 @@ stmts:
                             token_type:
                               type: Whitespace
                               characters: " "
-                      - VariadicPack:
+                      - Variadic:
                           ellipse:
                             leading_trivia: []
                             token:
@@ -771,21 +769,22 @@ stmts:
                                 type: Symbol
                                 symbol: "..."
                             trailing_trivia: []
-                          name:
-                            leading_trivia: []
-                            token:
-                              start_position:
-                                bytes: 99
-                                line: 4
-                                character: 28
-                              end_position:
-                                bytes: 102
-                                line: 4
-                                character: 31
-                              token_type:
-                                type: Identifier
-                                identifier: any
-                            trailing_trivia: []
+                          type_info:
+                            Basic:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 99
+                                  line: 4
+                                  character: 28
+                                end_position:
+                                  bytes: 102
+                                  line: 4
+                                  character: 31
+                                token_type:
+                                  type: Identifier
+                                  identifier: any
+                              trailing_trivia: []
                   - leading_trivia: []
                     token:
                       start_position:
