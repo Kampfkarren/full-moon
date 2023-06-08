@@ -1640,6 +1640,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
     };
 
     match expression {
+        #[cfg(feature = "luau")]
         ParserResult::Value(expression) if state.lua_version().has_luau() => {
             if let Some(assertion_op) = state.consume_if(Symbol::TwoColons) {
                 let cast_to = match parse_type(state) {
@@ -2028,6 +2029,7 @@ fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     }
 }
 
+#[cfg(feature = "luau")]
 fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
@@ -2720,6 +2722,7 @@ fn parse_generic_type_list(
     })
 }
 
+#[cfg(feature = "luau")]
 struct GenericTypeParams {
     arrows: ContainedSpan,
     generics: Punctuated<ast::TypeInfo>,
