@@ -973,7 +973,6 @@ impl Lexer {
         debug_assert!(self.lua_version.has_luau());
 
         let mut number = String::from_iter(['0', binary_character]);
-        let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
             match next {
