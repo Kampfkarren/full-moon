@@ -1792,6 +1792,22 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             Ok(token) if token.is_symbol(Symbol::Ellipse) => {
                 let ellipse = state.consume().unwrap();
                 parameters.push(Pair::End(ast::Parameter::Ellipse(ellipse)));
+
+                #[cfg(feature = "luau")]
+                if state.lua_version().has_luau() {
+                    let type_specifier = if let Some(colon) = state.consume_if(Symbol::Colon) {
+                        match expect_type_specifier(state, colon) {
+                            Ok(type_specifier) => Some(type_specifier),
+                            Err(()) => {
+                                return unfinished_function_body(left_parenthesis, parameters)
+                            }
+                        }
+                    } else {
+                        None
+                    };
+                    type_specifiers.push(type_specifier);
+                }
+
                 right_parenthesis = match state.require(Symbol::RightParen, "expected a `)`") {
                     Some(right_parenthesis) => right_parenthesis,
                     None => return unfinished_function_body(left_parenthesis, parameters),
@@ -1808,9 +1824,14 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                     },
                 ..
             }) => {
-                // rewrite todo: i think i wanted this to be parse_name?
-                let name = state.consume().unwrap();
-                let name_parameter = ast::Parameter::Name(force_name(state, name).name);
+                let name_parameter = match parse_name_with_type_specifiers(state) {
+                    ParserResult::Value(name) => {
+                        #[cfg(feature = "luau")]
+                        type_specifiers.push(name.type_specifier);
+                        ast::Parameter::Name(name.name)
+                    }
+                    _ => unreachable!(),
+                };
 
                 let Some(comma) = state.consume_if(Symbol::Comma) else {
                     parameters.push(Pair::End(name_parameter));
@@ -1855,12 +1876,13 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     let return_type = if state.lua_version().has_luau() {
         // rewrite todo: we should emit a warning if the user tried to use `->` instead of `:`
         if let Some(punctuation) = state.consume_if(Symbol::Colon) {
-            match expect_return_type(state) {
-                Ok(type_info) => Some(ast::TypeSpecifier {
+            // rewrite todo: need to allow standard type packs
+            match parse_type_or_pack(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
                     punctuation,
                     type_info,
                 }),
-                Err(()) => return ParserResult::LexerMoved,
+                _ => return ParserResult::LexerMoved,
             }
         } else {
             None
@@ -2389,7 +2411,7 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
         return Err(())
     };
 
-    let return_type = match dbg!(parse_type_or_pack(state)) {
+    let return_type = match parse_type_or_pack(state) {
         ParserResult::Value(return_type) => return_type,
         ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
     };
@@ -2406,9 +2428,17 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
 #[cfg(feature = "roblox")]
 fn expect_type_specifier(
     state: &mut ParserState,
-    colon: TokenReference,
+    punctuation: TokenReference,
 ) -> Result<ast::TypeSpecifier, ()> {
-    todo!("parse type specifier");
+    let ParserResult::Value(type_info) = parse_type(state) else {
+        state.token_error(punctuation, "expected type info after `:`");
+        return Err(())
+    };
+
+    Ok(ast::TypeSpecifier {
+        punctuation,
+        type_info,
+    })
 }
 
 #[cfg(feature = "roblox")]
@@ -2696,8 +2726,7 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
     }
 
     if let Some(punctuation) = state.consume_if(Symbol::Colon) {
-        let ParserResult::Value(type_info) = parse_type(state) else {
-            state.token_error(punctuation, "expected type info after `:`");
+        let Ok(type_specifier) = expect_type_specifier(state, punctuation) else {
             return Name {
                 name,
                 #[cfg(feature = "lua52")]
@@ -2710,10 +2739,7 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
             name,
             #[cfg(feature = "lua52")]
             attribute: None,
-            type_specifier: Some(ast::TypeSpecifier {
-                punctuation,
-                type_info,
-            }),
+            type_specifier: Some(type_specifier),
         }
     } else {
         force_name(state, name)
