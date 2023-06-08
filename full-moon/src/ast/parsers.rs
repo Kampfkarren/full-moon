@@ -2131,8 +2131,39 @@ fn parse_simple_type(state: &mut ParserState, allow_pack: bool) -> ParserResult<
             } else {
                 match state.current() {
                     Ok(token) if token.is_symbol(Symbol::Dot) => {
-                        let dot = state.consume().unwrap();
-                        todo!("parse indexed type info type name and optional generics")
+                        let punctuation = state.consume().unwrap();
+
+                        let type_base = match parse_name(state) {
+                            ParserResult::Value(name) => name.name,
+                            ParserResult::NotFound => {
+                                state.token_error(
+                                    state.current().unwrap().clone(),
+                                    "expected identifier after `.`",
+                                );
+                                return ParserResult::LexerMoved;
+                            }
+                            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                        };
+
+                        let type_info = if let Some(left_arrow) = state.consume_if(Symbol::LessThan)
+                        {
+                            let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                                return ParserResult::LexerMoved;
+                            };
+                            ast::IndexedTypeInfo::Generic {
+                                base: type_base,
+                                arrows: generics.arrows,
+                                generics: generics.generics,
+                            }
+                        } else {
+                            ast::IndexedTypeInfo::Basic(type_base)
+                        };
+
+                        ParserResult::Value(ast::TypeInfo::Module {
+                            module: name,
+                            punctuation,
+                            type_info: Box::new(type_info),
+                        })
                     }
                     Ok(token) if token.is_symbol(Symbol::LessThan) => {
                         let left_arrow = state.consume().unwrap();
@@ -2281,13 +2312,13 @@ fn expect_type_table(
             );
             let braces = ContainedSpan::new(left_brace, state.consume().unwrap());
             return Ok(ast::TypeInfo::Table { braces, fields });
-        } else if current_token.is_symbol(Symbol::LeftBrace)
+        } else if current_token.is_symbol(Symbol::LeftBracket)
             && matches!(state.peek(), Ok(token) if token.token_kind() == TokenKind::StringLiteral)
         {
             let left_brace = state.consume().unwrap();
             let property = state.consume().unwrap();
             let Some(right_brace) = state.require(
-                Symbol::RightBrace,
+                Symbol::RightBracket,
                 "expected `]` to close `[` for type table field",
             ) else {
                 return Err(());
@@ -2315,7 +2346,7 @@ fn expect_type_table(
                 colon,
                 value,
             }
-        } else if current_token.is_symbol(Symbol::LeftBrace) {
+        } else if current_token.is_symbol(Symbol::LeftBracket) {
             let left_brace = state.consume().unwrap();
             let key = match parse_type(state) {
                 ParserResult::Value(value) => value,
@@ -2328,7 +2359,7 @@ fn expect_type_table(
                 }
             };
             let Some(right_brace) = state.require(
-                Symbol::RightBrace,
+                Symbol::RightBracket,
                 "expected `]` to close `[` for type table field",
             ) else {
                 return Err(());
@@ -2462,22 +2493,22 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
     };
 
     while !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+        // vararg annotation
+        match parse_type_pack(state) {
+            ParserResult::Value(type_info) => {
+                arguments.push(Pair::End(ast::TypeArgument {
+                    name: None,
+                    type_info,
+                }));
+                break;
+            }
+            ParserResult::LexerMoved => return Err(()),
+            ParserResult::NotFound => (),
+        }
+
         let Ok(current_token) = state.current() else {
             return Err(())
         };
-
-        // rewrite todo: vararg annotation
-        // match parse_type_pack(state) {
-        //     ParserResult::Value(type_info) => {
-        //         arguments.push(Pair::End(ast::TypeArgument {
-        //             name: None,
-        //             type_info,
-        //         }));
-        //         break;
-        //     }
-        //     ParserResult::LexerMoved => return Err(()),
-        //     ParserResult::NotFound => (),
-        // }
 
         let name = if current_token.token_kind() == TokenKind::Identifier
             && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
@@ -2642,7 +2673,28 @@ fn parse_generic_type_list(
                 seen_default = true;
                 let equal_token = state.consume().unwrap();
 
-                todo!("parse default type pack");
+                // rewrite todo: behind check? is this backtracking?
+                let default_type = match parse_type_pack(state) {
+                    ParserResult::Value(type_info) => type_info,
+                    ParserResult::NotFound => match parse_type_or_pack(state) {
+                        ParserResult::Value(type_info)
+                            if matches!(type_info, ast::TypeInfo::Tuple { .. }) =>
+                        {
+                            type_info
+                        }
+                        ParserResult::Value(type_info) => {
+                            state.token_error(
+                                equal_token.clone(), // rewrite todo: not the best token to use
+                                "expected type pack after `=` but got type instead",
+                            );
+                            type_info
+                        }
+                        _ => return ParserResult::LexerMoved,
+                    },
+                    ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                };
+
+                Some((equal_token, default_type))
             } else {
                 if seen_default {
                     state.token_error(
