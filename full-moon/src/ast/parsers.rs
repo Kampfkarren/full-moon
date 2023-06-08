@@ -1537,7 +1537,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         Err(()) => return ParserResult::NotFound,
     };
 
-    match current_token.token_type() {
+    let expression = match current_token.token_type() {
         TokenType::Symbol {
             symbol: Symbol::Function,
         } => {
@@ -1624,7 +1624,41 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             )))
         }
 
+        #[cfg(feature = "luau")]
+        TokenType::Symbol { symbol: Symbol::If } => {
+            // rewrite todo: should be behind luau gate?
+            let if_token = state.consume().unwrap();
+            match expect_if_else_expression(state, if_token) {
+                Ok(if_expression) => {
+                    ParserResult::Value(ast::Expression::IfExpression(if_expression))
+                }
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+
         _ => ParserResult::NotFound,
+    };
+
+    match expression {
+        ParserResult::Value(expression) if state.lua_version().has_luau() => {
+            if let Some(assertion_op) = state.consume_if(Symbol::TwoColons) {
+                let cast_to = match parse_type(state) {
+                    ParserResult::Value(cast_to) => cast_to,
+                    _ => return ParserResult::LexerMoved,
+                };
+
+                ParserResult::Value(ast::Expression::TypeAssertion {
+                    expression: Box::new(expression),
+                    type_assertion: ast::TypeAssertion {
+                        assertion_op,
+                        cast_to,
+                    },
+                })
+            } else {
+                ParserResult::Value(expression)
+            }
+        }
+        _ => expression,
     }
 }
 
@@ -1907,6 +1941,66 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         return_type,
         block,
         end_token: end,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_if_else_expression(
+    state: &mut ParserState,
+    if_token: TokenReference,
+) -> Result<ast::IfExpression, ()> {
+    let ParserResult::Value(condition) = parse_expression(state) else {
+        return Err(())
+    };
+
+    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        return Err(())
+    };
+
+    let ParserResult::Value(if_expression) = parse_expression(state) else {
+        return Err(())
+    };
+
+    let mut else_if_expressions = Vec::new();
+    while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+        let ParserResult::Value(condition) = parse_expression(state) else {
+            return Err(())
+        };
+
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+            return Err(())
+        };
+        let ParserResult::Value(expression) = parse_expression(state) else {
+            return Err(())
+        };
+        else_if_expressions.push(ast::ElseIfExpression {
+            else_if_token,
+            condition,
+            then_token,
+            expression,
+        })
+    }
+
+    let Some(else_token) = state.require(Symbol::Else, "expected `else` to end if-else expression") else {
+        return Err(())
+    };
+
+    let ParserResult::Value(else_expression) = parse_expression(state) else {
+        return Err(())
+    };
+
+    Ok(ast::IfExpression {
+        if_token,
+        condition: Box::new(condition),
+        then_token,
+        if_expression: Box::new(if_expression),
+        else_if_expressions: if else_if_expressions.is_empty() {
+            None
+        } else {
+            Some(else_if_expressions)
+        },
+        else_token,
+        else_expression: Box::new(else_expression),
     })
 }
 
