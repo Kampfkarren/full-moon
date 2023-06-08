@@ -1831,12 +1831,31 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                 #[cfg(feature = "luau")]
                 if state.lua_version().has_luau() {
                     let type_specifier = if let Some(colon) = state.consume_if(Symbol::Colon) {
-                        match expect_type_specifier(state, colon) {
-                            Ok(type_specifier) => Some(type_specifier),
-                            Err(()) => {
-                                return unfinished_function_body(left_parenthesis, parameters)
+                        // varargs can also be annotated using generic packs: T...
+                        let type_info = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
+                            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+                        {
+                            let name = match parse_name(state) {
+                                ParserResult::Value(name) => name.name,
+                                _ => unreachable!(),
+                            };
+
+                            let Some(ellipse) = state.require(Symbol::Ellipse, "expected `...` after type name") else {
+                                unreachable!()
+                            };
+
+                            ast::TypeInfo::GenericPack { name, ellipse }
+                        } else {
+                            match parse_type(state) {
+                                ParserResult::Value(type_info) => type_info,
+                                _ => return unfinished_function_body(left_parenthesis, parameters),
                             }
-                        }
+                        };
+
+                        Some(ast::TypeSpecifier {
+                            punctuation: colon,
+                            type_info,
+                        })
                     } else {
                         None
                     };
