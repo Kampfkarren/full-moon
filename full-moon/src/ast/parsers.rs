@@ -283,7 +283,7 @@ define_parser!(ParsePartExpression, Expression, |_, state| {
         keep_going!(parse_value(state)).or_else(|_| keep_going!(parse_paren_expression(state)))
     })?;
 
-    #[cfg(feature = "roblox")]
+    #[cfg(not(feature = "roblox"))]
     #[allow(clippy::result_large_err)]
     fn maybe_type_assertion(
         state: ParserState,
@@ -302,7 +302,7 @@ define_parser!(ParsePartExpression, Expression, |_, state| {
         Ok((state, expression))
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(feature = "roblox")]
     #[allow(clippy::result_large_err)]
     fn maybe_type_assertion(
         state: ParserState,
@@ -364,11 +364,15 @@ define_roblox_parser!(
     TokenReference,
     |_, state| {
         let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+        println!("in roblox: {:?}", state);
+
         let (state, cast_to) = expect!(
             state,
             ParseTypeInfo(TypeInfoContext::None).parse(state),
             "expected type in type assertion"
         );
+        println!("in roblox: {:?}", state);
+        println!("in roblox: {:?}", cast_to);
 
         Ok((state, TypeAssertion { assertion_op, cast_to }))
     }
@@ -2085,6 +2089,7 @@ define_lua52_parser!(ParseGoto, Goto, TokenReference, |_, state| {
 struct ParseLabel;
 define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
     let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
+    println!("left_colons: {:?}", left_colons);
     let (state, name) = expect!(
         state,
         ParseIdentifier.parse(state),
