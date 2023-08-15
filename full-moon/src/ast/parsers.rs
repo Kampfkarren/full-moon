@@ -364,16 +364,11 @@ define_roblox_parser!(
     TokenReference,
     |_, state| {
         let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
-        println!("in roblox: {:?}", state);
-
         let (state, cast_to) = expect!(
             state,
             ParseTypeInfo(TypeInfoContext::None).parse(state),
             "expected type in type assertion"
         );
-        println!("in roblox: {:?}", state);
-        println!("in roblox: {:?}", cast_to);
-
         Ok((state, TypeAssertion { assertion_op, cast_to }))
     }
 );
