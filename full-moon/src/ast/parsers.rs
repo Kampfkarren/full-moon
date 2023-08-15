@@ -2089,7 +2089,6 @@ define_lua52_parser!(ParseGoto, Goto, TokenReference, |_, state| {
 struct ParseLabel;
 define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
     let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
-    println!("left_colons: {:?}", left_colons);
     let (state, name) = expect!(
         state,
         ParseIdentifier.parse(state),
