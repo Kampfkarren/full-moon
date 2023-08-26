@@ -19,17 +19,16 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 
     loop {
         match parse_stmt(state) {
-            ParserResult::Value(stmt) => match stmt {
-                StmtVariant::Stmt(stmt) => {
-                    let semicolon = state.consume_if(Symbol::Semicolon);
-                    stmts.push((stmt, semicolon));
-                }
-                StmtVariant::LastStmt(last_stmt) => {
-                    let semicolon = state.consume_if(Symbol::Semicolon);
-                    let last_stmt = Some((last_stmt, semicolon));
-                    return ParserResult::Value(ast::Block { stmts, last_stmt });
-                }
-            },
+            ParserResult::Value(StmtVariant::Stmt(stmt)) => {
+                let semicolon = state.consume_if(Symbol::Semicolon);
+                stmts.push((stmt, semicolon));
+            }
+            ParserResult::Value(StmtVariant::LastStmt(last_stmt)) => {
+                let semicolon = state.consume_if(Symbol::Semicolon);
+                let last_stmt = Some((last_stmt, semicolon));
+                return ParserResult::Value(ast::Block { stmts, last_stmt });
+            }
+
             ParserResult::NotFound => break,
             ParserResult::LexerMoved => {
                 if stmts.is_empty() {
@@ -1269,7 +1268,7 @@ fn expect_type_declaration(
         }
     };
 
-    let generics = match parse_generic_type_list(state, true) {
+    let generics = match parse_generic_type_list(state, TypeListStyle::WithDefaults) {
         ParserResult::Value(generics) => Some(generics),
         ParserResult::NotFound => None,
         _ => return Err(()),
@@ -1777,7 +1776,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
 
     #[cfg(feature = "roblox")]
-    let generics = match parse_generic_type_list(state, false) {
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
         ParserResult::Value(generic_declaration) => Some(generic_declaration),
         ParserResult::NotFound => None,
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
@@ -2025,7 +2024,7 @@ fn expect_if_else_expression(
 
 #[cfg(feature = "roblox")]
 fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
-    let ParserResult::Value(simple_type) = parse_simple_type(state, false) else {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default) else {
         return ParserResult::LexerMoved;
     };
 
@@ -2034,7 +2033,7 @@ fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
 
 #[cfg(feature = "luau")]
 fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
-    let ParserResult::Value(simple_type) = parse_simple_type(state, true) else {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::AllowPack) else {
         return ParserResult::LexerMoved;
     };
 
@@ -2085,7 +2084,17 @@ fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
 }
 
 #[cfg(feature = "roblox")]
-fn parse_simple_type(state: &mut ParserState, allow_pack: bool) -> ParserResult<ast::TypeInfo> {
+#[derive(PartialEq, Eq)]
+enum SimpleTypeStyle {
+    Default,
+    AllowPack,
+}
+
+#[cfg(feature = "roblox")]
+fn parse_simple_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> ParserResult<ast::TypeInfo> {
     let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
     };
@@ -2214,7 +2223,7 @@ fn parse_simple_type(state: &mut ParserState, allow_pack: bool) -> ParserResult<
         }
         | TokenType::Symbol {
             symbol: Symbol::LessThan,
-        } => match expect_function_type(state, allow_pack) {
+        } => match expect_function_type(state, style) {
             Ok(type_info) => ParserResult::Value(type_info),
             Err(_) => ParserResult::LexerMoved,
         },
@@ -2251,7 +2260,7 @@ fn parse_type_suffix(
 
                 let pipe = state.consume().unwrap();
 
-                let ParserResult::Value(right) = parse_simple_type(state, false) else {
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default) else {
                     return ParserResult::LexerMoved;
                 };
 
@@ -2293,7 +2302,7 @@ fn parse_type_suffix(
 
                 let ampersand = state.consume().unwrap();
 
-                let ParserResult::Value(right) = parse_simple_type(state, false) else {
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default) else {
                     return ParserResult::LexerMoved;
                 };
 
@@ -2494,12 +2503,15 @@ fn expect_type_table(
 }
 
 #[cfg(feature = "roblox")]
-fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast::TypeInfo, ()> {
+fn expect_function_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> Result<ast::TypeInfo, ()> {
     // rewrite todo: allow type pack
     let mut force_function_type =
         matches!(state.current(), Ok(token) if token.is_symbol(Symbol::LessThan));
 
-    let generics = match parse_generic_type_list(state, false) {
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
         ParserResult::Value(generics) => Some(generics),
         ParserResult::NotFound => None,
         ParserResult::LexerMoved => return Err(()),
@@ -2537,9 +2549,8 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
             None
         };
 
-        let type_info = match parse_type(state) {
-            ParserResult::Value(return_type) => return_type,
-            ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return Err(());
         };
 
         // rewrite todo: type pack
@@ -2581,7 +2592,7 @@ fn expect_function_type(state: &mut ParserState, allow_pack: bool) -> Result<ast
     {
         // Simple type wrapped in parentheses, or an allowed type pack
         // rewrite todo: single type wrapped in parentheses is NOT allowed to be a vararg annotation
-        if arguments.len() == 1 || allow_pack {
+        if arguments.len() == 1 || style == SimpleTypeStyle::AllowPack {
             return Ok(ast::TypeInfo::Tuple {
                 parentheses,
                 types: arguments
@@ -2637,9 +2648,16 @@ fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
 }
 
 #[cfg(feature = "roblox")]
+#[derive(PartialEq, Eq)]
+enum TypeListStyle {
+    Plain,
+    WithDefaults,
+}
+
+#[cfg(feature = "roblox")]
 fn parse_generic_type_list(
     state: &mut ParserState,
-    with_defaults: bool,
+    style: TypeListStyle,
 ) -> ParserResult<ast::GenericDeclaration> {
     if !state.lua_version().has_luau() {
         return ParserResult::NotFound;
@@ -2686,7 +2704,7 @@ fn parse_generic_type_list(
                 }
             };
 
-            let default = if with_defaults
+            let default = if style == TypeListStyle::WithDefaults
                 && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
             {
                 seen_default = true;
@@ -2730,7 +2748,7 @@ fn parse_generic_type_list(
                 default,
             )
         } else {
-            let default = if with_defaults
+            let default = if style == TypeListStyle::WithDefaults
                 && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
             {
                 seen_default = true;
