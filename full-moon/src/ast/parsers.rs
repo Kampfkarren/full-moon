@@ -2425,13 +2425,14 @@ fn expect_type_table(
             let left_brace = state.consume().unwrap();
             let key = match parse_type(state) {
                 ParserResult::Value(value) => value,
-                ParserResult::LexerMoved | ParserResult::NotFound => {
+                ParserResult::NotFound => {
                     state.token_error(
                         state.current().unwrap().clone(),
                         "expected type for type field key",
                     );
                     return Err(());
                 }
+                ParserResult::LexerMoved => return Err(()),
             };
             let Some(right_brace) = state.require(
                 Symbol::RightBracket,
@@ -2446,13 +2447,14 @@ fn expect_type_table(
 
             let value = match parse_type(state) {
                 ParserResult::Value(value) => value,
-                ParserResult::LexerMoved | ParserResult::NotFound => {
+                ParserResult::NotFound => {
                     state.token_error(
                         state.current().unwrap().clone(),
                         "expected type after type field key",
                     );
                     return Err(());
                 }
+                ParserResult::LexerMoved => return Err(()),
             };
 
             if has_indexer {
@@ -2480,13 +2482,14 @@ fn expect_type_table(
         {
             array_type = Some(match parse_type(state) {
                 ParserResult::Value(value) => value,
-                ParserResult::LexerMoved | ParserResult::NotFound => {
+                ParserResult::NotFound => {
                     state.token_error(
                         state.current().unwrap().clone(),
                         "expected type for table array",
                     );
                     return Err(());
                 }
+                ParserResult::LexerMoved => return Err(()),
             });
             break;
         } else {
@@ -2499,13 +2502,14 @@ fn expect_type_table(
                     };
                     let value = match parse_type(state) {
                         ParserResult::Value(value) => value,
-                        ParserResult::LexerMoved | ParserResult::NotFound => {
+                        ParserResult::NotFound => {
                             state.token_error(
                                 state.current().unwrap().clone(),
                                 "expected type after type field key",
                             );
                             return Err(());
                         }
+                        ParserResult::LexerMoved => return Err(()),
                     };
 
                     ast::TypeField {
