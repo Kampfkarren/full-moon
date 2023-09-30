@@ -95,7 +95,7 @@ fn test_tokenizer_fail_cases() {
 #[cfg(feature = "roblox")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_parser_fail_cases() {
-    run_parser_fail_cases("./tests/cases/fail/parser", LuaVersion::luau());
+    run_parser_fail_cases("./tests/roblox_cases/fail/parser", LuaVersion::luau());
 }
 
 #[test]
