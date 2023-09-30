@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "full_moon::print(&ast)"
+---
+""
+

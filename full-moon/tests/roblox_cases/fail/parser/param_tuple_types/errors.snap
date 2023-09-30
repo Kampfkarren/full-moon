@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 35
+        line: 1
+        character: 36
+      end_position:
+        bytes: 36
+        line: 1
+        character: 37
+      token_type:
+        type: Symbol
+        symbol: )
+    additional: "expected `->` after `()` for function type"
+- AstError:
+    token:
+      start_position:
+        bytes: 17
+        line: 1
+        character: 18
+      end_position:
+        bytes: 18
+        line: 1
+        character: 19
+      token_type:
+        type: Symbol
+        symbol: ":"
+    additional: "expected type info after `:`"
+

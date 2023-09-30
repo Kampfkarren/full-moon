@@ -2658,6 +2658,7 @@ fn expect_function_type(
         Symbol::ThinArrow,
         "expected `->` after `()` for function type",
     ) else {
+        // rewrite todo: luau recovers from this, using an AstTypeError return type
         return Err(());
     };
 
