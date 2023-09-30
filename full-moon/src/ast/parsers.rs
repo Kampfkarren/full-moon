@@ -1661,8 +1661,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         }
 
         #[cfg(feature = "luau")]
-        TokenType::Symbol { symbol: Symbol::If } => {
-            // rewrite todo: should be behind luau gate?
+        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() => {
             let if_token = state.consume().unwrap();
             match expect_if_else_expression(state, if_token) {
                 Ok(if_expression) => {
@@ -1853,7 +1852,6 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             })
         };
 
-    // rewrite todo: parse type specifiers for parameters
     loop {
         match state.current() {
             Ok(token) if token.is_symbol(Symbol::RightParen) => {
@@ -2572,7 +2570,6 @@ fn expect_function_type(
     state: &mut ParserState,
     style: SimpleTypeStyle,
 ) -> Result<ast::TypeInfo, ()> {
-    // rewrite todo: allow type pack
     let mut force_function_type =
         matches!(state.current(), Ok(token) if token.is_symbol(Symbol::LessThan));
 
@@ -2617,8 +2614,6 @@ fn expect_function_type(
         let ParserResult::Value(type_info) = parse_type(state) else {
             return Err(());
         };
-
-        // rewrite todo: type pack
 
         let type_argument = ast::TypeArgument { name, type_info };
 
