@@ -1967,8 +1967,19 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
 
     #[cfg(feature = "roblox")]
     let return_type = if state.lua_version().has_luau() {
-        // rewrite todo: we should emit a warning if the user tried to use `->` instead of `:`
         if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+            match parse_return_type(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                _ => return ParserResult::LexerMoved,
+            }
+        } else if let Some(punctuation) = state.consume_if(Symbol::ThinArrow) {
+            state.token_error(
+                punctuation.clone(),
+                "function return type annotations should use `:` instead of `->`",
+            );
             match parse_return_type(state) {
                 ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
                     punctuation,
