@@ -2749,11 +2749,7 @@ fn parse_generic_type_list(
             let ellipse = match state.consume_if(Symbol::Ellipse) {
                 Some(token) => token,
                 None => {
-                    // rewrite todo:
-                    // state.token_error(
-                    //     current_token.clone(),
-                    //     "generic types come before generic type packs",
-                    // );
+                    state.token_error(name.clone(), "generic types come before generic type packs");
                     TokenReference::basic_symbol("...")
                 }
             };
