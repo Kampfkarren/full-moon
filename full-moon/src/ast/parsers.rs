@@ -14,6 +14,18 @@ use crate::{
     tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
 
+static PARSE_NAME_ERROR: &str = "%error-id%";
+
+fn error_token() -> TokenReference {
+    TokenReference::new(
+        Vec::new(),
+        Token::new(TokenType::Identifier {
+            identifier: PARSE_NAME_ERROR.into(),
+        }),
+        Vec::new(),
+    )
+}
+
 pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     let mut stmts = Vec::new();
 
@@ -2720,7 +2732,7 @@ fn parse_generic_type_list(
 
             Ok(token) => {
                 state.token_error(token.clone(), "expected a generic type name");
-                return ParserResult::LexerMoved;
+                error_token()
             }
 
             Err(()) => return ParserResult::LexerMoved,
