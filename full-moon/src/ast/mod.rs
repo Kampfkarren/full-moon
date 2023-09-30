@@ -2346,8 +2346,8 @@ pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenRefer
             }
 
             references.push(TokenReference {
-                leading_trivia: leading_trivia.drain(..).collect(),
-                trailing_trivia: trailing_trivia.drain(..).collect(),
+                leading_trivia: std::mem::take(&mut leading_trivia),
+                trailing_trivia: std::mem::take(&mut trailing_trivia),
                 token,
             });
         }

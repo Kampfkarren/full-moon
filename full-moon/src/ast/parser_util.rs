@@ -112,6 +112,7 @@ macro_rules! define_parser {
                     return stacker::maybe_grow(32 * 1024, 1024 * 1024, || $body(self, state));
                 }
 
+                #[allow(clippy::redundant_closure_call)]
                 $body(self, state)
             }
         }
