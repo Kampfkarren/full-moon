@@ -2786,9 +2786,11 @@ fn parse_generic_type_list(
                             type_info
                         }
                         ParserResult::Value(type_info) => {
-                            state.token_error(
-                                equal_token.clone(), // rewrite todo: not the best token to use
+                            state.token_error_ranged(
+                                equal_token.clone(),
                                 "expected type pack after `=` but got type instead",
+                                type_info.tokens().next().unwrap(),
+                                type_info.tokens().last().unwrap(),
                             );
                             type_info
                         }
