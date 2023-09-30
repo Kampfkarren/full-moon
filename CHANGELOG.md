@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
 - When using serde, `Expression` will no longer act untagged.
 
+### Fixed
+- Fixed failure to parse `\z` escapes in strings in Luau mode
+
 ## [0.18.1] - 2023-03-19
 ### Fixed
 - Fixed `print` on a LocalAssignment in Lua 5.4 or Luau mode not including the variable name when no type specifier or attribute is included
