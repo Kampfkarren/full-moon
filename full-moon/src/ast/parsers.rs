@@ -1298,7 +1298,7 @@ fn expect_type_declaration(
         token if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
         token => {
             state.token_error(token.clone(), "expected type name");
-            // rewrite todo: maybe we can add an error name here to continue parsing?
+            // rewrite todo (in future if needed): maybe we can add an error name here to continue parsing?
             return Err(());
         }
     };
@@ -2551,10 +2551,9 @@ fn expect_type_table(
         };
     }
 
-    let Some(right_brace) = state.require(Symbol::RightBrace, "expected `}` to close type table")
-    else {
-        return Err(());
-    };
+    let right_brace = state
+        .require(Symbol::RightBrace, "expected `}` to close type table")
+        .unwrap_or_else(|| TokenReference::basic_symbol("}"));
 
     let braces = ContainedSpan::new(left_brace, right_brace);
 
