@@ -109,6 +109,7 @@ macro_rules! define_parser {
             ) -> Result<(ParserState<'a>, $node), InternalAstError> {
                 #[cfg(feature = "stacker")]
                 if true {
+                    #[allow(clippy::redundant_closure_call)]
                     return stacker::maybe_grow(32 * 1024, 1024 * 1024, || $body(self, state));
                 }
 
