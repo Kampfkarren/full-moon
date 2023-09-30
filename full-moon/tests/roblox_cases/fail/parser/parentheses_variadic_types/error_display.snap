@@ -1,0 +1,11 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+---
+error[ast]: expected `->` after `()` for function type
+  ┌─ source.lua:1:23
+  │
+1 │ type Foo = (...number)
+  │                       ^
+
+

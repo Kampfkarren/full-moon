@@ -2656,9 +2656,14 @@ fn expect_function_type(
     if !force_function_type
         && !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::ThinArrow))
     {
-        // Simple type wrapped in parentheses, or an allowed type pack
-        // rewrite todo: single type wrapped in parentheses is NOT allowed to be a vararg annotation
-        if arguments.len() == 1 || style == SimpleTypeStyle::AllowPack {
+        // Simple type wrapped in parentheses (not allowed to be a vararg type), or an allowed type pack
+        if (arguments.len() == 1
+            && !matches!(
+                arguments.iter().next().unwrap().type_info,
+                ast::TypeInfo::Variadic { .. }
+            ))
+            || style == SimpleTypeStyle::AllowPack
+        {
             return Ok(ast::TypeInfo::Tuple {
                 parentheses,
                 types: arguments
