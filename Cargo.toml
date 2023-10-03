@@ -3,4 +3,6 @@
 members = [
 	"full-moon",
 	"full-moon-derive",
+	"full-moon-lua-types",
+	"full-moon-lua-types-derive",
 ]

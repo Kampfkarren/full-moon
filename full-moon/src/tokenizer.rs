@@ -626,6 +626,16 @@ impl Token {
     pub fn token_kind(&self) -> TokenKind {
         self.token_type().kind()
     }
+
+    pub fn with_start_position(mut self, start_position: Position) -> Self {
+        self.start_position = start_position;
+        self
+    }
+
+    pub fn with_end_position(mut self, end_position: Position) -> Self {
+        self.end_position = end_position;
+        self
+    }
 }
 
 impl fmt::Display for Token {
