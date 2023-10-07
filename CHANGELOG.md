@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
 - When using serde, `Expression` will no longer act untagged.
 - Fixed parsing of string interpolation double brace for Luau code
+- Bump `indexmap` to 2.0
 
 ## [0.18.1] - 2023-03-19
 ### Fixed
