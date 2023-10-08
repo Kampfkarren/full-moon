@@ -30,11 +30,11 @@ fn test_bracket_head(slice: &str) -> Option<usize> {
 
 fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
     let mut escape = false;
-    #[cfg(feature = "lua52")]
+    #[cfg(any(feature = "lua52", feature = "roblox"))]
     let mut z_escaped = false;
     for char in lex.remainder().chars() {
         match (escape, char) {
-            #[cfg(feature = "lua52")]
+            #[cfg(any(feature = "lua52", feature = "roblox"))]
             (true, 'z') => {
                 escape = false;
                 z_escaped = true
@@ -50,7 +50,7 @@ fn read_string(lex: &mut Lexer<Atom>, quote: char) -> bool {
                 }
             }
             (false, '\\') => escape = true,
-            #[cfg(feature = "lua52")]
+            #[cfg(any(feature = "lua52", feature = "roblox"))]
             (false, '\n' | '\r') if z_escaped => z_escaped = false,
             (false, '\n' | '\r') => break,
             (false, ..) if char == quote => {
