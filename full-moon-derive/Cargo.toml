@@ -11,7 +11,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-indexmap = "1.9"
+indexmap = "2.0.2"
 proc-macro2 = "1.0"
 quote = "1.0"
 syn = { version = "1.0.107", features = ["extra-traits"] }
