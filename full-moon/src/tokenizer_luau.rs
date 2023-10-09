@@ -87,26 +87,3 @@ pub(crate) fn read_left_brace(lexer: &mut Lexer<Atom>) -> bool {
     lexer.extras.brace_stack.push(BraceType::Normal);
     true
 }
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-/// Whether or not this section is the beginning, middle, end, or if this is a standalone string.
-pub enum InterpolatedStringKind {
-    /// `begin{
-    Begin,
-
-    /// }middle{
-    Middle,
-
-    /// }end`
-    End,
-
-    /// `simple`
-    Simple,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum BraceType {
-    InterpolatedString,
-    Normal,
-}

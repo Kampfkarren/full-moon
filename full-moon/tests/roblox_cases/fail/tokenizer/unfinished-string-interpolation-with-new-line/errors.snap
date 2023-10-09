@@ -1,0 +1,55 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 22
+expression: result.errors
+input_file: full-moon/tests/roblox_cases/fail/tokenizer/unfinished-string-interpolation-with-new-line
+---
+- TokenizerError:
+    error: UnclosedString
+    range:
+      - bytes: 10
+        line: 1
+        character: 11
+      - bytes: 13
+        line: 1
+        character: 14
+- AstError:
+    token:
+      start_position:
+        bytes: 16
+        line: 2
+        character: 3
+      end_position:
+        bytes: 17
+        line: 2
+        character: 4
+      token_type:
+        type: InterpolatedString
+        literal: ""
+        kind: Simple
+    additional: unexpected expression when looking for a statement
+- TokenizerError:
+    error: UnclosedString
+    range:
+      - bytes: 16
+        line: 2
+        character: 3
+      - bytes: 17
+        line: 2
+        character: 4
+- AstError:
+    token:
+      start_position:
+        bytes: 16
+        line: 2
+        character: 3
+      end_position:
+        bytes: 17
+        line: 2
+        character: 4
+      token_type:
+        type: InterpolatedString
+        literal: ""
+        kind: Simple
+    additional: "unexpected token, this needs to be a statement"
+

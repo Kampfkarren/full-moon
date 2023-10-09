@@ -4,27 +4,25 @@ use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
 };
 
+#[cfg(feature = "roblox")]
+use super::{interpolated_strings, InterpolatedStringKind};
+
 pub struct Lexer {
-    source: LexerSource,
+    pub(crate) source: LexerSource,
     sent_eof: bool,
 
     next_token: Option<LexerResult<TokenReference>>,
     peek_token: Option<LexerResult<TokenReference>>,
+
+    #[cfg(feature = "roblox")]
+    pub(crate) brace_stack: Vec<interpolated_strings::BraceType>,
 
     pub lua_version: LuaVersion,
 }
 
 impl Lexer {
     pub fn new(source: &str, lua_version: LuaVersion) -> Self {
-        let mut lexer = Self {
-            source: LexerSource::new(source),
-            sent_eof: false,
-
-            next_token: None,
-            peek_token: None,
-
-            lua_version,
-        };
+        let mut lexer = Self::new_lazy(source, lua_version);
 
         lexer.next_token = lexer.process_first_with_trivia();
         lexer.peek_token = lexer.process_next_with_trivia();
@@ -39,6 +37,9 @@ impl Lexer {
 
             next_token: None,
             peek_token: None,
+
+            #[cfg(feature = "roblox")]
+            brace_stack: Vec::new(),
 
             lua_version,
         }
@@ -330,6 +331,16 @@ impl Lexer {
                         Vec::new()
                     },
                 )
+            }
+
+            #[cfg(feature = "roblox")]
+            '`' if self.lua_version.has_luau() => {
+                Some(interpolated_strings::read_interpolated_string_section(
+                    self,
+                    start_position,
+                    InterpolatedStringKind::Begin,
+                    InterpolatedStringKind::Simple,
+                ))
             }
 
             '=' => {
@@ -681,19 +692,42 @@ impl Lexer {
                 }
             }
 
-            '{' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::LeftBrace,
-                },
-            ),
+            '{' => {
+                #[cfg(feature = "roblox")]
+                if self.lua_version.has_luau() {
+                    self.brace_stack
+                        .push(interpolated_strings::BraceType::Normal);
+                }
 
-            '}' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::RightBrace,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::LeftBrace,
+                    },
+                )
+            }
+
+            '}' => {
+                #[cfg(feature = "roblox")]
+                if self.lua_version.has_luau()
+                    && self.brace_stack.pop()
+                        == Some(interpolated_strings::BraceType::InterpolatedString)
+                {
+                    return Some(interpolated_strings::read_interpolated_string_section(
+                        self,
+                        start_position,
+                        InterpolatedStringKind::Middle,
+                        InterpolatedStringKind::End,
+                    ));
+                }
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::RightBrace,
+                    },
+                )
+            }
 
             '.' => {
                 if self.source.consume('.') {
@@ -1209,11 +1243,11 @@ impl LexerSource {
         }
     }
 
-    fn current(&self) -> Option<char> {
+    pub(crate) fn current(&self) -> Option<char> {
         self.source.get(self.lexer_position.index).copied()
     }
 
-    fn next(&mut self) -> Option<char> {
+    pub(crate) fn next(&mut self) -> Option<char> {
         let next = self.current()?;
 
         if next == '\n' {
@@ -1229,11 +1263,11 @@ impl LexerSource {
         Some(next)
     }
 
-    fn peek(&self) -> Option<char> {
+    pub(crate) fn peek(&self) -> Option<char> {
         self.source.get(self.lexer_position.index + 1).copied()
     }
 
-    fn consume(&mut self, character: char) -> bool {
+    pub(crate) fn consume(&mut self, character: char) -> bool {
         if self.current() == Some(character) {
             self.next();
             true
@@ -1242,7 +1276,7 @@ impl LexerSource {
         }
     }
 
-    fn position(&self) -> Position {
+    pub(crate) fn position(&self) -> Position {
         self.lexer_position.position
     }
 }

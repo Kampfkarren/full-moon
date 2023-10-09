@@ -1,12 +1,8 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 74
-expression: error
+assertion_line: 28
+expression: "full_moon::print(&ast)"
 input_file: full-moon/tests/roblox_cases/fail/tokenizer/unfinished-string-interpolation
 ---
-error: UnclosedString
-position:
-  bytes: 10
-  line: 1
-  character: 11
+"local _ = `asdf`"
 

@@ -14,6 +14,9 @@ use crate::{
     tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
 
+#[cfg(feature = "luau")]
+use crate::tokenizer::InterpolatedStringKind;
+
 static PARSE_NAME_ERROR: &str = "%error-id%";
 
 fn error_token() -> TokenReference {
@@ -1671,6 +1674,33 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             }
         }
 
+        #[cfg(feature = "luau")]
+        TokenType::InterpolatedString { kind, .. } if state.lua_version().has_luau() => {
+            let kind = *kind;
+            let interpolated_string_begin = state.consume().unwrap();
+
+            match kind {
+                InterpolatedStringKind::Simple => ParserResult::Value(
+                    ast::Expression::InterpolatedString(ast::InterpolatedString {
+                        segments: Vec::new(),
+                        last_string: interpolated_string_begin,
+                    }),
+                ),
+
+                InterpolatedStringKind::Begin => {
+                    match expect_interpolated_string(state, interpolated_string_begin) {
+                        Ok(interpolated_string) => ParserResult::Value(
+                            ast::Expression::InterpolatedString(interpolated_string),
+                        ),
+
+                        Err(_) => ParserResult::LexerMoved,
+                    }
+                }
+
+                other => unreachable!("unexpected interpolated string kind: {other:?}"),
+            }
+        }
+
         _ => ParserResult::NotFound,
     };
 
@@ -2070,6 +2100,99 @@ fn expect_if_else_expression(
         },
         else_token,
         else_expression: Box::new(else_expression),
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_interpolated_string(
+    state: &mut ParserState,
+    mut current: TokenReference,
+) -> Result<ast::InterpolatedString, ()> {
+    use crate::ShortString;
+
+    use super::types::InterpolatedStringSegment;
+
+    let mut segments = Vec::new();
+    let first_string = current.clone();
+
+    loop {
+        let has_double_brace = if let Some(double_brace) = state.consume_if(Symbol::LeftBrace) {
+            state.token_error(
+                double_brace,
+                "unexpected double brace, try \\{ if you meant to escape",
+            );
+
+            true
+        } else {
+            false
+        };
+
+        let expression = match parse_expression(state) {
+            ParserResult::Value(expression) => expression,
+            ParserResult::NotFound => {
+                state.token_error(current, "expected expression after `{`");
+                break;
+            }
+            ParserResult::LexerMoved => break,
+        };
+
+        segments.push(InterpolatedStringSegment {
+            expression,
+            literal: current,
+        });
+
+        // If incorrectly using `x = {{y}}`, provide a better error message by ignoring the right brace
+        if has_double_brace {
+            state.consume_if(Symbol::RightBrace);
+        }
+
+        let Ok(next) = state.current() else {
+            break;
+        };
+
+        if matches!(
+            next.token_type(),
+            TokenType::InterpolatedString {
+                kind: InterpolatedStringKind::End,
+                ..
+            }
+        ) {
+            return Ok(ast::InterpolatedString {
+                segments,
+                last_string: state.consume().unwrap(),
+            });
+        }
+
+        // `hello {"world" "wait"}`
+        if next.token_kind() != TokenKind::InterpolatedString {
+            state.token_error(
+                next.clone(),
+                "interpolated string parameter can only contain an expression",
+            );
+            break;
+        }
+
+        current = match state.consume() {
+            ParserResult::Value(token) => token,
+            ParserResult::NotFound | ParserResult::LexerMoved => break,
+        }
+    }
+
+    Ok(ast::InterpolatedString {
+        last_string: if segments.is_empty() {
+            first_string
+        } else {
+            TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::InterpolatedString {
+                    literal: ShortString::default(),
+                    kind: InterpolatedStringKind::End,
+                }),
+                Vec::new(),
+            )
+        },
+
+        segments,
     })
 }
 

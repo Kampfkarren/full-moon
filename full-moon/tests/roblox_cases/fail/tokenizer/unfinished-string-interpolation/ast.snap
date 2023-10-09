@@ -1,0 +1,126 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 23
+expression: result.ast
+input_file: full-moon/tests/roblox_cases/fail/tokenizer/unfinished-string-interpolation
+---
+nodes:
+  stmts:
+    - - LocalAssignment:
+          local_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Symbol
+                symbol: local
+            trailing_trivia:
+              - start_position:
+                  bytes: 5
+                  line: 1
+                  character: 6
+                end_position:
+                  bytes: 6
+                  line: 1
+                  character: 7
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name_list:
+            pairs:
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 6
+                      line: 1
+                      character: 7
+                    end_position:
+                      bytes: 7
+                      line: 1
+                      character: 8
+                    token_type:
+                      type: Identifier
+                      identifier: _
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 7
+                        line: 1
+                        character: 8
+                      end_position:
+                        bytes: 8
+                        line: 1
+                        character: 9
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+          equal_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 8
+                line: 1
+                character: 9
+              end_position:
+                bytes: 9
+                line: 1
+                character: 10
+              token_type:
+                type: Symbol
+                symbol: "="
+            trailing_trivia:
+              - start_position:
+                  bytes: 9
+                  line: 1
+                  character: 10
+                end_position:
+                  bytes: 10
+                  line: 1
+                  character: 11
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          expr_list:
+            pairs:
+              - End:
+                  InterpolatedString:
+                    segments: []
+                    last_string:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 10
+                          line: 1
+                          character: 11
+                        end_position:
+                          bytes: 15
+                          line: 1
+                          character: 16
+                        token_type:
+                          type: InterpolatedString
+                          literal: asdf
+                          kind: Simple
+                      trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 15
+      line: 1
+      character: 16
+    end_position:
+      bytes: 15
+      line: 1
+      character: 16
+    token_type:
+      type: Eof
+  trailing_trivia: []
+
