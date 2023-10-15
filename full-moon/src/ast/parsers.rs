@@ -1865,6 +1865,8 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                 parameters.push(Pair::End(last_parameter.into_value()));
             }
 
+            // rewrite todo: we should appropriately recover the parsed generics/type_specifiers here
+            // but it becomes messy with cfg feature toggles and moves.
             ParserResult::Value(FunctionBody {
                 #[cfg(feature = "roblox")]
                 generics: None, // rewrite todo: fix
@@ -1876,7 +1878,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                 #[cfg(feature = "roblox")]
                 type_specifiers: Vec::new(), // rewrite todo: fix
                 #[cfg(feature = "roblox")]
-                return_type: None, // rewrite todo: is this correct?
+                return_type: None,
                 block: ast::Block::new(),
                 end_token: TokenReference::basic_symbol("end"),
             })
