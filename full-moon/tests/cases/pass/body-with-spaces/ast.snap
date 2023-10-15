@@ -1,0 +1,62 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+---
+stmts:
+  - - Do:
+        do_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 2
+              line: 1
+              character: 3
+            token_type:
+              type: Symbol
+              symbol: do
+          trailing_trivia:
+            - start_position:
+                bytes: 2
+                line: 1
+                character: 3
+              end_position:
+                bytes: 3
+                line: 1
+                character: 3
+              token_type:
+                type: Whitespace
+                characters: "\n"
+        block:
+          stmts: []
+        end_token:
+          leading_trivia:
+            - start_position:
+                bytes: 3
+                line: 2
+                character: 1
+              end_position:
+                bytes: 8
+                line: 2
+                character: 5
+              token_type:
+                type: Whitespace
+                characters: "    \n"
+          token:
+            start_position:
+              bytes: 8
+              line: 3
+              character: 1
+            end_position:
+              bytes: 11
+              line: 3
+              character: 4
+            token_type:
+              type: Symbol
+              symbol: end
+          trailing_trivia: []
+    - ~
+
