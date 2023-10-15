@@ -278,27 +278,43 @@ impl Lexer {
                 let mut whitespace = String::new();
                 whitespace.push(initial);
 
+                // Handle end_position appropriately: for a newline, we increment the bytes, but
+                // do not increment line/char
+                let mut end_position = Position {
+                    bytes: start_position.bytes() + initial.len_utf8(),
+                    line: start_position.line,
+                    character: start_position.character + 1,
+                };
+
                 while let Some(next) = self.source.current() {
                     if next == ' ' || next == '\t' {
+                        end_position.bytes += next.len_utf8();
+                        end_position.character += 1;
                         whitespace.push(self.source.next().expect("peeked, but no next"));
                     } else if next == '\n' {
+                        end_position.bytes += next.len_utf8();
                         whitespace.push(self.source.next().expect("peeked, but no next"));
                         break;
                     } else if next == '\r' && self.source.peek() == Some('\n') {
-                        whitespace.push(self.source.next().expect("peeked, but no next"));
-                        whitespace.push(self.source.next().expect("peeked, but no next"));
+                        let carriage_return = self.source.next().expect("peeked, but no next");
+                        let new_line = self.source.next().expect("peeked, but no next");
+                        end_position.bytes += carriage_return.len_utf8() + new_line.len_utf8();
+                        end_position.character += 1;
+                        whitespace.push(carriage_return);
+                        whitespace.push(new_line);
                         break;
                     } else {
                         break;
                     }
                 }
 
-                self.create(
-                    start_position,
-                    TokenType::Whitespace {
-                        characters: ShortString::from(whitespace),
+                Some(LexerResult::Ok(Token {
+                    token_type: TokenType::Whitespace {
+                        characters: ShortString::from(whitespace.as_str()),
                     },
-                )
+                    start_position,
+                    end_position,
+                }))
             }
 
             initial @ '0' => {
