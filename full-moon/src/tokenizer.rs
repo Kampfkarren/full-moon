@@ -172,7 +172,7 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = "/"))]
     Slash,
 
-    #[cfg(feature = "lua53")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[cfg_attr(feature = "serde", serde(rename = "//"))]
     DoubleSlash,
 
@@ -265,7 +265,7 @@ impl TryFrom<Atom> for Symbol {
             Atom::RightParen => Symbol::RightParen,
             Atom::Semicolon => Symbol::Semicolon,
             Atom::Slash => Symbol::Slash,
-            #[cfg(feature = "lua53")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Atom::DoubleSlash => Symbol::DoubleSlash,
             Atom::Star => Symbol::Star,
             #[cfg(feature = "lua53")]
@@ -349,7 +349,7 @@ impl Display for Symbol {
             Symbol::RightParen => ")",
             Symbol::Semicolon => ";",
             Symbol::Slash => "/",
-            #[cfg(feature = "lua53")]
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
             Symbol::DoubleSlash => "//",
             Symbol::Star => "*",
             #[cfg(feature = "lua53")]

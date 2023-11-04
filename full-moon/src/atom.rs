@@ -356,7 +356,7 @@ pub(crate) enum Atom {
     #[token("/")]
     Slash,
 
-    #[cfg(feature = "lua53")]
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
     #[token("//")]
     DoubleSlash,
 
