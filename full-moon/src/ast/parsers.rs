@@ -2221,12 +2221,16 @@ define_parser!(ParseBinOp, BinOp, |_, state| {
     } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoEqual).parse(state) {
         Ok((state, BinOp::TwoEqual(operator)))
     } else {
+        // Luau & Lua 5.3
+        #[cfg(any(feature = "roblox", feature = "lua53"))]
+        if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleSlash).parse(state) {
+            return Ok((state, BinOp::DoubleSlash(operator)));
+        }
+
         // Lua 5.3
         #[cfg(feature = "lua53")]
         if let Ok((state, operator)) = ParseSymbol(Symbol::Ampersand).parse(state) {
             return Ok((state, BinOp::Ampersand(operator)));
-        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleSlash).parse(state) {
-            return Ok((state, BinOp::DoubleSlash(operator)));
         } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleLessThan).parse(state) {
             return Ok((state, BinOp::DoubleLessThan(operator)));
         } else if let Ok((state, operator)) = ParseSymbol(Symbol::Pipe).parse(state) {

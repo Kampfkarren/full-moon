@@ -2028,7 +2028,7 @@ make_op!(BinOp,
         TwoEqual,
         #[cfg(feature = "lua53")]
         Ampersand,
-        #[cfg(feature = "lua53")]
+        #[cfg(any(feature = "roblox", feature = "lua53"))]
         DoubleSlash,
         #[cfg(feature = "lua53")]
         DoubleLessThan,
@@ -2049,6 +2049,8 @@ impl BinOp {
         match *self {
             BinOp::Caret(_) => 8,
             BinOp::Star(_) | BinOp::Slash(_) | BinOp::Percent(_) => 6,
+            #[cfg(feature = "roblox")]
+            BinOp::DoubleSlash(_) => 6,
             BinOp::Plus(_) | BinOp::Minus(_) => 5,
             BinOp::TwoDots(_) => 4,
             BinOp::GreaterThan(_)
@@ -2110,9 +2112,10 @@ impl BinOp {
             | BinOp::TildeEqual(token)
             | BinOp::TwoDots(token)
             | BinOp::TwoEqual(token) => token,
+            #[cfg(any(feature = "roblox", feature = "lua53"))]
+            BinOp::DoubleSlash(token) => token,
             #[cfg(feature = "lua53")]
             BinOp::Ampersand(token)
-            | BinOp::DoubleSlash(token)
             | BinOp::DoubleLessThan(token)
             | BinOp::Pipe(token)
             | BinOp::DoubleGreaterThan(token)
