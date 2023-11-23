@@ -240,6 +240,10 @@ pub(crate) enum Atom {
     #[token("/=")]
     SlashEqual,
 
+    #[cfg(any(feature = "roblox", feature = "lua53"))]
+    #[token("//=")]
+    DoubleSlashEqual,
+
     #[cfg(feature = "roblox")]
     #[token("%=")]
     PercentEqual,
