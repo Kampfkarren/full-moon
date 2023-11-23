@@ -240,7 +240,7 @@ pub(crate) enum Atom {
     #[token("/=")]
     SlashEqual,
 
-    #[cfg(any(feature = "roblox", feature = "lua53"))]
+    #[cfg(feature = "roblox")]
     #[token("//=")]
     DoubleSlashEqual,
 
