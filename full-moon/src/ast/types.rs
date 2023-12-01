@@ -683,6 +683,7 @@ make_op!(CompoundOp,
         MinusEqual,
         StarEqual,
         SlashEqual,
+        DoubleSlashEqual,
         PercentEqual,
         CaretEqual,
         TwoDotsEqual,
@@ -697,6 +698,7 @@ impl CompoundOp {
             | Self::MinusEqual(token)
             | Self::StarEqual(token)
             | Self::SlashEqual(token)
+            | Self::DoubleSlashEqual(token)
             | Self::PercentEqual(token)
             | Self::CaretEqual(token)
             | Self::TwoDotsEqual(token) => token,

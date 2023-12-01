@@ -63,6 +63,10 @@ pub enum Symbol {
     #[cfg_attr(feature = "serde", serde(rename = "/="))]
     SlashEqual,
 
+    #[cfg(feature = "roblox")]
+    #[cfg_attr(feature = "serde", serde(rename = "//="))]
+    DoubleSlashEqual,
+
     #[cfg_attr(feature = "serde", serde(rename = "%="))]
     PercentEqual,
 
@@ -224,6 +228,8 @@ impl TryFrom<Atom> for Symbol {
             #[cfg(feature = "roblox")]
             Atom::SlashEqual => Symbol::SlashEqual,
             #[cfg(feature = "roblox")]
+            Atom::DoubleSlashEqual => Symbol::DoubleSlashEqual,
+            #[cfg(feature = "roblox")]
             Atom::PercentEqual => Symbol::PercentEqual,
             #[cfg(feature = "roblox")]
             Atom::CaretEqual => Symbol::CaretEqual,
@@ -308,6 +314,8 @@ impl Display for Symbol {
             Symbol::MinusEqual => "-=",
             Symbol::StarEqual => "*=",
             Symbol::SlashEqual => "/=",
+            #[cfg(feature = "roblox")]
+            Symbol::DoubleSlashEqual => "//=",
             Symbol::PercentEqual => "%=",
             Symbol::CaretEqual => "^=",
             Symbol::TwoDotsEqual => "..=",

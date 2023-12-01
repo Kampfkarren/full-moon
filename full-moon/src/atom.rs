@@ -241,6 +241,10 @@ pub(crate) enum Atom {
     SlashEqual,
 
     #[cfg(feature = "roblox")]
+    #[token("//=")]
+    DoubleSlashEqual,
+
+    #[cfg(feature = "roblox")]
     #[token("%=")]
     PercentEqual,
 
