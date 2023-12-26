@@ -1316,9 +1316,8 @@ fn expect_type_declaration(
         .require(Symbol::Equal, "expected `=` after type name")
         .unwrap_or_else(|| TokenReference::basic_symbol("="));
 
-    let declare_as = match parse_type(state) {
-        ParserResult::Value(declare_as) => declare_as,
-        _ => return Err(()),
+    let ParserResult::Value(declare_as) = parse_type(state) else {
+        return Err(());
     };
 
     Ok(ast::TypeDeclaration {
@@ -1708,9 +1707,8 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         #[cfg(feature = "luau")]
         ParserResult::Value(expression) if state.lua_version().has_luau() => {
             if let Some(assertion_op) = state.consume_if(Symbol::TwoColons) {
-                let cast_to = match parse_type(state) {
-                    ParserResult::Value(cast_to) => cast_to,
-                    _ => return ParserResult::LexerMoved,
+                let ParserResult::Value(cast_to) = parse_type(state) else {
+                    return ParserResult::LexerMoved;
                 };
 
                 ParserResult::Value(ast::Expression::TypeAssertion {
@@ -2233,9 +2231,8 @@ fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
 
     if current_token.is_symbol(Symbol::Ellipse) {
         let ellipse = state.consume().unwrap();
-        let type_info = match parse_type(state) {
-            ParserResult::Value(type_info) => type_info,
-            _ => return ParserResult::LexerMoved,
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return ParserResult::LexerMoved;
         };
 
         ParserResult::Value(ast::TypeInfo::Variadic {
@@ -2878,9 +2875,8 @@ fn parse_generic_type_list(
             Err(()) => return ParserResult::LexerMoved,
         };
 
-        let current_token = match state.current() {
-            Ok(token) => token,
-            Err(()) => return ParserResult::NotFound,
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
         };
 
         let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipse) {
