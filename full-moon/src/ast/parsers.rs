@@ -1687,13 +1687,9 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                 ),
 
                 InterpolatedStringKind::Begin => {
-                    match expect_interpolated_string(state, interpolated_string_begin) {
-                        Ok(interpolated_string) => ParserResult::Value(
-                            ast::Expression::InterpolatedString(interpolated_string),
-                        ),
-
-                        Err(_) => ParserResult::LexerMoved,
-                    }
+                    ParserResult::Value(ast::Expression::InterpolatedString(
+                        expect_interpolated_string(state, interpolated_string_begin),
+                    ))
                 }
 
                 other => unreachable!("unexpected interpolated string kind: {other:?}"),
@@ -2107,7 +2103,7 @@ fn expect_if_else_expression(
 fn expect_interpolated_string(
     state: &mut ParserState,
     mut current: TokenReference,
-) -> Result<ast::InterpolatedString, ()> {
+) -> ast::InterpolatedString {
     use crate::ShortString;
 
     use super::types::InterpolatedStringSegment;
@@ -2157,10 +2153,10 @@ fn expect_interpolated_string(
                 ..
             }
         ) {
-            return Ok(ast::InterpolatedString {
+            return ast::InterpolatedString {
                 segments,
                 last_string: state.consume().unwrap(),
-            });
+            };
         }
 
         // `hello {"world" "wait"}`
@@ -2178,7 +2174,7 @@ fn expect_interpolated_string(
         }
     }
 
-    Ok(ast::InterpolatedString {
+    ast::InterpolatedString {
         last_string: if segments.is_empty() {
             first_string
         } else {
@@ -2193,7 +2189,7 @@ fn expect_interpolated_string(
         },
 
         segments,
-    })
+    }
 }
 
 #[cfg(feature = "roblox")]
