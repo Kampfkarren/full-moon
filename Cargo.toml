@@ -4,3 +4,5 @@ members = [
 	"full-moon",
 	"full-moon-derive",
 ]
+
+resolver = "2"

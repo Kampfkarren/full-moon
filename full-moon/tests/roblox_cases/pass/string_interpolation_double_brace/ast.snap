@@ -1,0 +1,875 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+---
+stmts:
+  - - LocalAssignment:
+        local_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 5
+              line: 1
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: local
+          trailing_trivia:
+            - start_position:
+                bytes: 5
+                line: 1
+                character: 6
+              end_position:
+                bytes: 6
+                line: 1
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 6
+                    line: 1
+                    character: 7
+                  end_position:
+                    bytes: 7
+                    line: 1
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: _
+                trailing_trivia:
+                  - start_position:
+                      bytes: 7
+                      line: 1
+                      character: 8
+                    end_position:
+                      bytes: 8
+                      line: 1
+                      character: 9
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+        equal_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 8
+              line: 1
+              character: 9
+            end_position:
+              bytes: 9
+              line: 1
+              character: 10
+            token_type:
+              type: Symbol
+              symbol: "="
+          trailing_trivia:
+            - start_position:
+                bytes: 9
+                line: 1
+                character: 10
+              end_position:
+                bytes: 10
+                line: 1
+                character: 11
+              token_type:
+                type: Whitespace
+                characters: " "
+        expr_list:
+          pairs:
+            - End:
+                InterpolatedString:
+                  segments:
+                    - literal:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 10
+                            line: 1
+                            character: 11
+                          end_position:
+                            bytes: 12
+                            line: 1
+                            character: 13
+                          token_type:
+                            type: InterpolatedString
+                            literal: ""
+                            kind: Begin
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 12
+                              line: 1
+                              character: 13
+                            end_position:
+                              bytes: 13
+                              line: 1
+                              character: 14
+                            token_type:
+                              type: Whitespace
+                              characters: " "
+                      expression:
+                        TableConstructor:
+                          braces:
+                            tokens:
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 13
+                                    line: 1
+                                    character: 14
+                                  end_position:
+                                    bytes: 14
+                                    line: 1
+                                    character: 15
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "{"
+                                trailing_trivia: []
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 14
+                                    line: 1
+                                    character: 15
+                                  end_position:
+                                    bytes: 15
+                                    line: 1
+                                    character: 16
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "}"
+                                trailing_trivia: []
+                          fields:
+                            pairs: []
+                  last_string:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 15
+                        line: 1
+                        character: 16
+                      end_position:
+                        bytes: 17
+                        line: 1
+                        character: 18
+                      token_type:
+                        type: InterpolatedString
+                        literal: ""
+                        kind: End
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 17
+                          line: 1
+                          character: 18
+                        end_position:
+                          bytes: 18
+                          line: 1
+                          character: 18
+                        token_type:
+                          type: Whitespace
+                          characters: "\n"
+    - ~
+  - - LocalAssignment:
+        local_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 18
+              line: 2
+              character: 1
+            end_position:
+              bytes: 23
+              line: 2
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: local
+          trailing_trivia:
+            - start_position:
+                bytes: 23
+                line: 2
+                character: 6
+              end_position:
+                bytes: 24
+                line: 2
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 24
+                    line: 2
+                    character: 7
+                  end_position:
+                    bytes: 25
+                    line: 2
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: _
+                trailing_trivia:
+                  - start_position:
+                      bytes: 25
+                      line: 2
+                      character: 8
+                    end_position:
+                      bytes: 26
+                      line: 2
+                      character: 9
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+        equal_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 26
+              line: 2
+              character: 9
+            end_position:
+              bytes: 27
+              line: 2
+              character: 10
+            token_type:
+              type: Symbol
+              symbol: "="
+          trailing_trivia:
+            - start_position:
+                bytes: 27
+                line: 2
+                character: 10
+              end_position:
+                bytes: 28
+                line: 2
+                character: 11
+              token_type:
+                type: Whitespace
+                characters: " "
+        expr_list:
+          pairs:
+            - End:
+                InterpolatedString:
+                  segments:
+                    - literal:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 28
+                            line: 2
+                            character: 11
+                          end_position:
+                            bytes: 30
+                            line: 2
+                            character: 13
+                          token_type:
+                            type: InterpolatedString
+                            literal: ""
+                            kind: Begin
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 30
+                              line: 2
+                              character: 13
+                            end_position:
+                              bytes: 36
+                              line: 2
+                              character: 19
+                            token_type:
+                              type: MultiLineComment
+                              blocks: 0
+                              comment: ""
+                      expression:
+                        TableConstructor:
+                          braces:
+                            tokens:
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 36
+                                    line: 2
+                                    character: 19
+                                  end_position:
+                                    bytes: 37
+                                    line: 2
+                                    character: 20
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "{"
+                                trailing_trivia: []
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 37
+                                    line: 2
+                                    character: 20
+                                  end_position:
+                                    bytes: 38
+                                    line: 2
+                                    character: 21
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "}"
+                                trailing_trivia: []
+                          fields:
+                            pairs: []
+                  last_string:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 38
+                        line: 2
+                        character: 21
+                      end_position:
+                        bytes: 40
+                        line: 2
+                        character: 23
+                      token_type:
+                        type: InterpolatedString
+                        literal: ""
+                        kind: End
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 40
+                          line: 2
+                          character: 23
+                        end_position:
+                          bytes: 41
+                          line: 2
+                          character: 23
+                        token_type:
+                          type: Whitespace
+                          characters: "\n"
+    - ~
+  - - LocalAssignment:
+        local_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 41
+              line: 3
+              character: 1
+            end_position:
+              bytes: 46
+              line: 3
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: local
+          trailing_trivia:
+            - start_position:
+                bytes: 46
+                line: 3
+                character: 6
+              end_position:
+                bytes: 47
+                line: 3
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 47
+                    line: 3
+                    character: 7
+                  end_position:
+                    bytes: 48
+                    line: 3
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: _
+                trailing_trivia:
+                  - start_position:
+                      bytes: 48
+                      line: 3
+                      character: 8
+                    end_position:
+                      bytes: 49
+                      line: 3
+                      character: 9
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+        equal_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 49
+              line: 3
+              character: 9
+            end_position:
+              bytes: 50
+              line: 3
+              character: 10
+            token_type:
+              type: Symbol
+              symbol: "="
+          trailing_trivia:
+            - start_position:
+                bytes: 50
+                line: 3
+                character: 10
+              end_position:
+                bytes: 51
+                line: 3
+                character: 11
+              token_type:
+                type: Whitespace
+                characters: " "
+        expr_list:
+          pairs:
+            - End:
+                InterpolatedString:
+                  segments:
+                    - literal:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 51
+                            line: 3
+                            character: 11
+                          end_position:
+                            bytes: 55
+                            line: 3
+                            character: 15
+                          token_type:
+                            type: InterpolatedString
+                            literal: "\\{"
+                            kind: Begin
+                        trailing_trivia: []
+                      expression:
+                        Symbol:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 55
+                              line: 3
+                              character: 15
+                            end_position:
+                              bytes: 59
+                              line: 3
+                              character: 19
+                            token_type:
+                              type: Symbol
+                              symbol: "true"
+                          trailing_trivia: []
+                  last_string:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 59
+                        line: 3
+                        character: 19
+                      end_position:
+                        bytes: 61
+                        line: 3
+                        character: 21
+                      token_type:
+                        type: InterpolatedString
+                        literal: ""
+                        kind: End
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 61
+                          line: 3
+                          character: 21
+                        end_position:
+                          bytes: 62
+                          line: 3
+                          character: 21
+                        token_type:
+                          type: Whitespace
+                          characters: "\n"
+    - ~
+  - - LocalAssignment:
+        local_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 62
+              line: 4
+              character: 1
+            end_position:
+              bytes: 67
+              line: 4
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: local
+          trailing_trivia:
+            - start_position:
+                bytes: 67
+                line: 4
+                character: 6
+              end_position:
+                bytes: 68
+                line: 4
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 68
+                    line: 4
+                    character: 7
+                  end_position:
+                    bytes: 69
+                    line: 4
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: _
+                trailing_trivia:
+                  - start_position:
+                      bytes: 69
+                      line: 4
+                      character: 8
+                    end_position:
+                      bytes: 70
+                      line: 4
+                      character: 9
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+        equal_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 70
+              line: 4
+              character: 9
+            end_position:
+              bytes: 71
+              line: 4
+              character: 10
+            token_type:
+              type: Symbol
+              symbol: "="
+          trailing_trivia:
+            - start_position:
+                bytes: 71
+                line: 4
+                character: 10
+              end_position:
+                bytes: 72
+                line: 4
+                character: 11
+              token_type:
+                type: Whitespace
+                characters: " "
+        expr_list:
+          pairs:
+            - End:
+                InterpolatedString:
+                  segments:
+                    - literal:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 72
+                            line: 4
+                            character: 11
+                          end_position:
+                            bytes: 74
+                            line: 4
+                            character: 13
+                          token_type:
+                            type: InterpolatedString
+                            literal: ""
+                            kind: Begin
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 74
+                              line: 4
+                              character: 13
+                            end_position:
+                              bytes: 75
+                              line: 4
+                              character: 14
+                            token_type:
+                              type: Whitespace
+                              characters: " "
+                      expression:
+                        TableConstructor:
+                          braces:
+                            tokens:
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 75
+                                    line: 4
+                                    character: 14
+                                  end_position:
+                                    bytes: 76
+                                    line: 4
+                                    character: 15
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "{"
+                                trailing_trivia: []
+                              - leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 80
+                                    line: 4
+                                    character: 19
+                                  end_position:
+                                    bytes: 81
+                                    line: 4
+                                    character: 20
+                                  token_type:
+                                    type: Symbol
+                                    symbol: "}"
+                                trailing_trivia: []
+                          fields:
+                            pairs:
+                              - End:
+                                  NoKey:
+                                    Symbol:
+                                      leading_trivia: []
+                                      token:
+                                        start_position:
+                                          bytes: 76
+                                          line: 4
+                                          character: 15
+                                        end_position:
+                                          bytes: 80
+                                          line: 4
+                                          character: 19
+                                        token_type:
+                                          type: Symbol
+                                          symbol: "true"
+                                      trailing_trivia: []
+                  last_string:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 81
+                        line: 4
+                        character: 20
+                      end_position:
+                        bytes: 83
+                        line: 4
+                        character: 22
+                      token_type:
+                        type: InterpolatedString
+                        literal: ""
+                        kind: End
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 83
+                          line: 4
+                          character: 22
+                        end_position:
+                          bytes: 84
+                          line: 4
+                          character: 22
+                        token_type:
+                          type: Whitespace
+                          characters: "\n"
+    - ~
+  - - LocalAssignment:
+        local_token:
+          leading_trivia:
+            - start_position:
+                bytes: 84
+                line: 5
+                character: 1
+              end_position:
+                bytes: 135
+                line: 5
+                character: 52
+              token_type:
+                type: SingleLineComment
+                comment: " TODO: https://github.com/Roblox/luau/issues/1019"
+            - start_position:
+                bytes: 135
+                line: 5
+                character: 52
+              end_position:
+                bytes: 136
+                line: 5
+                character: 52
+              token_type:
+                type: Whitespace
+                characters: "\n"
+            - start_position:
+                bytes: 136
+                line: 6
+                character: 1
+              end_position:
+                bytes: 161
+                line: 6
+                character: 26
+              token_type:
+                type: SingleLineComment
+                comment: " local _ = `{ {hello}}`"
+            - start_position:
+                bytes: 161
+                line: 6
+                character: 26
+              end_position:
+                bytes: 162
+                line: 6
+                character: 26
+              token_type:
+                type: Whitespace
+                characters: "\n"
+          token:
+            start_position:
+              bytes: 162
+              line: 7
+              character: 1
+            end_position:
+              bytes: 167
+              line: 7
+              character: 6
+            token_type:
+              type: Symbol
+              symbol: local
+          trailing_trivia:
+            - start_position:
+                bytes: 167
+                line: 7
+                character: 6
+              end_position:
+                bytes: 168
+                line: 7
+                character: 7
+              token_type:
+                type: Whitespace
+                characters: " "
+        name_list:
+          pairs:
+            - End:
+                leading_trivia: []
+                token:
+                  start_position:
+                    bytes: 168
+                    line: 7
+                    character: 7
+                  end_position:
+                    bytes: 169
+                    line: 7
+                    character: 8
+                  token_type:
+                    type: Identifier
+                    identifier: _
+                trailing_trivia:
+                  - start_position:
+                      bytes: 169
+                      line: 7
+                      character: 8
+                    end_position:
+                      bytes: 170
+                      line: 7
+                      character: 9
+                    token_type:
+                      type: Whitespace
+                      characters: " "
+        equal_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 170
+              line: 7
+              character: 9
+            end_position:
+              bytes: 171
+              line: 7
+              character: 10
+            token_type:
+              type: Symbol
+              symbol: "="
+          trailing_trivia:
+            - start_position:
+                bytes: 171
+                line: 7
+                character: 10
+              end_position:
+                bytes: 172
+                line: 7
+                character: 11
+              token_type:
+                type: Whitespace
+                characters: " "
+        expr_list:
+          pairs:
+            - End:
+                InterpolatedString:
+                  segments:
+                    - literal:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 172
+                            line: 7
+                            character: 11
+                          end_position:
+                            bytes: 176
+                            line: 7
+                            character: 15
+                          token_type:
+                            type: InterpolatedString
+                            literal: "\\{"
+                            kind: Begin
+                        trailing_trivia: []
+                      expression:
+                        Var:
+                          Name:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 176
+                                line: 7
+                                character: 15
+                              end_position:
+                                bytes: 181
+                                line: 7
+                                character: 20
+                              token_type:
+                                type: Identifier
+                                identifier: hello
+                            trailing_trivia: []
+                  last_string:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 181
+                        line: 7
+                        character: 20
+                      end_position:
+                        bytes: 184
+                        line: 7
+                        character: 23
+                      token_type:
+                        type: InterpolatedString
+                        literal: "}"
+                        kind: End
+                    trailing_trivia: []
+    - ~
+

@@ -686,6 +686,7 @@ pub enum CompoundOp {
     MinusEqual(TokenReference),
     StarEqual(TokenReference),
     SlashEqual(TokenReference),
+    DoubleSlashEqual(TokenReference),
     PercentEqual(TokenReference),
     CaretEqual(TokenReference),
     TwoDotsEqual(TokenReference),
@@ -699,6 +700,7 @@ impl CompoundOp {
             | Self::MinusEqual(token)
             | Self::StarEqual(token)
             | Self::SlashEqual(token)
+            | Self::DoubleSlashEqual(token)
             | Self::PercentEqual(token)
             | Self::CaretEqual(token)
             | Self::TwoDotsEqual(token) => token,

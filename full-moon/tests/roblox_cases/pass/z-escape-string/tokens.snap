@@ -1,0 +1,60 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Identifier
+    identifier: print
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 29
+    line: 2
+    character: 12
+  token_type:
+    type: StringLiteral
+    literal: "testing \\z\n\t   twelve"
+    quote_type: Double
+- start_position:
+    bytes: 29
+    line: 2
+    character: 12
+  end_position:
+    bytes: 30
+    line: 2
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 30
+    line: 2
+    character: 13
+  end_position:
+    bytes: 30
+    line: 2
+    character: 13
+  token_type:
+    type: Eof
+
