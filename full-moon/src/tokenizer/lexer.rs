@@ -1081,7 +1081,7 @@ impl Lexer {
             };
 
             match (escape, next) {
-                (true, 'z') if self.lua_version.has_lua52() => {
+                (true, 'z') if self.lua_version.has_lua52() || self.lua_version.has_luau() => {
                     escape = false;
                     z_escaped = true;
                     literal.push('z');
@@ -1090,7 +1090,7 @@ impl Lexer {
                 (true, ..) => {
                     escape = false;
 
-                    if self.lua_version.has_lua52() {
+                    if self.lua_version.has_lua52() || self.lua_version.has_luau() {
                         z_escaped = true; // support for '\' followed by a new line
                     }
 
