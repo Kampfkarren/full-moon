@@ -728,7 +728,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
                 .into_pairs()
                 .map(|pair| pair.map(|name| name.name))
                 .collect(),
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifiers: name_list
                 .into_iter()
                 .map(|name| name.type_specifier)
@@ -753,7 +753,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
             .into_pairs()
             .map(|pair| pair.map(|name| name.name))
             .collect(),
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         type_specifiers: name_list
             .into_iter()
             .map(|name| name.type_specifier)
@@ -823,7 +823,7 @@ fn expect_numeric_for_stmt(
     Ok(ast::NumericFor {
         for_token,
         index_variable: index_variable.name,
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         type_specifier: index_variable.type_specifier,
         equal_token,
         start,
@@ -972,7 +972,7 @@ fn expect_local_assignment(
 
     let mut name_list = Punctuated::new();
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     let mut type_specifiers = Vec::new();
     #[cfg(feature = "lua54")]
     let mut attributes = Vec::new();
@@ -983,7 +983,7 @@ fn expect_local_assignment(
         #[cfg(feature = "lua54")]
         attributes.push(name.attribute);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         type_specifiers.push(name.type_specifier);
 
         name_list.push(match punctuation {
@@ -995,7 +995,7 @@ fn expect_local_assignment(
     let mut local_assignment = ast::LocalAssignment {
         local_token,
         name_list,
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         type_specifiers,
         equal_token: None,
         expr_list: Punctuated::new(),
@@ -1295,7 +1295,7 @@ fn expect_while_stmt(
     })
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn expect_type_declaration(
     state: &mut ParserState,
     type_token: TokenReference,
@@ -1839,7 +1839,7 @@ fn parse_unary_expression(
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
         ParserResult::Value(generic_declaration) => Some(generic_declaration),
         ParserResult::NotFound => None,
@@ -1851,7 +1851,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     };
 
     let mut parameters = Punctuated::new();
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     let mut type_specifiers = Vec::new();
     let right_parenthesis;
 
@@ -1865,16 +1865,16 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             // rewrite todo: we should appropriately recover the parsed generics/type_specifiers here
             // but it becomes messy with cfg feature toggles and moves.
             ParserResult::Value(FunctionBody {
-                #[cfg(feature = "roblox")]
+                #[cfg(feature = "luau")]
                 generics: None, // rewrite todo: fix
                 parameters_parentheses: ContainedSpan::new(
                     left_parenthesis,
                     TokenReference::basic_symbol(")"),
                 ),
                 parameters,
-                #[cfg(feature = "roblox")]
+                #[cfg(feature = "luau")]
                 type_specifiers: Vec::new(), // rewrite todo: fix
-                #[cfg(feature = "roblox")]
+                #[cfg(feature = "luau")]
                 return_type: None,
                 block: ast::Block::new(),
                 end_token: TokenReference::basic_symbol("end"),
@@ -1992,7 +1992,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         parameters.push(Pair::End(last_parameter.into_value()));
     }
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     let return_type = if state.lua_version().has_luau() {
         if let Some(punctuation) = state.consume_if(Symbol::Colon) {
             match parse_return_type(state) {
@@ -2027,13 +2027,13 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     };
 
     ParserResult::Value(FunctionBody {
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         generics,
         parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
         parameters,
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         type_specifiers,
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         return_type,
         block,
         end_token: end,
@@ -2199,7 +2199,7 @@ fn expect_interpolated_string(
     }
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
     else {
@@ -2261,14 +2261,14 @@ fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     }
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[derive(PartialEq, Eq)]
 enum SimpleTypeStyle {
     Default,
     AllowPack,
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn parse_simple_type(
     state: &mut ParserState,
     style: SimpleTypeStyle,
@@ -2409,7 +2409,7 @@ fn parse_simple_type(
     }
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn parse_type_suffix(
     state: &mut ParserState,
     simple_type: ast::TypeInfo,
@@ -2690,7 +2690,7 @@ fn expect_type_table(
     }
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn expect_function_type(
     state: &mut ParserState,
     style: SimpleTypeStyle,
@@ -2815,7 +2815,7 @@ fn expect_function_type(
     })
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn expect_type_specifier(
     state: &mut ParserState,
     punctuation: TokenReference,
@@ -2831,7 +2831,7 @@ fn expect_type_specifier(
     })
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     // rewrite todo: should this be gated behind a check?
     match parse_type_pack(state) {
@@ -2841,14 +2841,14 @@ fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     }
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[derive(PartialEq, Eq)]
 enum TypeListStyle {
     Plain,
     WithDefaults,
 }
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 fn parse_generic_type_list(
     state: &mut ParserState,
     style: TypeListStyle,
@@ -3062,7 +3062,7 @@ struct Name {
     name: TokenReference,
     #[cfg(feature = "lua54")]
     attribute: Option<super::lua54::Attribute>,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     type_specifier: Option<ast::TypeSpecifier>,
 }
 

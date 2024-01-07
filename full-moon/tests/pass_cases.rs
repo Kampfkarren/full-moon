@@ -58,7 +58,7 @@ fn test_pass_case(path: &Path, lua_version: LuaVersion) {
 }
 
 #[test]
-#[cfg(not(feature = "roblox"))] // exclude extra nodes added to yaml
+#[cfg(not(feature = "luau"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
     run_test_folder("./tests/cases/pass", |path| {
@@ -67,7 +67,7 @@ fn test_pass_cases() {
 }
 
 #[test]
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_pass_cases() {
     run_test_folder("./tests/roblox_cases/pass", |path| {

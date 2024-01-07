@@ -4,7 +4,7 @@ use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
 };
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 use super::{interpolated_strings, InterpolatedStringKind};
 
 pub struct Lexer {
@@ -14,7 +14,7 @@ pub struct Lexer {
     next_token: Option<LexerResult<TokenReference>>,
     peek_token: Option<LexerResult<TokenReference>>,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub(crate) brace_stack: Vec<interpolated_strings::BraceType>,
 
     pub lua_version: LuaVersion,
@@ -38,7 +38,7 @@ impl Lexer {
             next_token: None,
             peek_token: None,
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             brace_stack: Vec::new(),
 
             lua_version,
@@ -349,7 +349,7 @@ impl Lexer {
                 )
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             '`' if self.lua_version.has_luau() => {
                 Some(interpolated_strings::read_interpolated_string_section(
                     self,
@@ -715,7 +715,7 @@ impl Lexer {
             }
 
             '{' => {
-                #[cfg(feature = "roblox")]
+                #[cfg(feature = "luau")]
                 if self.lua_version.has_luau() {
                     self.brace_stack
                         .push(interpolated_strings::BraceType::Normal);
@@ -730,7 +730,7 @@ impl Lexer {
             }
 
             '}' => {
-                #[cfg(feature = "roblox")]
+                #[cfg(feature = "luau")]
                 if self.lua_version.has_luau()
                     && self.brace_stack.pop()
                         == Some(interpolated_strings::BraceType::InterpolatedString)

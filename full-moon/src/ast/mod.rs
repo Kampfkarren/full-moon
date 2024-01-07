@@ -26,12 +26,12 @@ pub use parser_structs::AstResult;
 mod versions;
 pub use versions::*;
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 pub mod types;
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 use types::*;
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 mod type_visitors;
 
 #[cfg(feature = "lua52")]
@@ -120,8 +120,8 @@ pub enum LastStmt {
     /// A `break` statement
     Break(TokenReference),
     /// A continue statement
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     Continue(TokenReference),
     /// A `return` statement
     Return(Return),
@@ -314,14 +314,14 @@ pub enum Expression {
     FunctionCall(FunctionCall),
 
     /// An if expression, such as `if foo then true else false`.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     IfExpression(IfExpression),
 
     /// An interpolated string, such as `` `hello {"world"}` ``
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     InterpolatedString(InterpolatedString),
 
@@ -342,8 +342,8 @@ pub enum Expression {
     Symbol(TokenReference),
 
     /// A value that has been asserted for a particular type, for use in Luau.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{expression}{type_assertion}")]
     TypeAssertion {
         /// The expression being asserted
@@ -398,17 +398,17 @@ pub enum Stmt {
     While(While),
 
     /// A compound assignment, such as `+=`
-    /// Only available when the "roblox" feature flag is enabled
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     ExportedTypeDeclaration(ExportedTypeDeclaration),
     /// A type declaration, such as `type Meters = number`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     TypeDeclaration(TypeDeclaration),
 
     /// A goto statement, such as `goto label`
@@ -520,7 +520,7 @@ pub struct NumericFor {
     do_token: TokenReference,
     block: Block,
     end_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     type_specifier: Option<TypeSpecifier>,
 }
@@ -540,7 +540,7 @@ impl NumericFor {
             do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
             end_token: TokenReference::basic_symbol("\nend"),
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifier: None,
         }
     }
@@ -607,8 +607,8 @@ impl NumericFor {
     /// The type specifiers of the index variable
     /// `for i: number = 1, 10 do` returns:
     /// `Some(TypeSpecifier(number))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifier(&self) -> Option<&TypeSpecifier> {
         self.type_specifier.as_ref()
     }
@@ -681,8 +681,8 @@ impl NumericFor {
     }
 
     /// Returns a new NumericFor with the given type specifiers
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn with_type_specifier(self, type_specifier: Option<TypeSpecifier>) -> Self {
         Self {
             type_specifier,
@@ -692,7 +692,7 @@ impl NumericFor {
 }
 
 impl fmt::Display for NumericFor {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -712,7 +712,7 @@ impl fmt::Display for NumericFor {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -743,7 +743,7 @@ pub struct GenericFor {
     do_token: TokenReference,
     block: Block,
     end_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 }
 
@@ -758,7 +758,7 @@ impl GenericFor {
             do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
             end_token: TokenReference::basic_symbol("\nend"),
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
         }
     }
@@ -803,8 +803,8 @@ impl GenericFor {
     /// The type specifiers of the named variables, in the order that they were assigned.
     /// `for i, v: string in pairs() do` returns an iterator containing:
     /// `None, Some(TypeSpecifier(string))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
@@ -845,8 +845,8 @@ impl GenericFor {
     }
 
     /// Returns a new GenericFor with the given type specifiers
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -856,7 +856,7 @@ impl GenericFor {
 }
 
 impl fmt::Display for GenericFor {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -871,7 +871,7 @@ impl fmt::Display for GenericFor {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -1295,16 +1295,16 @@ pub enum Call {
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     generics: Option<GenericDeclaration>,
 
     parameters_parentheses: ContainedSpan,
     parameters: Punctuated<Parameter>,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     return_type: Option<TypeSpecifier>,
 
@@ -1316,7 +1316,7 @@ impl FunctionBody {
     /// Returns a new empty FunctionBody
     pub fn new() -> Self {
         Self {
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             generics: None,
 
             parameters_parentheses: ContainedSpan::new(
@@ -1325,10 +1325,10 @@ impl FunctionBody {
             ),
             parameters: Punctuated::new(),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             return_type: None,
 
             block: Block::new(),
@@ -1358,8 +1358,8 @@ impl FunctionBody {
 
     /// The generics declared for the function body.
     /// The `<T, U>` part of `function x<T, U>() end`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn generics(&self) -> Option<&GenericDeclaration> {
         self.generics.as_ref()
     }
@@ -1367,15 +1367,15 @@ impl FunctionBody {
     /// The type specifiers of the variables, in the order that they were assigned.
     /// `(foo: number, bar, baz: boolean)` returns an iterator containing:
     /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
 
     /// The return type of the function, if one exists.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn return_type(&self) -> Option<&TypeSpecifier> {
         self.return_type.as_ref()
     }
@@ -1394,13 +1394,13 @@ impl FunctionBody {
     }
 
     /// Returns a new FunctionBody with the given generics declaration
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
         Self { generics, ..self }
     }
 
     /// Returns a new FunctionBody with the given type specifiers
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -1409,7 +1409,7 @@ impl FunctionBody {
     }
 
     /// Returns a new FunctionBody with the given return type
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_return_type(self, return_type: Option<TypeSpecifier>) -> Self {
         Self {
             return_type,
@@ -1435,7 +1435,7 @@ impl Default for FunctionBody {
 }
 
 impl fmt::Display for FunctionBody {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -1450,7 +1450,7 @@ impl fmt::Display for FunctionBody {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -1601,11 +1601,11 @@ impl Assignment {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(
-    not(feature = "roblox"),
+    not(feature = "luau"),
     display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 #[cfg_attr(
-    feature = "roblox",
+    feature = "luau",
     display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 pub struct LocalFunction {
@@ -1678,7 +1678,7 @@ impl LocalFunction {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment {
     local_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "empty_optional_vector")
@@ -1700,7 +1700,7 @@ impl LocalAssignment {
     pub fn new(name_list: Punctuated<TokenReference>) -> Self {
         Self {
             local_token: TokenReference::basic_symbol("local "),
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
             name_list,
             #[cfg(feature = "lua54")]
@@ -1735,8 +1735,8 @@ impl LocalAssignment {
     /// The type specifiers of the variables, in the order that they were assigned.
     /// `local foo: number, bar, baz: boolean` returns an iterator containing:
     /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
@@ -1759,7 +1759,7 @@ impl LocalAssignment {
     }
 
     /// Returns a new LocalAssignment with the given type specifiers
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -1798,9 +1798,9 @@ impl fmt::Display for LocalAssignment {
         let attributes = self.attributes().chain(std::iter::repeat(None));
         #[cfg(not(feature = "lua54"))]
         let attributes = std::iter::repeat_with(|| None::<TokenReference>);
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         let type_specifiers = self.type_specifiers().chain(std::iter::repeat(None));
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
         write!(
@@ -1978,8 +1978,8 @@ impl FunctionName {
 /// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(not(feature = "roblox"), display(fmt = "{function_token}{name}{body}"))]
-#[cfg_attr(feature = "roblox", display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(not(feature = "luau"), display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(feature = "luau", display(fmt = "{function_token}{name}{body}"))]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,

@@ -296,7 +296,7 @@ pub enum TokenType {
     },
 
     /// Some form of interpolated string
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     InterpolatedString {
         /// The literal itself, ignoring backticks
         literal: ShortString,
@@ -344,7 +344,7 @@ impl TokenType {
             TokenType::Symbol { .. } => TokenKind::Symbol,
             TokenType::Whitespace { .. } => TokenKind::Whitespace,
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             TokenType::InterpolatedString { .. } => TokenKind::InterpolatedString,
         }
     }
@@ -387,7 +387,7 @@ pub enum TokenKind {
     /// Whitespace, such as tabs or new lines
     Whitespace,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     /// Some form of interpolated string
     InterpolatedString,
 }
@@ -461,7 +461,7 @@ impl fmt::Display for Token {
             Symbol { symbol } => symbol.fmt(formatter),
             Whitespace { characters } => characters.fmt(formatter),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             InterpolatedString { literal, kind } => match kind {
                 InterpolatedStringKind::Begin => {
                     write!(formatter, "`{literal}{{")
@@ -510,7 +510,7 @@ impl Visit for Token {
             TokenKind::Symbol => visitor.visit_symbol(self),
             TokenKind::Whitespace => visitor.visit_whitespace(self),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(self),
         }
     }
@@ -531,7 +531,7 @@ impl VisitMut for Token {
             TokenKind::Symbol => visitor.visit_symbol(token),
             TokenKind::Whitespace => visitor.visit_whitespace(token),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(token),
         }
     }
@@ -963,7 +963,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(feature = "roblox"), ignore)]
+    #[cfg_attr(not(feature = "luau"), ignore)]
     fn test_rule_binary_literals() {
         test_rule!(
             "0b101",
@@ -1157,7 +1157,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[test]
     fn test_string_interpolation_multi_line() {
         let tokens = tokens("`Welcome to \\\n{name}!`").unwrap();

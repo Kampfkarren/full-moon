@@ -111,12 +111,12 @@ impl Visit for Expression {
                 function_call.visit(visitor);
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::IfExpression(if_expression) => {
                 if_expression.visit(visitor);
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::InterpolatedString(interpolated_string) => {
                 interpolated_string.visit(visitor);
             }
@@ -125,7 +125,7 @@ impl Visit for Expression {
                 table_constructor.visit(visitor);
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::TypeAssertion {
                 expression,
                 type_assertion,
@@ -185,12 +185,12 @@ impl VisitMut for Expression {
                 Expression::FunctionCall(function_call.visit_mut(visitor))
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::IfExpression(if_expression) => {
                 Expression::IfExpression(if_expression.visit_mut(visitor))
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::InterpolatedString(interpolated_string) => {
                 Expression::InterpolatedString(interpolated_string.visit_mut(visitor))
             }
@@ -199,7 +199,7 @@ impl VisitMut for Expression {
                 Expression::TableConstructor(table_constructor.visit_mut(visitor))
             }
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             Expression::TypeAssertion {
                 expression,
                 type_assertion,
@@ -329,19 +329,19 @@ impl Visit for FunctionBody {
     fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_function_body(self);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         self.generics.visit(visitor);
 
         self.parameters_parentheses.tokens.0.visit(visitor);
 
         let mut type_specifiers;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement Visit for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -354,7 +354,7 @@ impl Visit for FunctionBody {
 
         self.parameters_parentheses.tokens.1.visit(visitor);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         self.return_type.visit(visitor);
 
         self.block.visit(visitor);
@@ -367,7 +367,7 @@ impl VisitMut for FunctionBody {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_function_body(self);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.generics = self.generics.visit_mut(visitor);
         }
@@ -377,12 +377,12 @@ impl VisitMut for FunctionBody {
 
         let mut type_specifiers;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers.into_iter();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement VisitMut for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -407,7 +407,7 @@ impl VisitMut for FunctionBody {
 
         self.parameters = new_parameters;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.type_specifiers = new_type_specifiers;
         }
@@ -415,7 +415,7 @@ impl VisitMut for FunctionBody {
         self.parameters_parentheses.tokens.1 =
             self.parameters_parentheses.tokens.1.visit_mut(visitor);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.return_type = self.return_type.visit_mut(visitor);
         }
@@ -446,12 +446,12 @@ impl Visit for LocalAssignment {
             attributes = std::iter::repeat::<Option<Self>>(None);
         }
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement Visit for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -488,12 +488,12 @@ impl VisitMut for LocalAssignment {
             attributes = std::iter::repeat::<Option<Self>>(None);
         }
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers.into_iter();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement VisitMut for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -528,7 +528,7 @@ impl VisitMut for LocalAssignment {
             self.attributes = new_attributes;
         }
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.type_specifiers = new_type_specifiers;
         }
@@ -547,12 +547,12 @@ impl Visit for GenericFor {
 
         let mut type_specifiers;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement Visit for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -580,12 +580,12 @@ impl VisitMut for GenericFor {
 
         let mut type_specifiers;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             type_specifiers = self.type_specifiers.into_iter();
         }
 
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         {
             // TODO: Option<!>, and implement VisitMut for !
             type_specifiers = std::iter::repeat::<Option<Self>>(None);
@@ -609,7 +609,7 @@ impl VisitMut for GenericFor {
 
         self.names = new_names;
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.type_specifiers = new_type_specifiers;
         }
@@ -631,7 +631,7 @@ impl Visit for NumericFor {
         self.for_token.visit(visitor);
         self.index_variable.visit(visitor);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         self.type_specifier.visit(visitor);
 
         self.equal_token.visit(visitor);
@@ -654,7 +654,7 @@ impl VisitMut for NumericFor {
         self.for_token = self.for_token.visit_mut(visitor);
         self.index_variable = self.index_variable.visit_mut(visitor);
 
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         {
             self.type_specifier = self.type_specifier.visit_mut(visitor);
         }

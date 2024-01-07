@@ -4,5 +4,5 @@ pub use lexer::*;
 mod structs;
 pub use structs::*;
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 mod interpolated_strings;

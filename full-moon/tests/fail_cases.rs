@@ -72,14 +72,14 @@ fn run_parser_fail_cases(folder: &str, lua_version: LuaVersion) {
 }
 
 #[test]
-#[cfg(not(feature = "roblox"))] // exclude extra nodes added to yaml
+#[cfg(not(feature = "luau"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_parser_fail_cases() {
     run_parser_fail_cases("./tests/cases/fail/parser", LuaVersion::lua51());
 }
 
 #[test]
-#[cfg(not(feature = "roblox"))] // exclude extra nodes added to yaml
+#[cfg(not(feature = "luau"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_tokenizer_fail_cases() {
     run_test_folder("./tests/cases/fail/tokenizer", |path| {
@@ -94,14 +94,14 @@ fn test_tokenizer_fail_cases() {
 }
 
 #[test]
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_parser_fail_cases() {
     run_parser_fail_cases("./tests/roblox_cases/fail/parser", LuaVersion::luau());
 }
 
 #[test]
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_tokenizer_fail_cases() {
     run_test_folder("./tests/roblox_cases/fail/tokenizer", |path| {
