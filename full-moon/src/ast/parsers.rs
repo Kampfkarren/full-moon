@@ -17,8 +17,10 @@ use crate::{
 #[cfg(feature = "luau")]
 use crate::tokenizer::InterpolatedStringKind;
 
+#[cfg(feature = "luau")]
 static PARSE_NAME_ERROR: &str = "%error-id%";
 
+#[cfg(feature = "luau")]
 fn error_token() -> TokenReference {
     TokenReference::new(
         Vec::new(),
@@ -3064,6 +3066,7 @@ struct Name {
     type_specifier: Option<ast::TypeSpecifier>,
 }
 
+#[cfg(feature = "luau")]
 fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
     let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
