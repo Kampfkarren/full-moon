@@ -2113,13 +2113,17 @@ fn expect_interpolated_string(
     let first_string = current.clone();
 
     loop {
-        let has_double_brace = if let Some(double_brace) = state.consume_if(Symbol::LeftBrace) {
-            state.token_error(
-                double_brace,
-                "unexpected double brace, try \\{ if you meant to escape",
-            );
+        let has_double_brace = if current.trailing_trivia.is_empty() {
+            if let Some(double_brace) = state.consume_if(Symbol::LeftBrace) {
+                state.token_error(
+                    double_brace,
+                    "unexpected double brace, try \\{ if you meant to escape",
+                );
 
-            true
+                true
+            } else {
+                false
+            }
         } else {
             false
         };
