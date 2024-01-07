@@ -676,18 +676,20 @@ impl ExportedTypeDeclaration {
     }
 }
 
-make_op!(CompoundOp,
-    #[doc = "Compound operators, such as X += Y or X -= Y"]
-    {
-        PlusEqual,
-        MinusEqual,
-        StarEqual,
-        SlashEqual,
-        PercentEqual,
-        CaretEqual,
-        TwoDotsEqual,
-    }
-);
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[non_exhaustive]
+#[display(fmt = "{}")]
+/// Compound operators, such as X += Y or X -= Y
+pub enum CompoundOp {
+    PlusEqual(TokenReference),
+    MinusEqual(TokenReference),
+    StarEqual(TokenReference),
+    SlashEqual(TokenReference),
+    PercentEqual(TokenReference),
+    CaretEqual(TokenReference),
+    TwoDotsEqual(TokenReference),
+}
 
 impl CompoundOp {
     /// The token associated with the operator
@@ -700,6 +702,26 @@ impl CompoundOp {
             | Self::PercentEqual(token)
             | Self::CaretEqual(token)
             | Self::TwoDotsEqual(token) => token,
+        }
+    }
+
+    pub(crate) fn from_token(token: TokenReference) -> Self {
+        if token.is_symbol(Symbol::PlusEqual) {
+            Self::PlusEqual(token)
+        } else if token.is_symbol(Symbol::MinusEqual) {
+            Self::MinusEqual(token)
+        } else if token.is_symbol(Symbol::StarEqual) {
+            Self::StarEqual(token)
+        } else if token.is_symbol(Symbol::SlashEqual) {
+            Self::SlashEqual(token)
+        } else if token.is_symbol(Symbol::PercentEqual) {
+            Self::PercentEqual(token)
+        } else if token.is_symbol(Symbol::CaretEqual) {
+            Self::CaretEqual(token)
+        } else if token.is_symbol(Symbol::TwoDotsEqual) {
+            Self::TwoDotsEqual(token)
+        } else {
+            unreachable!("converting an unknown token into a compound operator")
         }
     }
 }

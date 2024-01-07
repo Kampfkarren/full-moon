@@ -23,9 +23,6 @@ mod private;
 mod short_string;
 mod util;
 
-#[cfg(feature = "roblox")]
-mod tokenizer_luau;
-
 pub use ast::LuaVersion;
 pub use short_string::ShortString;
 use tokenizer::Position;

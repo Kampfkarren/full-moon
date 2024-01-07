@@ -72,12 +72,14 @@ fn run_parser_fail_cases(folder: &str, lua_version: LuaVersion) {
 }
 
 #[test]
+#[cfg(not(feature = "roblox"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_parser_fail_cases() {
     run_parser_fail_cases("./tests/cases/fail/parser", LuaVersion::lua51());
 }
 
 #[test]
+#[cfg(not(feature = "roblox"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_tokenizer_fail_cases() {
     run_test_folder("./tests/cases/fail/tokenizer", |path| {
@@ -95,21 +97,7 @@ fn test_tokenizer_fail_cases() {
 #[cfg(feature = "roblox")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_parser_fail_cases() {
-    run_test_folder("./tests/roblox_cases/fail/parser", |path| {
-        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
-
-        let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
-
-        assert_yaml_snapshot!("tokens", tokens);
-
-        match ast::Ast::from_tokens(tokens) {
-            Ok(_) => panic!("fail case passed for {:?}", path),
-            Err(error) => {
-                println!("error {:#?}", error);
-                assert_yaml_snapshot!("error", error);
-            }
-        }
-    })
+    run_parser_fail_cases("./tests/roblox_cases/fail/parser", LuaVersion::luau());
 }
 
 #[test]
@@ -119,12 +107,11 @@ fn test_roblox_tokenizer_fail_cases() {
     run_test_folder("./tests/roblox_cases/fail/tokenizer", |path| {
         let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-        match tokenizer::tokens(&source) {
-            Ok(tokens) => panic!("fail case passed for {:?}\n{tokens:#?}", path),
-            Err(error) => {
-                assert_yaml_snapshot!("error", error);
-            }
-        }
+        let tokens = tokenizer::Lexer::new(&source, LuaVersion::luau()).collect();
+        assert!(!matches!(tokens, LexerResult::Ok(_)));
+        assert_yaml_snapshot!("tokens_result", tokens);
+
+        process_fail_case(path, &source, LuaVersion::luau());
     })
 }
 

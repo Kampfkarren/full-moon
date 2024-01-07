@@ -4,27 +4,25 @@ use super::{
     Position, Symbol, Token, TokenReference, TokenType, TokenizerError, TokenizerErrorType,
 };
 
+#[cfg(feature = "roblox")]
+use super::{interpolated_strings, InterpolatedStringKind};
+
 pub struct Lexer {
-    source: LexerSource,
+    pub(crate) source: LexerSource,
     sent_eof: bool,
 
     next_token: Option<LexerResult<TokenReference>>,
     peek_token: Option<LexerResult<TokenReference>>,
+
+    #[cfg(feature = "roblox")]
+    pub(crate) brace_stack: Vec<interpolated_strings::BraceType>,
 
     pub lua_version: LuaVersion,
 }
 
 impl Lexer {
     pub fn new(source: &str, lua_version: LuaVersion) -> Self {
-        let mut lexer = Self {
-            source: LexerSource::new(source),
-            sent_eof: false,
-
-            next_token: None,
-            peek_token: None,
-
-            lua_version,
-        };
+        let mut lexer = Self::new_lazy(source, lua_version);
 
         lexer.next_token = lexer.process_first_with_trivia();
         lexer.peek_token = lexer.process_next_with_trivia();
@@ -39,6 +37,9 @@ impl Lexer {
 
             next_token: None,
             peek_token: None,
+
+            #[cfg(feature = "roblox")]
+            brace_stack: Vec::new(),
 
             lua_version,
         }
@@ -320,6 +321,11 @@ impl Lexer {
                 if matches!(self.source.current(), Some('x' | 'X')) {
                     let hex_character = self.source.next().unwrap();
                     self.read_hex_number(hex_character, start_position)
+                } else if self.lua_version.has_luau()
+                    && matches!(self.source.current(), Some('b' | 'B'))
+                {
+                    let binary_character = self.source.next().unwrap();
+                    self.read_binary_number(binary_character, start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -341,6 +347,16 @@ impl Lexer {
                         Vec::new()
                     },
                 )
+            }
+
+            #[cfg(feature = "roblox")]
+            '`' if self.lua_version.has_luau() => {
+                Some(interpolated_strings::read_interpolated_string_section(
+                    self,
+                    start_position,
+                    InterpolatedStringKind::Begin,
+                    InterpolatedStringKind::Simple,
+                ))
             }
 
             '=' => {
@@ -498,19 +514,49 @@ impl Lexer {
                 },
             ),
 
-            '+' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Plus,
-                },
-            ),
+            '+' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::PlusEqual,
+                                },
+                            );
+                        }
+                    }
+                });
 
-            '*' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Star,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Plus,
+                    },
+                )
+            }
+
+            '*' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::StarEqual,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Star,
+                    },
+                )
+            }
 
             '/' => {
                 version_switch!(self.lua_version, {
@@ -525,6 +571,16 @@ impl Lexer {
                             );
                         }
                     }
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::SlashEqual,
+                                },
+                            );
+                        }
+                    }
                 });
 
                 self.create(
@@ -535,19 +591,49 @@ impl Lexer {
                 )
             }
 
-            '%' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Percent,
-                },
-            ),
+            '%' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::PercentEqual,
+                                },
+                            );
+                        }
+                    }
+                });
 
-            '^' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::Caret,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Percent,
+                    },
+                )
+            }
+
+            '^' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::CaretEqual,
+                                },
+                            );
+                        }
+                    }
+                });
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::Caret,
+                    },
+                )
+            }
 
             '#' => self.create(
                 start_position,
@@ -622,19 +708,42 @@ impl Lexer {
                 }
             }
 
-            '{' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::LeftBrace,
-                },
-            ),
+            '{' => {
+                #[cfg(feature = "roblox")]
+                if self.lua_version.has_luau() {
+                    self.brace_stack
+                        .push(interpolated_strings::BraceType::Normal);
+                }
 
-            '}' => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::RightBrace,
-                },
-            ),
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::LeftBrace,
+                    },
+                )
+            }
+
+            '}' => {
+                #[cfg(feature = "roblox")]
+                if self.lua_version.has_luau()
+                    && self.brace_stack.pop()
+                        == Some(interpolated_strings::BraceType::InterpolatedString)
+                {
+                    return Some(interpolated_strings::read_interpolated_string_section(
+                        self,
+                        start_position,
+                        InterpolatedStringKind::Middle,
+                        InterpolatedStringKind::End,
+                    ));
+                }
+
+                self.create(
+                    start_position,
+                    TokenType::Symbol {
+                        symbol: Symbol::RightBrace,
+                    },
+                )
+            }
 
             '.' => {
                 if self.source.consume('.') {
@@ -646,6 +755,19 @@ impl Lexer {
                             },
                         )
                     } else {
+                        version_switch!(self.lua_version, {
+                            luau => {
+                                if self.source.consume('=') {
+                                    return self.create(
+                                        start_position,
+                                        TokenType::Symbol {
+                                            symbol: Symbol::TwoDotsEqual,
+                                        },
+                                    );
+                                }
+                            }
+                        });
+
                         self.create(
                             start_position,
                             TokenType::Symbol {
@@ -666,6 +788,26 @@ impl Lexer {
             }
 
             '-' => {
+                version_switch!(self.lua_version, {
+                    luau => {
+                        if self.source.consume('=') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::MinusEqual,
+                                },
+                            );
+                        } else if self.source.consume('>') {
+                            return self.create(
+                                start_position,
+                                TokenType::Symbol {
+                                    symbol: Symbol::ThinArrow
+                                }
+                            );
+                        }
+                    }
+                });
+
                 if self.source.consume('-') {
                     let (token, recovered) = self.read_comment();
 
@@ -698,19 +840,27 @@ impl Lexer {
                 },
             ),
 
-            #[cfg(feature = "lua53")]
-            '&' if self.lua_version.has_lua53() => self.create(
+            #[cfg(any(feature = "lua53", feature = "luau"))]
+            '&' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::Ampersand,
                 },
             ),
 
-            #[cfg(feature = "lua53")]
-            '|' if self.lua_version.has_lua53() => self.create(
+            #[cfg(any(feature = "lua53", feature = "luau"))]
+            '|' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::Pipe,
+                },
+            ),
+
+            #[cfg(feature = "luau")]
+            '?' if self.lua_version.has_luau() => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::QuestionMark,
                 },
             ),
 
@@ -729,7 +879,7 @@ impl Lexer {
         let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
-            if next.is_ascii_digit() {
+            if next.is_ascii_digit() || (self.lua_version.has_luau() && matches!(next, '_')) {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
@@ -799,7 +949,7 @@ impl Lexer {
         }
 
         while let Some(next) = self.source.current() {
-            if next.is_ascii_digit() {
+            if next.is_ascii_digit() || (self.lua_version.has_luau() && matches!(next, '_')) {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else {
                 break;
@@ -828,6 +978,10 @@ impl Lexer {
                     number.push(self.source.next().expect("peeked, but no next"));
                 }
 
+                '_' if self.lua_version.has_luau() => {
+                    number.push(self.source.next().expect("peeked, but no next"));
+                }
+
                 '.' if self.lua_version.has_lua52() => {
                     if hit_decimal {
                         return Some(self.eat_invalid_number(start_position, number));
@@ -843,6 +997,37 @@ impl Lexer {
                     }
 
                     return self.read_exponent_part(start_position, number);
+                }
+
+                _ => break,
+            }
+        }
+
+        if number.len() == 2 {
+            return Some(self.eat_invalid_number(start_position, number));
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_binary_number(
+        &mut self,
+        binary_character: char,
+        start_position: Position,
+    ) -> Option<LexerResult<Token>> {
+        debug_assert!(self.lua_version.has_luau());
+
+        let mut number = String::from_iter(['0', binary_character]);
+
+        while let Some(next) = self.source.current() {
+            match next {
+                '0' | '1' | '_' => {
+                    number.push(self.source.next().expect("peeked, but no next"));
                 }
 
                 _ => break,
@@ -1074,11 +1259,11 @@ impl LexerSource {
         }
     }
 
-    fn current(&self) -> Option<char> {
+    pub(crate) fn current(&self) -> Option<char> {
         self.source.get(self.lexer_position.index).copied()
     }
 
-    fn next(&mut self) -> Option<char> {
+    pub(crate) fn next(&mut self) -> Option<char> {
         let next = self.current()?;
 
         if next == '\n' {
@@ -1094,11 +1279,11 @@ impl LexerSource {
         Some(next)
     }
 
-    fn peek(&self) -> Option<char> {
+    pub(crate) fn peek(&self) -> Option<char> {
         self.source.get(self.lexer_position.index + 1).copied()
     }
 
-    fn consume(&mut self, character: char) -> bool {
+    pub(crate) fn consume(&mut self, character: char) -> bool {
         if self.current() == Some(character) {
             self.next();
             true
@@ -1107,7 +1292,7 @@ impl LexerSource {
         }
     }
 
-    fn position(&self) -> Position {
+    pub(crate) fn position(&self) -> Position {
         self.lexer_position.position
     }
 }

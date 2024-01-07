@@ -1,0 +1,35 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+---
+error[ast]: expected type info after `:`
+  ┌─ source.lua:1:18
+  │
+1 │ function bar(test: ...number)
+  │                  ^
+
+error[ast]: expected a `)`
+  ┌─ source.lua:1:20
+  │
+1 │ function bar(test: ...number)
+  │                    ^^^
+
+error[ast]: unexpected token, this needs to be a statement
+  ┌─ source.lua:1:20
+  │
+1 │ function bar(test: ...number)
+  │                    ^^^
+
+error[ast]: unexpected expression when looking for a statement
+  ┌─ source.lua:1:29
+  │
+1 │ function bar(test: ...number)
+  │                             ^
+
+error[ast]: unexpected token, this needs to be a statement
+  ┌─ source.lua:1:29
+  │
+1 │ function bar(test: ...number)
+  │                             ^
+
+

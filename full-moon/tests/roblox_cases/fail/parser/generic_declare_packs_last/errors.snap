@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 15
+        line: 1
+        character: 16
+      end_position:
+        bytes: 16
+        line: 1
+        character: 17
+      token_type:
+        type: Identifier
+        identifier: U
+    additional: generic types come before generic type packs
+

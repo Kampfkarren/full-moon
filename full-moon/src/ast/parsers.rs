@@ -14,15 +14,36 @@ use crate::{
     tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
 
+#[cfg(feature = "luau")]
+use crate::tokenizer::InterpolatedStringKind;
+
+static PARSE_NAME_ERROR: &str = "%error-id%";
+
+fn error_token() -> TokenReference {
+    TokenReference::new(
+        Vec::new(),
+        Token::new(TokenType::Identifier {
+            identifier: PARSE_NAME_ERROR.into(),
+        }),
+        Vec::new(),
+    )
+}
+
 pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     let mut stmts = Vec::new();
 
     loop {
         match parse_stmt(state) {
-            ParserResult::Value(stmt) => {
+            ParserResult::Value(StmtVariant::Stmt(stmt)) => {
                 let semicolon = state.consume_if(Symbol::Semicolon);
                 stmts.push((stmt, semicolon));
             }
+            ParserResult::Value(StmtVariant::LastStmt(last_stmt)) => {
+                let semicolon = state.consume_if(Symbol::Semicolon);
+                let last_stmt = Some((last_stmt, semicolon));
+                return ParserResult::Value(ast::Block { stmts, last_stmt });
+            }
+
             ParserResult::NotFound => break,
             ParserResult::LexerMoved => {
                 if stmts.is_empty() {
@@ -71,14 +92,24 @@ fn parse_block_with_end(
         (start_for_errors, start_for_errors)
     };
 
-    let Some(end_token) = state.require_with_reference_range(Symbol::End, || format!("expected `end` to close {} block", name), start, end) else {
+    let Some(end_token) = state.require_with_reference_range(
+        Symbol::End,
+        || format!("expected `end` to close {} block", name),
+        start,
+        end,
+    ) else {
         return Ok((block, TokenReference::basic_symbol("end")));
     };
 
     Ok((block, end_token))
 }
 
-fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
+enum StmtVariant {
+    Stmt(ast::Stmt),
+    LastStmt(ast::LastStmt),
+}
+
+fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
     let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
     };
@@ -94,11 +125,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             };
 
             match next_token.token_type() {
-                TokenType::Identifier { .. } => ParserResult::Value(ast::Stmt::LocalAssignment(
-                    match expect_local_assignment(state, local_token) {
+                TokenType::Identifier { .. } => ParserResult::Value(StmtVariant::Stmt(
+                    ast::Stmt::LocalAssignment(match expect_local_assignment(state, local_token) {
                         Ok(local_assignment) => local_assignment,
                         Err(()) => return ParserResult::LexerMoved,
-                    },
+                    }),
                 )),
 
                 TokenType::Symbol {
@@ -128,12 +159,14 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                         ParserResult::LexerMoved => return ParserResult::LexerMoved,
                     };
 
-                    ParserResult::Value(ast::Stmt::LocalFunction(ast::LocalFunction {
-                        local_token,
-                        function_token,
-                        name: function_name,
-                        body: function_body,
-                    }))
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
+                        ast::LocalFunction {
+                            local_token,
+                            function_token,
+                            name: function_name,
+                            body: function_body,
+                        },
+                    )))
                 }
 
                 _ => {
@@ -152,10 +185,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let for_token = state.consume().unwrap();
 
-            ParserResult::Value(match expect_for_stmt(state, for_token) {
+            ParserResult::Value(StmtVariant::Stmt(match expect_for_stmt(state, for_token) {
                 Ok(for_stmt) => for_stmt,
                 Err(()) => return ParserResult::LexerMoved,
-            })
+            }))
         }
 
         TokenType::Symbol { symbol: Symbol::Do } => {
@@ -165,20 +198,22 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(ast::Stmt::Do(ast::Do {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Do(ast::Do {
                 do_token,
                 block,
                 end_token,
-            }))
+            })))
         }
 
         TokenType::Symbol { symbol: Symbol::If } => {
             let if_token = state.consume().unwrap();
 
-            ParserResult::Value(ast::Stmt::If(match expect_if_stmt(state, if_token) {
-                Ok(if_stmt) => if_stmt,
-                Err(()) => return ParserResult::LexerMoved,
-            }))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::If(
+                match expect_if_stmt(state, if_token) {
+                    Ok(if_stmt) => if_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            )))
         }
 
         TokenType::Symbol {
@@ -191,7 +226,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(ast::Stmt::FunctionDeclaration(function_declaration))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
+                function_declaration,
+            )))
         }
 
         TokenType::Symbol {
@@ -199,10 +236,12 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let repeat_token = state.consume().unwrap();
 
-            ParserResult::Value(match expect_repeat_stmt(state, repeat_token) {
-                Ok(repeat_stmt) => repeat_stmt,
-                Err(()) => return ParserResult::LexerMoved,
-            })
+            ParserResult::Value(StmtVariant::Stmt(
+                match expect_repeat_stmt(state, repeat_token) {
+                    Ok(repeat_stmt) => repeat_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
         }
 
         TokenType::Symbol {
@@ -210,12 +249,12 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
         } => {
             let while_token = state.consume().unwrap();
 
-            ParserResult::Value(ast::Stmt::While(
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::While(
                 match expect_while_stmt(state, while_token) {
                     Ok(while_stmt) => while_stmt,
                     Err(()) => return ParserResult::LexerMoved,
                 },
-            ))
+            )))
         }
 
         TokenType::Symbol {
@@ -227,10 +266,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
 
             let var = match suffixes.last() {
                 Some(ast::Suffix::Call(_)) => {
-                    return ParserResult::Value(ast::Stmt::FunctionCall(ast::FunctionCall {
-                        prefix,
-                        suffixes,
-                    }));
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionCall(
+                        ast::FunctionCall { prefix, suffixes },
+                    )));
                 }
 
                 Some(ast::Suffix::Index(_)) => {
@@ -248,9 +286,107 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             };
 
             match state.current() {
+                #[cfg(feature = "luau")]
+                // Compound Assignment
+                Ok(token)
+                    if state.lua_version().has_luau()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::PercentEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::TwoDotsEqual)) =>
+                {
+                    let compound_operator = state.consume().unwrap();
+
+                    let ParserResult::Value(expr) = parse_expression(state) else {
+                        state.token_error(compound_operator, "expected expression to set to");
+                        return ParserResult::LexerMoved;
+                    };
+
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
+                        ast::CompoundAssignment {
+                            lhs: var,
+                            compound_operator: ast::CompoundOp::from_token(compound_operator),
+                            rhs: expr,
+                        },
+                    )));
+                }
+
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
                 Ok(token) => {
+                    // Check if the consumed token is a potential context-sensitive keyword
+                    #[cfg(feature = "luau")]
+                    if state.lua_version().has_luau() {
+                        if let ast::Var::Name(token) = var {
+                            match token.token_type() {
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "export" =>
+                                {
+                                    let export_token = token;
+
+                                    let type_token = match state.current() {
+                                        Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "type") => {
+                                            state.consume().unwrap()
+                                        }
+
+                                        Ok(token) => {
+                                            state.token_error_ranged(
+                                                token.clone(),
+                                                "expected `type` after `export`",
+                                                &export_token,
+                                                &token.clone(),
+                                            );
+
+                                            return ParserResult::LexerMoved;
+                                        }
+
+                                        Err(()) => return ParserResult::LexerMoved,
+                                    };
+
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::ExportedTypeDeclaration(
+                                            ast::ExportedTypeDeclaration {
+                                                export_token,
+                                                type_declaration: match expect_type_declaration(
+                                                    state, type_token,
+                                                ) {
+                                                    Ok(type_declaration) => type_declaration,
+                                                    Err(()) => return ParserResult::LexerMoved,
+                                                },
+                                            },
+                                        ),
+                                    ));
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "type" =>
+                                {
+                                    let type_token = token;
+
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::TypeDeclaration(
+                                            match expect_type_declaration(state, type_token) {
+                                                Ok(type_declaration) => type_declaration,
+                                                Err(()) => return ParserResult::LexerMoved,
+                                            },
+                                        ),
+                                    ));
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "continue" =>
+                                {
+                                    let continue_token = token;
+                                    return ParserResult::Value(StmtVariant::LastStmt(
+                                        ast::LastStmt::Continue(continue_token),
+                                    ));
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+
                     state.token_error(
                         token.clone(),
                         "unexpected expression when looking for a statement",
@@ -335,11 +471,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 ParserResult::LexerMoved => Punctuated::new(),
             };
 
-            ParserResult::Value(ast::Stmt::Assignment(ast::Assignment {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Assignment(ast::Assignment {
                 var_list,
                 equal_token,
                 expr_list,
-            }))
+            })))
         }
 
         #[cfg(feature = "lua52")]
@@ -353,10 +489,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
             match state.current() {
                 Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
                     let label_name = state.consume().unwrap();
-                    ParserResult::Value(ast::Stmt::Goto(ast::Goto {
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Goto(ast::Goto {
                         goto_token,
                         label_name,
-                    }))
+                    })))
                 }
 
                 Ok(token) => {
@@ -407,11 +543,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<ast::Stmt> {
                 None => TokenReference::symbol("::").unwrap(),
             };
 
-            ParserResult::Value(ast::Stmt::Label(ast::Label {
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Label(ast::Label {
                 left_colons,
                 name,
                 right_colons,
-            }))
+            })))
         }
 
         _ => ParserResult::NotFound,
@@ -584,7 +720,16 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
         return Ok(ast::Stmt::GenericFor(ast::GenericFor {
             for_token,
-            names: name_list.into_pairs().map(|pair| pair.map(|name| name.name)).collect(),
+            names: name_list
+                .clone()
+                .into_pairs()
+                .map(|pair| pair.map(|name| name.name))
+                .collect(),
+            #[cfg(feature = "roblox")]
+            type_specifiers: name_list
+                .into_iter()
+                .map(|name| name.type_specifier)
+                .collect(),
             in_token,
             expr_list: expressions,
             do_token: TokenReference::basic_symbol("do"),
@@ -601,8 +746,14 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
     Ok(ast::Stmt::GenericFor(ast::GenericFor {
         for_token,
         names: name_list
+            .clone()
             .into_pairs()
             .map(|pair| pair.map(|name| name.name))
+            .collect(),
+        #[cfg(feature = "roblox")]
+        type_specifiers: name_list
+            .into_iter()
+            .map(|name| name.type_specifier)
             .collect(),
         in_token,
         expr_list: expressions,
@@ -629,7 +780,8 @@ fn expect_numeric_for_stmt(
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(start_end_comma) = state.require(Symbol::Comma, "expected `,` after start expression") else {
+    let Some(start_end_comma) = state.require(Symbol::Comma, "expected `,` after start expression")
+    else {
         return Err(());
     };
 
@@ -668,6 +820,8 @@ fn expect_numeric_for_stmt(
     Ok(ast::NumericFor {
         for_token,
         index_variable: index_variable.name,
+        #[cfg(feature = "roblox")]
+        type_specifier: index_variable.type_specifier,
         equal_token,
         start,
         start_end_comma,
@@ -742,7 +896,8 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             }
         };
 
-        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+        else {
             return unfinished_if(condition, else_if);
         };
 
@@ -814,6 +969,8 @@ fn expect_local_assignment(
 
     let mut name_list = Punctuated::new();
 
+    #[cfg(feature = "roblox")]
+    let mut type_specifiers = Vec::new();
     #[cfg(feature = "lua54")]
     let mut attributes = Vec::new();
 
@@ -822,6 +979,9 @@ fn expect_local_assignment(
 
         #[cfg(feature = "lua54")]
         attributes.push(name.attribute);
+
+        #[cfg(feature = "roblox")]
+        type_specifiers.push(name.type_specifier);
 
         name_list.push(match punctuation {
             Some(punctuation) => Pair::Punctuated(name.name, punctuation),
@@ -832,6 +992,8 @@ fn expect_local_assignment(
     let mut local_assignment = ast::LocalAssignment {
         local_token,
         name_list,
+        #[cfg(feature = "roblox")]
+        type_specifiers,
         equal_token: None,
         expr_list: Punctuated::new(),
         #[cfg(feature = "lua54")]
@@ -878,18 +1040,27 @@ fn expect_expression_key(
         }
     };
 
-    let Some(right_bracket) = state.require_with_reference_range_callback(Symbol::RightBracket, "expected `]` after expression", || {
-        (
-            left_bracket.clone(),
-            expression.tokens().last().unwrap().clone(),
-        )
-    }) else {
+    let Some(right_bracket) = state.require_with_reference_range_callback(
+        Symbol::RightBracket,
+        "expected `]` after expression",
+        || {
+            (
+                left_bracket.clone(),
+                expression.tokens().last().unwrap().clone(),
+            )
+        },
+    ) else {
         return Err(());
     };
 
     // rewrite todo: we can realistically construct a field in error recovery
     // rewrite todo: this should also be range
-    let Some(equal_token) = state.require_with_reference_range(Symbol::Equal, "expected `=` after expression", &left_bracket, &right_bracket) else {
+    let Some(equal_token) = state.require_with_reference_range(
+        Symbol::Equal,
+        "expected `=` after expression",
+        &left_bracket,
+        &right_bracket,
+    ) else {
         return Err(());
     };
 
@@ -1121,6 +1292,43 @@ fn expect_while_stmt(
     })
 }
 
+#[cfg(feature = "roblox")]
+fn expect_type_declaration(
+    state: &mut ParserState,
+    type_token: TokenReference,
+) -> Result<ast::TypeDeclaration, ()> {
+    let base = match state.current()? {
+        token if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+        token => {
+            state.token_error(token.clone(), "expected type name");
+            // rewrite todo (in future if needed): maybe we can add an error name here to continue parsing?
+            return Err(());
+        }
+    };
+
+    let generics = match parse_generic_type_list(state, TypeListStyle::WithDefaults) {
+        ParserResult::Value(generics) => Some(generics),
+        ParserResult::NotFound => None,
+        _ => return Err(()),
+    };
+
+    let equal_token = state
+        .require(Symbol::Equal, "expected `=` after type name")
+        .unwrap_or_else(|| TokenReference::basic_symbol("="));
+
+    let ParserResult::Value(declare_as) = parse_type(state) else {
+        return Err(());
+    };
+
+    Ok(ast::TypeDeclaration {
+        type_token,
+        base,
+        generics,
+        equal_token,
+        declare_as,
+    })
+}
+
 fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
     let current_token = match state.current() {
         Ok(token) => token,
@@ -1142,7 +1350,9 @@ fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
                 }
             });
 
-            let Some(right_parenthesis) = state.require(Symbol::RightParen, "expected `)` after expression") else {
+            let Some(right_parenthesis) =
+                state.require(Symbol::RightParen, "expected `)` after expression")
+            else {
                 return ParserResult::Value(ast::Prefix::Expression(Box::new(
                     ast::Expression::Parentheses {
                         contained: ContainedSpan::new(
@@ -1365,7 +1575,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         Err(()) => return ParserResult::NotFound,
     };
 
-    match current_token.token_type() {
+    let expression = match current_token.token_type() {
         TokenType::Symbol {
             symbol: Symbol::Function,
         } => {
@@ -1452,7 +1662,63 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             )))
         }
 
+        #[cfg(feature = "luau")]
+        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() => {
+            let if_token = state.consume().unwrap();
+            match expect_if_else_expression(state, if_token) {
+                Ok(if_expression) => {
+                    ParserResult::Value(ast::Expression::IfExpression(if_expression))
+                }
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+
+        #[cfg(feature = "luau")]
+        TokenType::InterpolatedString { kind, .. } if state.lua_version().has_luau() => {
+            let kind = *kind;
+            let interpolated_string_begin = state.consume().unwrap();
+
+            match kind {
+                InterpolatedStringKind::Simple => ParserResult::Value(
+                    ast::Expression::InterpolatedString(ast::InterpolatedString {
+                        segments: Vec::new(),
+                        last_string: interpolated_string_begin,
+                    }),
+                ),
+
+                InterpolatedStringKind::Begin => {
+                    ParserResult::Value(ast::Expression::InterpolatedString(
+                        expect_interpolated_string(state, interpolated_string_begin),
+                    ))
+                }
+
+                other => unreachable!("unexpected interpolated string kind: {other:?}"),
+            }
+        }
+
         _ => ParserResult::NotFound,
+    };
+
+    match expression {
+        #[cfg(feature = "luau")]
+        ParserResult::Value(expression) if state.lua_version().has_luau() => {
+            if let Some(assertion_op) = state.consume_if(Symbol::TwoColons) {
+                let ParserResult::Value(cast_to) = parse_type(state) else {
+                    return ParserResult::LexerMoved;
+                };
+
+                ParserResult::Value(ast::Expression::TypeAssertion {
+                    expression: Box::new(expression),
+                    type_assertion: ast::TypeAssertion {
+                        assertion_op,
+                        cast_to,
+                    },
+                })
+            } else {
+                ParserResult::Value(expression)
+            }
+        }
+        _ => expression,
     }
 }
 
@@ -1489,7 +1755,8 @@ fn parse_expression_with_precedence(
         };
 
         while let Ok(next_bin_op_token) = state.current() {
-            let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token) else {
+            let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token)
+            else {
                 break;
             };
 
@@ -1569,11 +1836,20 @@ fn parse_unary_expression(
 fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
 
+    #[cfg(feature = "roblox")]
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
+        ParserResult::Value(generic_declaration) => Some(generic_declaration),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
     let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
         return ParserResult::NotFound;
     };
 
     let mut parameters = Punctuated::new();
+    #[cfg(feature = "roblox")]
+    let mut type_specifiers = Vec::new();
     let right_parenthesis;
 
     let unfinished_function_body =
@@ -1583,12 +1859,20 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                 parameters.push(Pair::End(last_parameter.into_value()));
             }
 
+            // rewrite todo: we should appropriately recover the parsed generics/type_specifiers here
+            // but it becomes messy with cfg feature toggles and moves.
             ParserResult::Value(FunctionBody {
+                #[cfg(feature = "roblox")]
+                generics: None, // rewrite todo: fix
                 parameters_parentheses: ContainedSpan::new(
                     left_parenthesis,
                     TokenReference::basic_symbol(")"),
                 ),
                 parameters,
+                #[cfg(feature = "roblox")]
+                type_specifiers: Vec::new(), // rewrite todo: fix
+                #[cfg(feature = "roblox")]
+                return_type: None,
                 block: ast::Block::new(),
                 end_token: TokenReference::basic_symbol("end"),
             })
@@ -1604,6 +1888,43 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
             Ok(token) if token.is_symbol(Symbol::Ellipse) => {
                 let ellipse = state.consume().unwrap();
                 parameters.push(Pair::End(ast::Parameter::Ellipse(ellipse)));
+
+                #[cfg(feature = "luau")]
+                if state.lua_version().has_luau() {
+                    let type_specifier = if let Some(colon) = state.consume_if(Symbol::Colon) {
+                        // varargs can also be annotated using generic packs: T...
+                        let type_info = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
+                            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+                        {
+                            let name = match parse_name(state) {
+                                ParserResult::Value(name) => name.name,
+                                _ => unreachable!(),
+                            };
+
+                            let Some(ellipse) =
+                                state.require(Symbol::Ellipse, "expected `...` after type name")
+                            else {
+                                unreachable!()
+                            };
+
+                            ast::TypeInfo::GenericPack { name, ellipse }
+                        } else {
+                            match parse_type(state) {
+                                ParserResult::Value(type_info) => type_info,
+                                _ => return unfinished_function_body(left_parenthesis, parameters),
+                            }
+                        };
+
+                        Some(ast::TypeSpecifier {
+                            punctuation: colon,
+                            type_info,
+                        })
+                    } else {
+                        None
+                    };
+                    type_specifiers.push(type_specifier);
+                }
+
                 right_parenthesis = match state.require(Symbol::RightParen, "expected a `)`") {
                     Some(right_parenthesis) => right_parenthesis,
                     None => return unfinished_function_body(left_parenthesis, parameters),
@@ -1620,9 +1941,14 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                     },
                 ..
             }) => {
-                // rewrite todo: i think i wanted this to be parse_name?
-                let name = state.consume().unwrap();
-                let name_parameter = ast::Parameter::Name(force_name(state, name).name);
+                let name_parameter = match parse_name_with_type_specifiers(state) {
+                    ParserResult::Value(name) => {
+                        #[cfg(feature = "luau")]
+                        type_specifiers.push(name.type_specifier);
+                        ast::Parameter::Name(name.name)
+                    }
+                    _ => unreachable!(),
+                };
 
                 let Some(comma) = state.consume_if(Symbol::Comma) else {
                     parameters.push(Pair::End(name_parameter));
@@ -1663,28 +1989,1078 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         parameters.push(Pair::End(last_parameter.into_value()));
     }
 
+    #[cfg(feature = "roblox")]
+    let return_type = if state.lua_version().has_luau() {
+        if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+            match parse_return_type(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                _ => return ParserResult::LexerMoved,
+            }
+        } else if let Some(punctuation) = state.consume_if(Symbol::ThinArrow) {
+            state.token_error(
+                punctuation.clone(),
+                "function return type annotations should use `:` instead of `->`",
+            );
+            match parse_return_type(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                _ => return ParserResult::LexerMoved,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     let (block, end) = match parse_block_with_end(state, "function body", &right_parenthesis) {
         Ok((block, end)) => (block, end),
         Err(()) => return ParserResult::LexerMoved,
     };
 
     ParserResult::Value(FunctionBody {
+        #[cfg(feature = "roblox")]
+        generics,
         parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
         parameters,
+        #[cfg(feature = "roblox")]
+        type_specifiers,
+        #[cfg(feature = "roblox")]
+        return_type,
         block,
         end_token: end,
     })
 }
 
+#[cfg(feature = "luau")]
+fn expect_if_else_expression(
+    state: &mut ParserState,
+    if_token: TokenReference,
+) -> Result<ast::IfExpression, ()> {
+    let ParserResult::Value(condition) = parse_expression(state) else {
+        return Err(());
+    };
+
+    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        return Err(());
+    };
+
+    let ParserResult::Value(if_expression) = parse_expression(state) else {
+        return Err(());
+    };
+
+    let mut else_if_expressions = Vec::new();
+    while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+        let ParserResult::Value(condition) = parse_expression(state) else {
+            return Err(());
+        };
+
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+        else {
+            return Err(());
+        };
+        let ParserResult::Value(expression) = parse_expression(state) else {
+            return Err(());
+        };
+        else_if_expressions.push(ast::ElseIfExpression {
+            else_if_token,
+            condition,
+            then_token,
+            expression,
+        })
+    }
+
+    let Some(else_token) = state.require(Symbol::Else, "expected `else` to end if-else expression")
+    else {
+        return Err(());
+    };
+
+    let ParserResult::Value(else_expression) = parse_expression(state) else {
+        return Err(());
+    };
+
+    Ok(ast::IfExpression {
+        if_token,
+        condition: Box::new(condition),
+        then_token,
+        if_expression: Box::new(if_expression),
+        else_if_expressions: if else_if_expressions.is_empty() {
+            None
+        } else {
+            Some(else_if_expressions)
+        },
+        else_token,
+        else_expression: Box::new(else_expression),
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_interpolated_string(
+    state: &mut ParserState,
+    mut current: TokenReference,
+) -> ast::InterpolatedString {
+    use crate::ShortString;
+
+    use super::types::InterpolatedStringSegment;
+
+    let mut segments = Vec::new();
+    let first_string = current.clone();
+
+    loop {
+        let has_double_brace = if let Some(double_brace) = state.consume_if(Symbol::LeftBrace) {
+            state.token_error(
+                double_brace,
+                "unexpected double brace, try \\{ if you meant to escape",
+            );
+
+            true
+        } else {
+            false
+        };
+
+        let expression = match parse_expression(state) {
+            ParserResult::Value(expression) => expression,
+            ParserResult::NotFound => {
+                state.token_error(current, "expected expression after `{`");
+                break;
+            }
+            ParserResult::LexerMoved => break,
+        };
+
+        segments.push(InterpolatedStringSegment {
+            expression,
+            literal: current,
+        });
+
+        // If incorrectly using `x = {{y}}`, provide a better error message by ignoring the right brace
+        if has_double_brace {
+            state.consume_if(Symbol::RightBrace);
+        }
+
+        let Ok(next) = state.current() else {
+            break;
+        };
+
+        if matches!(
+            next.token_type(),
+            TokenType::InterpolatedString {
+                kind: InterpolatedStringKind::End,
+                ..
+            }
+        ) {
+            return ast::InterpolatedString {
+                segments,
+                last_string: state.consume().unwrap(),
+            };
+        }
+
+        // `hello {"world" "wait"}`
+        if next.token_kind() != TokenKind::InterpolatedString {
+            state.token_error(
+                next.clone(),
+                "interpolated string parameter can only contain an expression",
+            );
+            break;
+        }
+
+        current = match state.consume() {
+            ParserResult::Value(token) => token,
+            ParserResult::NotFound | ParserResult::LexerMoved => break,
+        }
+    }
+
+    ast::InterpolatedString {
+        last_string: if segments.is_empty() {
+            first_string
+        } else {
+            TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::InterpolatedString {
+                    literal: ShortString::default(),
+                    kind: InterpolatedStringKind::End,
+                }),
+                Vec::new(),
+            )
+        },
+
+        segments,
+    }
+}
+
+#[cfg(feature = "roblox")]
+fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
+    else {
+        return ParserResult::LexerMoved;
+    };
+
+    parse_type_suffix(state, simple_type)
+}
+
+#[cfg(feature = "luau")]
+fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::AllowPack)
+    else {
+        return ParserResult::LexerMoved;
+    };
+
+    // type packs cannot have suffixes
+    match simple_type {
+        ast::TypeInfo::Tuple { ref types, .. } if types.len() != 1 => {
+            ParserResult::Value(simple_type)
+        }
+        ast::TypeInfo::VariadicPack { .. } | ast::TypeInfo::GenericPack { .. } => unreachable!(),
+        _ => parse_type_suffix(state, simple_type),
+    }
+}
+
+#[cfg(feature = "luau")]
+fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    if current_token.is_symbol(Symbol::Ellipse) {
+        let ellipse = state.consume().unwrap();
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return ParserResult::LexerMoved;
+        };
+
+        ParserResult::Value(ast::TypeInfo::Variadic {
+            ellipse,
+            type_info: Box::new(type_info),
+        })
+    } else if current_token.token_kind() == TokenKind::Identifier
+        && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+    {
+        let name = match parse_name(state) {
+            ParserResult::Value(name) => name.name,
+            _ => unreachable!(),
+        };
+
+        let Some(ellipse) = state.require(Symbol::Ellipse, "expected `...` after type name") else {
+            unreachable!()
+        };
+
+        ParserResult::Value(ast::TypeInfo::GenericPack { name, ellipse })
+    } else {
+        // rewrite todo: should we be returning this? or should this be unreachable
+        ParserResult::NotFound
+    }
+}
+
+#[cfg(feature = "roblox")]
+#[derive(PartialEq, Eq)]
+enum SimpleTypeStyle {
+    Default,
+    AllowPack,
+}
+
+#[cfg(feature = "roblox")]
+fn parse_simple_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Nil,
+        } => {
+            let nil_token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Basic(nil_token))
+        }
+        TokenType::Symbol {
+            symbol: Symbol::True,
+        }
+        | TokenType::Symbol {
+            symbol: Symbol::False,
+        } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Boolean(token))
+        }
+        TokenType::StringLiteral { .. } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::String(token))
+        }
+        // Interpolated strings cannot be used as types
+        TokenType::InterpolatedString { .. } => {
+            let token = state.consume().unwrap();
+            state.token_error(
+                token,
+                "interpolated string literals cannot be used as types",
+            );
+            ParserResult::LexerMoved
+        }
+        TokenType::Identifier { .. } => {
+            let name = state.consume().unwrap();
+
+            if name.to_string() == "typeof" {
+                let left_parenthesis =
+                    match state.require(Symbol::LeftParen, "expected `(` after `typeof`") {
+                        Some(token) => token,
+                        None => TokenReference::basic_symbol("("),
+                    };
+
+                let ParserResult::Value(expression) = parse_expression(state) else {
+                    return ParserResult::LexerMoved;
+                };
+
+                let right_parenthesis = match state.require_with_reference_token(
+                    Symbol::RightParen,
+                    "expected `)` to close typeof call",
+                    &left_parenthesis,
+                ) {
+                    Some(token) => token,
+                    None => TokenReference::basic_symbol(")"),
+                };
+
+                ParserResult::Value(ast::TypeInfo::Typeof {
+                    typeof_token: name,
+                    parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                    inner: Box::new(expression),
+                })
+            } else {
+                match state.current() {
+                    Ok(token) if token.is_symbol(Symbol::Dot) => {
+                        let punctuation = state.consume().unwrap();
+
+                        let type_base = match parse_name(state) {
+                            ParserResult::Value(name) => name.name,
+                            ParserResult::NotFound => {
+                                state.token_error(
+                                    state.current().unwrap().clone(),
+                                    "expected identifier after `.`",
+                                );
+                                return ParserResult::LexerMoved;
+                            }
+                            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                        };
+
+                        let type_info = if let Some(left_arrow) = state.consume_if(Symbol::LessThan)
+                        {
+                            let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                                return ParserResult::LexerMoved;
+                            };
+                            ast::IndexedTypeInfo::Generic {
+                                base: type_base,
+                                arrows: generics.arrows,
+                                generics: generics.generics,
+                            }
+                        } else {
+                            ast::IndexedTypeInfo::Basic(type_base)
+                        };
+
+                        ParserResult::Value(ast::TypeInfo::Module {
+                            module: name,
+                            punctuation,
+                            type_info: Box::new(type_info),
+                        })
+                    }
+                    Ok(token) if token.is_symbol(Symbol::LessThan) => {
+                        let left_arrow = state.consume().unwrap();
+                        let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                            return ParserResult::LexerMoved;
+                        };
+                        ParserResult::Value(ast::TypeInfo::Generic {
+                            base: name,
+                            arrows: generics.arrows,
+                            generics: generics.generics,
+                        })
+                    }
+                    _ => ParserResult::Value(ast::TypeInfo::Basic(name)),
+                }
+            }
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
+
+            match expect_type_table(state, left_brace) {
+                Ok(table) => ParserResult::Value(table),
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        }
+        | TokenType::Symbol {
+            symbol: Symbol::LessThan,
+        } => match expect_function_type(state, style) {
+            Ok(type_info) => ParserResult::Value(type_info),
+            Err(_) => ParserResult::LexerMoved,
+        },
+        _ => ParserResult::NotFound,
+    }
+}
+
+#[cfg(feature = "roblox")]
+fn parse_type_suffix(
+    state: &mut ParserState,
+    simple_type: ast::TypeInfo,
+) -> ParserResult<ast::TypeInfo> {
+    let mut is_union = false;
+    let mut is_intersection = false;
+
+    let mut current_type = simple_type;
+
+    loop {
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
+        };
+
+        match current_token.token_type() {
+            TokenType::Symbol {
+                symbol: Symbol::Pipe,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let pipe = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
+                else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Union {
+                    left: Box::new(current_type),
+                    pipe,
+                    right: Box::new(right),
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::QuestionMark,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let question_mark = state.consume().unwrap();
+                current_type = ast::TypeInfo::Optional {
+                    base: Box::new(current_type),
+                    question_mark,
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::Ampersand,
+            } => {
+                if is_union {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let ampersand = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
+                else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Intersection {
+                    left: Box::new(current_type),
+                    ampersand,
+                    right: Box::new(right),
+                };
+                is_intersection = true;
+            }
+            _ => break,
+        }
+    }
+
+    ParserResult::Value(current_type)
+}
+
+#[cfg(feature = "luau")]
+fn expect_type_table(
+    state: &mut ParserState,
+    left_brace: TokenReference,
+) -> Result<ast::TypeInfo, ()> {
+    let mut fields = Punctuated::new();
+
+    let mut has_indexer = false;
+    let mut array_type = None;
+
+    loop {
+        let current_token = state.current()?;
+
+        let field = if current_token.is_symbol(Symbol::RightBrace) {
+            debug_assert!(
+                array_type.is_none(),
+                "consuming right brace in loop but have seen array type"
+            );
+            let braces = ContainedSpan::new(left_brace, state.consume().unwrap());
+            return Ok(ast::TypeInfo::Table { braces, fields });
+        } else if current_token.is_symbol(Symbol::LeftBracket)
+            && matches!(state.peek(), Ok(token) if token.token_kind() == TokenKind::StringLiteral)
+        {
+            let left_brace = state.consume().unwrap();
+            let property = state.consume().unwrap();
+            let Some(right_brace) = state.require(
+                Symbol::RightBracket,
+                "expected `]` to close `[` for type table field",
+            ) else {
+                return Err(());
+            };
+            let Some(colon) = state.require(Symbol::Colon, "expected `:` after type field key")
+            else {
+                return Err(());
+            };
+
+            let value = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::LexerMoved | ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type after type field key",
+                    );
+                    return Err(());
+                }
+            };
+
+            ast::TypeField {
+                key: ast::TypeFieldKey::IndexSignature {
+                    brackets: ContainedSpan::new(left_brace, right_brace),
+                    inner: ast::TypeInfo::String(property),
+                },
+                colon,
+                value,
+            }
+        } else if current_token.is_symbol(Symbol::LeftBracket) {
+            let left_brace = state.consume().unwrap();
+            let key = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type for type field key",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            };
+            let Some(right_brace) = state.require(
+                Symbol::RightBracket,
+                "expected `]` to close `[` for type table field",
+            ) else {
+                return Err(());
+            };
+            let Some(colon) = state.require(Symbol::Colon, "expected `:` after type field key")
+            else {
+                return Err(());
+            };
+
+            let value = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type after type field key",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            };
+
+            if has_indexer {
+                state.token_error_ranged(
+                    left_brace.clone(),
+                    "cannot have more than one table indexer",
+                    &left_brace,
+                    value.tokens().last().unwrap(),
+                );
+            }
+            has_indexer = true;
+
+            ast::TypeField {
+                key: ast::TypeFieldKey::IndexSignature {
+                    brackets: ContainedSpan::new(left_brace, right_brace),
+                    inner: key,
+                },
+                colon,
+                value,
+            }
+        } else if fields.is_empty()
+            && !has_indexer
+            && !(current_token.token_kind() == TokenKind::Identifier
+                && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon)))
+        {
+            array_type = Some(match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type for table array",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            });
+            break;
+        } else {
+            match parse_name(state) {
+                ParserResult::Value(name) => {
+                    let Some(colon) =
+                        state.require(Symbol::Colon, "expected `:` after type field key")
+                    else {
+                        return Err(());
+                    };
+                    let value = match parse_type(state) {
+                        ParserResult::Value(value) => value,
+                        ParserResult::NotFound => {
+                            state.token_error(
+                                state.current().unwrap().clone(),
+                                "expected type after type field key",
+                            );
+                            return Err(());
+                        }
+                        ParserResult::LexerMoved => return Err(()),
+                    };
+
+                    ast::TypeField {
+                        key: ast::TypeFieldKey::Name(name.name),
+                        colon,
+                        value,
+                    }
+                }
+                ParserResult::NotFound => break,
+                ParserResult::LexerMoved => return Err(()),
+            }
+        };
+
+        match state.current() {
+            Ok(token) => {
+                if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Semicolon) {
+                    fields.push(Pair::Punctuated(field, state.consume().unwrap()))
+                } else {
+                    fields.push(Pair::End(field));
+                    break;
+                }
+            }
+
+            Err(()) => {
+                fields.push(Pair::End(field));
+                break;
+            }
+        };
+    }
+
+    let right_brace = state
+        .require(Symbol::RightBrace, "expected `}` to close type table")
+        .unwrap_or_else(|| TokenReference::basic_symbol("}"));
+
+    let braces = ContainedSpan::new(left_brace, right_brace);
+
+    if let Some(type_info) = array_type {
+        Ok(ast::TypeInfo::Array {
+            braces,
+            type_info: Box::new(type_info),
+        })
+    } else {
+        Ok(ast::TypeInfo::Table { braces, fields })
+    }
+}
+
+#[cfg(feature = "roblox")]
+fn expect_function_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> Result<ast::TypeInfo, ()> {
+    let mut force_function_type =
+        matches!(state.current(), Ok(token) if token.is_symbol(Symbol::LessThan));
+
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
+        ParserResult::Value(generics) => Some(generics),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let mut arguments = Punctuated::new();
+
+    let Some(left_paren) = state.require(Symbol::LeftParen, "expected `(`") else {
+        return Err(());
+    };
+
+    while !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+        // vararg annotation
+        match parse_type_pack(state) {
+            ParserResult::Value(type_info) => {
+                arguments.push(Pair::End(ast::TypeArgument {
+                    name: None,
+                    type_info,
+                }));
+                break;
+            }
+            ParserResult::LexerMoved => return Err(()),
+            ParserResult::NotFound => (),
+        }
+
+        let Ok(current_token) = state.current() else {
+            return Err(());
+        };
+
+        let name = if current_token.token_kind() == TokenKind::Identifier
+            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
+        {
+            Some((state.consume().unwrap(), state.consume().unwrap()))
+        } else {
+            None
+        };
+
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return Err(());
+        };
+
+        let type_argument = ast::TypeArgument { name, type_info };
+
+        if !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Comma)) {
+            arguments.push(Pair::End(type_argument));
+            break;
+        }
+
+        let punctuation = state.consume().unwrap();
+        arguments.push(Pair::Punctuated(type_argument, punctuation));
+
+        if matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+            state.token_error(
+                state.current().unwrap().clone(),
+                "expected type after `,` but got `)` instead",
+            );
+            break;
+        }
+    }
+
+    let Some(right_paren) = state.require(Symbol::RightParen, "expected `)` to close `(`") else {
+        return Err(());
+    };
+
+    let parentheses = ContainedSpan::new(left_paren, right_paren);
+
+    if arguments
+        .iter()
+        .any(|arg: &ast::TypeArgument| arg.name().is_some())
+    {
+        force_function_type = true;
+    }
+
+    if !force_function_type
+        && !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::ThinArrow))
+    {
+        // Simple type wrapped in parentheses (not allowed to be a vararg type), or an allowed type pack
+        if (arguments.len() == 1
+            && !matches!(
+                arguments.iter().next().unwrap().type_info,
+                ast::TypeInfo::Variadic { .. }
+            ))
+            || style == SimpleTypeStyle::AllowPack
+        {
+            return Ok(ast::TypeInfo::Tuple {
+                parentheses,
+                types: arguments
+                    .into_pairs()
+                    .map(|pair| pair.map(|argument| argument.type_info))
+                    .collect(),
+            });
+        }
+    }
+
+    let Some(arrow) = state.require(
+        Symbol::ThinArrow,
+        "expected `->` after `()` for function type",
+    ) else {
+        // rewrite todo: luau recovers from this, using an AstTypeError return type
+        return Err(());
+    };
+
+    let return_type = match parse_return_type(state) {
+        ParserResult::Value(return_type) => return_type,
+        ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
+    };
+
+    Ok(ast::TypeInfo::Callback {
+        generics,
+        parentheses,
+        arguments,
+        arrow,
+        return_type: Box::new(return_type),
+    })
+}
+
+#[cfg(feature = "roblox")]
+fn expect_type_specifier(
+    state: &mut ParserState,
+    punctuation: TokenReference,
+) -> Result<ast::TypeSpecifier, ()> {
+    let ParserResult::Value(type_info) = parse_type(state) else {
+        state.token_error(punctuation, "expected type info after `:`");
+        return Err(());
+    };
+
+    Ok(ast::TypeSpecifier {
+        punctuation,
+        type_info,
+    })
+}
+
+#[cfg(feature = "roblox")]
+fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    // rewrite todo: should this be gated behind a check?
+    match parse_type_pack(state) {
+        ParserResult::Value(type_info) => ParserResult::Value(type_info),
+        ParserResult::NotFound => parse_type_or_pack(state),
+        ParserResult::LexerMoved => ParserResult::LexerMoved,
+    }
+}
+
+#[cfg(feature = "roblox")]
+#[derive(PartialEq, Eq)]
+enum TypeListStyle {
+    Plain,
+    WithDefaults,
+}
+
+#[cfg(feature = "roblox")]
+fn parse_generic_type_list(
+    state: &mut ParserState,
+    style: TypeListStyle,
+) -> ParserResult<ast::GenericDeclaration> {
+    if !state.lua_version().has_luau() {
+        return ParserResult::NotFound;
+    }
+
+    let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) else {
+        return ParserResult::NotFound;
+    };
+
+    let mut generics = Punctuated::new();
+
+    let mut seen_pack = false;
+    let mut seen_default = false;
+
+    loop {
+        let name = match state.current() {
+            Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+            Ok(token) => {
+                state.token_error(token.clone(), "expected a generic type name");
+                error_token()
+            }
+
+            Err(()) => return ParserResult::LexerMoved,
+        };
+
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
+        };
+
+        let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipse) {
+            seen_pack = true;
+
+            let ellipse = match state.consume_if(Symbol::Ellipse) {
+                Some(token) => token,
+                None => {
+                    state.token_error(name.clone(), "generic types come before generic type packs");
+                    TokenReference::basic_symbol("...")
+                }
+            };
+
+            let default = if style == TypeListStyle::WithDefaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
+
+                // rewrite todo: behind check? is this backtracking?
+                let default_type = match parse_type_pack(state) {
+                    ParserResult::Value(type_info) => type_info,
+                    ParserResult::NotFound => match parse_type_or_pack(state) {
+                        ParserResult::Value(type_info)
+                            if matches!(type_info, ast::TypeInfo::Tuple { .. }) =>
+                        {
+                            type_info
+                        }
+                        ParserResult::Value(type_info) => {
+                            state.token_error_ranged(
+                                equal_token.clone(),
+                                "expected type pack after `=` but got type instead",
+                                type_info.tokens().next().unwrap(),
+                                type_info.tokens().last().unwrap(),
+                            );
+                            type_info
+                        }
+                        _ => return ParserResult::LexerMoved,
+                    },
+                    ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                };
+
+                Some((equal_token, default_type))
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (
+                ast::GenericParameterInfo::Variadic { name, ellipse },
+                default,
+            )
+        } else {
+            let default = if style == TypeListStyle::WithDefaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
+                let default_type = match parse_type(state) {
+                    ParserResult::Value(default_type) => default_type,
+                    _ => return ParserResult::LexerMoved,
+                };
+
+                Some((equal_token, default_type))
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (ast::GenericParameterInfo::Name(name), default)
+        };
+
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Comma) => {
+                let punctuation = state.consume().unwrap();
+                generics.push(Pair::Punctuated(
+                    ast::GenericDeclarationParameter { parameter, default },
+                    punctuation,
+                ));
+
+                if let Ok(token) = state.current() {
+                    if token.is_symbol(Symbol::GreaterThan) {
+                        state.token_error(
+                            token.clone(),
+                            "expected type after `,` but got `>` instead",
+                        );
+                    }
+                }
+            }
+            Ok(_) => {
+                generics.push(Pair::End(ast::GenericDeclarationParameter {
+                    parameter,
+                    default,
+                }));
+                break;
+            }
+            Err(()) => return ParserResult::LexerMoved,
+        };
+    }
+
+    let right_angle_bracket = state
+        .require(Symbol::GreaterThan, "expected `>` to close generic list")
+        .unwrap_or_else(|| TokenReference::basic_symbol(">"));
+
+    ParserResult::Value(ast::GenericDeclaration {
+        arrows: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+        generics,
+    })
+}
+
+#[cfg(feature = "luau")]
+struct GenericTypeParams {
+    arrows: ContainedSpan,
+    generics: Punctuated<ast::TypeInfo>,
+}
+
+#[cfg(feature = "luau")]
+fn expect_generic_type_params(
+    state: &mut ParserState,
+    left_arrow: TokenReference,
+) -> Result<GenericTypeParams, ()> {
+    let mut generics = Punctuated::new();
+
+    loop {
+        if state.current()?.is_symbol(Symbol::GreaterThan) {
+            break;
+        }
+
+        let type_info = match parse_type_pack(state) {
+            ParserResult::Value(type_info) => type_info,
+            ParserResult::NotFound => match parse_type_or_pack(state) {
+                ParserResult::Value(type_info) => type_info,
+                _ => return Err(()),
+            },
+            ParserResult::LexerMoved => return Err(()),
+        };
+
+        if let Some(punctuation) = state.consume_if(Symbol::Comma) {
+            generics.push(Pair::Punctuated(type_info, punctuation));
+            if state.current()?.is_symbol(Symbol::GreaterThan) {
+                state.token_error(
+                    state.current()?.clone(),
+                    "expected type after ',' but got '>' instead",
+                );
+                break;
+            }
+        } else {
+            generics.push(Pair::End(type_info));
+            break;
+        }
+    }
+
+    let Some(right_arrow) = state.require(
+        Symbol::GreaterThan,
+        "expected '>' to close generic type parameter list",
+    ) else {
+        return Err(());
+    };
+
+    Ok(GenericTypeParams {
+        arrows: ContainedSpan::new(left_arrow, right_arrow),
+        generics,
+    })
+}
+
+#[derive(Clone)]
 struct Name {
     name: TokenReference,
     #[cfg(feature = "lua54")]
     attribute: Option<super::lua54::Attribute>,
-    // rewrite todo: this is where a type assignment can go
+    #[cfg(feature = "roblox")]
+    type_specifier: Option<ast::TypeSpecifier>,
 }
 
 fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
-    let Ok(current_token) =  state.current() else {
+    let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
     };
 
@@ -1699,7 +3075,7 @@ fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
 }
 
 fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
-    let Ok(current_token) =  state.current() else {
+    let Ok(current_token) = state.current() else {
         return ParserResult::NotFound;
     };
 
@@ -1713,18 +3089,38 @@ fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
     }
 }
 
+fn parse_name_with_type_specifiers(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name_with_type_specifiers(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
 fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
     Name {
         name,
         #[cfg(feature = "lua54")]
         attribute: None,
+        #[cfg(feature = "luau")]
+        type_specifier: None,
     }
 }
 
 #[cfg(feature = "lua54")]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    // NOTE: whenever attributes can be parsed, type specifiers are possible
+    // so we should fall back to parsing type specifiers if an attribute is not found.
+    // NOTE: we do not attempt to parse both type specifiers and attributes at the same time
     if !state.lua_version().has_lua54() {
-        return force_name(state, name);
+        return force_name_with_type_specifiers(state, name);
     }
 
     #[cfg(feature = "lua54")]
@@ -1747,6 +3143,8 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 return Name {
                     name,
                     attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
                 };
             }
 
@@ -1756,20 +3154,28 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 return Name {
                     name,
                     attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
                 };
             }
         };
 
         let Some(right_angle_bracket) =
-            state.require(Symbol::GreaterThan, "expected `>` to close attribute") else {
-                return Name {
-                    name,
-                    attribute: Some(super::lua54::Attribute {
-                        brackets: ContainedSpan::new(left_angle_bracket, TokenReference::basic_symbol(">")),
-                        name: attribute_name,
-                    })
-                };
+            state.require(Symbol::GreaterThan, "expected `>` to close attribute")
+        else {
+            return Name {
+                name,
+                attribute: Some(super::lua54::Attribute {
+                    brackets: ContainedSpan::new(
+                        left_angle_bracket,
+                        TokenReference::basic_symbol(">"),
+                    ),
+                    name: attribute_name,
+                }),
+                #[cfg(feature = "luau")]
+                type_specifier: None,
             };
+        };
 
         return Name {
             name,
@@ -1777,15 +3183,49 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
                 brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
                 name: attribute_name,
             }),
+            #[cfg(feature = "luau")]
+            type_specifier: None,
         };
     }
 
+    force_name_with_type_specifiers(state, name)
+}
+
+#[cfg(feature = "luau")]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
+    if !state.lua_version().has_luau() {
+        return force_name(state, name);
+    }
+
+    if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+        let Ok(type_specifier) = expect_type_specifier(state, punctuation) else {
+            return Name {
+                name,
+                #[cfg(feature = "lua52")]
+                attribute: None,
+                type_specifier: None,
+            };
+        };
+
+        Name {
+            name,
+            #[cfg(feature = "lua52")]
+            attribute: None,
+            type_specifier: Some(type_specifier),
+        }
+    } else {
+        force_name(state, name)
+    }
+}
+
+#[cfg(not(feature = "luau"))]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
     force_name(state, name)
 }
 
 #[cfg(not(feature = "lua54"))]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
-    force_name(state, name)
+    force_name_with_type_specifiers(state, name)
 }
 
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
@@ -1832,7 +3272,7 @@ fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
 }
 
 fn parse_name_list(state: &mut ParserState) -> ParserResult<Punctuated<Name>> {
-    one_or_more(state, parse_name, Symbol::Comma)
+    one_or_more(state, parse_name_with_type_specifiers, Symbol::Comma)
 }
 
 fn parse_expression_list(state: &mut ParserState) -> ParserResult<Punctuated<Expression>> {
