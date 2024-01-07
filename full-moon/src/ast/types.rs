@@ -716,6 +716,8 @@ impl CompoundOp {
             Self::StarEqual(token)
         } else if token.is_symbol(Symbol::SlashEqual) {
             Self::SlashEqual(token)
+        } else if token.is_symbol(Symbol::DoubleSlashEqual) {
+            Self::DoubleSlashEqual(token)
         } else if token.is_symbol(Symbol::PercentEqual) {
             Self::PercentEqual(token)
         } else if token.is_symbol(Symbol::CaretEqual) {

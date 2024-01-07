@@ -294,6 +294,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::MinusEqual)
                             || token.is_symbol(Symbol::StarEqual)
                             || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::DoubleSlashEqual)
                             || token.is_symbol(Symbol::PercentEqual)
                             || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::TwoDotsEqual)) =>

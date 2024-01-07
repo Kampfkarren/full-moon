@@ -2126,7 +2126,7 @@ make_bin_op!(
         Percent = 10,
         Slash = 10,
         Star = 10,
-        [lua53] DoubleSlash = 10,
+        [luau | lua53] DoubleSlash = 10,
 
         Minus = 9,
         Plus = 9,

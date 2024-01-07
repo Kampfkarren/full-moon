@@ -572,7 +572,13 @@ impl Lexer {
                         }
                     }
                     luau => {
-                        if self.source.consume('=') {
+                        if self.source.consume('/') {
+                            if self.source.consume('=') {
+                                return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlashEqual })
+                            } else {
+                                return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlash} )
+                            }
+                        } else if self.source.consume('=') {
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
