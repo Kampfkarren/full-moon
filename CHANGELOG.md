@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Lua version used to parse is no longer strictly based on features set, and can now be configured precisely using `LuaVersion`. `LuaVersion` is a bitfield that can attempt to parse multiple versions of Lua at once, or be used to pin down a specific version. `parse` will use the most completely available set possible (`LuaVersion::new()`), but `parse_fallible` accepts a `LuaVersion`.
 - Added support for parsing Luau's floor division assignment `//=`
 
+### Changed
+- **[BREAKING CHANGE]** `TokenType::StringLiteral::multi_line` has been replaced with `TokenType::StringLiteral::multi_line_depth`. It serves the same purpose except instead of being an `Option<usize>`, it is now a standard `usize`. It is advised to simply check `quote_type == StringLiteralQuoteType::Brackets` to get the previous behavior.
+- Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
+
 ## [0.19.0] - 2023-11-10
 ### Added
 - Added support for parsing Luau's floor division `//`
