@@ -1,6 +1,5 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 38
 expression: tokens
 ---
 - start_position:
@@ -80,7 +79,7 @@ expression: tokens
   token_type:
     type: StringLiteral
     literal: "[%s]"
-    multi_line: 1
+    multi_line_depth: 1
     quote_type: Brackets
 - start_position:
     bytes: 20

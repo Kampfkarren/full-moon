@@ -1,8 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-assertion_line: 42
 expression: tokens
-input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-3
 ---
 Recovered:
   - - start_position:
@@ -82,7 +80,6 @@ Recovered:
       token_type:
         type: StringLiteral
         literal: "hello\nworld"
-        multi_line: 0
         quote_type: Brackets
     - start_position:
         bytes: 23
