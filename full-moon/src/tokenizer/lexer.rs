@@ -438,7 +438,7 @@ impl Lexer {
                             start_position,
                             TokenType::StringLiteral {
                                 literal: body.into(),
-                                multi_line: Some(blocks),
+                                multi_line_depth: blocks,
                                 quote_type: StringLiteralQuoteType::Brackets,
                             },
                         ),
@@ -447,7 +447,7 @@ impl Lexer {
                             start_position,
                             TokenType::StringLiteral {
                                 literal: body.into(),
-                                multi_line: Some(blocks),
+                                multi_line_depth: blocks,
                                 quote_type: StringLiteralQuoteType::Brackets,
                             },
                             vec![TokenizerError {
@@ -1072,7 +1072,7 @@ impl Lexer {
                     return (
                         TokenType::StringLiteral {
                             literal: literal.into(),
-                            multi_line: None,
+                            multi_line_depth: 0,
                             quote_type,
                         },
                         true,
@@ -1111,7 +1111,7 @@ impl Lexer {
                     return (
                         TokenType::StringLiteral {
                             literal: literal.into(),
-                            multi_line: None,
+                            multi_line_depth: 0,
                             quote_type,
                         },
                         true,
@@ -1122,7 +1122,7 @@ impl Lexer {
                     return (
                         TokenType::StringLiteral {
                             literal: literal.into(),
-                            multi_line: None,
+                            multi_line_depth: 0,
                             quote_type,
                         },
                         false,
