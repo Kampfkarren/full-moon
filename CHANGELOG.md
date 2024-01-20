@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
 - **[BREAKING CHANGE]** `Symbol::PlusEqual` and friends are now only available when using Luau.
 - Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
-- Significantly optimized the entire codebase, helping both time to parse and wasting less stack in debug mode (rewrite todo: is it less in release mode too?).
+- Significantly optimized the entire codebase, helping both time to parse and wasting less stack, especially in debug mode.
 - `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
 
 ### Removed
