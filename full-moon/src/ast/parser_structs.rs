@@ -7,6 +7,8 @@ use super::{parsers::parse_block, Ast, Block, LuaVersion};
 pub struct ParserState {
     errors: Vec<crate::Error>,
     lexer: Lexer,
+    // Unused with no features enabled
+    #[allow(unused)]
     lua_version: LuaVersion,
 }
 
@@ -19,6 +21,8 @@ impl ParserState {
         }
     }
 
+    // Unused with no features enabled
+    #[allow(unused)]
     pub fn lua_version(&self) -> LuaVersion {
         self.lua_version
     }

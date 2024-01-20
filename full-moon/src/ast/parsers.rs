@@ -107,6 +107,9 @@ fn expect_block_with_end(
 
 enum StmtVariant {
     Stmt(ast::Stmt),
+
+    // Used for things like Luau's `continue`, but nothing constructs it in Lua 5.1 alone.
+    #[allow(unused)]
     LastStmt(ast::LastStmt),
 }
 
