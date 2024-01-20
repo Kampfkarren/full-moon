@@ -680,10 +680,6 @@ impl Lexer {
             }
 
             '>' => {
-                // rewrite todo: https://github.com/Kampfkarren/full-moon/pull/239 made this instead two separate tokens
-                // to disambiguate some Luau syntax.
-                // that was fine, but we can do it better now.
-                // do that hack (in both lexer and parser) only if lua53 and luau are enabled.
                 version_switch!(self.lua_version, {
                     lua53 => {
                         if self.source.consume('>') {
