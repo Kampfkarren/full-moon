@@ -23,10 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
 - Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
 
-### Fixed
-- Fixed parsing of string interpolation double brace for Luau code
-- Fixed failure to parse `\z` escapes in strings in Luau mode
-
 ## [0.19.0] - 2023-11-10
 ### Added
 - Added support for parsing Luau's floor division `//`
@@ -37,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When using serde, `Expression` will no longer act untagged.
 
 ### Fixed
+- Fixed parsing of string interpolation double brace for Luau code
+- Fixed failure to parse `\z` escapes in strings in Luau mode
 
 ## [0.18.1] - 2023-03-19
 ### Fixed
