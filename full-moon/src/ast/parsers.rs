@@ -1012,7 +1012,6 @@ fn expect_local_assignment(
 
         ParserResult::NotFound => {
             state.token_error(
-                // rewrite todo: This is a great reason why we should be using ranges and not Position
                 local_assignment.equal_token.clone().unwrap(),
                 "expected an expression",
             );
