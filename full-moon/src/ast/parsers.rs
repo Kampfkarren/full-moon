@@ -1199,7 +1199,6 @@ fn force_table_constructor(
         };
     }
 
-    // rewrite todo: range, or at least field.tokens().last().unwrap().clone()
     let right_brace = match state.require(Symbol::RightBrace, "expected `}` after last field") {
         Some(right_brace) => right_brace,
         None => TokenReference::basic_symbol("}"),
