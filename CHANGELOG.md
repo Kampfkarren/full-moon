@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
 - Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
 
+### Fixed
+- Fixed comments with Unicode characters having positions that report their `character` as bytes.
+
 ## [0.19.0] - 2023-11-10
 ### Added
 - Added support for parsing Luau's floor division `//`

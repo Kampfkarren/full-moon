@@ -1136,7 +1136,6 @@ impl Lexer {
         }
     }
 
-    // rewrite todo: single-line-comment-6 had its tokens changed
     // (comment, had to be recovered?)
     fn read_comment(&mut self) -> (TokenType, bool) {
         let mut comment = String::new();
