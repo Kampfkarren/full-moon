@@ -197,9 +197,6 @@ pub enum TokenizerErrorType {
     UnclosedComment,
     /// An unclosed string was found
     UnclosedString,
-    /// An unexpected #! was found
-    // rewrite todo: remove
-    UnexpectedShebang,
     // rewrite todo: changelog
     // rewrite todo: this only makes sense with RANGE
     InvalidNumber,
@@ -215,7 +212,6 @@ impl fmt::Display for TokenizerErrorType {
         match self {
             TokenizerErrorType::UnclosedComment => "unclosed comment".fmt(formatter),
             TokenizerErrorType::UnclosedString => "unclosed string".fmt(formatter),
-            TokenizerErrorType::UnexpectedShebang => "unexpected shebang".fmt(formatter),
             TokenizerErrorType::UnexpectedToken(character) => {
                 write!(formatter, "unexpected character {character}")
             }
