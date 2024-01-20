@@ -1,0 +1,156 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 23
+expression: result.ast
+input_file: full-moon/tests/lua53_cases/fail/parser/double-greater-than-binop
+---
+nodes:
+  stmts:
+    - - LocalAssignment:
+          local_token:
+            leading_trivia:
+              - start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 64
+                  line: 1
+                  character: 65
+                token_type:
+                  type: SingleLineComment
+                  comment: " We shouldn't parse this as >> since it has a space in between"
+              - start_position:
+                  bytes: 64
+                  line: 1
+                  character: 65
+                end_position:
+                  bytes: 65
+                  line: 1
+                  character: 65
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+            token:
+              start_position:
+                bytes: 65
+                line: 2
+                character: 1
+              end_position:
+                bytes: 70
+                line: 2
+                character: 6
+              token_type:
+                type: Symbol
+                symbol: local
+            trailing_trivia:
+              - start_position:
+                  bytes: 70
+                  line: 2
+                  character: 6
+                end_position:
+                  bytes: 71
+                  line: 2
+                  character: 7
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name_list:
+            pairs:
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 71
+                      line: 2
+                      character: 7
+                    end_position:
+                      bytes: 72
+                      line: 2
+                      character: 8
+                    token_type:
+                      type: Identifier
+                      identifier: x
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 72
+                        line: 2
+                        character: 8
+                      end_position:
+                        bytes: 73
+                        line: 2
+                        character: 9
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+          equal_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 73
+                line: 2
+                character: 9
+              end_position:
+                bytes: 74
+                line: 2
+                character: 10
+              token_type:
+                type: Symbol
+                symbol: "="
+            trailing_trivia:
+              - start_position:
+                  bytes: 74
+                  line: 2
+                  character: 10
+                end_position:
+                  bytes: 75
+                  line: 2
+                  character: 11
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          expr_list:
+            pairs:
+              - End:
+                  Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 75
+                        line: 2
+                        character: 11
+                      end_position:
+                        bytes: 76
+                        line: 2
+                        character: 12
+                      token_type:
+                        type: Number
+                        text: "1"
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 76
+                          line: 2
+                          character: 12
+                        end_position:
+                          bytes: 77
+                          line: 2
+                          character: 13
+                        token_type:
+                          type: Whitespace
+                          characters: " "
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 82
+      line: 2
+      character: 18
+    end_position:
+      bytes: 82
+      line: 2
+      character: 18
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

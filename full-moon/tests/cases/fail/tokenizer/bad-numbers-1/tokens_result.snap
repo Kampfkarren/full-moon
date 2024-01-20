@@ -1,0 +1,81 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 42
+expression: tokens
+input_file: full-moon/tests/cases/fail/tokenizer/bad-numbers-1
+---
+Recovered:
+  - - start_position:
+        bytes: 0
+        line: 1
+        character: 1
+      end_position:
+        bytes: 1
+        line: 1
+        character: 2
+      token_type:
+        type: Identifier
+        identifier: _
+    - start_position:
+        bytes: 1
+        line: 1
+        character: 2
+      end_position:
+        bytes: 2
+        line: 1
+        character: 3
+      token_type:
+        type: Whitespace
+        characters: " "
+    - start_position:
+        bytes: 2
+        line: 1
+        character: 3
+      end_position:
+        bytes: 3
+        line: 1
+        character: 4
+      token_type:
+        type: Symbol
+        symbol: "="
+    - start_position:
+        bytes: 3
+        line: 1
+        character: 4
+      end_position:
+        bytes: 4
+        line: 1
+        character: 5
+      token_type:
+        type: Whitespace
+        characters: " "
+    - start_position:
+        bytes: 4
+        line: 1
+        character: 5
+      end_position:
+        bytes: 10
+        line: 1
+        character: 11
+      token_type:
+        type: Number
+        text: 1edoge
+    - start_position:
+        bytes: 10
+        line: 1
+        character: 11
+      end_position:
+        bytes: 10
+        line: 1
+        character: 11
+      token_type:
+        type: Eof
+  - - error: InvalidNumber
+      range:
+        - bytes: 4
+          line: 1
+          character: 5
+        - bytes: 10
+          line: 1
+          character: 11
+

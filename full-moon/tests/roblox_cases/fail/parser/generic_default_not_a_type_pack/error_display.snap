@@ -1,0 +1,11 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+---
+error[ast]: expected type pack after `=` but got type instead
+  ┌─ source.lua:1:17
+  │
+1 │ type Foo<T... = string> = nil
+  │                 ^^^^^^
+
+

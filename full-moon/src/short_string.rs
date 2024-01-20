@@ -52,3 +52,9 @@ impl<T: Into<String> + AsRef<str>> From<T> for ShortString {
         ShortString(SmolStr::from(value))
     }
 }
+
+impl FromIterator<char> for ShortString {
+    fn from_iter<I: IntoIterator<Item = char>>(iter: I) -> Self {
+        ShortString(SmolStr::from_iter(iter))
+    }
+}

@@ -1,0 +1,94 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 27
+expression: result.ast
+input_file: full-moon/tests/cases/fail/parser/call-2
+---
+nodes:
+  stmts:
+    - - FunctionCall:
+          prefix:
+            Name:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 4
+                  line: 1
+                  character: 5
+                token_type:
+                  type: Identifier
+                  identifier: call
+              trailing_trivia: []
+          suffixes:
+            - Call:
+                AnonymousCall:
+                  Parentheses:
+                    parentheses:
+                      tokens:
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 4
+                              line: 1
+                              character: 5
+                            end_position:
+                              bytes: 5
+                              line: 1
+                              character: 6
+                            token_type:
+                              type: Symbol
+                              symbol: (
+                          trailing_trivia: []
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 0
+                              line: 1
+                              character: 1
+                            end_position:
+                              bytes: 1
+                              line: 1
+                              character: 2
+                            token_type:
+                              type: Symbol
+                              symbol: )
+                          trailing_trivia: []
+                    arguments:
+                      pairs:
+                        - End:
+                            String:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 5
+                                  line: 1
+                                  character: 6
+                                end_position:
+                                  bytes: 12
+                                  line: 1
+                                  character: 13
+                                token_type:
+                                  type: StringLiteral
+                                  literal: hello
+                                  quote_type: Double
+                              trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 12
+      line: 1
+      character: 13
+    end_position:
+      bytes: 12
+      line: 1
+      character: 13
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

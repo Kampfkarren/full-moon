@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/repeat-until-1
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 6
+        line: 1
+        character: 7
+      end_position:
+        bytes: 6
+        line: 1
+        character: 7
+      token_type:
+        type: Eof
+    additional: "expected `until` after block"
+

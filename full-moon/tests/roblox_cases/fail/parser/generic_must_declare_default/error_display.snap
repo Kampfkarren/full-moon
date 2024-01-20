@@ -1,0 +1,11 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+---
+error[ast]: expected default type after type name
+  ┌─ source.lua:1:29
+  │
+1 │ type Foo<X, Y, Z = string, P> = nil
+  │                             ^
+
+

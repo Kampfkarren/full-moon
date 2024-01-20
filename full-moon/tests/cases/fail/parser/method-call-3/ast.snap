@@ -1,0 +1,139 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 27
+expression: result.ast
+input_file: full-moon/tests/cases/fail/parser/method-call-3
+---
+nodes:
+  stmts: []
+  last_stmt:
+    - Return:
+        token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 6
+              line: 1
+              character: 7
+            token_type:
+              type: Symbol
+              symbol: return
+          trailing_trivia:
+            - start_position:
+                bytes: 6
+                line: 1
+                character: 7
+              end_position:
+                bytes: 7
+                line: 1
+                character: 8
+              token_type:
+                type: Whitespace
+                characters: " "
+        returns:
+          pairs:
+            - End:
+                FunctionCall:
+                  prefix:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 7
+                          line: 1
+                          character: 8
+                        end_position:
+                          bytes: 11
+                          line: 1
+                          character: 12
+                        token_type:
+                          type: Identifier
+                          identifier: name
+                      trailing_trivia: []
+                  suffixes:
+                    - Call:
+                        MethodCall:
+                          colon_token:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 11
+                                line: 1
+                                character: 12
+                              end_position:
+                                bytes: 12
+                                line: 1
+                                character: 13
+                              token_type:
+                                type: Symbol
+                                symbol: ":"
+                            trailing_trivia: []
+                          name:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 12
+                                line: 1
+                                character: 13
+                              end_position:
+                                bytes: 18
+                                line: 1
+                                character: 19
+                              token_type:
+                                type: Identifier
+                                identifier: method
+                            trailing_trivia: []
+                          args:
+                            Parentheses:
+                              parentheses:
+                                tokens:
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 18
+                                        line: 1
+                                        character: 19
+                                      end_position:
+                                        bytes: 19
+                                        line: 1
+                                        character: 20
+                                      token_type:
+                                        type: Symbol
+                                        symbol: (
+                                    trailing_trivia: []
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 0
+                                        line: 1
+                                        character: 1
+                                      end_position:
+                                        bytes: 1
+                                        line: 1
+                                        character: 2
+                                      token_type:
+                                        type: Symbol
+                                        symbol: )
+                                    trailing_trivia: []
+                              arguments:
+                                pairs: []
+    - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 25
+      line: 1
+      character: 26
+    end_position:
+      bytes: 25
+      line: 1
+      character: 26
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/assignment-2
+---
+error[ast]: expected values to set to
+  ┌─ source.lua:1:3
+  │
+1 │ x = end
+  │   ^
+
+error[ast]: unexpected token, this needs to be a statement
+  ┌─ source.lua:1:5
+  │
+1 │ x = end
+  │     ^^^
+
+

@@ -6,7 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- **full-moon now has the ability to return multiple errors.** Added `parse_fallible`, which will return a struct containing the best possible AST, and a vector of errors. Read the documentation for guarantees on the partial AST.
+- The Lua version used to parse is no longer strictly based on features set, and can now be configured precisely using `LuaVersion`. `LuaVersion` is a bitfield that can attempt to parse multiple versions of Lua at once, or be used to pin down a specific version. `parse` will use the most completely available set possible (`LuaVersion::new()`), but `parse_fallible` accepts a `LuaVersion`.
 - Added support for parsing Luau's floor division assignment `//=`
+- Added `TokenizerErrorType::InvalidNumber` when a number fails to parse.
+
+### Changed
+- **[BREAKING CHANGE]** `parse` now returns a vector of errors.
+- **[BREAKING CHANGE]** `TokenType::StringLiteral::multi_line` has been replaced with `TokenType::StringLiteral::multi_line_depth`. It serves the same purpose except instead of being an `Option<usize>`, it is now a standard `usize`. It is advised to simply check `quote_type == StringLiteralQuoteType::Brackets` to get the previous behavior.
+- **[BREAKING CHANGE]** Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
+- **[BREAKING CHANGE]** `Symbol::PlusEqual` and friends are now only available when using Luau.
+- Shebangs provide their trailing trivia more accurately to the rest of full-moon.
+- Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
+- Significantly optimized the entire codebase, helping both time to parse and wasting less stack, especially in debug mode.
+- `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
+
+### Removed
+- Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
+- Removed `TokenizerErrorType::UnexpectedShebang`.
+- Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
+
+### Fixed
+- Fixed comments with Unicode characters having positions that report their `character` as bytes.
 
 ## [0.19.0] - 2023-11-10
 ### Added

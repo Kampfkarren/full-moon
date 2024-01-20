@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/index-2
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 1
+        line: 1
+        character: 2
+      end_position:
+        bytes: 2
+        line: 1
+        character: 3
+      token_type:
+        type: Symbol
+        symbol: "["
+    additional: "expected expression after `[`"
+- AstError:
+    token:
+      start_position:
+        bytes: 2
+        line: 1
+        character: 3
+      end_position:
+        bytes: 2
+        line: 1
+        character: 3
+      token_type:
+        type: Eof
+    additional: unexpected expression when looking for a statement
+

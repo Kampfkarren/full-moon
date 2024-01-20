@@ -1,0 +1,48 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/if-3
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 0
+        line: 1
+        character: 1
+      end_position:
+        bytes: 2
+        line: 1
+        character: 3
+      token_type:
+        type: Symbol
+        symbol: if
+    additional: "expected condition after `if`"
+- AstError:
+    token:
+      start_position:
+        bytes: 9
+        line: 1
+        character: 10
+      end_position:
+        bytes: 13
+        line: 1
+        character: 14
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: "expected either a variable name or `function`"
+- AstError:
+    token:
+      start_position:
+        bytes: 9
+        line: 1
+        character: 10
+      end_position:
+        bytes: 13
+        line: 1
+        character: 14
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: "unexpected token, this needs to be a statement"
+

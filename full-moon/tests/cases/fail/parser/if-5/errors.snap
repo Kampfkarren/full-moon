@@ -1,0 +1,62 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/if-5
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 33
+        line: 5
+        character: 1
+      end_position:
+        bytes: 39
+        line: 5
+        character: 7
+      token_type:
+        type: Symbol
+        symbol: elseif
+    additional: "expected `end` to conclude `if`"
+- AstError:
+    token:
+      start_position:
+        bytes: 33
+        line: 5
+        character: 1
+      end_position:
+        bytes: 39
+        line: 5
+        character: 7
+      token_type:
+        type: Symbol
+        symbol: elseif
+    additional: "unexpected token, this needs to be a statement"
+- AstError:
+    token:
+      start_position:
+        bytes: 42
+        line: 5
+        character: 10
+      end_position:
+        bytes: 46
+        line: 5
+        character: 14
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: unexpected expression when looking for a statement
+- AstError:
+    token:
+      start_position:
+        bytes: 42
+        line: 5
+        character: 10
+      end_position:
+        bytes: 46
+        line: 5
+        character: 14
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: "unexpected token, this needs to be a statement"
+

@@ -1,0 +1,12 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/lua54_cases/fail/parser/unclosed-attribute-2
+---
+error[ast]: expected `>` to close attribute
+  ┌─ source.lua:1:19
+  │
+1 │ local name <const = 10
+  │                   ^
+
+

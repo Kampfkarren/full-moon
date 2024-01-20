@@ -1,5 +1,5 @@
 use full_moon::{
-    ast,
+    ast::LuaVersion,
     node::Node,
     print,
     tokenizer::{self, Token, TokenReference},
@@ -30,17 +30,24 @@ fn unpack_token_reference(token: &TokenReference) -> Vec<Token> {
         .collect()
 }
 
-fn test_pass_case(path: &Path) {
+fn test_pass_case(path: &Path, lua_version: LuaVersion) {
     let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
 
-    let tokens = tokenizer::tokens(&source).expect("couldn't tokenize");
+    let tokens = tokenizer::Lexer::new(&source, lua_version)
+        .collect()
+        .unwrap();
 
     assert_yaml_snapshot!("tokens", tokens);
 
-    let ast = ast::Ast::from_tokens(tokens)
-        .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:?}"));
+    let ast = full_moon::parse_fallible(&source, lua_version)
+        .into_result()
+        .unwrap_or_else(|error| panic!("couldn't make ast for {path:?} - {error:#?}"));
 
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
+
+    assert_yaml_snapshot!("ast", ast.nodes());
+    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
+
     let ast = ast.update_positions();
     assert_eq!(
         old_positions,
@@ -48,43 +55,49 @@ fn test_pass_case(path: &Path) {
             .flat_map(unpack_token_reference)
             .collect::<Vec<_>>(),
     );
-
-    assert_yaml_snapshot!("ast", ast.nodes());
-    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
 }
 
 #[test]
-#[cfg_attr(feature = "roblox", ignore)] // We don't want Roblox fields in JSON
-#[cfg_attr(feature = "lua52", ignore)] // Lua 5.2 collides with this implementation
+#[cfg(not(feature = "luau"))] // exclude extra nodes added to yaml
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_pass_cases() {
-    run_test_folder("./tests/cases/pass", test_pass_case);
+    run_test_folder("./tests/cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua51())
+    });
 }
 
 #[test]
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_roblox_pass_cases() {
-    run_test_folder("./tests/roblox_cases/pass", test_pass_case);
+    run_test_folder("./tests/roblox_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::luau())
+    });
 }
 
 #[test]
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_pass_cases() {
-    run_test_folder("./tests/lua52_cases/pass", test_pass_case);
+    run_test_folder("./tests/lua52_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua52())
+    });
 }
 
 #[test]
 #[cfg(feature = "lua53")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua53_pass_cases() {
-    run_test_folder("./tests/lua53_cases/pass", test_pass_case);
+    run_test_folder("./tests/lua53_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua53())
+    });
 }
 
 #[test]
 #[cfg(feature = "lua54")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua54_pass_cases() {
-    run_test_folder("./tests/lua54_cases/pass", test_pass_case);
+    run_test_folder("./tests/lua54_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua54())
+    });
 }

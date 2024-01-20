@@ -1,0 +1,68 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 27
+expression: result.ast
+input_file: full-moon/tests/cases/fail/parser/while-2
+---
+nodes:
+  stmts:
+    - - Do:
+          do_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 12
+                line: 1
+                character: 13
+              end_position:
+                bytes: 14
+                line: 1
+                character: 15
+              token_type:
+                type: Symbol
+                symbol: do
+            trailing_trivia:
+              - start_position:
+                  bytes: 14
+                  line: 1
+                  character: 15
+                end_position:
+                  bytes: 15
+                  line: 1
+                  character: 16
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          block:
+            stmts: []
+          end_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 15
+                line: 1
+                character: 16
+              end_position:
+                bytes: 18
+                line: 1
+                character: 19
+              token_type:
+                type: Symbol
+                symbol: end
+            trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 18
+      line: 1
+      character: 19
+    end_position:
+      bytes: 18
+      line: 1
+      character: 19
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

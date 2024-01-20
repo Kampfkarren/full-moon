@@ -1,0 +1,70 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 23
+expression: result.ast
+input_file: full-moon/tests/lua52_cases/fail/parser/label-1
+---
+nodes:
+  stmts:
+    - - Label:
+          left_colons:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 2
+                line: 1
+                character: 3
+              token_type:
+                type: Symbol
+                symbol: "::"
+            trailing_trivia: []
+          name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 2
+                line: 1
+                character: 3
+              end_position:
+                bytes: 7
+                line: 1
+                character: 8
+              token_type:
+                type: Identifier
+                identifier: label
+            trailing_trivia: []
+          right_colons:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 2
+                line: 1
+                character: 3
+              token_type:
+                type: Symbol
+                symbol: "::"
+            trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 7
+      line: 1
+      character: 8
+    end_position:
+      bytes: 7
+      line: 1
+      character: 8
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

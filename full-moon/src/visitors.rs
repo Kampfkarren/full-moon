@@ -8,7 +8,7 @@ use crate::{
 use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 use crate::ast::types::*;
 
 macro_rules! create_visitor {
@@ -31,7 +31,7 @@ macro_rules! create_visitor {
         /// ```rust
         /// # use full_moon::ast;
         /// # use full_moon::visitors::*;
-        /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+        /// # fn main() -> Result<(), Vec<full_moon::Error>> {
         /// // A visitor that logs every local assignment made
         /// #[derive(Default)]
         /// struct LocalVariableVisitor {
@@ -277,7 +277,7 @@ create_visitor!(ast: {
     visit_while => While,
 
     // Types
-    #[cfg(feature = "roblox")] {
+    #[cfg(feature = "luau")] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
         visit_else_if_expression => ElseIfExpression,
@@ -316,7 +316,7 @@ create_visitor!(ast: {
     visit_token,
     visit_whitespace,
 
-    #[cfg(feature = "roblox")] {
+    #[cfg(feature = "luau")] {
         visit_interpolated_string_segment,
     }
 });

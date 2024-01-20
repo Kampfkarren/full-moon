@@ -1,0 +1,226 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 42
+expression: tokens
+input_file: full-moon/tests/cases/fail/tokenizer/wrong-place-shebang
+---
+Recovered:
+  - - start_position:
+        bytes: 0
+        line: 1
+        character: 1
+      end_position:
+        bytes: 1
+        line: 1
+        character: 1
+      token_type:
+        type: Whitespace
+        characters: "\n"
+    - start_position:
+        bytes: 1
+        line: 2
+        character: 1
+      end_position:
+        bytes: 2
+        line: 2
+        character: 2
+      token_type:
+        type: Symbol
+        symbol: "#"
+    - start_position:
+        bytes: 3
+        line: 2
+        character: 3
+      end_position:
+        bytes: 4
+        line: 2
+        character: 4
+      token_type:
+        type: Symbol
+        symbol: /
+    - start_position:
+        bytes: 4
+        line: 2
+        character: 4
+      end_position:
+        bytes: 7
+        line: 2
+        character: 7
+      token_type:
+        type: Identifier
+        identifier: usr
+    - start_position:
+        bytes: 7
+        line: 2
+        character: 7
+      end_position:
+        bytes: 8
+        line: 2
+        character: 8
+      token_type:
+        type: Symbol
+        symbol: /
+    - start_position:
+        bytes: 8
+        line: 2
+        character: 8
+      end_position:
+        bytes: 11
+        line: 2
+        character: 11
+      token_type:
+        type: Identifier
+        identifier: bin
+    - start_position:
+        bytes: 11
+        line: 2
+        character: 11
+      end_position:
+        bytes: 12
+        line: 2
+        character: 12
+      token_type:
+        type: Symbol
+        symbol: /
+    - start_position:
+        bytes: 12
+        line: 2
+        character: 12
+      end_position:
+        bytes: 15
+        line: 2
+        character: 15
+      token_type:
+        type: Identifier
+        identifier: env
+    - start_position:
+        bytes: 15
+        line: 2
+        character: 15
+      end_position:
+        bytes: 16
+        line: 2
+        character: 16
+      token_type:
+        type: Whitespace
+        characters: " "
+    - start_position:
+        bytes: 16
+        line: 2
+        character: 16
+      end_position:
+        bytes: 22
+        line: 2
+        character: 22
+      token_type:
+        type: Identifier
+        identifier: luajit
+    - start_position:
+        bytes: 22
+        line: 2
+        character: 22
+      end_position:
+        bytes: 23
+        line: 2
+        character: 22
+      token_type:
+        type: Whitespace
+        characters: "\n"
+    - start_position:
+        bytes: 23
+        line: 3
+        character: 1
+      end_position:
+        bytes: 24
+        line: 3
+        character: 1
+      token_type:
+        type: Whitespace
+        characters: "\n"
+    - start_position:
+        bytes: 24
+        line: 4
+        character: 1
+      end_position:
+        bytes: 29
+        line: 4
+        character: 6
+      token_type:
+        type: Identifier
+        identifier: print
+    - start_position:
+        bytes: 29
+        line: 4
+        character: 6
+      end_position:
+        bytes: 30
+        line: 4
+        character: 7
+      token_type:
+        type: Symbol
+        symbol: (
+    - start_position:
+        bytes: 30
+        line: 4
+        character: 7
+      end_position:
+        bytes: 37
+        line: 4
+        character: 14
+      token_type:
+        type: StringLiteral
+        literal: hello
+        quote_type: Double
+    - start_position:
+        bytes: 37
+        line: 4
+        character: 14
+      end_position:
+        bytes: 38
+        line: 4
+        character: 15
+      token_type:
+        type: Symbol
+        symbol: )
+    - start_position:
+        bytes: 38
+        line: 4
+        character: 15
+      end_position:
+        bytes: 39
+        line: 4
+        character: 16
+      token_type:
+        type: Symbol
+        symbol: ;
+    - start_position:
+        bytes: 39
+        line: 4
+        character: 16
+      end_position:
+        bytes: 40
+        line: 4
+        character: 16
+      token_type:
+        type: Whitespace
+        characters: "\n"
+    - start_position:
+        bytes: 40
+        line: 5
+        character: 1
+      end_position:
+        bytes: 40
+        line: 5
+        character: 1
+      token_type:
+        type: Eof
+  - - error:
+        UnexpectedToken: "!"
+      range:
+        - bytes: 2
+          line: 2
+          character: 2
+        - bytes: 3
+          line: 2
+          character: 3
+

@@ -1,3 +1,4 @@
+mod parser_structs;
 #[macro_use]
 mod parser_util;
 mod parsers;
@@ -7,7 +8,7 @@ mod update_positions;
 mod visitors;
 
 use crate::{
-    tokenizer::{Symbol, Token, TokenReference, TokenType},
+    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
     util::*,
 };
 use derive_more::Display;
@@ -17,19 +18,20 @@ use full_moon_derive::{Node, Visit};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt};
 
-use parser_util::{
-    InternalAstError, OneOrMore, Parser, ParserState, ZeroOrMore, ZeroOrMoreDelimited,
-};
-
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
 
-#[cfg(feature = "roblox")]
+pub use parser_structs::AstResult;
+
+mod versions;
+pub use versions::*;
+
+#[cfg(feature = "luau")]
 pub mod types;
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 use types::*;
 
-#[cfg(feature = "roblox")]
+#[cfg(feature = "luau")]
 mod type_visitors;
 
 #[cfg(feature = "lua52")]
@@ -100,6 +102,14 @@ impl Block {
     pub fn with_last_stmt(self, last_stmt: Option<(LastStmt, Option<TokenReference>)>) -> Self {
         Self { last_stmt, ..self }
     }
+
+    pub(crate) fn merge_blocks(&mut self, other: Self) {
+        self.stmts.extend(other.stmts);
+
+        if self.last_stmt.is_none() {
+            self.last_stmt = other.last_stmt;
+        }
+    }
 }
 
 /// The last statement of a [`Block`]
@@ -110,8 +120,8 @@ pub enum LastStmt {
     /// A `break` statement
     Break(TokenReference),
     /// A continue statement
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     Continue(TokenReference),
     /// A `return` statement
     Return(Return),
@@ -131,7 +141,7 @@ impl Return {
     /// Default return token is followed by a single space
     pub fn new() -> Self {
         Self {
-            token: TokenReference::symbol("return ").unwrap(),
+            token: TokenReference::basic_symbol("return "),
             returns: Punctuated::new(),
         }
     }
@@ -221,8 +231,8 @@ impl TableConstructor {
     pub fn new() -> Self {
         Self {
             braces: ContainedSpan::new(
-                TokenReference::symbol("{ ").unwrap(),
-                TokenReference::symbol(" }").unwrap(),
+                TokenReference::basic_symbol("{ "),
+                TokenReference::basic_symbol(" }"),
             ),
             fields: Punctuated::new(),
         }
@@ -304,14 +314,14 @@ pub enum Expression {
     FunctionCall(FunctionCall),
 
     /// An if expression, such as `if foo then true else false`.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     IfExpression(IfExpression),
 
     /// An interpolated string, such as `` `hello {"world"}` ``
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     InterpolatedString(InterpolatedString),
 
@@ -332,8 +342,8 @@ pub enum Expression {
     Symbol(TokenReference),
 
     /// A value that has been asserted for a particular type, for use in Luau.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     #[display(fmt = "{expression}{type_assertion}")]
     TypeAssertion {
         /// The expression being asserted
@@ -388,17 +398,17 @@ pub enum Stmt {
     While(While),
 
     /// A compound assignment, such as `+=`
-    /// Only available when the "roblox" feature flag is enabled
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled
+    #[cfg(feature = "luau")]
     #[display(fmt = "{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     ExportedTypeDeclaration(ExportedTypeDeclaration),
     /// A type declaration, such as `type Meters = number`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     TypeDeclaration(TypeDeclaration),
 
     /// A goto statement, such as `goto label`
@@ -482,6 +492,19 @@ pub enum FunctionArgs {
     TableConstructor(TableConstructor),
 }
 
+impl FunctionArgs {
+    pub(crate) fn empty() -> Self {
+        FunctionArgs::Parentheses {
+            parentheses: ContainedSpan::new(
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
+            ),
+
+            arguments: Punctuated::new(),
+        }
+    }
+}
+
 /// A numeric for loop, such as `for index = 1, 10 do end`
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -497,7 +520,7 @@ pub struct NumericFor {
     do_token: TokenReference,
     block: Block,
     end_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     type_specifier: Option<TypeSpecifier>,
 }
@@ -506,18 +529,18 @@ impl NumericFor {
     /// Creates a new NumericFor from the given index variable, start, and end expressions
     pub fn new(index_variable: TokenReference, start: Expression, end: Expression) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ").unwrap(),
+            for_token: TokenReference::basic_symbol("for "),
             index_variable,
-            equal_token: TokenReference::symbol(" = ").unwrap(),
+            equal_token: TokenReference::basic_symbol(" = "),
             start,
-            start_end_comma: TokenReference::symbol(", ").unwrap(),
+            start_end_comma: TokenReference::basic_symbol(", "),
             end,
             end_step_comma: None,
             step: None,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
-            #[cfg(feature = "roblox")]
+            end_token: TokenReference::basic_symbol("\nend"),
+            #[cfg(feature = "luau")]
             type_specifier: None,
         }
     }
@@ -584,8 +607,8 @@ impl NumericFor {
     /// The type specifiers of the index variable
     /// `for i: number = 1, 10 do` returns:
     /// `Some(TypeSpecifier(number))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifier(&self) -> Option<&TypeSpecifier> {
         self.type_specifier.as_ref()
     }
@@ -658,8 +681,8 @@ impl NumericFor {
     }
 
     /// Returns a new NumericFor with the given type specifiers
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn with_type_specifier(self, type_specifier: Option<TypeSpecifier>) -> Self {
         Self {
             type_specifier,
@@ -669,7 +692,7 @@ impl NumericFor {
 }
 
 impl fmt::Display for NumericFor {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -689,7 +712,7 @@ impl fmt::Display for NumericFor {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -720,7 +743,7 @@ pub struct GenericFor {
     do_token: TokenReference,
     block: Block,
     end_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 }
 
@@ -728,14 +751,14 @@ impl GenericFor {
     /// Creates a new GenericFor from the given names and expressions
     pub fn new(names: Punctuated<TokenReference>, expr_list: Punctuated<Expression>) -> Self {
         Self {
-            for_token: TokenReference::symbol("for ").unwrap(),
+            for_token: TokenReference::basic_symbol("for "),
             names,
-            in_token: TokenReference::symbol(" in ").unwrap(),
+            in_token: TokenReference::basic_symbol(" in "),
             expr_list,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
-            #[cfg(feature = "roblox")]
+            end_token: TokenReference::basic_symbol("\nend"),
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
         }
     }
@@ -780,8 +803,8 @@ impl GenericFor {
     /// The type specifiers of the named variables, in the order that they were assigned.
     /// `for i, v: string in pairs() do` returns an iterator containing:
     /// `None, Some(TypeSpecifier(string))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
@@ -822,8 +845,8 @@ impl GenericFor {
     }
 
     /// Returns a new GenericFor with the given type specifiers
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -833,7 +856,7 @@ impl GenericFor {
 }
 
 impl fmt::Display for GenericFor {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -848,7 +871,7 @@ impl fmt::Display for GenericFor {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -894,14 +917,14 @@ impl If {
     /// Creates a new If from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            if_token: TokenReference::symbol("if ").unwrap(),
+            if_token: TokenReference::basic_symbol("if "),
             condition,
-            then_token: TokenReference::symbol(" then").unwrap(),
+            then_token: TokenReference::basic_symbol(" then"),
             block: Block::new(),
             else_if: None,
             else_token: None,
             r#else: None,
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1003,9 +1026,9 @@ impl ElseIf {
     /// Creates a new ElseIf from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            else_if_token: TokenReference::symbol("elseif ").unwrap(),
+            else_if_token: TokenReference::basic_symbol("elseif "),
             condition,
-            then_token: TokenReference::symbol(" then\n").unwrap(),
+            then_token: TokenReference::basic_symbol(" then\n"),
             block: Block::new(),
         }
     }
@@ -1070,11 +1093,11 @@ impl While {
     /// Creates a new While from the given condition
     pub fn new(condition: Expression) -> Self {
         Self {
-            while_token: TokenReference::symbol("while ").unwrap(),
+            while_token: TokenReference::basic_symbol("while "),
             condition,
-            do_token: TokenReference::symbol(" do\n").unwrap(),
+            do_token: TokenReference::basic_symbol(" do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("end\n").unwrap(),
+            end_token: TokenReference::basic_symbol("end\n"),
         }
     }
 
@@ -1147,9 +1170,9 @@ impl Repeat {
     /// Creates a new Repeat from the given expression to repeat until
     pub fn new(until: Expression) -> Self {
         Self {
-            repeat_token: TokenReference::symbol("repeat\n").unwrap(),
+            repeat_token: TokenReference::basic_symbol("repeat\n"),
             block: Block::new(),
-            until_token: TokenReference::symbol("\nuntil ").unwrap(),
+            until_token: TokenReference::basic_symbol("\nuntil "),
             until,
         }
     }
@@ -1215,7 +1238,7 @@ impl MethodCall {
     /// Returns a new MethodCall from the given name and args
     pub fn new(name: TokenReference, args: FunctionArgs) -> Self {
         Self {
-            colon_token: TokenReference::symbol(":").unwrap(),
+            colon_token: TokenReference::basic_symbol(":"),
             name,
             args,
         }
@@ -1272,16 +1295,16 @@ pub enum Call {
 #[derive(Clone, Debug, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FunctionBody {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     generics: Option<GenericDeclaration>,
 
     parameters_parentheses: ContainedSpan,
     parameters: Punctuated<Parameter>,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     return_type: Option<TypeSpecifier>,
 
@@ -1293,23 +1316,23 @@ impl FunctionBody {
     /// Returns a new empty FunctionBody
     pub fn new() -> Self {
         Self {
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             generics: None,
 
             parameters_parentheses: ContainedSpan::new(
-                TokenReference::symbol("(").unwrap(),
-                TokenReference::symbol(")").unwrap(),
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
             ),
             parameters: Punctuated::new(),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
 
-            #[cfg(feature = "roblox")]
+            #[cfg(feature = "luau")]
             return_type: None,
 
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1335,8 +1358,8 @@ impl FunctionBody {
 
     /// The generics declared for the function body.
     /// The `<T, U>` part of `function x<T, U>() end`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn generics(&self) -> Option<&GenericDeclaration> {
         self.generics.as_ref()
     }
@@ -1344,15 +1367,15 @@ impl FunctionBody {
     /// The type specifiers of the variables, in the order that they were assigned.
     /// `(foo: number, bar, baz: boolean)` returns an iterator containing:
     /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
 
     /// The return type of the function, if one exists.
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn return_type(&self) -> Option<&TypeSpecifier> {
         self.return_type.as_ref()
     }
@@ -1371,13 +1394,13 @@ impl FunctionBody {
     }
 
     /// Returns a new FunctionBody with the given generics declaration
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
         Self { generics, ..self }
     }
 
     /// Returns a new FunctionBody with the given type specifiers
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -1386,7 +1409,7 @@ impl FunctionBody {
     }
 
     /// Returns a new FunctionBody with the given return type
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_return_type(self, return_type: Option<TypeSpecifier>) -> Self {
         Self {
             return_type,
@@ -1412,7 +1435,7 @@ impl Default for FunctionBody {
 }
 
 impl fmt::Display for FunctionBody {
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -1427,7 +1450,7 @@ impl fmt::Display for FunctionBody {
         )
     }
 
-    #[cfg(not(feature = "roblox"))]
+    #[cfg(not(feature = "luau"))]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(
             formatter,
@@ -1533,7 +1556,7 @@ impl Assignment {
     pub fn new(var_list: Punctuated<Var>, expr_list: Punctuated<Expression>) -> Self {
         Self {
             var_list,
-            equal_token: TokenReference::symbol(" = ").unwrap(),
+            equal_token: TokenReference::basic_symbol(" = "),
             expr_list,
         }
     }
@@ -1578,11 +1601,11 @@ impl Assignment {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(
-    not(feature = "roblox"),
+    not(feature = "luau"),
     display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 #[cfg_attr(
-    feature = "roblox",
+    feature = "luau",
     display(fmt = "{local_token}{function_token}{name}{body}")
 )]
 pub struct LocalFunction {
@@ -1596,8 +1619,8 @@ impl LocalFunction {
     /// Returns a new LocalFunction from the given name
     pub fn new(name: TokenReference) -> Self {
         LocalFunction {
-            local_token: TokenReference::symbol("local ").unwrap(),
-            function_token: TokenReference::symbol("function ").unwrap(),
+            local_token: TokenReference::basic_symbol("local "),
+            function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }
@@ -1655,7 +1678,7 @@ impl LocalFunction {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment {
     local_token: TokenReference,
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "empty_optional_vector")
@@ -1676,8 +1699,8 @@ impl LocalAssignment {
     /// Returns a new LocalAssignment from the given name list
     pub fn new(name_list: Punctuated<TokenReference>) -> Self {
         Self {
-            local_token: TokenReference::symbol("local ").unwrap(),
-            #[cfg(feature = "roblox")]
+            local_token: TokenReference::basic_symbol("local "),
+            #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
             name_list,
             #[cfg(feature = "lua54")]
@@ -1712,8 +1735,8 @@ impl LocalAssignment {
     /// The type specifiers of the variables, in the order that they were assigned.
     /// `local foo: number, bar, baz: boolean` returns an iterator containing:
     /// `Some(TypeSpecifier(number)), None, Some(TypeSpecifier(boolean))`
-    /// Only available when the "roblox" feature flag is enabled.
-    #[cfg(feature = "roblox")]
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
     pub fn type_specifiers(&self) -> impl Iterator<Item = Option<&TypeSpecifier>> {
         self.type_specifiers.iter().map(Option::as_ref)
     }
@@ -1736,7 +1759,7 @@ impl LocalAssignment {
     }
 
     /// Returns a new LocalAssignment with the given type specifiers
-    #[cfg(feature = "roblox")]
+    #[cfg(feature = "luau")]
     pub fn with_type_specifiers(self, type_specifiers: Vec<Option<TypeSpecifier>>) -> Self {
         Self {
             type_specifiers,
@@ -1775,9 +1798,9 @@ impl fmt::Display for LocalAssignment {
         let attributes = self.attributes().chain(std::iter::repeat(None));
         #[cfg(not(feature = "lua54"))]
         let attributes = std::iter::repeat_with(|| None::<TokenReference>);
-        #[cfg(feature = "roblox")]
+        #[cfg(feature = "luau")]
         let type_specifiers = self.type_specifiers().chain(std::iter::repeat(None));
-        #[cfg(not(feature = "roblox"))]
+        #[cfg(not(feature = "luau"))]
         let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
         write!(
@@ -1806,9 +1829,9 @@ impl Do {
     /// Creates an empty Do
     pub fn new() -> Self {
         Self {
-            do_token: TokenReference::symbol("do\n").unwrap(),
+            do_token: TokenReference::basic_symbol("do\n"),
             block: Block::new(),
-            end_token: TokenReference::symbol("\nend").unwrap(),
+            end_token: TokenReference::basic_symbol("\nend"),
         }
     }
 
@@ -1868,8 +1891,8 @@ impl FunctionCall {
                 FunctionArgs::Parentheses {
                     arguments: Punctuated::new(),
                     parentheses: ContainedSpan::new(
-                        TokenReference::symbol("(").unwrap(),
-                        TokenReference::symbol(")").unwrap(),
+                        TokenReference::basic_symbol("("),
+                        TokenReference::basic_symbol(")"),
                     ),
                 },
             ))],
@@ -1955,8 +1978,8 @@ impl FunctionName {
 /// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(not(feature = "roblox"), display(fmt = "{function_token}{name}{body}"))]
-#[cfg_attr(feature = "roblox", display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(not(feature = "luau"), display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(feature = "luau", display(fmt = "{function_token}{name}{body}"))]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
@@ -1967,7 +1990,7 @@ impl FunctionDeclaration {
     /// Creates a new FunctionDeclaration from the given name
     pub fn new(name: FunctionName) -> Self {
         Self {
-            function_token: TokenReference::symbol("function ").unwrap(),
+            function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }
@@ -2007,85 +2030,135 @@ impl FunctionDeclaration {
     }
 }
 
-make_op!(BinOp,
+#[doc(hidden)]
+#[macro_export]
+macro_rules! make_bin_op {
+    ($(#[$outer:meta])* { $(
+        $([$($version:ident)|+])? $operator:ident = $precedence:expr,
+    )+ }) => {
+        paste::paste! {
+            #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+            #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+            #[non_exhaustive]
+            $(#[$outer])*
+            #[display(fmt = "{}")]
+            pub enum BinOp {
+                $(
+                    #[allow(missing_docs)]
+                    $(
+                        #[cfg(any(
+                            $(feature = "" $version),+
+                        ))]
+                    )*
+                    $operator(TokenReference),
+                )+
+            }
+
+            impl BinOp {
+                /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
+                pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
+                    match token.token_type() {
+                        TokenType::Symbol { symbol } => match symbol {
+                            $(
+                                $(
+                                    #[cfg(any(
+                                        $(feature = "" $version),+
+                                    ))]
+                                )*
+                                Symbol::$operator => Some($precedence),
+                            )+
+                            _ => None,
+                        },
+
+                        _ => None
+                    }
+                }
+
+                /// The token associated with this operator
+                pub fn token(&self) -> &TokenReference {
+                    match self {
+                        $(
+                            $(
+                                #[cfg(any(
+                                    $(feature = "" $version),+
+                                ))]
+                            )*
+                            BinOp::$operator(token) => token,
+                        )+
+                    }
+                }
+
+                pub(crate) fn consume(state: &mut parser_structs::ParserState) -> Option<Self> {
+                    match state.current().unwrap().token_type() {
+                        TokenType::Symbol { symbol } => match symbol {
+                            $(
+                                $(
+                                    #[cfg(any(
+                                        $(feature = "" $version),+
+                                    ))]
+                                )*
+                                Symbol::$operator => {
+                                    if !$crate::has_version!(state.lua_version(), $($($version,)+)?) {
+                                        return None;
+                                    }
+
+                                    Some(BinOp::$operator(state.consume().unwrap()))
+                                },
+                            )+
+
+                            _ => None,
+                        },
+
+                        _ => None,
+                    }
+                }
+            }
+        }
+    };
+}
+
+make_bin_op!(
     #[doc = "Operators that require two operands, such as X + Y or X - Y"]
     #[visit(skip_visit_self)]
     {
-        And,
-        Caret,
-        GreaterThan,
-        GreaterThanEqual,
-        LessThan,
-        LessThanEqual,
-        Minus,
-        Or,
-        Percent,
-        Plus,
-        Slash,
-        Star,
-        TildeEqual,
-        TwoDots,
-        TwoEqual,
-        #[cfg(feature = "lua53")]
-        Ampersand,
-        #[cfg(any(feature = "roblox", feature = "lua53"))]
-        DoubleSlash,
-        #[cfg(feature = "lua53")]
-        DoubleLessThan,
-        #[cfg(feature = "lua53")]
-        Pipe,
-        #[cfg(feature = "lua53")]
-        DoubleGreaterThan,
-        #[cfg(feature = "lua53")]
-        Tilde,
+        Caret = 12,
+
+        Percent = 10,
+        Slash = 10,
+        Star = 10,
+        [luau | lua53] DoubleSlash = 10,
+
+        Minus = 9,
+        Plus = 9,
+
+        TwoDots = 8,
+        [lua53] DoubleLessThan = 7,
+        [lua53] DoubleGreaterThan = 7,
+
+        [lua53] Ampersand = 6,
+
+        [lua53] Tilde = 5,
+
+        [lua53] Pipe = 4,
+
+        GreaterThan = 3,
+        GreaterThanEqual = 3,
+        LessThan = 3,
+        LessThanEqual = 3,
+        TildeEqual = 3,
+        TwoEqual = 3,
+
+        And = 2,
+
+        Or = 1,
     }
 );
 
 impl BinOp {
-    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
+    /// The precedence of the operator. The larger the number, the higher the precedence.
     /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
-    #[cfg(not(feature = "lua53"))]
     pub fn precedence(&self) -> u8 {
-        match *self {
-            BinOp::Caret(_) => 8,
-            BinOp::Star(_) | BinOp::Slash(_) | BinOp::Percent(_) => 6,
-            #[cfg(feature = "roblox")]
-            BinOp::DoubleSlash(_) => 6,
-            BinOp::Plus(_) | BinOp::Minus(_) => 5,
-            BinOp::TwoDots(_) => 4,
-            BinOp::GreaterThan(_)
-            | BinOp::LessThan(_)
-            | BinOp::GreaterThanEqual(_)
-            | BinOp::LessThanEqual(_)
-            | BinOp::TildeEqual(_)
-            | BinOp::TwoEqual(_) => 3,
-            BinOp::And(_) => 2,
-            BinOp::Or(_) => 1,
-        }
-    }
-
-    /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
-    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
-    #[cfg(feature = "lua53")]
-    pub fn precedence(&self) -> u8 {
-        match *self {
-            BinOp::Caret(_) => 12,
-            BinOp::Star(_) | BinOp::Slash(_) | BinOp::DoubleSlash(_) | BinOp::Percent(_) => 10,
-            BinOp::Plus(_) | BinOp::Minus(_) => 9,
-            BinOp::TwoDots(_) => 8,
-            BinOp::DoubleLessThan(_) | BinOp::DoubleGreaterThan(_) => 7,
-            BinOp::Ampersand(_) => 6,
-            BinOp::Tilde(_) => 5,
-            BinOp::Pipe(_) => 4,
-            BinOp::GreaterThan(_)
-            | BinOp::LessThan(_)
-            | BinOp::GreaterThanEqual(_)
-            | BinOp::LessThanEqual(_)
-            | BinOp::TildeEqual(_)
-            | BinOp::TwoEqual(_) => 3,
-            BinOp::And(_) => 2,
-            BinOp::Or(_) => 1,
-        }
+        BinOp::precedence_of_token(self.token()).expect("invalid token")
     }
 
     /// Whether the operator is right associative. If not, it is left associative.
@@ -2094,62 +2167,34 @@ impl BinOp {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
     }
 
-    /// The token associated with the operator
-    pub fn token(&self) -> &TokenReference {
-        match self {
-            BinOp::And(token)
-            | BinOp::Caret(token)
-            | BinOp::GreaterThan(token)
-            | BinOp::GreaterThanEqual(token)
-            | BinOp::LessThan(token)
-            | BinOp::LessThanEqual(token)
-            | BinOp::Minus(token)
-            | BinOp::Or(token)
-            | BinOp::Percent(token)
-            | BinOp::Plus(token)
-            | BinOp::Slash(token)
-            | BinOp::Star(token)
-            | BinOp::TildeEqual(token)
-            | BinOp::TwoDots(token)
-            | BinOp::TwoEqual(token) => token,
-            #[cfg(any(feature = "roblox", feature = "lua53"))]
-            BinOp::DoubleSlash(token) => token,
-            #[cfg(feature = "lua53")]
-            BinOp::Ampersand(token)
-            | BinOp::DoubleLessThan(token)
-            | BinOp::Pipe(token)
-            | BinOp::DoubleGreaterThan(token)
-            | BinOp::Tilde(token) => token,
-        }
+    /// Given a token, returns whether it is a right associative binary operator.
+    pub fn is_right_associative_token(token: &TokenReference) -> bool {
+        matches!(
+            token.token_type(),
+            TokenType::Symbol {
+                symbol: Symbol::Caret
+            } | TokenType::Symbol {
+                symbol: Symbol::TwoDots
+            }
+        )
     }
 }
 
-make_op!(UnOp,
-    #[doc = "Operators that require just one operand, such as #X"]
-    {
-        Minus,
-        Not,
-        Hash,
-        #[cfg(feature = "lua53")]
-        Tilde,
-    }
-);
+/// Operators that require just one operand, such as #X
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[allow(missing_docs)]
+#[non_exhaustive]
+#[display(fmt = "{}")]
+pub enum UnOp {
+    Minus(TokenReference),
+    Not(TokenReference),
+    Hash(TokenReference),
+    #[cfg(feature = "lua53")]
+    Tilde(TokenReference),
+}
 
 impl UnOp {
-    /// The precedence of the operator, from a scale of 1 to 8. The larger the number, the higher the precedence.
-    /// See more at <http://www.lua.org/manual/5.1/manual.html#2.5.6>
-    #[cfg(not(feature = "lua53"))]
-    pub fn precedence(&self) -> u8 {
-        7
-    }
-
-    /// The precedence of the operator, from a scale of 1 to 11. The larger the number, the higher the precedence.
-    /// See more at <https://www.lua.org/manual/5.3/manual.html#2.5.6>
-    #[cfg(feature = "lua53")]
-    pub fn precedence(&self) -> u8 {
-        11
-    }
-
     /// The token associated with the operator
     pub fn token(&self) -> &TokenReference {
         match self {
@@ -2160,42 +2205,49 @@ impl UnOp {
     }
 }
 
-/// An error that occurs when creating the ast *after* tokenizing
+/// An error that occurs when creating the AST.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub enum AstError {
-    /// There were no tokens passed, which shouldn't happen normally
-    Empty,
-    /// Tokens passed had no end of file token, which shouldn't happen normally
-    NoEof,
-    /// An unexpected token, the most likely scenario when getting an AstError
-    UnexpectedToken {
-        /// The token that caused the error
-        token: Token,
-        /// Any additional information that could be provided for debugging
-        additional: Option<Cow<'static, str>>,
-    },
+pub struct AstError {
+    /// The token that caused the error
+    token: Token,
+
+    /// Any additional information that could be provided for debugging
+    additional: Cow<'static, str>,
+
+    /// If set, this is the complete range of the error
+    #[serde(skip_serializing_if = "Option::is_none")]
+    range: Option<(Position, Position)>,
+}
+
+impl AstError {
+    /// Returns a human readable error message
+    pub fn error_message(&self) -> Cow<'static, str> {
+        self.additional.clone()
+    }
+
+    /// Returns the range of the error
+    pub fn range(&self) -> (Position, Position) {
+        self.range
+            .or_else(|| Some((self.token.start_position(), self.token.end_position())))
+            .unwrap()
+    }
 }
 
 impl fmt::Display for AstError {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            AstError::Empty => write!(formatter, "tokens passed was empty, which shouldn't happen normally"),
-            AstError::NoEof => write!(formatter, "tokens passed had no eof token, which shouldn't happen normally"),
-            AstError::UnexpectedToken { token, additional } => write!(
-                formatter,
-                "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {}){}",
-                token,
-                token.start_position().line(),
-                token.start_position().character(),
-                token.end_position().line(),
-                token.end_position().character(),
-                match additional {
-                    Some(additional) => format!("\nadditional information: {additional}"),
-                    None => String::new(),
-                }
-            )
-        }
+        let range = self.range();
+
+        write!(
+            formatter,
+            "unexpected token `{}`. (starting from line {}, character {} and ending on line {}, character {})\nadditional information: {}",
+            self.token,
+            range.0.line(),
+            range.0.character(),
+            range.1.line(),
+            range.1.character(),
+            self.additional,
+        )
     }
 }
 
@@ -2210,79 +2262,6 @@ pub struct Ast {
 }
 
 impl Ast {
-    /// Create an Ast from the passed tokens. You probably want [`parse`](crate::parse)
-    ///
-    /// # Errors
-    ///
-    /// If the tokens passed are impossible to get through normal tokenization,
-    /// an error of Empty (if the vector is empty) or NoEof (if there is no eof token)
-    /// will be returned.
-    ///
-    /// More likely, if the tokens pass are invalid Lua 5.1 code, an
-    /// UnexpectedToken error will be returned.
-    #[allow(clippy::result_large_err)]
-    pub fn from_tokens(tokens: Vec<Token>) -> Result<Ast, AstError> {
-        if *tokens.last().ok_or(AstError::Empty)?.token_type() != TokenType::Eof {
-            return Err(AstError::NoEof);
-        }
-
-        let mut tokens = extract_token_references(tokens);
-        let mut state = ParserState::new(&tokens);
-
-        if tokens
-            .iter()
-            .filter(|token| !token.token_type().is_trivia())
-            .count()
-            == 1
-        {
-            // Entirely comments/whitespace
-            return Ok(Ast {
-                nodes: Block {
-                    stmts: Vec::new(),
-                    last_stmt: None,
-                },
-                eof: tokens
-                    .pop()
-                    .expect("(internal full-moon error) No EOF in tokens after checking for EOF."),
-            });
-        }
-
-        // ParserState has to have at least 2 tokens, the last being an EOF, thus unwrap() can't fail
-        if state.peek().token_type().is_trivia() {
-            state = state.advance().unwrap();
-        }
-
-        match parsers::ParseBlock.parse(state) {
-            Ok((state, block)) => {
-                if state.index == tokens.len() - 1 {
-                    Ok(Ast {
-                        nodes: block,
-                        eof: tokens.pop().expect(
-                            "(internal full-moon error) No EOF in tokens after checking for EOF.",
-                        ),
-                    })
-                } else {
-                    Err(AstError::UnexpectedToken {
-                        token: state.peek().token.clone(),
-                        additional: Some(Cow::Borrowed("leftover token")),
-                    })
-                }
-            }
-
-            Err(InternalAstError::NoMatch) => Err(AstError::UnexpectedToken {
-                token: state.peek().token.clone(),
-                additional: None,
-            }),
-
-            Err(InternalAstError::UnexpectedToken { token, additional }) => {
-                Err(AstError::UnexpectedToken {
-                    token: token.token,
-                    additional,
-                })
-            }
-        }
-    }
-
     /// Returns a new Ast with the given nodes
     pub fn with_nodes(self, nodes: Block) -> Self {
         Self { nodes, ..self }
@@ -2296,7 +2275,7 @@ impl Ast {
     /// The entire code of the function
     ///
     /// ```rust
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Vec<full_moon::Error>> {
     /// assert_eq!(full_moon::parse("local x = 1; local y = 2")?.nodes().stmts().count(), 2);
     /// # Ok(())
     /// # }
@@ -2316,86 +2295,10 @@ impl Ast {
     }
 }
 
-/// Extracts leading and trailing trivia from tokens
-pub(crate) fn extract_token_references(mut tokens: Vec<Token>) -> Vec<TokenReference> {
-    let mut references = Vec::new();
-    let (mut leading_trivia, mut trailing_trivia) = (Vec::new(), Vec::new());
-    let mut tokens = tokens.drain(..).peekable();
-
-    while let Some(token) = tokens.next() {
-        if token.token_type().is_trivia() {
-            leading_trivia.push(token);
-        } else {
-            while let Some(token) = tokens.peek() {
-                if token.token_type().is_trivia() {
-                    // Take all trivia up to and including the newline character. If we see a newline character
-                    // we should break once we have taken it in.
-                    let should_break =
-                        if let TokenType::Whitespace { ref characters } = token.token_type() {
-                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                            characters.contains('\n')
-                        } else {
-                            false
-                        };
-
-                    trailing_trivia.push(tokens.next().unwrap());
-
-                    if should_break {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            references.push(TokenReference {
-                leading_trivia: std::mem::take(&mut leading_trivia),
-                trailing_trivia: std::mem::take(&mut trailing_trivia),
-                token,
-            });
-        }
-    }
-
-    references
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{parse, print, tokenizer::tokens, visitors::VisitorMut};
-
-    #[test]
-    fn test_extract_token_references() {
-        let tokens = tokens("print(1)\n-- hello world\nlocal foo -- this is the word foo").unwrap();
-
-        let references = extract_token_references(tokens);
-        assert_eq!(references.len(), 7);
-
-        assert!(references[0].trailing_trivia.is_empty());
-        assert_eq!(references[0].token.to_string(), "print");
-        assert!(references[0].leading_trivia.is_empty());
-
-        assert!(references[1].trailing_trivia.is_empty());
-        assert_eq!(references[1].token.to_string(), "(");
-        assert!(references[1].leading_trivia.is_empty());
-
-        assert!(references[2].trailing_trivia.is_empty());
-        assert_eq!(references[2].token.to_string(), "1");
-        assert!(references[2].leading_trivia.is_empty());
-
-        assert_eq!(references[3].trailing_trivia[0].to_string(), "\n");
-        assert_eq!(references[3].token.to_string(), ")");
-        assert!(references[3].leading_trivia.is_empty());
-
-        assert_eq!(
-            references[4].leading_trivia[0].to_string(),
-            "-- hello world",
-        );
-
-        assert_eq!(references[4].leading_trivia[1].to_string(), "\n");
-        assert_eq!(references[4].token.to_string(), "local");
-        assert_eq!(references[4].trailing_trivia[0].to_string(), " ");
-    }
+    use crate::{parse, print, visitors::VisitorMut};
 
     #[test]
     fn test_with_eof_safety() {

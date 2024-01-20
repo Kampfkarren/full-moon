@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/local-function-2
+---
+error[ast]: expected a function body
+  ┌─ source.lua:1:7
+  │
+1 │ local function x
+  │       ^^^^^^^^
+
+

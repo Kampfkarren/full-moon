@@ -1,8 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: tokens
-input_file: full-moon/tests/cases/pass/multi-line-string-4
-
 ---
 - start_position:
     bytes: 0
@@ -37,7 +35,6 @@ input_file: full-moon/tests/cases/pass/multi-line-string-4
   token_type:
     type: StringLiteral
     literal: doge
-    multi_line: 0
     quote_type: Brackets
 - start_position:
     bytes: 13

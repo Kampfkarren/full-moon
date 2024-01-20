@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/if-7
+---
+error[ast]: expected `end` to conclude `if`
+  ┌─ source.lua:2:4
+  │
+2 │ end
+  │    ^
+
+

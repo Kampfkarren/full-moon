@@ -53,7 +53,18 @@ stmts:
                           token_type:
                             type: Symbol
                             symbol: )
-                        trailing_trivia: []
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 30
+                              line: 2
+                              character: 13
+                            end_position:
+                              bytes: 31
+                              line: 2
+                              character: 13
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
                   arguments:
                     pairs:
                       - End:
@@ -71,6 +82,99 @@ stmts:
                               token_type:
                                 type: StringLiteral
                                 literal: "testing \\z\n\t   twelve"
+                                quote_type: Double
+                            trailing_trivia: []
+    - ~
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia:
+              - start_position:
+                  bytes: 31
+                  line: 3
+                  character: 1
+                end_position:
+                  bytes: 32
+                  line: 3
+                  character: 1
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+            token:
+              start_position:
+                bytes: 32
+                line: 4
+                character: 1
+              end_position:
+                bytes: 37
+                line: 4
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 37
+                            line: 4
+                            character: 6
+                          end_position:
+                            bytes: 38
+                            line: 4
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 54
+                            line: 5
+                            character: 8
+                          end_position:
+                            bytes: 55
+                            line: 5
+                            character: 9
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 55
+                              line: 5
+                              character: 9
+                            end_position:
+                              bytes: 56
+                              line: 5
+                              character: 9
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 38
+                                line: 4
+                                character: 7
+                              end_position:
+                                bytes: 54
+                                line: 5
+                                character: 8
+                              token_type:
+                                type: StringLiteral
+                                literal: "Hello \\\n\tWorld"
                                 quote_type: Double
                             trailing_trivia: []
     - ~

@@ -1,7 +1,6 @@
 // This is code from a real life usage of full-moon
 
 use full_moon::{self, ast::*, node::Node, tokenizer::TokenKind, visitors::Visitor};
-use std::error::Error;
 
 const CODE: &str = r#"
 
@@ -43,7 +42,7 @@ impl Visitor for MemberVisitor {
     }
 }
 
-fn generate() -> Result<(), Box<dyn Error>> {
+fn generate() -> Result<(), Vec<full_moon::Error>> {
     let ast = full_moon::parse(CODE)?;
 
     let mut visitor = MemberVisitor {

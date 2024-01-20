@@ -1,0 +1,41 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/do-2
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 3
+        line: 1
+        character: 4
+      end_position:
+        bytes: 8
+        line: 1
+        character: 9
+      token_type:
+        type: Symbol
+        symbol: until
+    additional: "expected `end` to close do block"
+    range:
+      - bytes: 0
+        line: 1
+        character: 1
+      - bytes: 2
+        line: 1
+        character: 3
+- AstError:
+    token:
+      start_position:
+        bytes: 3
+        line: 1
+        character: 4
+      end_position:
+        bytes: 8
+        line: 1
+        character: 9
+      token_type:
+        type: Symbol
+        symbol: until
+    additional: "unexpected token, this needs to be a statement"
+

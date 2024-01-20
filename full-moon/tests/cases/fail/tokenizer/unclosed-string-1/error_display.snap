@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-1
+---
+error[tokenizer]: unclosed string (1:11 to 1:17)
+  ┌─ source.lua:1:11
+  │
+1 │ local x = "hello
+  │           ^^^^^^
+
+

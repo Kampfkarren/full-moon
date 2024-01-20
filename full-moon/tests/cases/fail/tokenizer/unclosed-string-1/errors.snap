@@ -1,0 +1,16 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 15
+expression: result.errors
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-1
+---
+- TokenizerError:
+    error: UnclosedString
+    range:
+      - bytes: 10
+        line: 1
+        character: 11
+      - bytes: 16
+        line: 1
+        character: 17
+

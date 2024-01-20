@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/paren-expression-3
+---
+error[ast]: expected `)` after expression
+  ┌─ source.lua:1:10
+  │
+1 │ return (3, 4,
+  │          ^
+
+error[ast]: trailing commas are not allowed
+  ┌─ source.lua:1:13
+  │
+1 │ return (3, 4,
+  │             ^
+
+

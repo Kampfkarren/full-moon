@@ -8,7 +8,7 @@
 //! Everything with punctuation uses the [`Punctuated<T>`](Punctuated) type with the following logic.
 //! ```rust
 //! # use full_moon::parse;
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Vec<full_moon::Error>> {
 //! let ast = parse("call(arg1, arg2, arg3)")?;
 //! //                   ^^^^^ ~~~~~ ^^^^^
 //! # Ok(())
@@ -29,7 +29,7 @@ use std::{fmt::Display, iter::FromIterator};
 /// A punctuated sequence of node `T` separated by
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Default, Display, PartialEq, Eq)]
+#[derive(Clone, Debug, Display, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(bound = "T: Display")]
 #[display(fmt = "{}", "util::join_vec(pairs)")]
@@ -181,6 +181,29 @@ impl<T> Punctuated<T> {
     /// ```
     pub fn push(&mut self, pair: Pair<T>) {
         self.pairs.push(pair);
+    }
+
+    /// Pushes a new node `T` onto the sequence, with the given punctuation.
+    /// Will apply the punctuation to the last item, which must exist.
+    pub fn push_punctuated(&mut self, value: T, punctuation: TokenReference) {
+        let last_pair = self.pairs.pop().expect(
+            "push_punctuated adds the punctuation onto the last element, but there are no elements",
+        );
+
+        if last_pair.punctuation().is_some() {
+            self.pairs.push(last_pair);
+            panic!("push_punctuated adds the punctuation onto the last element, but the last element already has punctuation");
+        }
+
+        self.pairs
+            .push(Pair::Punctuated(last_pair.into_value(), punctuation));
+        self.pairs.push(Pair::new(value, None));
+    }
+}
+
+impl<T> Default for Punctuated<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -1,0 +1,143 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 27
+expression: result.ast
+input_file: full-moon/tests/cases/fail/parser/paren-expression-3
+---
+nodes:
+  stmts: []
+  last_stmt:
+    - Return:
+        token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 0
+              line: 1
+              character: 1
+            end_position:
+              bytes: 6
+              line: 1
+              character: 7
+            token_type:
+              type: Symbol
+              symbol: return
+          trailing_trivia:
+            - start_position:
+                bytes: 6
+                line: 1
+                character: 7
+              end_position:
+                bytes: 7
+                line: 1
+                character: 8
+              token_type:
+                type: Whitespace
+                characters: " "
+        returns:
+          pairs:
+            - Punctuated:
+                - Parentheses:
+                    contained:
+                      tokens:
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 7
+                              line: 1
+                              character: 8
+                            end_position:
+                              bytes: 8
+                              line: 1
+                              character: 9
+                            token_type:
+                              type: Symbol
+                              symbol: (
+                          trailing_trivia: []
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 0
+                              line: 1
+                              character: 1
+                            end_position:
+                              bytes: 1
+                              line: 1
+                              character: 2
+                            token_type:
+                              type: Symbol
+                              symbol: )
+                          trailing_trivia: []
+                    expression:
+                      Number:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 8
+                            line: 1
+                            character: 9
+                          end_position:
+                            bytes: 9
+                            line: 1
+                            character: 10
+                          token_type:
+                            type: Number
+                            text: "3"
+                        trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 9
+                      line: 1
+                      character: 10
+                    end_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    token_type:
+                      type: Symbol
+                      symbol: ","
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 10
+                        line: 1
+                        character: 11
+                      end_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+            - End:
+                Number:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 11
+                      line: 1
+                      character: 12
+                    end_position:
+                      bytes: 12
+                      line: 1
+                      character: 13
+                    token_type:
+                      type: Number
+                      text: "4"
+                  trailing_trivia: []
+    - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 13
+      line: 1
+      character: 14
+    end_position:
+      bytes: 13
+      line: 1
+      character: 14
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

@@ -1,0 +1,26 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/function-6
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 12
+        line: 1
+        character: 13
+      end_position:
+        bytes: 12
+        line: 1
+        character: 13
+      token_type:
+        type: Eof
+    additional: "expected `end` to close function body block"
+    range:
+      - bytes: 11
+        line: 1
+        character: 12
+      - bytes: 12
+        line: 1
+        character: 13
+

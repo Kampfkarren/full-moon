@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/call-2
+---
+error[ast]: expected `)` to close function call
+  ┌─ source.lua:1:5
+  │
+1 │ call("hello"
+  │     ^
+
+

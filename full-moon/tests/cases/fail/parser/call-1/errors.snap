@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/call-1
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 4
+        line: 1
+        character: 5
+      end_position:
+        bytes: 5
+        line: 1
+        character: 6
+      token_type:
+        type: Symbol
+        symbol: (
+    additional: "expected `)` to close function call"
+

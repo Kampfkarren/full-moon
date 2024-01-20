@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+assertion_line: 56
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cases/fail/parser/function-4
+---
+error[ast]: expected a parameter name or `)`
+  ┌─ source.lua:1:12
+  │
+1 │ function x(
+  │            ^
+
+

@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/table-1
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 7
+        line: 1
+        character: 8
+      end_position:
+        bytes: 8
+        line: 1
+        character: 9
+      token_type:
+        type: Symbol
+        symbol: "{"
+    additional: expected a field
+

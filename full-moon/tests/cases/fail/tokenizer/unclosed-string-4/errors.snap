@@ -1,0 +1,30 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/tokenizer/unclosed-string-4
+---
+- TokenizerError:
+    error: UnclosedString
+    range:
+      - bytes: 0
+        line: 1
+        character: 1
+      - bytes: 9
+        line: 2
+        character: 1
+- AstError:
+    token:
+      start_position:
+        bytes: 0
+        line: 1
+        character: 1
+      end_position:
+        bytes: 9
+        line: 2
+        character: 1
+      token_type:
+        type: StringLiteral
+        literal: recover
+        quote_type: Double
+    additional: "unexpected token, this needs to be a statement"
+

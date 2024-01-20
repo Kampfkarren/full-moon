@@ -1,2367 +1,3288 @@
+// actually, it might but only because the last token isn't an eof. parser is going to have to throw out those tokens
+// and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
+// maybe keep parsing until there's an `end`???? but then global blocks...aaa
+
 use super::{
-    parser_util::{InternalAstError, ParseIntoBox, Parser},
+    parser_structs::{ParserResult, ParserState},
+    punctuated::{Pair, Punctuated},
     span::ContainedSpan,
-    *,
+    Expression, FunctionBody, Parameter,
+};
+use crate::{
+    ast,
+    node::Node,
+    tokenizer::{Symbol, Token, TokenKind, TokenReference, TokenType},
 };
 
-#[cfg(feature = "roblox")]
-use super::types::*;
+#[cfg(feature = "luau")]
+use crate::tokenizer::InterpolatedStringKind;
 
-#[cfg(feature = "roblox")]
-use crate::tokenizer_luau::InterpolatedStringKind;
+#[cfg(feature = "luau")]
+static PARSE_NAME_ERROR: &str = "%error-id%";
 
-#[cfg(feature = "lua52")]
-use super::lua52::*;
+#[cfg(feature = "luau")]
+fn error_token() -> TokenReference {
+    TokenReference::new(
+        Vec::new(),
+        Token::new(TokenType::Identifier {
+            identifier: PARSE_NAME_ERROR.into(),
+        }),
+        Vec::new(),
+    )
+}
 
-use crate::tokenizer::{TokenKind, TokenReference, TokenType};
-
-use std::borrow::Cow;
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseSymbol(Symbol);
-
-define_parser!(ParseSymbol, TokenReference, |this, state| {
-    let expecting = TokenType::Symbol { symbol: this.0 };
-    let token = state.peek();
-
-    if *token.token_type() == expecting {
-        Ok((
-            state.advance().ok_or(InternalAstError::NoMatch)?,
-            token.clone(),
-        ))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseNumber;
-
-define_parser!(ParseNumber, TokenReference, |_, state| {
-    let token = state.peek();
-    if token.token_kind() == TokenKind::Number {
-        Ok((
-            state.advance().ok_or(InternalAstError::NoMatch)?,
-            token.clone(),
-        ))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseStringLiteral;
-
-define_parser!(ParseStringLiteral, TokenReference, |_, state| {
-    let token = state.peek();
-    if token.token_kind() == TokenKind::StringLiteral {
-        Ok((
-            state.advance().ok_or(InternalAstError::NoMatch)?,
-            token.clone(),
-        ))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-});
-
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ParseBlock;
-define_parser!(ParseBlock, Block, |_, state| {
+pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
     let mut stmts = Vec::new();
-    while let Ok((new_state, stmt)) = keep_going!(ParseStmt.parse(state)) {
-        state = new_state;
-        let mut semicolon = None;
 
-        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state) {
-            state = new_state;
-            semicolon = Some(new_semicolon);
-        }
+    loop {
+        match parse_stmt(state) {
+            ParserResult::Value(StmtVariant::Stmt(stmt)) => {
+                let semicolon = state.consume_if(Symbol::Semicolon);
+                stmts.push((stmt, semicolon));
+            }
+            ParserResult::Value(StmtVariant::LastStmt(last_stmt)) => {
+                let semicolon = state.consume_if(Symbol::Semicolon);
+                let last_stmt = Some((last_stmt, semicolon));
+                return ParserResult::Value(ast::Block { stmts, last_stmt });
+            }
 
-        stmts.push((stmt, semicolon));
-    }
-
-    if let Ok((mut state, last_stmt)) = keep_going!(ParseLastStmt.parse(state)) {
-        let mut semicolon = None;
-
-        if let Ok((new_state, new_semicolon)) = ParseSymbol(Symbol::Semicolon).parse(state) {
-            state = new_state;
-            semicolon = Some(new_semicolon)
-        }
-
-        Ok((
-            state,
-            Block {
-                stmts,
-                last_stmt: Some((last_stmt, semicolon)),
-            },
-        ))
-    } else {
-        Ok((
-            state,
-            Block {
-                stmts,
-                last_stmt: None,
-            },
-        ))
-    }
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseLastStmt;
-define_parser!(
-    ParseLastStmt,
-    LastStmt,
-    |_, state| if let Ok((state, token)) = ParseSymbol(Symbol::Return).parse(state) {
-        let (state, returns) = expect!(
-            state,
-            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
-            "return values"
-        );
-
-        Ok((state, LastStmt::Return(Return { token, returns })))
-    } else if let Ok((state, token)) = ParseSymbol(Symbol::Break).parse(state) {
-        Ok((state, LastStmt::Break(token)))
-    } else {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "roblox")] {
-                let (state, continue_token) = ParseIdentifier.parse(state)?;
-                if continue_token.token().to_string() == "continue" {
-                    Ok((state, LastStmt::Continue(continue_token)))
+            ParserResult::NotFound => break,
+            ParserResult::LexerMoved => {
+                if stmts.is_empty() {
+                    return ParserResult::LexerMoved;
                 } else {
-                    Err(InternalAstError::NoMatch)
+                    break;
                 }
-            } else {
-                Err(InternalAstError::NoMatch)
             }
         }
     }
-);
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseField;
-define_parser!(ParseField, Field, |_, state| {
-    if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
-        let (state, key) = expect!(state, ParseExpression.parse(state), "expected key");
-        let (state, end_bracket) = expect!(
-            state,
-            ParseSymbol(Symbol::RightBracket).parse(state),
-            "expected ']'"
-        );
-        let (state, equal) = expect!(
-            state,
-            ParseSymbol(Symbol::Equal).parse(state),
-            "expected '='"
-        );
-        let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
+    let last_stmt = match parse_last_stmt(state) {
+        ParserResult::Value(stmt) => Some(stmt),
+        ParserResult::LexerMoved | ParserResult::NotFound => None,
+    };
 
-        return Ok((
-            state,
-            Field::ExpressionKey {
-                brackets: ContainedSpan::new(start_bracket, end_bracket),
-                key,
-                equal,
-                value,
-            },
-        ));
-    } else if let Ok((state, key)) = keep_going!(ParseIdentifier.parse(state)) {
-        if let Ok((state, equal)) = ParseSymbol(Symbol::Equal).parse(state) {
-            let (state, value) = expect!(state, ParseExpression.parse(state), "expected value");
+    ParserResult::Value(ast::Block { stmts, last_stmt })
+}
 
-            return Ok((state, Field::NameKey { key, equal, value }));
+// Blocks in general are not very fallible. This means, for instance, not finishing `function()`
+// will result in a completely ignored function body.
+// This is an opinionated choice because I believe selene is going to produce terrible outputs if we don't.
+fn expect_block_with_end(
+    state: &mut ParserState,
+    name: &str,
+    start_for_errors: &TokenReference,
+) -> Result<(ast::Block, TokenReference), ()> {
+    let block = match parse_block(state) {
+        ParserResult::Value(block) => block,
+        ParserResult::NotFound => unreachable!("parse_block should always return a value"),
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let (start, end) = if let Some(last_stmt) = block.last_stmt() {
+        let mut tokens = last_stmt.tokens();
+        let start = tokens.next().unwrap();
+        let end = tokens.last().unwrap_or(start);
+        (start, end)
+    } else if let Some(the_last_of_the_stmts) = block.stmts().last() {
+        let mut tokens = the_last_of_the_stmts.tokens();
+        let start = tokens.next().unwrap();
+        let end = tokens.last().unwrap_or(start);
+        (start, end)
+    } else {
+        (start_for_errors, start_for_errors)
+    };
+
+    let Some(end_token) = state.require_with_reference_range(
+        Symbol::End,
+        || format!("expected `end` to close {} block", name),
+        start,
+        end,
+    ) else {
+        return Ok((block, TokenReference::basic_symbol("end")));
+    };
+
+    Ok((block, end_token))
+}
+
+enum StmtVariant {
+    Stmt(ast::Stmt),
+
+    // Used for things like Luau's `continue`, but nothing constructs it in Lua 5.1 alone.
+    #[allow(unused)]
+    LastStmt(ast::LastStmt),
+}
+
+fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Local,
+        } => {
+            let local_token = state.consume().unwrap();
+            let next_token = match state.current() {
+                Ok(token) => token,
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            match next_token.token_type() {
+                TokenType::Identifier { .. } => ParserResult::Value(StmtVariant::Stmt(
+                    ast::Stmt::LocalAssignment(match expect_local_assignment(state, local_token) {
+                        Ok(local_assignment) => local_assignment,
+                        Err(()) => return ParserResult::LexerMoved,
+                    }),
+                )),
+
+                TokenType::Symbol {
+                    symbol: Symbol::Function,
+                } => {
+                    let function_token = state.consume().unwrap();
+
+                    let function_name = match state.current() {
+                        Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                            state.consume().unwrap()
+                        }
+
+                        Ok(token) => {
+                            state.token_error(token.clone(), "expected a function name");
+                            return ParserResult::LexerMoved;
+                        }
+
+                        Err(()) => return ParserResult::LexerMoved,
+                    };
+
+                    let function_body = match parse_function_body(state) {
+                        ParserResult::Value(function_body) => function_body,
+                        ParserResult::NotFound => {
+                            state.token_error(function_token, "expected a function body");
+                            return ParserResult::LexerMoved;
+                        }
+                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                    };
+
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
+                        ast::LocalFunction {
+                            local_token,
+                            function_token,
+                            name: function_name,
+                            body: function_body,
+                        },
+                    )))
+                }
+
+                _ => {
+                    state.token_error(
+                        next_token.clone(),
+                        "expected either a variable name or `function`",
+                    );
+
+                    ParserResult::LexerMoved
+                }
+            }
         }
-    }
 
-    if let Ok((state, expr)) = keep_going!(ParseExpression.parse(state)) {
-        return Ok((state, Field::NoKey(expr)));
-    }
+        TokenType::Symbol {
+            symbol: Symbol::For,
+        } => {
+            let for_token = state.consume().unwrap();
 
-    Err(InternalAstError::NoMatch)
-});
-
-struct ParseTableConstructor;
-define_parser!(ParseTableConstructor, TableConstructor, |_, state| {
-    let (mut state, start_brace) = ParseSymbol(Symbol::LeftBrace).parse(state)?;
-    let mut fields = Punctuated::new();
-
-    while let Ok((new_state, field)) = keep_going!(ParseField.parse(state)) {
-        let field_sep = if let Ok((new_state, separator)) =
-            ParseSymbol(Symbol::Comma).parse(new_state)
-        {
-            state = new_state;
-            Some(separator)
-        } else if let Ok((new_state, separator)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
-            state = new_state;
-            Some(separator)
-        } else {
-            state = new_state;
-            None
-        };
-
-        let is_end = field_sep.is_none();
-        fields.push(Pair::new(field, field_sep));
-        if is_end {
-            break;
+            ParserResult::Value(StmtVariant::Stmt(match expect_for_stmt(state, for_token) {
+                Ok(for_stmt) => for_stmt,
+                Err(()) => return ParserResult::LexerMoved,
+            }))
         }
-    }
 
-    let (state, end_brace) = expect!(
-        state,
-        ParseSymbol(Symbol::RightBrace).parse(state),
-        "expected '}'"
-    );
+        TokenType::Symbol { symbol: Symbol::Do } => {
+            let do_token = state.consume().unwrap();
+            let (block, end_token) = match expect_block_with_end(state, "do", &do_token) {
+                Ok(block) => block,
+                Err(()) => return ParserResult::LexerMoved,
+            };
 
-    Ok((
-        state,
-        TableConstructor {
-            braces: ContainedSpan::new(start_brace, end_brace),
-            fields,
-        },
-    ))
-});
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Do(ast::Do {
+                do_token,
+                block,
+                end_token,
+            })))
+        }
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseUnaryExpression;
-define_parser!(ParseUnaryExpression, Expression, |_, state| {
-    let (state, unop) = keep_going!(ParseUnOp.parse(state))?;
-    let (state, expression) = expect!(
-        state,
-        ParseExpressionAtPrecedence(unop.precedence()).parse(state),
-        "expected expression"
-    );
-    let expression = Box::new(expression);
+        TokenType::Symbol { symbol: Symbol::If } => {
+            let if_token = state.consume().unwrap();
 
-    Ok((state, Expression::UnaryOperator { unop, expression }))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseParenExpression;
-define_parser!(ParseParenExpression, Expression, |_, state| {
-    let (state, left_paren) = ParseSymbol(Symbol::LeftParen).parse(state)?;
-    let (state, expression) = expect!(state, ParseExpression.parse(state), "expected expression");
-
-    let (state, right_paren) = expect!(
-        state,
-        ParseSymbol(Symbol::RightParen).parse(state),
-        "expected ')'"
-    );
-
-    Ok((
-        state,
-        Expression::Parentheses {
-            contained: ContainedSpan::new(left_paren, right_paren),
-            expression: Box::new(expression),
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParsePartExpression;
-
-// This looks really stupid because we save 66% of the stack allocation cost
-// by doing this.
-define_parser!(ParsePartExpression, Expression, |_, state| {
-    #[allow(clippy::result_large_err)]
-    fn parse_unary_expression(
-        state: ParserState,
-    ) -> Result<(ParserState, Expression), InternalAstError> {
-        ParseUnaryExpression.parse(state)
-    }
-
-    #[allow(clippy::result_large_err)]
-    fn parse_value(state: ParserState) -> Result<(ParserState, Expression), InternalAstError> {
-        ParseValue.parse(state)
-    }
-
-    #[allow(clippy::result_large_err)]
-    fn parse_paren_expression(
-        state: ParserState,
-    ) -> Result<(ParserState, Expression), InternalAstError> {
-        ParseParenExpression.parse(state)
-    }
-
-    let (state, expression) = keep_going!(parse_unary_expression(state)).or_else(|_| {
-        keep_going!(parse_value(state)).or_else(|_| keep_going!(parse_paren_expression(state)))
-    })?;
-
-    #[cfg(feature = "roblox")]
-    #[allow(clippy::result_large_err)]
-    fn maybe_type_assertion(
-        state: ParserState,
-        expression: Expression,
-    ) -> Result<(ParserState, Expression), InternalAstError> {
-        if let Ok((state, type_assertion)) = keep_going!(ParseTypeAssertion.parse(state)) {
-            return Ok((
-                state,
-                Expression::TypeAssertion {
-                    expression: Box::new(expression),
-                    type_assertion,
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::If(
+                match expect_if_stmt(state, if_token) {
+                    Ok(if_stmt) => if_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
                 },
-            ));
+            )))
         }
 
-        Ok((state, expression))
-    }
+        TokenType::Symbol {
+            symbol: Symbol::Function,
+        } => {
+            let function_token = state.consume().unwrap();
 
-    #[cfg(not(feature = "roblox"))]
-    #[allow(clippy::result_large_err)]
-    fn maybe_type_assertion(
-        state: ParserState,
-        expression: Expression,
-    ) -> Result<(ParserState, Expression), InternalAstError> {
-        Ok((state, expression))
-    }
+            let function_declaration = match expect_function_declaration(state, function_token) {
+                Ok(function_declaration) => function_declaration,
+                Err(()) => return ParserResult::LexerMoved,
+            };
 
-    maybe_type_assertion(state, expression)
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseExpressionAtPrecedence(u8);
-define_parser!(ParseExpressionAtPrecedence, Expression, |this, state| {
-    let min_precedence = this.0;
-    let (mut state, mut current_expr) = ParsePartExpression.parse(state)?;
-
-    // See if we can find a Binary Operator
-    while let Ok((next_state, operator)) = ParseBinOp.parse(state) {
-        if operator.precedence() < min_precedence {
-            break;
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
+                function_declaration,
+            )))
         }
 
-        let next_min_precedence = if operator.is_right_associative() {
-            operator.precedence()
+        TokenType::Symbol {
+            symbol: Symbol::Repeat,
+        } => {
+            let repeat_token = state.consume().unwrap();
+
+            ParserResult::Value(StmtVariant::Stmt(
+                match expect_repeat_stmt(state, repeat_token) {
+                    Ok(repeat_stmt) => repeat_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            ))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::While,
+        } => {
+            let while_token = state.consume().unwrap();
+
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::While(
+                match expect_while_stmt(state, while_token) {
+                    Ok(while_stmt) => while_stmt,
+                    Err(()) => return ParserResult::LexerMoved,
+                },
+            )))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        }
+        | TokenType::Identifier { .. } => {
+            // unwrap() because we're always starting on the right path
+            let (prefix, suffixes) = try_parser!(parse_prefix_and_suffixes(state)).unwrap();
+
+            let var = match suffixes.last() {
+                Some(ast::Suffix::Call(_)) => {
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionCall(
+                        ast::FunctionCall { prefix, suffixes },
+                    )));
+                }
+
+                Some(ast::Suffix::Index(_)) => {
+                    ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
+                }
+
+                None => match prefix {
+                    ast::Prefix::Name(name) => ast::Var::Name(name),
+
+                    // I think this only happens in error cases
+                    prefix @ ast::Prefix::Expression(_) => {
+                        ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
+                    }
+                },
+            };
+
+            match state.current() {
+                #[cfg(feature = "luau")]
+                // Compound Assignment
+                Ok(token)
+                    if state.lua_version().has_luau()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::DoubleSlashEqual)
+                            || token.is_symbol(Symbol::PercentEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::TwoDotsEqual)) =>
+                {
+                    let compound_operator = state.consume().unwrap();
+
+                    let ParserResult::Value(expr) = parse_expression(state) else {
+                        state.token_error(compound_operator, "expected expression to set to");
+                        return ParserResult::LexerMoved;
+                    };
+
+                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
+                        ast::CompoundAssignment {
+                            lhs: var,
+                            compound_operator: ast::CompoundOp::from_token(compound_operator),
+                            rhs: expr,
+                        },
+                    )));
+                }
+
+                Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
+
+                Ok(token) => {
+                    // Check if the consumed token is a potential context-sensitive keyword
+                    #[cfg(feature = "luau")]
+                    if state.lua_version().has_luau() {
+                        if let ast::Var::Name(token) = var {
+                            match token.token_type() {
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "export" =>
+                                {
+                                    let export_token = token;
+
+                                    let type_token = match state.current() {
+                                        Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "type") => {
+                                            state.consume().unwrap()
+                                        }
+
+                                        Ok(token) => {
+                                            state.token_error_ranged(
+                                                token.clone(),
+                                                "expected `type` after `export`",
+                                                &export_token,
+                                                &token.clone(),
+                                            );
+
+                                            return ParserResult::LexerMoved;
+                                        }
+
+                                        Err(()) => return ParserResult::LexerMoved,
+                                    };
+
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::ExportedTypeDeclaration(
+                                            ast::ExportedTypeDeclaration {
+                                                export_token,
+                                                type_declaration: match expect_type_declaration(
+                                                    state, type_token,
+                                                ) {
+                                                    Ok(type_declaration) => type_declaration,
+                                                    Err(()) => return ParserResult::LexerMoved,
+                                                },
+                                            },
+                                        ),
+                                    ));
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "type" =>
+                                {
+                                    let type_token = token;
+
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::TypeDeclaration(
+                                            match expect_type_declaration(state, type_token) {
+                                                Ok(type_declaration) => type_declaration,
+                                                Err(()) => return ParserResult::LexerMoved,
+                                            },
+                                        ),
+                                    ));
+                                }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "continue" =>
+                                {
+                                    let continue_token = token;
+                                    return ParserResult::Value(StmtVariant::LastStmt(
+                                        ast::LastStmt::Continue(continue_token),
+                                    ));
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+
+                    state.token_error(
+                        token.clone(),
+                        "unexpected expression when looking for a statement",
+                    );
+
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            let mut var_list = Punctuated::new();
+            var_list.push(Pair::End(var));
+
+            loop {
+                let next_comma = match state.current() {
+                    Ok(token) if token.is_symbol(Symbol::Comma) => state.consume().unwrap(),
+                    Ok(_) => break,
+                    Err(()) => return ParserResult::LexerMoved,
+                };
+
+                let (next_prefix, next_suffixes) = match parse_prefix_and_suffixes(state) {
+                    ParserResult::Value((prefix, suffixes)) => (prefix, suffixes),
+
+                    ParserResult::LexerMoved => {
+                        break;
+                    }
+
+                    ParserResult::NotFound => {
+                        state.token_error(next_comma, "expected another variable");
+                        break;
+                    }
+                };
+
+                match next_suffixes.last() {
+                    Some(ast::Suffix::Call(call)) => {
+                        state.token_error(
+                            call.tokens().last().unwrap().clone(),
+                            "can't assign to the result of a call",
+                        );
+                        break;
+                    }
+
+                    Some(ast::Suffix::Index(_)) => {
+                        var_list.push_punctuated(
+                            ast::Var::Expression(Box::new(ast::VarExpression {
+                                prefix: next_prefix,
+                                suffixes: next_suffixes,
+                            })),
+                            next_comma,
+                        );
+                    }
+
+                    None => match next_prefix {
+                        ast::Prefix::Name(name) => {
+                            var_list.push_punctuated(ast::Var::Name(name), next_comma);
+                        }
+
+                        prefix @ ast::Prefix::Expression(_) => var_list.push_punctuated(
+                            ast::Var::Expression(Box::new(ast::VarExpression {
+                                prefix,
+                                suffixes: next_suffixes,
+                            })),
+                            next_comma,
+                        ),
+                    },
+                }
+            }
+
+            let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after name") else {
+                return ParserResult::LexerMoved;
+            };
+
+            let expr_list = match parse_expression_list(state) {
+                ParserResult::Value(expr_list) => expr_list,
+
+                ParserResult::NotFound => {
+                    state.token_error(equal_token.clone(), "expected values to set to");
+                    Punctuated::new()
+                }
+
+                ParserResult::LexerMoved => Punctuated::new(),
+            };
+
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Assignment(ast::Assignment {
+                var_list,
+                equal_token,
+                expr_list,
+            })))
+        }
+
+        #[cfg(feature = "lua52")]
+        TokenType::Symbol {
+            symbol: Symbol::Goto,
+        } => {
+            debug_assert!(state.lua_version().has_lua52());
+
+            let goto_token = state.consume().unwrap();
+
+            match state.current() {
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                    let label_name = state.consume().unwrap();
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Goto(ast::Goto {
+                        goto_token,
+                        label_name,
+                    })))
+                }
+
+                Ok(token) => {
+                    state.token_error_ranged(
+                        token.clone(),
+                        "expected label name after `goto`",
+                        &goto_token,
+                        &token.clone(),
+                    );
+
+                    ParserResult::LexerMoved
+                }
+
+                Err(()) => {
+                    state.token_error(goto_token, "expected label name after `goto`");
+                    ParserResult::LexerMoved
+                }
+            }
+        }
+
+        #[cfg(feature = "lua52")]
+        TokenType::Symbol {
+            symbol: Symbol::TwoColons,
+        } if state.lua_version().has_lua52() => {
+            let left_colons = state.consume().unwrap();
+
+            let name = match state.current() {
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                    state.consume().unwrap()
+                }
+
+                Ok(token) => {
+                    state.token_error_ranged(
+                        token.clone(),
+                        "expected label name after `::`",
+                        &left_colons,
+                        &token.clone(),
+                    );
+
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            let right_colons = match state.require(Symbol::TwoColons, "expected `::` after label") {
+                Some(token) => token,
+                None => TokenReference::symbol("::").unwrap(),
+            };
+
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Label(ast::Label {
+                left_colons,
+                name,
+                right_colons,
+            })))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_last_stmt(
+    state: &mut ParserState,
+) -> ParserResult<(ast::LastStmt, Option<TokenReference>)> {
+    let last_stmt = match state.current() {
+        Ok(token) if token.is_symbol(Symbol::Return) => {
+            let return_token = state.consume().unwrap();
+
+            let expr_list = match parse_expression_list(state) {
+                ParserResult::Value(expr_list) => expr_list,
+                ParserResult::LexerMoved | ParserResult::NotFound => Punctuated::new(),
+            };
+
+            ast::LastStmt::Return(ast::Return {
+                token: return_token,
+                returns: expr_list,
+            })
+        }
+
+        Ok(token) if token.is_symbol(Symbol::Break) => {
+            let break_token = state.consume().unwrap();
+            ast::LastStmt::Break(break_token)
+        }
+
+        _ => return ParserResult::NotFound,
+    };
+
+    let semicolon = state.consume_if(Symbol::Semicolon);
+
+    ParserResult::Value((last_stmt, semicolon))
+}
+
+fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionName> {
+    let mut names = Punctuated::new();
+
+    let name = match state.current() {
+        Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+            state.consume().unwrap()
+        }
+
+        Ok(token) => {
+            state.token_error(token.clone(), "expected function name");
+            return ParserResult::NotFound;
+        }
+
+        Err(()) => return ParserResult::NotFound,
+    };
+
+    names.push(Pair::End(name));
+
+    loop {
+        let middle_token = match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Colon) || token.is_symbol(Symbol::Dot) => {
+                state.consume().unwrap()
+            }
+            Ok(_) => break,
+            Err(()) => return ParserResult::LexerMoved,
+        };
+
+        let name = match state.current() {
+            Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                state.consume().unwrap()
+            }
+
+            Ok(token) => {
+                state.token_error(
+                    token.clone(),
+                    format!("expected name after `{}`", middle_token.token()),
+                );
+                return ParserResult::NotFound;
+            }
+
+            Err(()) => {
+                return ParserResult::LexerMoved;
+            }
+        };
+
+        if middle_token.is_symbol(Symbol::Dot) {
+            names.push_punctuated(name, middle_token);
+        } else if middle_token.is_symbol(Symbol::Colon) {
+            return ParserResult::Value(ast::FunctionName {
+                names,
+                colon_name: Some((middle_token, name)),
+            });
         } else {
-            operator.precedence() + 1
-        };
-
-        let (next_state, rhs) = expect!(
-            next_state,
-            ParseExpressionAtPrecedence(next_min_precedence).parse(next_state),
-            "expected expression"
-        );
-        state = next_state;
-        current_expr = Expression::BinaryOperator {
-            lhs: Box::new(current_expr),
-            binop: operator,
-            rhs: Box::new(rhs),
-        };
-    }
-
-    Ok((state, current_expr))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseExpression;
-define_parser!(ParseExpression, Expression, |_, state| {
-    ParseExpressionAtPrecedence(1).parse(state)
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseTypeAssertion;
-
-#[rustfmt::skip]
-define_roblox_parser!(
-    ParseTypeAssertion,
-    TypeAssertion,
-    TokenReference,
-    |_, state| {
-        let (state, assertion_op) = ParseSymbol(Symbol::TwoColons).parse(state)?;
-        let (state, cast_to) = expect!(
-            state,
-            ParseTypeInfo(TypeInfoContext::None).parse(state),
-            "expected type in type assertion"
-        );
-
-        Ok((state, TypeAssertion { assertion_op, cast_to }))
-    }
-);
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseValue;
-define_parser!(ParseValue, Expression, |_, state| parse_first_of!(state, {
-    ParseSymbol(Symbol::Nil) => Expression::Symbol,
-    ParseSymbol(Symbol::False) => Expression::Symbol,
-    ParseSymbol(Symbol::True) => Expression::Symbol,
-    ParseNumber => Expression::Number,
-    ParseStringLiteral => Expression::String,
-    ParseSymbol(Symbol::Ellipse) => Expression::Symbol,
-    ParseFunction => Expression::Function,
-    ParseTableConstructor => Expression::TableConstructor,
-    ParseFunctionCall => Expression::FunctionCall,
-    ParseVar => Expression::Var,
-    @#[cfg(feature = "roblox")]
-    ParseIfExpression => Expression::IfExpression,
-    @#[cfg(feature = "roblox")]
-    ParseInterpolatedString => Expression::InterpolatedString,
-}));
-
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseStmt;
-define_parser!(ParseStmt, Stmt, |_, state| parse_first_of!(state, {
-    ParseAssignment => Stmt::Assignment,
-    ParseFunctionCall => Stmt::FunctionCall,
-    ParseDo => Stmt::Do,
-    ParseWhile => Stmt::While,
-    ParseRepeat => Stmt::Repeat,
-    ParseIf => Stmt::If,
-    ParseNumericFor => Stmt::NumericFor,
-    ParseGenericFor => Stmt::GenericFor,
-    ParseFunctionDeclaration => Stmt::FunctionDeclaration,
-    ParseLocalFunction => Stmt::LocalFunction,
-    ParseLocalAssignment => Stmt::LocalAssignment,
-    @#[cfg(feature = "roblox")]
-    ParseCompoundAssignment => Stmt::CompoundAssignment,
-    @#[cfg(feature = "roblox")]
-    ParseExportedTypeDeclaration => Stmt::ExportedTypeDeclaration,
-    @#[cfg(feature = "roblox")]
-    ParseTypeDeclaration => Stmt::TypeDeclaration,
-    @#[cfg(feature = "lua52")]
-    ParseGoto => Stmt::Goto,
-    @#[cfg(feature = "lua52")]
-    ParseLabel => Stmt::Label,
-}));
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParsePrefix;
-define_parser!(ParsePrefix, Prefix, |_, state| parse_first_of!(state, {
-    ParseIntoBox(ParseParenExpression) => Prefix::Expression,
-    ParseIdentifier => Prefix::Name,
-}));
-
-struct ParseIndex;
-define_parser!(
-    ParseIndex,
-    Index,
-    |_, state| if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state) {
-        let (state, expression) =
-            expect!(state, ParseExpression.parse(state), "expected expression");
-        let (state, end_bracket) = expect!(
-            state,
-            ParseSymbol(Symbol::RightBracket).parse(state),
-            "expected ']'"
-        );
-        Ok((
-            state,
-            Index::Brackets {
-                brackets: ContainedSpan::new(start_bracket, end_bracket),
-                expression,
-            },
-        ))
-    } else if let Ok((state, dot)) = ParseSymbol(Symbol::Dot).parse(state) {
-        let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-        Ok((state, Index::Dot { dot, name }))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-);
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionArgs;
-define_parser!(
-    ParseFunctionArgs,
-    FunctionArgs,
-    |_, state| if let Ok((state, left_paren)) =
-        keep_going!(ParseSymbol(Symbol::LeftParen).parse(state))
-    {
-        let (state, arguments) = expect!(
-            state,
-            ZeroOrMoreDelimited(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected arguments"
-        );
-        let (state, right_paren) = expect!(
-            state,
-            ParseSymbol(Symbol::RightParen).parse(state),
-            "expected ')'"
-        );
-        Ok((
-            state,
-            FunctionArgs::Parentheses {
-                arguments,
-                parentheses: ContainedSpan::new(left_paren, right_paren),
-            },
-        ))
-    } else if let Ok((state, table_constructor)) = keep_going!(ParseTableConstructor.parse(state)) {
-        Ok((state, FunctionArgs::TableConstructor(table_constructor)))
-    } else if let Ok((state, string)) = keep_going!(ParseStringLiteral.parse(state)) {
-        Ok((state, FunctionArgs::String(string)))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-);
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseNumericFor;
-define_parser!(ParseNumericFor, NumericFor, |_, state| {
-    let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
-
-    #[cfg(not(feature = "roblox"))]
-    let (state, index_variable) = expect!(state, ParseIdentifier.parse(state), "expected names");
-
-    #[cfg(feature = "roblox")]
-    let (state, (index_variable, type_specifier)) =
-        expect!(state, ParseNameWithType.parse(state), "expected names");
-
-    let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state)?; // Numeric fors run before generic fors, so we can't guarantee this
-    let (state, start) = expect!(
-        state,
-        ParseExpression.parse(state),
-        "expected start expression"
-    );
-    let (state, start_end_comma) = expect!(
-        state,
-        ParseSymbol(Symbol::Comma).parse(state),
-        "expected comma"
-    );
-    let (state, end) = expect!(
-        state,
-        ParseExpression.parse(state),
-        "expected end expression"
-    );
-    let (state, step, end_step_comma) =
-        if let Ok((state, comma)) = ParseSymbol(Symbol::Comma).parse(state) {
-            let (state, expression) = expect!(
-                state,
-                ParseExpression.parse(state),
-                "expected limit expression"
-            );
-            (state, Some(expression), Some(comma))
-        } else {
-            (state, None, None)
-        };
-    let (state, do_token) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-
-    Ok((
-        state,
-        NumericFor {
-            for_token,
-            index_variable,
-            equal_token,
-            start,
-            start_end_comma,
-            end,
-            end_step_comma,
-            step,
-            do_token,
-            block,
-            end_token,
-            #[cfg(feature = "roblox")]
-            type_specifier,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseGenericFor;
-define_parser!(ParseGenericFor, GenericFor, |_, state| {
-    let (mut state, for_token) = ParseSymbol(Symbol::For).parse(state)?;
-
-    let mut names;
-    let mut type_specifiers = Vec::new();
-
-    if cfg!(feature = "roblox") {
-        names = Punctuated::new();
-
-        let (new_state, full_name_list) = expect!(
-            state,
-            OneOrMore(ParseNameWithType, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected names"
-        );
-
-        for mut pair in full_name_list.into_pairs() {
-            type_specifiers.push(pair.value_mut().1.take());
-            names.push(pair.map(|(name, _)| name));
+            unreachable!();
         }
-
-        state = new_state;
-    } else {
-        let (new_state, new_names) = expect!(
-            state,
-            OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state),
-            "expected names"
-        );
-
-        state = new_state;
-        names = new_names;
     }
 
-    let (state, in_token) = expect!(state, ParseSymbol(Symbol::In).parse(state), "expected 'in'"); // Numeric fors run before here, so there has to be an in
-    let (state, expr_list) = expect!(
-        state,
-        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
-        "expected expression"
-    );
-    let (state, do_token) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-    Ok((
-        state,
-        GenericFor {
+    ParserResult::Value(ast::FunctionName {
+        names,
+        colon_name: None,
+    })
+}
+
+fn expect_function_declaration(
+    state: &mut ParserState,
+    function_token: TokenReference,
+) -> Result<ast::FunctionDeclaration, ()> {
+    let function_name = match expect_function_name(state) {
+        ParserResult::Value(name) => name,
+        ParserResult::NotFound | ParserResult::LexerMoved => return Err(()),
+    };
+
+    let function_body = match parse_function_body(state) {
+        ParserResult::Value(body) => body,
+
+        ParserResult::LexerMoved => ast::FunctionBody::new(),
+
+        ParserResult::NotFound => {
+            state.token_error(function_token.clone(), "expected a function body");
+            ast::FunctionBody::new()
+        }
+    };
+
+    Ok(ast::FunctionDeclaration {
+        function_token,
+        name: function_name,
+        body: function_body,
+    })
+}
+
+fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result<ast::Stmt, ()> {
+    let name_list = match parse_name_list(state) {
+        ParserResult::Value(name_list) => name_list,
+        ParserResult::NotFound => {
+            state.token_error(for_token, "expected name after `for`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return Err(()),
+    };
+
+    debug_assert!(!name_list.is_empty());
+
+    if name_list.len() == 1 && current_token.is_symbol(Symbol::Equal) {
+        return Ok(ast::Stmt::NumericFor(expect_numeric_for_stmt(
+            state,
             for_token,
-            names,
+            name_list.into_iter().next().unwrap(),
+        )?));
+    }
+
+    let in_token = match current_token {
+        token if token.is_symbol(Symbol::In) => state.consume().unwrap(),
+        token => {
+            state.token_error(token.clone(), "expected `in` after name list");
+            return Err(());
+        }
+    };
+
+    let expressions = match parse_expression_list(state) {
+        ParserResult::Value(expressions) => expressions,
+        ParserResult::NotFound => {
+            state.token_error(in_token, "expected expressions after `in`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after expression list") else {
+        return Ok(ast::Stmt::GenericFor(ast::GenericFor {
+            for_token,
+            names: name_list
+                .clone()
+                .into_pairs()
+                .map(|pair| pair.map(|name| name.name))
+                .collect(),
+            #[cfg(feature = "luau")]
+            type_specifiers: name_list
+                .into_iter()
+                .map(|name| name.type_specifier)
+                .collect(),
             in_token,
-            expr_list,
-            do_token,
-            block,
-            end_token,
-            #[cfg(feature = "roblox")]
-            type_specifiers,
+            expr_list: expressions,
+            do_token: TokenReference::basic_symbol("do"),
+            block: ast::Block::new(),
+            end_token: TokenReference::basic_symbol("end"),
+        }));
+    };
+
+    let (block, end) = match expect_block_with_end(state, "for loop", &do_token) {
+        Ok(block) => block,
+        Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
+    };
+
+    Ok(ast::Stmt::GenericFor(ast::GenericFor {
+        for_token,
+        names: name_list
+            .clone()
+            .into_pairs()
+            .map(|pair| pair.map(|name| name.name))
+            .collect(),
+        #[cfg(feature = "luau")]
+        type_specifiers: name_list
+            .into_iter()
+            .map(|name| name.type_specifier)
+            .collect(),
+        in_token,
+        expr_list: expressions,
+        do_token,
+        block,
+        end_token: end,
+    }))
+}
+
+fn expect_numeric_for_stmt(
+    state: &mut ParserState,
+    for_token: TokenReference,
+    index_variable: Name,
+) -> Result<ast::NumericFor, ()> {
+    let equal_token = state.consume().unwrap();
+    debug_assert!(equal_token.is_symbol(Symbol::Equal));
+
+    let start = match parse_expression(state) {
+        ParserResult::Value(start) => start,
+        ParserResult::NotFound => {
+            state.token_error(equal_token, "expected start expression after `=`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let Some(start_end_comma) = state.require(Symbol::Comma, "expected `,` after start expression")
+    else {
+        return Err(());
+    };
+
+    let end = match parse_expression(state) {
+        ParserResult::Value(end) => end,
+        ParserResult::NotFound => {
+            state.token_error(start_end_comma, "expected end expression after `,`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    // rewrite todo: this can recover into a numeric for loop with no step (or simulate the do..end)
+    let (end_step_comma, step) = match state.consume_if(Symbol::Comma) {
+        Some(end_step_comma) => match parse_expression(state) {
+            ParserResult::Value(step) => (Some(end_step_comma), Some(step)),
+            ParserResult::NotFound => {
+                state.token_error(start_end_comma, "expected step expression after `,`");
+                return Err(());
+            }
+            ParserResult::LexerMoved => return Err(()),
         },
-    ))
-});
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseIf;
-define_parser!(ParseIf, If, |_, state| {
-    let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
-    let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
-    let (state, then_token) = expect!(
-        state,
-        ParseSymbol(Symbol::Then).parse(state),
-        "expected 'then'"
-    );
-    let (mut state, block) = expect!(state, ParseBlock.parse(state), "expected block");
+        None => (None, None),
+    };
 
-    let mut else_ifs = Vec::new();
-    while let Ok((new_state, else_if_token)) = ParseSymbol(Symbol::ElseIf).parse(state) {
-        let (new_state, condition) = expect!(
-            state,
-            ParseExpression.parse(new_state),
-            "expected condition"
-        );
-        let (new_state, then_token) = expect!(
-            state,
-            ParseSymbol(Symbol::Then).parse(new_state),
-            "expected 'then'"
-        );
-        let (new_state, block) = expect!(state, ParseBlock.parse(new_state), "expected block");
-        state = new_state;
-        else_ifs.push(ElseIf {
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after step expression") else {
+        return Err(());
+    };
+
+    let (block, end_token) = match expect_block_with_end(state, "numeric for loop", &do_token) {
+        Ok(block) => block,
+        Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
+    };
+
+    Ok(ast::NumericFor {
+        for_token,
+        index_variable: index_variable.name,
+        #[cfg(feature = "luau")]
+        type_specifier: index_variable.type_specifier,
+        equal_token,
+        start,
+        start_end_comma,
+        end,
+        end_step_comma,
+        step,
+        do_token,
+        block,
+        end_token,
+    })
+}
+
+fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
+    let condition = match parse_expression(state) {
+        ParserResult::Value(condition) => condition,
+        ParserResult::NotFound => {
+            state.token_error(if_token, "expected condition after `if`");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        return Err(());
+    };
+
+    let then_block = match parse_block(state) {
+        ParserResult::Value(block) => block,
+        ParserResult::NotFound => {
+            state.token_error(then_token, "expected block after `then`");
+            return Ok(ast::If::new(condition));
+        }
+        ParserResult::LexerMoved => {
+            return Ok(ast::If::new(condition));
+        }
+    };
+
+    let mut else_if = Vec::new();
+
+    let else_if_optional = |else_if: Vec<ast::ElseIf>| {
+        if else_if.is_empty() {
+            None
+        } else {
+            Some(else_if)
+        }
+    };
+
+    let unfinished_if =
+        |condition, else_if| Ok(ast::If::new(condition).with_else_if(else_if_optional(else_if)));
+
+    loop {
+        let else_if_token = match state.current() {
+            Ok(else_if_token) if else_if_token.is_symbol(Symbol::ElseIf) => {
+                state.consume().unwrap()
+            }
+
+            Ok(_) => break,
+
+            Err(()) => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        let condition = match parse_expression(state) {
+            ParserResult::Value(condition) => condition,
+            ParserResult::NotFound => {
+                state.token_error(else_if_token, "expected condition after `elseif`");
+                return unfinished_if(condition, else_if);
+            }
+            ParserResult::LexerMoved => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+        else {
+            return unfinished_if(condition, else_if);
+        };
+
+        let then_block = match parse_block(state) {
+            ParserResult::Value(block) => block,
+            ParserResult::NotFound => {
+                state.token_error(then_token, "expected block after `then`");
+                return unfinished_if(condition, else_if);
+            }
+            ParserResult::LexerMoved => {
+                return unfinished_if(condition, else_if);
+            }
+        };
+
+        else_if.push(ast::ElseIf {
             else_if_token,
             condition,
             then_token,
-            block,
+            block: then_block,
         });
     }
 
-    let (state, else_token, r#else) =
-        if let Ok((state, else_token)) = ParseSymbol(Symbol::Else).parse(state) {
-            let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-            (state, Some(else_token), Some(block))
-        } else {
-            (state, None, None)
-        };
-
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-
-    Ok((
-        state,
-        If {
-            if_token,
-            condition,
-            then_token,
-            block,
-            else_token,
-            r#else,
-            else_if: if else_ifs.is_empty() {
-                None
-            } else {
-                Some(else_ifs)
-            },
-            end_token,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseWhile;
-define_parser!(ParseWhile, While, |_, state| {
-    let (state, while_token) = ParseSymbol(Symbol::While).parse(state)?;
-    let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
-    let (state, do_token) = expect!(state, ParseSymbol(Symbol::Do).parse(state), "expected 'do'");
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-    Ok((
-        state,
-        While {
-            while_token,
-            condition,
-            do_token,
-            block,
-            end_token,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseRepeat;
-define_parser!(ParseRepeat, Repeat, |_, state| {
-    let (state, repeat_token) = ParseSymbol(Symbol::Repeat).parse(state)?;
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, until_token) = expect!(
-        state,
-        ParseSymbol(Symbol::Until).parse(state),
-        "expected 'until'"
-    );
-    let (state, until) = expect!(state, ParseExpression.parse(state), "expected condition");
-    Ok((
-        state,
-        Repeat {
-            repeat_token,
-            block,
-            until_token,
-            until,
-        },
-    ))
-});
-
-struct ParseMethodCall;
-define_parser!(ParseMethodCall, MethodCall, |_, state| {
-    let (state, colon_token) = ParseSymbol(Symbol::Colon).parse(state)?;
-    let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected method");
-    let (state, args) = expect!(state, ParseFunctionArgs.parse(state), "expected args");
-    Ok((
-        state,
-        MethodCall {
-            colon_token,
-            name,
-            args,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseCall;
-define_parser!(ParseCall, Call, |_, state| parse_first_of!(state, {
-    ParseFunctionArgs => Call::AnonymousCall,
-    ParseMethodCall => Call::MethodCall,
-}));
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionBody;
-#[rustfmt::skip]
-define_parser!(ParseFunctionBody, FunctionBody, |_, state| {
-    #[cfg(feature = "roblox")]
-    let (state, generics) =
-        if let Ok((state, generics)) = keep_going!(ParseGenericDeclaration.parse(state)) {
-            (state, Some(generics))
-        } else {
-            (state, None)
-        };
-
-    let (mut state, start_parenthese) = expect!(
-        state,
-        ParseSymbol(Symbol::LeftParen).parse(state),
-        "expected '('"
-    );
-
-    let mut parameters = Punctuated::new();
-    let mut name_list = None;
-    let mut type_specifiers = Vec::new();
-
-    if cfg!(feature = "roblox") {
-        if let Ok((new_state, full_name_list)) = keep_going!(
-            OneOrMore(ParseNameWithType, ParseSymbol(Symbol::Comma), false).parse(state)
-        ) {
-            let mut new_name_list = Punctuated::new();
-
-            for mut pair in full_name_list.into_pairs() {
-                type_specifiers.push(pair.value_mut().1.take());
-                new_name_list.push(pair.map(|(name, _)| name));
+    let (else_block, else_token) = match state.consume_if(Symbol::Else) {
+        Some(else_token) => match parse_block(state) {
+            ParserResult::Value(block) => (Some(block), Some(else_token)),
+            ParserResult::NotFound => {
+                state.token_error(else_token.clone(), "expected block after `else`");
+                (Some(ast::Block::new()), Some(else_token))
             }
+            ParserResult::LexerMoved => (Some(ast::Block::new()), Some(else_token)),
+        },
 
-            state = new_state;
-            name_list = Some(new_name_list);
-        }
-    } else if let Ok((new_state, new_name_list)) = keep_going!(
-        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Comma), false).parse(state)
-    ) {
-        state = new_state;
-        name_list = Some(new_name_list);
-    }
-
-    if let Some(names) = name_list {
-        parameters.extend(names.into_pairs().map(|pair| {
-            let tuple = pair.into_tuple();
-            Pair::new(Parameter::Name(tuple.0), tuple.1)
-        }));
-
-        if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state) {
-            if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(new_state) {
-                state = new_state;
-
-                let mut last_parameter = parameters.pop().expect("comma parsed and accepted, but no arguments before it?");
-                last_parameter = Pair::new(last_parameter.into_value(), Some(comma));
-                parameters.push(last_parameter);
-
-                parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
-
-                // Parse ellipse type if in Luau
-                if cfg!(feature = "roblox") {
-                    if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::VarArgSpecifier).parse(state) {
-                        state = new_state;
-                        type_specifiers.push(Some(type_specifier));
-                    } else {
-                        type_specifiers.push(None);
-                    }
-                }
-            }
-        }
-    } else if let Ok((new_state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-        state = new_state;
-        parameters.push(Pair::new(Parameter::Ellipse(ellipse), None));
-
-        // Parse ellipse type if in Luau
-        if cfg!(feature = "roblox") {
-            if let Ok((new_state, type_specifier)) = ParseTypeSpecifier(TypeInfoContext::VarArgSpecifier).parse(state) {
-                state = new_state;
-                type_specifiers.push(Some(type_specifier));
-            } else {
-                type_specifiers.push(None);
-            }
-        }
-    }
-
-    let (state, end_parenthese) = expect!(
-        state,
-        ParseSymbol(Symbol::RightParen).parse(state),
-        "expected ')'"
-    );
-
-    #[cfg_attr(not(feature = "roblox"), allow(unused_variables))]
-    let (state, return_type) = if let Ok((state, return_type)) = ParseTypeSpecifier(TypeInfoContext::ReturnType).parse(state) {
-        (state, Some(return_type))
-    } else {
-        (state, None)
+        None => (None, None),
     };
 
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-    Ok((
-        state,
-        FunctionBody {
-            #[cfg(feature = "roblox")]
-            generics,
-            parameters_parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-            parameters,
-            block,
-            end_token,
-            #[cfg(feature = "roblox")]
-            type_specifiers,
-            #[cfg(feature = "roblox")]
-            return_type,
-        },
-    ))
-});
+    let end_token = match state.current() {
+        Ok(token) if token.is_symbol(Symbol::End) => state.consume().unwrap(),
+        Ok(token) => {
+            state.token_error(token.clone(), "expected `end` to conclude `if`");
+            TokenReference::basic_symbol("end")
+        }
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunction;
-define_parser!(ParseFunction, (TokenReference, FunctionBody), |_, state| {
-    let (state, token) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, body) = expect!(
-        state,
-        ParseFunctionBody.parse(state),
-        "expected function body"
-    );
-    Ok((state, (token, body)))
-});
+        Err(()) => TokenReference::basic_symbol("end"),
+    };
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseSuffix;
-define_parser!(ParseSuffix, Suffix, |_, state| parse_first_of!(state, {
-    ParseCall => Suffix::Call,
-    ParseIndex => Suffix::Index,
-}));
+    Ok(ast::If {
+        if_token,
+        condition,
+        then_token,
+        block: then_block,
+        else_if: else_if_optional(else_if),
+        else_token,
+        r#else: else_block,
+        end_token,
+    })
+}
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseVarExpression;
-define_parser!(ParseVarExpression, Box<VarExpression>, |_, state| {
-    let (state, prefix) = ParsePrefix.parse(state)?;
-    let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
-
-    if let Some(Suffix::Index(_)) = suffixes.last() {
-        Ok((state, Box::new(VarExpression { prefix, suffixes })))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-});
-
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseVar;
-define_parser!(ParseVar, Var, |_, state| parse_first_of!(state, {
-    ParseVarExpression => Var::Expression,
-    ParseIdentifier => Var::Name,
-}));
-
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseAssignment;
-define_parser!(ParseAssignment, Assignment, |_, state| {
-    let (state, var_list) = OneOrMore(ParseVar, ParseSymbol(Symbol::Comma), false).parse(state)?;
-    let (state, equal_token) = ParseSymbol(Symbol::Equal).parse(state)?;
-    let (state, expr_list) = expect!(
-        state,
-        OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false).parse(state),
-        "expected values"
-    );
-
-    Ok((
-        state,
-        Assignment {
-            var_list,
-            equal_token,
-            expr_list,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseLocalFunction;
-define_parser!(ParseLocalFunction, LocalFunction, |_, state| {
-    let (state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
-    let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-    let (state, body) = ParseFunctionBody.parse(state)?;
-    Ok((
-        state,
-        LocalFunction {
-            local_token,
-            function_token,
-            name,
-            body,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseLocalAssignment;
-define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
-    let (mut state, local_token) = ParseSymbol(Symbol::Local).parse(state)?;
+fn expect_local_assignment(
+    state: &mut ParserState,
+    local_token: TokenReference,
+) -> Result<ast::LocalAssignment, ()> {
+    let names = match one_or_more(state, parse_name_with_attributes, Symbol::Comma) {
+        ParserResult::Value(names) => names,
+        ParserResult::NotFound => {
+            unreachable!("expect_local_assignment called without upcoming identifier");
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
 
     let mut name_list = Punctuated::new();
+
+    #[cfg(feature = "luau")]
+    let mut type_specifiers = Vec::new();
     #[cfg(feature = "lua54")]
     let mut attributes = Vec::new();
-    #[cfg(feature = "roblox")]
-    let mut type_specifiers = Vec::new();
 
-    loop {
-        let (new_state, name) = expect!(state, ParseIdentifier.parse(state), "expected name");
-        state = new_state;
+    for name in names.into_pairs() {
+        let (name, punctuation) = name.into_tuple();
 
         #[cfg(feature = "lua54")]
-        if let Ok((new_state, attribute)) = keep_going!(ParseAttribute.parse(state)) {
-            attributes.push(Some(attribute));
-            state = new_state;
-        } else {
-            attributes.push(None);
-        }
+        attributes.push(name.attribute);
 
-        #[cfg(feature = "roblox")]
-        if let Ok((new_state, type_specifier)) =
-            keep_going!(ParseTypeSpecifier(TypeInfoContext::None).parse(state))
-        {
-            type_specifiers.push(Some(type_specifier));
-            state = new_state;
-        } else {
-            type_specifiers.push(None);
-        }
+        #[cfg(feature = "luau")]
+        type_specifiers.push(name.type_specifier);
 
-        if let Ok((new_state, comma)) = ParseSymbol(Symbol::Comma).parse(state) {
-            name_list.push(Pair::Punctuated(name, comma));
-            state = new_state;
-        } else {
-            name_list.push(Pair::End(name));
-            break;
-        }
+        name_list.push(match punctuation {
+            Some(punctuation) => Pair::Punctuated(name.name, punctuation),
+            None => Pair::End(name.name),
+        });
     }
 
-    let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state) {
-        Ok((state, equal_token)) => (
-            OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
-                .parse(state)
-                .map_err(|_| InternalAstError::UnexpectedToken {
-                    token: (*state.peek()).to_owned(),
-                    additional: Some(Cow::from("expected expression")),
-                })?,
-            Some(equal_token),
-        ),
-        Err(InternalAstError::NoMatch) => ((state, Punctuated::new()), None),
-        Err(other) => return Err(other),
+    let mut local_assignment = ast::LocalAssignment {
+        local_token,
+        name_list,
+        #[cfg(feature = "luau")]
+        type_specifiers,
+        equal_token: None,
+        expr_list: Punctuated::new(),
+        #[cfg(feature = "lua54")]
+        attributes,
     };
 
-    Ok((
-        state,
-        LocalAssignment {
-            local_token,
-            #[cfg(feature = "roblox")]
-            type_specifiers,
-            name_list,
-            #[cfg(feature = "lua54")]
-            attributes,
-            equal_token,
-            expr_list,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseDo;
-define_parser!(ParseDo, Do, |_, state| {
-    let (state, do_token) = ParseSymbol(Symbol::Do).parse(state)?;
-    let (state, block) = expect!(state, ParseBlock.parse(state), "expected block");
-    let (state, end_token) = expect!(
-        state,
-        ParseSymbol(Symbol::End).parse(state),
-        "expected 'end'"
-    );
-
-    Ok((
-        state,
-        Do {
-            do_token,
-            block,
-            end_token,
-        },
-    ))
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionCall;
-define_parser!(ParseFunctionCall, FunctionCall, |_, state| {
-    let (state, prefix) = ParsePrefix.parse(state)?;
-    let (state, suffixes) = ZeroOrMore(ParseSuffix).parse(state)?;
-
-    if let Some(Suffix::Call(_)) = suffixes.last() {
-        Ok((state, FunctionCall { prefix, suffixes }))
-    } else {
-        Err(InternalAstError::NoMatch)
-    }
-});
-
-#[derive(Clone, Debug, PartialEq)]
-struct ParseFunctionName;
-define_parser!(ParseFunctionName, FunctionName, |_, state| {
-    let (state, names) =
-        OneOrMore(ParseIdentifier, ParseSymbol(Symbol::Dot), false).parse(state)?;
-    let (state, colon_name) = if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(state) {
-        let (state, colon_name) =
-            expect!(state, ParseIdentifier.parse(state), "expected method name");
-        (state, Some((colon, colon_name)))
-    } else {
-        (state, None)
+    local_assignment.equal_token = match state.consume_if(Symbol::Equal) {
+        Some(equal_token) => Some(equal_token),
+        None => return Ok(local_assignment),
     };
 
-    Ok((state, FunctionName { names, colon_name }))
-});
+    match parse_expression_list(state) {
+        ParserResult::Value(expr_list) => local_assignment.expr_list = expr_list,
 
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseFunctionDeclaration;
-define_parser!(ParseFunctionDeclaration, FunctionDeclaration, |_, state| {
-    let (state, function_token) = ParseSymbol(Symbol::Function).parse(state)?;
-    let (state, name) = expect!(
-        state,
-        ParseFunctionName.parse(state),
-        "expected function name"
-    );
-    let (state, body) = expect!(
-        state,
-        ParseFunctionBody.parse(state),
-        "expected function body"
-    );
-    Ok((
-        state,
-        FunctionDeclaration {
-            function_token,
-            name,
-            body,
-        },
-    ))
-});
+        ParserResult::NotFound => {
+            state.token_error(
+                local_assignment.equal_token.clone().unwrap(),
+                "expected an expression",
+            );
+        }
 
-#[derive(Clone, Debug, Default, PartialEq)]
-struct ParseIdentifier;
-#[rustfmt::skip]
-define_parser!(ParseIdentifier, TokenReference, |_, state| {
-    let next_token = state.peek();
-    match next_token.token_kind() {
-        TokenKind::Identifier => Ok((
-            state.advance().ok_or(InternalAstError::NoMatch)?,
-            next_token.clone(),
-        )),
-        _ => Err(InternalAstError::NoMatch),
-    }
-});
+        ParserResult::LexerMoved => {}
+    };
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum TypeInfoContext {
-    /// A standard type info, with no context
-    #[cfg(feature = "roblox")]
-    None,
-    /// A type inside of parentheses, either for the parameters in a `TypeInfo::Callback`, or for a `TypeInfo::Tuple`
-    /// Variadic type infos are only permitted inside of here
-    #[cfg(feature = "roblox")]
-    ParenthesesType,
-    /// The return type of a function declaration or callback type, such as `function foo(bar) -> number`.
-    /// In addition to standard types, type packs/variadic type packs are allowed here
-    ReturnType,
-    /// A type specifier for the variadic argument `...` in a function definition parameter list
-    /// In these cases, we are allowed a generic variadic pack `T...` to be specified
-    VarArgSpecifier,
-    /// An argument passed into a generic type, e.g. `string` or `...number` in `type X = Foo<string, ...number>`.
-    /// In these cases, generic type packs, variadic type packs, and explicit type packs (using parentheses) are allowed
-    #[cfg(feature = "roblox")]
-    GenericArgument,
+    Ok(local_assignment)
 }
 
-// Roblox Types
-#[derive(Clone, Debug, PartialEq)]
-struct ParseNameWithType;
-define_roblox_parser!(
-    ParseNameWithType,
-    (TokenReference, Option<TypeSpecifier>),
-    (TokenReference, Option<TokenReference>),
-    |_, state| {
-        let (state, name) = ParseIdentifier.parse(state)?;
-        let (state, type_specifier) = if let Ok((state, type_specifier)) =
-            keep_going!(ParseTypeSpecifier(TypeInfoContext::None).parse(state))
-        {
-            (state, Some(type_specifier))
-        } else {
-            (state, None)
+fn expect_expression_key(
+    state: &mut ParserState,
+    left_bracket: TokenReference,
+) -> Result<ast::Field, ()> {
+    let expression = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(left_bracket, "expected an expression after `[`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let Some(right_bracket) = state.require_with_reference_range_callback(
+        Symbol::RightBracket,
+        "expected `]` after expression",
+        || {
+            (
+                left_bracket.clone(),
+                expression.tokens().last().unwrap().clone(),
+            )
+        },
+    ) else {
+        return Err(());
+    };
+
+    // rewrite todo: we can realistically construct a field in error recovery
+    // rewrite todo: this should also be range
+    let Some(equal_token) = state.require_with_reference_range(
+        Symbol::Equal,
+        "expected `=` after expression",
+        &left_bracket,
+        &right_bracket,
+    ) else {
+        return Err(());
+    };
+
+    let value = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(equal_token, "expected an expression after `=`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    Ok(ast::Field::ExpressionKey {
+        brackets: ContainedSpan::new(left_bracket, right_bracket),
+        key: expression,
+        equal: equal_token,
+        value,
+    })
+}
+
+fn force_table_constructor(
+    state: &mut ParserState,
+    left_brace: TokenReference,
+) -> ast::TableConstructor {
+    let mut fields = Punctuated::new();
+
+    let unfinished_table =
+        |left_brace: TokenReference, fields: Punctuated<ast::Field>| ast::TableConstructor {
+            braces: ContainedSpan::new(left_brace, TokenReference::basic_symbol("}")),
+            fields,
         };
 
-        Ok((state, (name, type_specifier)))
-    }
-);
+    loop {
+        let Ok(current_token) = state.current() else {
+            return unfinished_table(left_brace, fields);
+        };
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseTypeSpecifier(TypeInfoContext);
-define_roblox_parser!(
-    ParseTypeSpecifier,
-    TypeSpecifier,
-    TokenReference,
-    |this, state| {
-        let (state, punctuation) = ParseSymbol(Symbol::Colon).parse(state)?;
-        let (state, type_info) = expect!(
-            state,
-            ParseTypeInfo(this.0).parse(state),
-            "expected type after colon"
-        );
+        let field = match current_token.token_type() {
+            TokenType::Symbol {
+                symbol: Symbol::RightBrace,
+            } => {
+                return ast::TableConstructor {
+                    braces: ContainedSpan::new(left_brace, state.consume().unwrap()),
+                    fields,
+                };
+            }
 
-        Ok((
-            state,
-            TypeSpecifier {
-                punctuation,
-                type_info,
-            },
-        ))
-    }
-);
+            TokenType::Symbol {
+                symbol: Symbol::LeftBracket,
+            } => {
+                let left_bracket = state.consume().unwrap();
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseGenericDeclaration;
-define_roblox_parser!(
-    ParseGenericDeclaration,
-    GenericDeclaration,
-    TokenReference,
-    |_, state| {
-        let (state, start_arrow) = ParseSymbol(Symbol::LessThan).parse(state)?;
-        let mut generics: Punctuated<GenericDeclarationParameter> = Punctuated::new();
+                match expect_expression_key(state, left_bracket) {
+                    Ok(field) => field,
+                    Err(()) => {
+                        return unfinished_table(left_brace, fields);
+                    }
+                }
+            }
 
-        let mut have_seen_pack = false; // We have seen a generic type pack parameter. We can only now accept generic type pack parameters
-        let mut have_seen_default = false; // We have seen a default type, all future parameters must define a default type
-
-        let mut loop_state = state;
-        loop {
-            let (state, name) = expect!(
-                loop_state,
-                ParseIdentifier.parse(loop_state),
-                "expected name"
-            );
-
-            // Look to see if is a type pack
-            let (state, ellipse) = if let Ok((state, ellipse)) =
-                keep_going!(ParseSymbol(Symbol::Ellipse).parse(state))
+            TokenType::Identifier { .. } if matches!(state.peek(), Ok(peek_token) if peek_token.is_symbol(Symbol::Equal)) =>
             {
-                have_seen_pack = true;
-                (state, Some(ellipse))
-            } else {
-                // Must only be type packs after we have seen one
-                if have_seen_pack {
-                    return Err(InternalAstError::UnexpectedToken {
-                        token: state.peek().clone(),
-                        additional: Some("generic types come before generic type packs".into()),
-                    });
-                };
+                let key = state.consume().unwrap();
 
-                (state, None)
-            };
+                let equal_token = state.consume().unwrap();
 
-            // Look to see if a default type has been specified
-            let (state, default) =
-                if let Ok((state, equals)) = keep_going!(ParseSymbol(Symbol::Equal).parse(state)) {
-                    have_seen_default = true;
+                let value = match parse_expression(state) {
+                    ParserResult::Value(expression) => expression,
 
-                    // If we are parsing a type pack, allow type pack default types
-                    let parse_context = if ellipse.is_some() {
-                        TypeInfoContext::GenericArgument
-                    } else {
-                        TypeInfoContext::None
-                    };
+                    ParserResult::NotFound => {
+                        state.token_error(equal_token, "expected an expression after `=`");
 
-                    let (state, type_info) = expect!(
-                        state,
-                        ParseTypeInfo(parse_context).parse(state),
-                        "expected type after `=`"
-                    );
-
-                    (state, Some((equals, type_info)))
-                } else {
-                    // Defaults must always be specified once one has been
-                    if have_seen_default {
-                        return Err(InternalAstError::UnexpectedToken {
-                            token: state.peek().clone(),
-                            additional: Some("expected default type after type name".into()),
-                        });
+                        return unfinished_table(left_brace, fields);
                     }
-                    (state, None)
-                };
 
-            let parameter = match ellipse {
-                Some(ellipse) => GenericParameterInfo::Variadic { name, ellipse },
-                None => GenericParameterInfo::Name(name),
-            };
-            let declaration_parameter = GenericDeclarationParameter { parameter, default };
-
-            if let Ok((state, punctuation)) = keep_going!(ParseSymbol(Symbol::Comma).parse(state)) {
-                generics.push(Pair::Punctuated(declaration_parameter, punctuation));
-                loop_state = state;
-            } else {
-                generics.push(Pair::End(declaration_parameter));
-                loop_state = state;
-                break;
-            }
-        }
-
-        let (state, end_arrow) = expect!(
-            loop_state,
-            ParseSymbol(Symbol::GreaterThan).parse(loop_state),
-            "expected `>` to match `<`"
-        );
-
-        Ok((
-            state,
-            GenericDeclaration {
-                arrows: ContainedSpan::new(start_arrow, end_arrow),
-                generics,
-            },
-        ))
-    }
-);
-
-// Outside of cfg_if for formatting...:(
-#[cfg(feature = "roblox")]
-#[allow(clippy::result_large_err)]
-fn parse_interpolated_string(
-    state: ParserState<'_>,
-) -> Result<(ParserState<'_>, InterpolatedString), InternalAstError> {
-    let mut current = state.peek().clone();
-
-    let (mut state, kind) = match &current.token_type {
-        TokenType::InterpolatedString { kind, .. } => (
-            state.advance().expect(
-                "we just peeked an interpolated string literal, and now can't advance to it",
-            ),
-            kind,
-        ),
-
-        _ => return Err(InternalAstError::NoMatch),
-    };
-
-    match kind {
-        InterpolatedStringKind::Simple => Ok((
-            state,
-            InterpolatedString {
-                segments: Vec::new(),
-                last_string: current,
-            },
-        )),
-
-        InterpolatedStringKind::Begin => {
-            let mut segments = Vec::new();
-            let last_string;
-
-            loop {
-                // Could be done in the tokenizer, but our error tooling there is a lot worse
-                if current.trailing_trivia.is_empty()
-                    && matches!(
-                        state.peek().token_type,
-                        TokenType::Symbol {
-                            symbol: Symbol::LeftBrace
-                        }
-                    )
-                {
-                    return Err(InternalAstError::UnexpectedToken {
-                        token: state.peek().clone(),
-                        additional: Some("unexpected double brace for interpolated string. try \\{ if you meant to escape".into()),
-                    });
-                }
-
-                let expression;
-                (state, expression) = expect!(
-                    state,
-                    ParseExpression.parse(state),
-                    "expected expression in interpolated string"
-                );
-
-                segments.push(InterpolatedStringSegment {
-                    expression,
-                    literal: current.clone(),
-                });
-
-                current = state.peek().clone();
-
-                if matches!(
-                    current.token_type,
-                    TokenType::InterpolatedString {
-                        kind: InterpolatedStringKind::End,
-                        ..
-                    }
-                ) {
-                    last_string = current;
-                    return Ok((
-                        state.advance().expect(
-                            "we just peeked an interpolated string literal to end the formatted string, and now can't advance to it",
-                        ),
-                        InterpolatedString {
-                            segments,
-                            last_string,
-                        },
-                    ));
-                }
-
-                // `hello {"world" "wait"}`
-                if current.token_kind() != TokenKind::InterpolatedString {
-                    return Err(InternalAstError::UnexpectedToken {
-                        additional: Some(
-                            "interpolated string parameter can only contain an expression".into(),
-                        ),
-                        token: current.clone(),
-                    });
-                }
-
-                state = match state.advance() {
-                    Some(state) => state,
-                    None => {
-                        return Err(InternalAstError::UnexpectedToken {
-                            token: current,
-                            additional: Some("expected `}` to end interpolated string".into()),
-                        })
+                    ParserResult::LexerMoved => {
+                        return unfinished_table(left_brace, fields);
                     }
                 };
-            }
-        }
 
-        other => {
-            unreachable!("unexpected interpolated string kind: {other:?} ({current:#?})")
-        }
-    }
-}
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "roblox")] {
-        // Roblox Compound Assignment
-        #[derive(Clone, Debug, Default, PartialEq)]
-        struct ParseCompoundAssignment;
-        define_parser!(
-            ParseCompoundAssignment,
-            CompoundAssignment,
-            |_, state| {
-                let (state, lhs) = ParseVar.parse(state)?;
-                let (state, compound_operator) = ParseCompoundOp.parse(state)?;
-                let (state, rhs) = expect!(
-                    state,
-                    ParseExpression.parse(state),
-                    "expected value"
-                );
-
-                Ok((
-                    state,
-                    CompoundAssignment {
-                        lhs,
-                        compound_operator,
-                        rhs,
-                    },
-                ))
-            }
-        );
-
-        // Roblox If Expression
-        #[derive(Clone, Debug, Default, PartialEq)]
-        struct ParseIfExpression;
-        define_parser!(
-            ParseIfExpression,
-            IfExpression,
-            |_, state| {
-                let (state, if_token) = ParseSymbol(Symbol::If).parse(state)?;
-                let (state, condition) = expect!(state, ParseExpression.parse(state), "expected condition");
-                let (state, then_token) = expect!(state, ParseSymbol(Symbol::Then).parse(state), "expected `then`");
-                let (mut state, if_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
-
-                let mut else_if_expressions = Vec::new();
-                while let Ok((new_state, else_if_token)) = ParseSymbol(Symbol::ElseIf).parse(state) {
-                    let (new_state, condition) = expect!(
-                        state,
-                        ParseExpression.parse(new_state),
-                        "expected condition"
-                    );
-                    let (new_state, then_token) = expect!(
-                        state,
-                        ParseSymbol(Symbol::Then).parse(new_state),
-                        "expected 'then'"
-                    );
-                    let (new_state, expression) = expect!(state, ParseExpression.parse(new_state), "expected expression");
-                    state = new_state;
-                    else_if_expressions.push(ElseIfExpression {
-                        else_if_token,
-                        condition,
-                        then_token,
-                        expression,
-                    });
+                ast::Field::NameKey {
+                    key,
+                    equal: equal_token,
+                    value,
                 }
-
-                let (state, else_token) = expect!(state, ParseSymbol(Symbol::Else).parse(state), "expected `else` in if expression");
-                let (state, else_expression) = expect!(state, ParseExpression.parse(state), "expected expression");
-
-                Ok((
-                    state,
-                    IfExpression {
-                        if_token,
-                        condition: Box::new(condition),
-                        then_token,
-                        if_expression: Box::new(if_expression),
-                        else_if_expressions: if else_if_expressions.is_empty() { None } else { Some(else_if_expressions) },
-                        else_token,
-                        else_expression: Box::new(else_expression),
-                    },
-                ))
             }
-        );
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseInterpolatedString;
-        define_parser!(
-            ParseInterpolatedString,
-            InterpolatedString,
-            |_, state| {
-                parse_interpolated_string(state)
-            }
-        );
+            _ => {
+                let value = match parse_expression(state) {
+                    ParserResult::Value(expression) => expression,
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeDeclaration;
-        define_parser!(
-            ParseTypeDeclaration,
-            TypeDeclaration,
-            |_, state| {
-                let (state, type_token) = ParseIdentifier.parse(state)?;
-                if type_token.token().to_string() != "type" {
-                    return Err(InternalAstError::NoMatch);
-                }
+                    ParserResult::NotFound => {
+                        state.token_error(
+                            match fields.last() {
+                                Some(Pair::End(field)) => field.tokens().last().unwrap().clone(),
+                                Some(Pair::Punctuated(field, _)) => {
+                                    field.tokens().last().unwrap().clone()
+                                }
+                                None => left_brace.clone(),
+                            },
+                            "expected a field",
+                        );
 
-                let (state, base) = ParseIdentifier.parse(state)?;
+                        return unfinished_table(left_brace, fields);
+                    }
 
-                let (state, generics) = if let Ok((state, generics)) =
-                    keep_going!(ParseGenericDeclaration.parse(state))
-                {
-                    (state, Some(generics))
-                } else {
-                    (state, None)
+                    ParserResult::LexerMoved => {
+                        return unfinished_table(left_brace, fields);
+                    }
                 };
 
-                let (state, equal_token) = expect!(
-                    state,
-                    ParseSymbol(Symbol::Equal).parse(state),
-                    "expected `=` while parsing type alias"
-                );
-
-                let (state, declare_as) =
-                    expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type");
-
-                Ok((
-                    state,
-                    TypeDeclaration {
-                        type_token,
-                        base,
-                        generics,
-                        equal_token,
-                        declare_as,
-                    },
-                ))
+                ast::Field::NoKey(value)
             }
-        );
+        };
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseExportedTypeDeclaration;
-        define_parser!(
-            ParseExportedTypeDeclaration,
-            ExportedTypeDeclaration,
-            |_, state| {
-                let (state, export_token) = ParseIdentifier.parse(state)?;
-                if export_token.token().to_string() != "export" {
-                    return Err(InternalAstError::NoMatch);
-                }
-
-                let (state, type_declaration) =
-                    expect!(state, ParseTypeDeclaration.parse(state), "expected type declaration");
-
-                Ok((
-                    state,
-                    ExportedTypeDeclaration {
-                        export_token,
-                        type_declaration
-                    },
-                ))
-            }
-        );
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseIndexedTypeInfo;
-        define_parser!(ParseIndexedTypeInfo, IndexedTypeInfo, |_, state| {
-            let (state, base_type) = if let Ok((state, identifier)) = {
-                ParseIdentifier.parse(state)
-            } {
-                if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
-                {
-                    let (state, generics) = expect!(
-                        state,
-                        OneOrMore(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
-                        "expected type parameters"
-                    );
-
-                    let (state, end_arrow) = expect!(
-                        state,
-                        ParseSymbol(Symbol::GreaterThan).parse(state),
-                        "expected `>` to close `<`"
-                    );
-
-                    (
-                        state,
-                        IndexedTypeInfo::Generic {
-                            base: identifier,
-                            arrows: ContainedSpan::new(start_arrow, end_arrow),
-                            generics,
-                        },
-                    )
+        match state.current() {
+            Ok(token) => {
+                if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Semicolon) {
+                    fields.push(Pair::Punctuated(field, state.consume().unwrap()))
                 } else {
-                    (state, IndexedTypeInfo::Basic(identifier))
-                }
-            } else {
-                return Err(InternalAstError::NoMatch);
-            };
-
-            Ok((state, base_type))
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
-        /// A parentheses type info atom, such as `(string)` in `type Foo = (string)?`. This excludes parentheses used to indicate
-        /// a return type, or arguments in a callback type. An opening parentheses should have already been consumed,
-        /// and is passed to this struct.
-        struct ParseParenthesesTypeInfo(TokenReference);
-        define_parser!(ParseParenthesesTypeInfo, TypeInfo, |this, state| {
-            let (state, type_info) = expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type within parentheses");
-            let (state, end_parenthese) = expect!(state, ParseSymbol(Symbol::RightParen).parse(state), "expected `)`");
-
-            // TODO: should we separate out a single type inside parentheses into a TypeInfo::Parentheses?
-            let mut types = Punctuated::new();
-            types.push(Pair::new(type_info, None));
-
-            Ok((state, TypeInfo::Tuple {
-                parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
-                types,
-            }))
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
-        /// A tuple type info, such as `(string, foo)` in `(string) -> (string, foo)`.
-        /// This is only used for return types. An opening parentheses should have already been consumed,
-        /// and is passed to this struct.
-        struct ParseTupleTypeInfo(TokenReference);
-        define_parser!(ParseTupleTypeInfo, TypeInfo, |this, state| {
-            let (state, types) = expect!(
-                state,
-                ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::ParenthesesType), ParseSymbol(Symbol::Comma), false)
-                    .parse(state),
-                "expected types within parentheses"
-            );
-            let (state, end_parenthese) = expect!(state, ParseSymbol(Symbol::RightParen).parse(state), "expected `)`");
-
-            Ok((state, TypeInfo::Tuple {
-                parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
-                types,
-            }))
-        });
-
-        /// A type array atom, such as `{ string }`.
-        /// An opening brace should have already been consumed, and is passed to this struct.
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeArray(TokenReference);
-        define_parser!(ParseTypeArray, TypeInfo, |this, state| {
-            let (state, type_info) = expect!(
-                state,
-                ParseTypeInfo(TypeInfoContext::None).parse(state),
-                "expected type in array"
-            );
-
-            let (state, end_brace) = expect!(
-                state,
-                ParseSymbol(Symbol::RightBrace).parse(state),
-                "expected `}` to match `{`"
-            );
-
-            Ok((
-                state,
-                TypeInfo::Array {
-                    braces: ContainedSpan::new(this.0.clone(), end_brace),
-                    type_info: Box::new(type_info)
-                },
-            ))
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeArgument;
-        define_parser!(ParseTypeArgument, TypeArgument, |_, state| {
-            // Attempt to parse an identifier and then a `:`
-            if let Ok((new_state, identifier)) = ParseIdentifier.parse(state) {
-                if let Ok((state, colon)) = ParseSymbol(Symbol::Colon).parse(new_state) {
-                    let (state, type_info) = expect!(state, ParseTypeInfo(TypeInfoContext::None).parse(state), "expected type");
-                    return Ok((
-                        state,
-                        TypeArgument {
-                            name: Some((identifier, colon)),
-                            type_info
-                        }
-                    ))
-                }
-            };
-
-            // If failed, fall back to original state and parse a type_info normally
-            let (state, type_info) = ParseTypeInfo(TypeInfoContext::ParenthesesType).parse(state)?;
-            Ok((
-                state,
-                TypeArgument {
-                    name: None,
-                    type_info,
-                }
-            ))
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
-        /// A callback type info atom, such as `(count: number) -> string` in `type Foo = (count: number) -> string`.
-        /// An opening parentheses should have already been consumed, and is passed to this struct.
-        struct ParseCallbackTypeInfo(TokenReference, Option<GenericDeclaration>);
-        define_parser!(ParseCallbackTypeInfo, TypeInfo, |this, state| {
-            let (state, types) = expect!(
-                state,
-                ZeroOrMoreDelimited(ParseTypeArgument, ParseSymbol(Symbol::Comma), false)
-                    .parse(state),
-                "expected types within parentheses"
-            );
-
-            let (state, end_parenthese) = expect!(
-                state,
-                ParseSymbol(Symbol::RightParen).parse(state),
-                "expected `)` to match `(`"
-            );
-
-            let (state, arrow) = expect!(state, ParseSymbol(Symbol::ThinArrow).parse(state), "expected `->` after `()` when parsing function type");
-            let (state, return_value) = expect!(
-                state,
-                ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                "expected return type after `->`"
-            );
-
-            Ok((
-                state,
-                TypeInfo::Callback {
-                    generics: this.1.clone(),
-                    arguments: types,
-                    parentheses: ContainedSpan::new(this.0.clone(), end_parenthese),
-                    arrow,
-                    return_type: Box::new(return_value),
-                },
-            ))
-        });
-
-        /// A type table atom, such as `{ foo: string, bar: number }`.
-        /// An opening brace should have already been consumed, and is passed to this struct.
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeTable(TokenReference);
-        define_parser!(ParseTypeTable, TypeInfo, |this, state| {
-            let mut state = state;
-            let mut fields = Punctuated::new();
-
-            while let Ok((new_state, field)) = keep_going!(ParseTypeField.parse(state)) {
-                let field_sep = if let Ok((new_state, separator)) =
-                    ParseSymbol(Symbol::Comma).parse(new_state)
-                {
-                    state = new_state;
-                    Some(separator)
-                } else if let Ok((new_state, separator)) = ParseSymbol(Symbol::Semicolon).parse(new_state) {
-                    state = new_state;
-                    Some(separator)
-                } else {
-                    state = new_state;
-                    None
-                };
-
-                let is_end = field_sep.is_none();
-                fields.push(Pair::new(field, field_sep));
-                if is_end {
+                    fields.push(Pair::End(field));
                     break;
                 }
             }
 
-            let (state, end_brace) = expect!(
-                state,
-                ParseSymbol(Symbol::RightBrace).parse(state),
-                "expected `}` to match `{`"
-            );
+            Err(()) => {
+                fields.push(Pair::End(field));
+                break;
+            }
+        };
+    }
 
-            Ok((state, TypeInfo::Table {
-                braces: ContainedSpan::new(this.0.clone(), end_brace),
-                fields,
-            }))
-        });
+    let right_brace = match state.require(Symbol::RightBrace, "expected `}` after last field") {
+        Some(right_brace) => right_brace,
+        None => TokenReference::basic_symbol("}"),
+    };
 
-        // A type info atom, excluding compound types such as Union and Intersection
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseSingleTypeInfo(TypeInfoContext);
-        define_parser!(ParseSingleTypeInfo, TypeInfo, |this, state| {
-            // Singleton type info: `"yes" | "no"` in `(string) -> "yes" | "no"`, `"$$typeof"` in `{ ["$$typeof"]: number }`,
-            let (state, base_type) = if let Ok((state, string_singleton)) = ParseStringLiteral.parse(state) {
-                (state, TypeInfo::String(string_singleton))
-            // Singleton type info: `true` in `type X = Error & { handled: true }`
-            } else if let Ok((state, true_singleton)) = ParseSymbol(Symbol::True).parse(state) {
-                (state, TypeInfo::Boolean(true_singleton))
-            } else if let Ok((state, false_singleton)) = ParseSymbol(Symbol::False).parse(state) {
-                (state, TypeInfo::Boolean(false_singleton))
-            // Singleton type info: `nil` in `local function get(x: string, y: nil) end`
-            } else if let Ok((state, nil_singleton)) = ParseSymbol(Symbol::Nil).parse(state) {
-                (state, TypeInfo::Basic(nil_singleton))
-            } else if let Ok((state, identifier)) = ParseIdentifier
-                    .parse(state)
-            {
-                if identifier.token().to_string() == "typeof" {
-                    let (state, start_parenthese) = expect!(
-                        state,
-                        ParseSymbol(Symbol::LeftParen).parse(state),
-                        "expected '(' when parsing typeof type"
-                    );
+    ast::TableConstructor {
+        braces: ContainedSpan::new(left_brace, right_brace),
+        fields,
+    }
+}
 
-                    let (state, expression) = expect!(
-                        state,
-                        ParseExpression.parse(state),
-                        "expected expression when parsing typeof type"
-                    );
+fn expect_repeat_stmt(
+    state: &mut ParserState,
+    repeat_token: TokenReference,
+) -> Result<ast::Stmt, ()> {
+    let block = match parse_block(state) {
+        ParserResult::Value(block) => block,
 
-                    let (state, end_parenthese) = expect!(
-                        state,
-                        ParseSymbol(Symbol::RightParen).parse(state),
-                        "expected ')' when parsing typeof type"
-                    );
+        ParserResult::NotFound => {
+            state.token_error(repeat_token, "expected a block after `repeat`");
 
-                    (
-                        state,
-                        TypeInfo::Typeof {
-                            typeof_token: identifier,
-                            parentheses: ContainedSpan::new(start_parenthese, end_parenthese),
-                            inner: Box::new(expression),
-                        },
-                    )
-                } else if let Ok((state, punctuation)) = ParseSymbol(Symbol::Dot).parse(state)
-                {
-                    let (state, type_info) = expect!(
-                        state,
-                        ParseIndexedTypeInfo.parse(state),
-                        "expected type when parsing type index"
-                    );
+            return Err(());
+        }
 
-                    (
-                        state,
-                        TypeInfo::Module {
-                            module: identifier,
-                            punctuation,
-                            type_info: Box::new(type_info),
-                        },
-                    )
-                } else if let Ok((state, start_arrow)) = ParseSymbol(Symbol::LessThan).parse(state)
-                {
-                    let (state, generics) = expect!(
-                        state,
-                        ZeroOrMoreDelimited(ParseTypeInfo(TypeInfoContext::GenericArgument), ParseSymbol(Symbol::Comma), false).parse(state),
-                        "expected type parameters"
-                    );
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
 
-                    let (state, end_arrow) = expect!(
-                        state,
-                        ParseSymbol(Symbol::GreaterThan).parse(state),
-                        "expected `>` to close `<`"
-                    );
+    let Some(until_token) = state.require(Symbol::Until, "expected `until` after block") else {
+        return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
+    };
 
-                    (
-                        state,
-                        TypeInfo::Generic {
-                            base: identifier,
-                            arrows: ContainedSpan::new(start_arrow, end_arrow),
-                            generics,
-                        },
-                    )
-                } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType | TypeInfoContext::VarArgSpecifier | TypeInfoContext::GenericArgument) {
-                    // Check for a generic type pack
-                    if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                        (state, TypeInfo::GenericPack {
-                            name: identifier,
-                            ellipse
-                        })
-                    } else {
-                        (state, TypeInfo::Basic(identifier))
-                    }
-                } else {
-                    (state, TypeInfo::Basic(identifier))
+    let condition = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(until_token, "expected a condition after `until`");
+            return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
+        }
+
+        ParserResult::LexerMoved => {
+            return Ok(ast::Stmt::Do(ast::Do::new().with_block(block)));
+        }
+    };
+
+    Ok(ast::Stmt::Repeat(ast::Repeat {
+        repeat_token,
+        block,
+        until: condition,
+        until_token,
+    }))
+}
+
+fn expect_while_stmt(
+    state: &mut ParserState,
+    while_token: TokenReference,
+) -> Result<ast::While, ()> {
+    let condition = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+
+        ParserResult::NotFound => {
+            state.token_error(while_token, "expected a condition after `while`");
+
+            return Err(());
+        }
+
+        ParserResult::LexerMoved => {
+            return Err(());
+        }
+    };
+
+    let Some(do_token) = state.require(Symbol::Do, "expected `do` after condition") else {
+        return Ok(ast::While::new(condition));
+    };
+
+    let (block, end_token) = match expect_block_with_end(state, "while loop", &do_token) {
+        Ok((block, end_token)) => (block, end_token),
+
+        Err(()) => {
+            return Ok(ast::While::new(condition));
+        }
+    };
+
+    Ok(ast::While {
+        while_token,
+        condition,
+        do_token,
+        block,
+        end_token,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_type_declaration(
+    state: &mut ParserState,
+    type_token: TokenReference,
+) -> Result<ast::TypeDeclaration, ()> {
+    let base = match state.current()? {
+        token if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+        token => {
+            state.token_error(token.clone(), "expected type name");
+            // rewrite todo (in future if needed): maybe we can add an error name here to continue parsing?
+            return Err(());
+        }
+    };
+
+    let generics = match parse_generic_type_list(state, TypeListStyle::WithDefaults) {
+        ParserResult::Value(generics) => Some(generics),
+        ParserResult::NotFound => None,
+        _ => return Err(()),
+    };
+
+    let equal_token = state
+        .require(Symbol::Equal, "expected `=` after type name")
+        .unwrap_or_else(|| TokenReference::basic_symbol("="));
+
+    let ParserResult::Value(declare_as) = parse_type(state) else {
+        return Err(());
+    };
+
+    Ok(ast::TypeDeclaration {
+        type_token,
+        base,
+        generics,
+        equal_token,
+        declare_as,
+    })
+}
+
+fn parse_prefix(state: &mut ParserState) -> ParserResult<ast::Prefix> {
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        } => {
+            let left_parenthesis = state.consume().unwrap();
+
+            let expression = Box::new(match try_parser!(parse_expression(state)) {
+                Some(expression) => expression,
+
+                None => {
+                    state.token_error(left_parenthesis, "expected an expression after `(`");
+                    return ParserResult::LexerMoved;
                 }
-            } else if let Ok((state, generics)) = ParseGenericDeclaration.parse(state) {
-                // Callback with a generic type
-                let (state, start_parenthese) = ParseSymbol(Symbol::LeftParen).parse(state)?;
-                ParseCallbackTypeInfo(start_parenthese, Some(generics)).parse(state)?
-            } else if let Ok((state, start_parenthese)) =
-                ParseSymbol(Symbol::LeftParen).parse(state)
-            {
-                // Parse types encapsulated in parentheses as an atom. If we are allowing type packs (i.e. as a return type or a generic type argument),
-                // this could be a tuple, otherwise this can only be a singular type specified within parentheses.
-                let atom =
-                    if matches!(this.0, TypeInfoContext::ReturnType | TypeInfoContext::GenericArgument) {
-                        ParseTupleTypeInfo(start_parenthese.clone()).parse(state)
-                    } else {
-                        ParseParenthesesTypeInfo(start_parenthese.clone()).parse(state)
-                    };
+            });
 
-                if let Ok((state, parentheses_type)) = atom {
-                    // Single token lookahead: see if we have a `->` ahead. If we do, we need to parse this
-                    // as a callback type, using what we already have from the parentheses type
-                    if let Ok((state, arrow)) = ParseSymbol(Symbol::ThinArrow).parse(state) {
-                        // Unwrap the parsed parentheses type into its parentheses and its enclosed type
-                        let (parentheses, arguments) = match parentheses_type {
-                            TypeInfo::Tuple { parentheses, types } => {
-                                // `types` is currently `Punctuated<TypeInfo>`, but we need to map it to `Punctuated<TypeArgument>`
-                                // where each argument has no name.
-                                let arguments = types.into_pairs().map(|pair| pair.map(|type_info| TypeArgument {
-                                    name: None,
-                                    type_info
-                                })).collect::<Punctuated<_>>();
-                                (parentheses, arguments)
-                            },
-                            _ => unreachable!("parsed a non-tuple as a parentheses type"),
-                        };
-
-                        let (state, return_value) = expect!(
-                            state,
-                            ParseTypeInfo(TypeInfoContext::ReturnType).parse(state),
-                            "expected return type after `->`"
-                        );
-
-                        (
-                            state,
-                            TypeInfo::Callback {
-                                generics: None,
-                                arguments,
-                                parentheses,
-                                arrow,
-                                return_type: Box::new(return_value),
-                            },
-                        )
-                    } else {
-                        (state, parentheses_type)
-                    }
-                } else {
-                    ParseCallbackTypeInfo(start_parenthese, None).parse(state)?
-                }
-            } else if let Ok((state, start_brace)) = ParseSymbol(Symbol::LeftBrace).parse(state) {
-                if let Ok((state, type_array)) = ParseTypeArray(start_brace.clone()).parse(state) {
-                    (state, type_array)
-                } else {
-                    ParseTypeTable(start_brace).parse(state)?
-                }
-            } else if matches!(this.0, TypeInfoContext::GenericArgument) {
-                // Only allowed variadic type packs as a generic argument
-                // Note, this is `...T`, but `T` is a token, not a type info (e.g. `...string` is allowed but `...{}` is not)
-                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                    let (state, name) = expect!(
-                        state,
-                        ParseIdentifier.parse(state),
-                        "expected name after `...`"
-                    );
-
-                    (state, TypeInfo::VariadicPack { ellipse, name })
-                } else {
-                    return Err(InternalAstError::NoMatch);
-                }
-            } else if matches!(this.0, TypeInfoContext::ParenthesesType | TypeInfoContext::ReturnType) {
-                // Only allow variadic type annotation for a return type or a tuple type
-                if let Ok((state, ellipse)) = ParseSymbol(Symbol::Ellipse).parse(state) {
-                    let (state, type_info) = expect!(
-                        state,
-                        ParseSingleTypeInfo(TypeInfoContext::None).parse(state),
-                        "expected type info after `...`"
-                    );
-
-                    (
-                        state,
-                        TypeInfo::Variadic {
-                            ellipse,
-                            type_info: Box::new(type_info),
-                        }
-                    )
-                } else {
-                    return Err(InternalAstError::NoMatch);
-                }
-            } else {
-                return Err(InternalAstError::NoMatch);
+            let Some(right_parenthesis) =
+                state.require(Symbol::RightParen, "expected `)` after expression")
+            else {
+                return ParserResult::Value(ast::Prefix::Expression(Box::new(
+                    ast::Expression::Parentheses {
+                        contained: ContainedSpan::new(
+                            left_parenthesis,
+                            TokenReference::basic_symbol(")"),
+                        ),
+                        expression,
+                    },
+                )));
             };
 
-            Ok((state, base_type))
-        });
+            ParserResult::Value(ast::Prefix::Expression(Box::new(
+                ast::Expression::Parentheses {
+                    contained: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                    expression,
+                },
+            )))
+        }
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseSingleTypeInfoAtom(TypeInfoContext);
-        define_parser!(ParseSingleTypeInfoAtom, TypeInfo, |this, state| {
-            let (mut state, mut base_type) = ParseSingleTypeInfo(this.0).parse(state)?;
+        TokenType::Identifier { .. } => {
+            ParserResult::Value(ast::Prefix::Name(state.consume().unwrap()))
+        }
 
-            if let Ok((new_state, question_mark)) = ParseSymbol(Symbol::QuestionMark).parse(state) {
-                base_type = TypeInfo::Optional {
-                    base: Box::new(base_type),
-                    question_mark,
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
+    let current = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
+    };
+
+    match current.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        } => {
+            let left_parenthesis = state.consume().unwrap();
+            let arguments = try_parser!(parse_expression_list(state)).unwrap_or_default();
+            let right_parenthesis = match state.require_with_reference_token(
+                Symbol::RightParen,
+                "expected `)` to close function call",
+                &left_parenthesis,
+            ) {
+                Some(token) => token,
+
+                None => TokenReference::basic_symbol(")"),
+            };
+
+            ParserResult::Value(ast::FunctionArgs::Parentheses {
+                parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                arguments,
+            })
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
+
+            ParserResult::Value(ast::FunctionArgs::TableConstructor(
+                force_table_constructor(state, left_brace),
+            ))
+        }
+
+        TokenType::StringLiteral { .. } => {
+            ParserResult::Value(ast::FunctionArgs::String(state.consume().unwrap()))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
+    let Ok(current) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Dot,
+        } => {
+            let dot = state.consume().unwrap();
+            let name = match state.current() {
+                Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                    state.consume().unwrap()
+                }
+
+                Ok(_) => {
+                    state.token_error(dot, "expected identifier after `.`");
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Dot { dot, name }))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::LeftBracket,
+        } => {
+            let left_bracket = state.consume().unwrap();
+
+            let expression = match parse_expression(state) {
+                ParserResult::Value(expression) => expression,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    state.token_error(left_bracket, "expected expression after `[`");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            let right_bracket = match state.require_with_reference_range(
+                Symbol::RightBracket,
+                "expected `]` to close index expression",
+                &left_bracket,
+                expression.tokens().last().unwrap(),
+            ) {
+                Some(right_bracket) => right_bracket,
+
+                None => TokenReference::basic_symbol("]"),
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Brackets {
+                brackets: ContainedSpan::new(left_bracket, right_bracket),
+                expression,
+            }))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen | Symbol::LeftBrace,
+        }
+        | TokenType::StringLiteral { .. } => {
+            let arguments = try_parser!(parse_arguments(state)).unwrap();
+            ParserResult::Value(ast::Suffix::Call(ast::Call::AnonymousCall(arguments)))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::Colon,
+        } => {
+            let colon_token = state.consume().unwrap();
+
+            let name = match state.current() {
+                Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                    state.consume().unwrap()
+                }
+
+                Ok(_) => {
+                    state.token_error(colon_token, "expected identifier after `:`");
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            let args = match parse_arguments(state) {
+                ParserResult::Value(args) => args,
+                ParserResult::LexerMoved => ast::FunctionArgs::empty(),
+                ParserResult::NotFound => {
+                    state.token_error(name.clone(), "expected arguments after `:`");
+                    ast::FunctionArgs::empty()
+                }
+            };
+
+            ParserResult::Value(ast::Suffix::Call(ast::Call::MethodCall(ast::MethodCall {
+                colon_token,
+                name,
+                args,
+            })))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_prefix_and_suffixes(
+    state: &mut ParserState,
+) -> ParserResult<(ast::Prefix, Vec<ast::Suffix>)> {
+    let prefix = match parse_prefix(state) {
+        ParserResult::Value(prefix) => prefix,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        ParserResult::NotFound => return ParserResult::NotFound,
+    };
+
+    let mut suffixes = Vec::new();
+
+    loop {
+        match parse_suffix(state) {
+            ParserResult::Value(suffix) => {
+                suffixes.push(suffix);
+            }
+
+            ParserResult::LexerMoved => {
+                break;
+            }
+
+            ParserResult::NotFound => {
+                break;
+            }
+        };
+    }
+
+    ParserResult::Value((prefix, suffixes))
+}
+
+fn parse_expression(state: &mut ParserState) -> ParserResult<Expression> {
+    let primary_expression = match parse_primary_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::NotFound => return ParserResult::NotFound,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    parse_expression_with_precedence(state, primary_expression, 0)
+}
+
+fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression> {
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
+    };
+
+    let expression = match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Function,
+        } => {
+            let function_token = state.consume().unwrap();
+            let function_body = match parse_function_body(state) {
+                ParserResult::Value(body) => body,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    state.token_error(function_token, "expected a function body");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            ParserResult::Value(Expression::Function((function_token, function_body)))
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::True | Symbol::False | Symbol::Nil | Symbol::Ellipse,
+        } => ParserResult::Value(Expression::Symbol(state.consume().unwrap())),
+
+        TokenType::StringLiteral { .. } => {
+            let string_token = state.consume().unwrap();
+            ParserResult::Value(Expression::String(string_token))
+        }
+
+        TokenType::Number { .. } => {
+            let number_token = state.consume().unwrap();
+            ParserResult::Value(Expression::Number(number_token))
+        }
+
+        TokenType::Identifier { .. }
+        | TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        } => {
+            let (prefix, suffixes) = match parse_prefix_and_suffixes(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    unreachable!("identifier found but parse_prefix_and_suffixes didn't even move");
+                }
+            };
+
+            if suffixes.is_empty() {
+                match prefix {
+                    ast::Prefix::Expression(expression) => ParserResult::Value(*expression),
+                    ast::Prefix::Name(name) => {
+                        ParserResult::Value(Expression::Var(ast::Var::Name(name)))
+                    }
+                }
+            } else if matches!(suffixes.last().unwrap(), ast::Suffix::Call(_)) {
+                ParserResult::Value(Expression::FunctionCall(ast::FunctionCall {
+                    prefix,
+                    suffixes,
+                }))
+            } else {
+                ParserResult::Value(Expression::Var(ast::Var::Expression(Box::new(
+                    ast::VarExpression { prefix, suffixes },
+                ))))
+            }
+        }
+
+        #[cfg(feature = "lua53")]
+        TokenType::Symbol {
+            symbol: Symbol::Minus | Symbol::Not | Symbol::Hash | Symbol::Tilde,
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
+        #[cfg(not(feature = "lua53"))]
+        TokenType::Symbol {
+            symbol: Symbol::Minus | Symbol::Not | Symbol::Hash,
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
+            ParserResult::Value(ast::Expression::TableConstructor(force_table_constructor(
+                state, left_brace,
+            )))
+        }
+
+        #[cfg(feature = "luau")]
+        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() => {
+            let if_token = state.consume().unwrap();
+            match expect_if_else_expression(state, if_token) {
+                Ok(if_expression) => {
+                    ParserResult::Value(ast::Expression::IfExpression(if_expression))
+                }
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+
+        #[cfg(feature = "luau")]
+        TokenType::InterpolatedString { kind, .. } if state.lua_version().has_luau() => {
+            let kind = *kind;
+            let interpolated_string_begin = state.consume().unwrap();
+
+            match kind {
+                InterpolatedStringKind::Simple => ParserResult::Value(
+                    ast::Expression::InterpolatedString(ast::InterpolatedString {
+                        segments: Vec::new(),
+                        last_string: interpolated_string_begin,
+                    }),
+                ),
+
+                InterpolatedStringKind::Begin => {
+                    ParserResult::Value(ast::Expression::InterpolatedString(
+                        expect_interpolated_string(state, interpolated_string_begin),
+                    ))
+                }
+
+                other => unreachable!("unexpected interpolated string kind: {other:?}"),
+            }
+        }
+
+        _ => ParserResult::NotFound,
+    };
+
+    match expression {
+        #[cfg(feature = "luau")]
+        ParserResult::Value(expression) if state.lua_version().has_luau() => {
+            if let Some(assertion_op) = state.consume_if(Symbol::TwoColons) {
+                let ParserResult::Value(cast_to) = parse_type(state) else {
+                    return ParserResult::LexerMoved;
                 };
 
-                state = new_state;
-            }
-
-            Ok((state, base_type))
-        });
-
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeInfo(TypeInfoContext);
-        define_parser!(ParseTypeInfo, TypeInfo, |this, state| {
-            let (state, base_type) = ParseSingleTypeInfoAtom(this.0).parse(state)?;
-
-            if let Ok((state, pipe)) = ParseSymbol(Symbol::Pipe).parse(state) {
-                let (state, right) = expect!(
-                    state,
-                    ParseTypeInfo(this.0).parse(state),
-                    "expected type after `|` for union type"
-                );
-                Ok((
-                    state,
-                    TypeInfo::Union {
-                        left: Box::new(base_type),
-                        right: Box::new(right),
-                        pipe,
+                ParserResult::Value(ast::Expression::TypeAssertion {
+                    expression: Box::new(expression),
+                    type_assertion: ast::TypeAssertion {
+                        assertion_op,
+                        cast_to,
                     },
-                ))
-            } else if let Ok((state, ampersand)) = ParseSymbol(Symbol::Ampersand).parse(state) {
-                let (state, right) = expect!(
-                    state,
-                    ParseTypeInfo(this.0).parse(state),
-                    "expected type after `&` for intersection type"
-                );
-                Ok((
-                    state,
-                    TypeInfo::Intersection {
-                        left: Box::new(base_type),
-                        right: Box::new(right),
-                        ampersand,
-                    },
-                ))
+                })
             } else {
-                Ok((state, base_type))
+                ParserResult::Value(expression)
             }
-        });
+        }
+        _ => expression,
+    }
+}
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeField;
-        define_parser!(
-            ParseTypeField,
-            TypeField,
-            |_, state| {
-                let (state, key) = ParseTypeFieldKey.parse(state)?;
+// rewrite todo: i think this should be iterative instead of recursive
+fn parse_expression_with_precedence(
+    state: &mut ParserState,
+    mut lhs: Expression,
+    precedence: u8,
+) -> ParserResult<Expression> {
+    loop {
+        let Some(bin_op_precedence) = ast::BinOp::precedence_of_token(match state.current() {
+            Ok(token) => token,
+            Err(()) => return ParserResult::Value(lhs),
+        }) else {
+            return ParserResult::Value(lhs);
+        };
 
-                let (state, colon) = expect!(
-                    state,
-                    ParseSymbol(Symbol::Colon).parse(state),
-                    "expected `:` after key"
+        if bin_op_precedence < precedence {
+            return ParserResult::Value(lhs);
+        }
+
+        let bin_op = ast::BinOp::consume(state).unwrap();
+
+        let mut rhs = match parse_primary_expression(state) {
+            ParserResult::Value(expression) => expression,
+            ParserResult::NotFound => {
+                state.token_error(
+                    bin_op.token().clone(),
+                    "expected expression after binary operator",
                 );
-
-                let (state, value) = expect!(
-                    state,
-                    ParseTypeInfo(TypeInfoContext::None).parse(state),
-                    "expected value type for key"
-                );
-
-                Ok((state, TypeField { key, colon, value }))
+                return ParserResult::Value(lhs);
             }
+            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        };
+
+        while let Ok(next_bin_op_token) = state.current() {
+            let Some(next_bin_op_precedence) = ast::BinOp::precedence_of_token(next_bin_op_token)
+            else {
+                break;
+            };
+
+            let precedence_to_search;
+
+            if next_bin_op_precedence > bin_op_precedence {
+                precedence_to_search = bin_op_precedence + 1;
+            } else if ast::BinOp::is_right_associative_token(next_bin_op_token)
+                && next_bin_op_precedence == bin_op_precedence
+            {
+                precedence_to_search = bin_op_precedence;
+            } else {
+                break;
+            }
+
+            rhs = match parse_expression_with_precedence(state, rhs, precedence_to_search) {
+                ParserResult::Value(expression) => expression,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        bin_op.token().clone(),
+                        "expected expression after binary operator",
+                    );
+                    return ParserResult::Value(lhs);
+                }
+                ParserResult::LexerMoved => return ParserResult::Value(lhs),
+            };
+        }
+
+        lhs = Expression::BinaryOperator {
+            lhs: Box::new(lhs),
+            binop: bin_op,
+            rhs: Box::new(rhs),
+        };
+    }
+}
+
+fn parse_unary_expression(
+    state: &mut ParserState,
+    unary_operator_token: ast::TokenReference,
+) -> ParserResult<ast::Expression> {
+    let unary_operator = match unary_operator_token.token_type() {
+        TokenType::Symbol { symbol } => match symbol {
+            Symbol::Minus => ast::UnOp::Minus(unary_operator_token),
+            Symbol::Not => ast::UnOp::Not(unary_operator_token),
+            Symbol::Hash => ast::UnOp::Hash(unary_operator_token),
+            #[cfg(feature = "lua53")]
+            Symbol::Tilde if state.lua_version().has_lua53() => {
+                ast::UnOp::Tilde(unary_operator_token)
+            }
+            _ => unreachable!(),
+        },
+
+        _ => unreachable!(),
+    };
+
+    let expression = match parse_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        ParserResult::NotFound => {
+            state.token_error(
+                unary_operator.token().clone(),
+                format!(
+                    "expected an expression after {}",
+                    unary_operator.token().token()
+                ),
+            );
+            return ParserResult::LexerMoved;
+        }
+    };
+
+    ParserResult::Value(Expression::UnaryOperator {
+        unop: unary_operator,
+        expression: Box::new(expression),
+    })
+}
+
+fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
+    const NO_TRAILING_COMMAS_ERROR: &str = "trailing commas in arguments are not allowed";
+
+    #[cfg(feature = "luau")]
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
+        ParserResult::Value(generic_declaration) => Some(generic_declaration),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
+        return ParserResult::NotFound;
+    };
+
+    let mut parameters = Punctuated::new();
+    #[cfg(feature = "luau")]
+    let mut type_specifiers = Vec::new();
+    let right_parenthesis;
+
+    let unfinished_function_body =
+        |left_parenthesis: TokenReference, mut parameters: Punctuated<Parameter>| {
+            if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+                let last_parameter = parameters.pop().unwrap();
+                parameters.push(Pair::End(last_parameter.into_value()));
+            }
+
+            // rewrite todo: we should appropriately recover the parsed generics/type_specifiers here
+            // but it becomes messy with cfg feature toggles and moves.
+            ParserResult::Value(FunctionBody {
+                #[cfg(feature = "luau")]
+                generics: None, // rewrite todo: fix
+                parameters_parentheses: ContainedSpan::new(
+                    left_parenthesis,
+                    TokenReference::basic_symbol(")"),
+                ),
+                parameters,
+                #[cfg(feature = "luau")]
+                type_specifiers: Vec::new(), // rewrite todo: fix
+                #[cfg(feature = "luau")]
+                return_type: None,
+                block: ast::Block::new(),
+                end_token: TokenReference::basic_symbol("end"),
+            })
+        };
+
+    loop {
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::RightParen) => {
+                right_parenthesis = state.consume().unwrap();
+                break;
+            }
+
+            Ok(token) if token.is_symbol(Symbol::Ellipse) => {
+                let ellipse = state.consume().unwrap();
+                parameters.push(Pair::End(ast::Parameter::Ellipse(ellipse)));
+
+                #[cfg(feature = "luau")]
+                if state.lua_version().has_luau() {
+                    let type_specifier = if let Some(colon) = state.consume_if(Symbol::Colon) {
+                        // varargs can also be annotated using generic packs: T...
+                        let type_info = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
+                            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+                        {
+                            let name = match parse_name(state) {
+                                ParserResult::Value(name) => name.name,
+                                _ => unreachable!(),
+                            };
+
+                            let Some(ellipse) =
+                                state.require(Symbol::Ellipse, "expected `...` after type name")
+                            else {
+                                unreachable!()
+                            };
+
+                            ast::TypeInfo::GenericPack { name, ellipse }
+                        } else {
+                            match parse_type(state) {
+                                ParserResult::Value(type_info) => type_info,
+                                _ => return unfinished_function_body(left_parenthesis, parameters),
+                            }
+                        };
+
+                        Some(ast::TypeSpecifier {
+                            punctuation: colon,
+                            type_info,
+                        })
+                    } else {
+                        None
+                    };
+                    type_specifiers.push(type_specifier);
+                }
+
+                right_parenthesis = match state.require(Symbol::RightParen, "expected a `)`") {
+                    Some(right_parenthesis) => right_parenthesis,
+                    None => return unfinished_function_body(left_parenthesis, parameters),
+                };
+
+                break;
+            }
+
+            Ok(TokenReference {
+                token:
+                    Token {
+                        token_type: TokenType::Identifier { .. },
+                        ..
+                    },
+                ..
+            }) => {
+                let name_parameter = match parse_name_with_type_specifiers(state) {
+                    ParserResult::Value(name) => {
+                        #[cfg(feature = "luau")]
+                        type_specifiers.push(name.type_specifier);
+                        ast::Parameter::Name(name.name)
+                    }
+                    _ => unreachable!(),
+                };
+
+                let Some(comma) = state.consume_if(Symbol::Comma) else {
+                    parameters.push(Pair::End(name_parameter));
+
+                    match state.require(Symbol::RightParen, "expected a `)`") {
+                        Some(new_right_parenthesis) => {
+                            right_parenthesis = new_right_parenthesis;
+                            break;
+                        }
+
+                        None => return unfinished_function_body(left_parenthesis, parameters),
+                    };
+                };
+
+                parameters.push(Pair::Punctuated(name_parameter, comma));
+            }
+
+            Ok(token) => {
+                state.token_error(token.clone(), "expected a parameter name or `)`");
+
+                return unfinished_function_body(left_parenthesis, parameters);
+            }
+
+            Err(()) => {
+                return unfinished_function_body(left_parenthesis, parameters);
+            }
+        }
+    }
+
+    if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+        let last_parameter = parameters.pop().unwrap();
+
+        state.token_error(
+            last_parameter.punctuation().unwrap().clone(),
+            NO_TRAILING_COMMAS_ERROR,
         );
 
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseTypeFieldKey;
-        #[rustfmt::skip]
-        define_parser!(ParseTypeFieldKey, TypeFieldKey, |_, state| {
-            if let Ok((state, identifier)) = ParseIdentifier.parse(state) {
-                Ok((state, TypeFieldKey::Name(identifier)))
-            } else if let Ok((state, start_bracket)) = ParseSymbol(Symbol::LeftBracket).parse(state)
-            {
-                let (state, inner) = expect!(
-                    state,
-                    ParseTypeInfo(TypeInfoContext::None).parse(state),
-                    "expected type within brackets for index signature"
-                );
+        parameters.push(Pair::End(last_parameter.into_value()));
+    }
 
-                let (state, end_bracket) = expect!(
-                    state,
-                    ParseSymbol(Symbol::RightBracket).parse(state),
-                    "expected `]` to match `[`"
-                );
-
-                Ok((
-                    state,
-                    TypeFieldKey::IndexSignature {
-                        brackets: ContainedSpan::new(start_bracket, end_bracket),
-                        inner,
-                    },
-                ))
-            } else {
-                Err(InternalAstError::NoMatch)
+    #[cfg(feature = "luau")]
+    let return_type = if state.lua_version().has_luau() {
+        if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+            match parse_return_type(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                _ => return ParserResult::LexerMoved,
             }
+        } else if let Some(punctuation) = state.consume_if(Symbol::ThinArrow) {
+            state.token_error(
+                punctuation.clone(),
+                "function return type annotations should use `:` instead of `->`",
+            );
+            match parse_return_type(state) {
+                ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                    punctuation,
+                    type_info,
+                }),
+                _ => return ParserResult::LexerMoved,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    let (block, end) = match expect_block_with_end(state, "function body", &right_parenthesis) {
+        Ok((block, end)) => (block, end),
+        Err(()) => return ParserResult::LexerMoved,
+    };
+
+    ParserResult::Value(FunctionBody {
+        #[cfg(feature = "luau")]
+        generics,
+        parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+        parameters,
+        #[cfg(feature = "luau")]
+        type_specifiers,
+        #[cfg(feature = "luau")]
+        return_type,
+        block,
+        end_token: end,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_if_else_expression(
+    state: &mut ParserState,
+    if_token: TokenReference,
+) -> Result<ast::IfExpression, ()> {
+    let ParserResult::Value(condition) = parse_expression(state) else {
+        return Err(());
+    };
+
+    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
+        return Err(());
+    };
+
+    let ParserResult::Value(if_expression) = parse_expression(state) else {
+        return Err(());
+    };
+
+    let mut else_if_expressions = Vec::new();
+    while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+        let ParserResult::Value(condition) = parse_expression(state) else {
+            return Err(());
+        };
+
+        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+        else {
+            return Err(());
+        };
+        let ParserResult::Value(expression) = parse_expression(state) else {
+            return Err(());
+        };
+        else_if_expressions.push(ast::ElseIfExpression {
+            else_if_token,
+            condition,
+            then_token,
+            expression,
+        })
+    }
+
+    let Some(else_token) = state.require(Symbol::Else, "expected `else` to end if-else expression")
+    else {
+        return Err(());
+    };
+
+    let ParserResult::Value(else_expression) = parse_expression(state) else {
+        return Err(());
+    };
+
+    Ok(ast::IfExpression {
+        if_token,
+        condition: Box::new(condition),
+        then_token,
+        if_expression: Box::new(if_expression),
+        else_if_expressions: if else_if_expressions.is_empty() {
+            None
+        } else {
+            Some(else_if_expressions)
+        },
+        else_token,
+        else_expression: Box::new(else_expression),
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_interpolated_string(
+    state: &mut ParserState,
+    mut current: TokenReference,
+) -> ast::InterpolatedString {
+    use crate::ShortString;
+
+    use super::types::InterpolatedStringSegment;
+
+    let mut segments = Vec::new();
+    let first_string = current.clone();
+
+    loop {
+        let has_double_brace = if current.trailing_trivia.is_empty() {
+            if let Some(double_brace) = state.consume_if(Symbol::LeftBrace) {
+                state.token_error(
+                    double_brace,
+                    "unexpected double brace, try \\{ if you meant to escape",
+                );
+
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        let expression = match parse_expression(state) {
+            ParserResult::Value(expression) => expression,
+            ParserResult::NotFound => {
+                state.token_error(current, "expected expression after `{`");
+                break;
+            }
+            ParserResult::LexerMoved => break,
+        };
+
+        segments.push(InterpolatedStringSegment {
+            expression,
+            literal: current,
         });
+
+        // If incorrectly using `x = {{y}}`, provide a better error message by ignoring the right brace
+        if has_double_brace {
+            state.consume_if(Symbol::RightBrace);
+        }
+
+        let Ok(next) = state.current() else {
+            break;
+        };
+
+        if matches!(
+            next.token_type(),
+            TokenType::InterpolatedString {
+                kind: InterpolatedStringKind::End,
+                ..
+            }
+        ) {
+            return ast::InterpolatedString {
+                segments,
+                last_string: state.consume().unwrap(),
+            };
+        }
+
+        // `hello {"world" "wait"}`
+        if next.token_kind() != TokenKind::InterpolatedString {
+            state.token_error(
+                next.clone(),
+                "interpolated string parameter can only contain an expression",
+            );
+            break;
+        }
+
+        current = match state.consume() {
+            ParserResult::Value(token) => token,
+            ParserResult::NotFound | ParserResult::LexerMoved => break,
+        }
+    }
+
+    ast::InterpolatedString {
+        last_string: if segments.is_empty() {
+            first_string
+        } else {
+            TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::InterpolatedString {
+                    literal: ShortString::default(),
+                    kind: InterpolatedStringKind::End,
+                }),
+                Vec::new(),
+            )
+        },
+
+        segments,
     }
 }
 
-// Lua 5.2 related syntax
-#[derive(Clone, Debug, PartialEq)]
-struct ParseGoto;
-define_lua52_parser!(ParseGoto, Goto, TokenReference, |_, state| {
-    let (state, goto_token) = ParseSymbol(Symbol::Goto).parse(state)?;
-    let (state, label_name) = expect!(
-        state,
-        ParseIdentifier.parse(state),
-        "expected identifier after `goto`"
-    );
+#[cfg(feature = "luau")]
+fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
+    else {
+        return ParserResult::LexerMoved;
+    };
 
-    Ok((
-        state,
-        Goto {
-            goto_token,
-            label_name,
-        },
-    ))
-});
+    parse_type_suffix(state, simple_type)
+}
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseLabel;
-define_lua52_parser!(ParseLabel, Label, TokenReference, |_, state| {
-    let (state, left_colons) = ParseSymbol(Symbol::TwoColons).parse(state)?;
-    let (state, name) = expect!(
-        state,
-        ParseIdentifier.parse(state),
-        "expected identifier after `::`"
-    );
-    let (state, right_colons) = expect!(
-        state,
-        ParseSymbol(Symbol::TwoColons).parse(state),
-        "expected `::`"
-    );
+#[cfg(feature = "luau")]
+fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::AllowPack)
+    else {
+        return ParserResult::LexerMoved;
+    };
 
-    Ok((
-        state,
-        Label {
-            left_colons,
-            name,
-            right_colons,
-        },
-    ))
-});
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "lua54")] {
-        #[derive(Clone, Debug, PartialEq)]
-        struct ParseAttribute;
-        define_parser!(ParseAttribute, Attribute, |_, state| {
-            let (state, left_angle_bracket) = ParseSymbol(Symbol::LessThan).parse(state)?;
-            let (state, name) = expect!(
-                state,
-                ParseIdentifier.parse(state),
-                "expected identifier after `<`"
-            );
-            let (state, right_angle_bracket) = expect!(
-                state,
-                ParseSymbol(Symbol::GreaterThan).parse(state),
-                "expected `>`"
-            );
-
-            Ok((
-                state,
-                Attribute {
-                    brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
-                    name,
-                },
-            ))
-        });
+    // type packs cannot have suffixes
+    match simple_type {
+        ast::TypeInfo::Tuple { ref types, .. } if types.len() != 1 => {
+            ParserResult::Value(simple_type)
+        }
+        ast::TypeInfo::VariadicPack { .. } | ast::TypeInfo::GenericPack { .. } => unreachable!(),
+        _ => parse_type_suffix(state, simple_type),
     }
 }
 
-macro_rules! make_op_parser {
-	($enum:ident, $parser:ident, { $($(#[$inner:meta])* $operator:ident,)+ }) => {
-		#[derive(Clone, Debug, PartialEq)]
-        struct $parser;
-        define_parser!($parser, $enum, |_, state| {
-            $(
-                $(#[$inner])*
-                if let Ok((state, operator)) = ParseSymbol(Symbol::$operator).parse(state) {
-                    return Ok((state, $enum::$operator(operator)));
-                }
-            )+
+#[cfg(feature = "luau")]
+fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
 
-			// This is to ensure the operators ALWAYS match those in the actual operator
-			// It won't compile if they don't match up
-			if let Some(x) = None {
-				match x {
-					$(
-                        $(#[$inner])*
-						$enum::$operator(_) => {},
-					)+
-				}
-			}
+    if current_token.is_symbol(Symbol::Ellipse) {
+        let ellipse = state.consume().unwrap();
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return ParserResult::LexerMoved;
+        };
 
-            Err(InternalAstError::NoMatch)
-        });
-	};
+        ParserResult::Value(ast::TypeInfo::Variadic {
+            ellipse,
+            type_info: Box::new(type_info),
+        })
+    } else if current_token.token_kind() == TokenKind::Identifier
+        && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+    {
+        let name = match parse_name(state) {
+            ParserResult::Value(name) => name.name,
+            _ => unreachable!(),
+        };
+
+        let Some(ellipse) = state.require(Symbol::Ellipse, "expected `...` after type name") else {
+            unreachable!()
+        };
+
+        ParserResult::Value(ast::TypeInfo::GenericPack { name, ellipse })
+    } else {
+        // rewrite todo: should we be returning this? or should this be unreachable
+        ParserResult::NotFound
+    }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct ParseBinOp;
-define_parser!(ParseBinOp, BinOp, |_, state| {
-    if let Ok((state, operator)) = ParseSymbol(Symbol::And).parse(state) {
-        Ok((state, BinOp::And(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Caret).parse(state) {
-        Ok((state, BinOp::Caret(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
-        // Lua 5.3 special case. If we find another Symbol::GreaterThan, merge them together into a DoubleGreaterThan
-        // We can't do this in the tokenizer since it collides with Luau generics for Array<Array<number>>
-        // We must ensure there is no whitespace in between the two symbols
-        #[cfg(feature = "lua53")]
-        if operator.trailing_trivia().next().is_none() {
-            if let Ok((state, operator2)) = ParseSymbol(Symbol::GreaterThan).parse(state) {
-                let merged_token = Token {
-                    start_position: operator.start_position,
-                    end_position: operator2.end_position,
-                    token_type: TokenType::Symbol {
-                        symbol: Symbol::DoubleGreaterThan,
-                    },
+#[cfg(feature = "luau")]
+#[derive(PartialEq, Eq)]
+enum SimpleTypeStyle {
+    Default,
+    AllowPack,
+}
+
+#[cfg(feature = "luau")]
+fn parse_simple_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> ParserResult<ast::TypeInfo> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol {
+            symbol: Symbol::Nil,
+        } => {
+            let nil_token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Basic(nil_token))
+        }
+        TokenType::Symbol {
+            symbol: Symbol::True,
+        }
+        | TokenType::Symbol {
+            symbol: Symbol::False,
+        } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::Boolean(token))
+        }
+        TokenType::StringLiteral { .. } => {
+            let token = state.consume().unwrap();
+            ParserResult::Value(ast::TypeInfo::String(token))
+        }
+        // Interpolated strings cannot be used as types
+        TokenType::InterpolatedString { .. } => {
+            let token = state.consume().unwrap();
+            state.token_error(
+                token,
+                "interpolated string literals cannot be used as types",
+            );
+            ParserResult::LexerMoved
+        }
+        TokenType::Identifier { .. } => {
+            let name = state.consume().unwrap();
+
+            if name.to_string() == "typeof" {
+                let left_parenthesis =
+                    match state.require(Symbol::LeftParen, "expected `(` after `typeof`") {
+                        Some(token) => token,
+                        None => TokenReference::basic_symbol("("),
+                    };
+
+                let ParserResult::Value(expression) = parse_expression(state) else {
+                    return ParserResult::LexerMoved;
                 };
 
-                let merged_operator = TokenReference::new(
-                    operator.leading_trivia,
-                    merged_token,
-                    operator2.trailing_trivia,
-                );
-                return Ok((state, BinOp::DoubleGreaterThan(merged_operator)));
+                let right_parenthesis = match state.require_with_reference_token(
+                    Symbol::RightParen,
+                    "expected `)` to close typeof call",
+                    &left_parenthesis,
+                ) {
+                    Some(token) => token,
+                    None => TokenReference::basic_symbol(")"),
+                };
+
+                ParserResult::Value(ast::TypeInfo::Typeof {
+                    typeof_token: name,
+                    parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                    inner: Box::new(expression),
+                })
+            } else {
+                match state.current() {
+                    Ok(token) if token.is_symbol(Symbol::Dot) => {
+                        let punctuation = state.consume().unwrap();
+
+                        let type_base = match parse_name(state) {
+                            ParserResult::Value(name) => name.name,
+                            ParserResult::NotFound => {
+                                state.token_error(
+                                    state.current().unwrap().clone(),
+                                    "expected identifier after `.`",
+                                );
+                                return ParserResult::LexerMoved;
+                            }
+                            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                        };
+
+                        let type_info = if let Some(left_arrow) = state.consume_if(Symbol::LessThan)
+                        {
+                            let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                                return ParserResult::LexerMoved;
+                            };
+                            ast::IndexedTypeInfo::Generic {
+                                base: type_base,
+                                arrows: generics.arrows,
+                                generics: generics.generics,
+                            }
+                        } else {
+                            ast::IndexedTypeInfo::Basic(type_base)
+                        };
+
+                        ParserResult::Value(ast::TypeInfo::Module {
+                            module: name,
+                            punctuation,
+                            type_info: Box::new(type_info),
+                        })
+                    }
+                    Ok(token) if token.is_symbol(Symbol::LessThan) => {
+                        let left_arrow = state.consume().unwrap();
+                        let Ok(generics) = expect_generic_type_params(state, left_arrow) else {
+                            return ParserResult::LexerMoved;
+                        };
+                        ParserResult::Value(ast::TypeInfo::Generic {
+                            base: name,
+                            arrows: generics.arrows,
+                            generics: generics.generics,
+                        })
+                    }
+                    _ => ParserResult::Value(ast::TypeInfo::Basic(name)),
+                }
             }
         }
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
 
-        Ok((state, BinOp::GreaterThan(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::GreaterThanEqual).parse(state) {
-        Ok((state, BinOp::GreaterThanEqual(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThan).parse(state) {
-        Ok((state, BinOp::LessThan(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::LessThanEqual).parse(state) {
-        Ok((state, BinOp::LessThanEqual(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Minus).parse(state) {
-        Ok((state, BinOp::Minus(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Or).parse(state) {
-        Ok((state, BinOp::Or(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Percent).parse(state) {
-        Ok((state, BinOp::Percent(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Plus).parse(state) {
-        Ok((state, BinOp::Plus(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Slash).parse(state) {
-        Ok((state, BinOp::Slash(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::Star).parse(state) {
-        Ok((state, BinOp::Star(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TildeEqual).parse(state) {
-        Ok((state, BinOp::TildeEqual(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoDots).parse(state) {
-        Ok((state, BinOp::TwoDots(operator)))
-    } else if let Ok((state, operator)) = ParseSymbol(Symbol::TwoEqual).parse(state) {
-        Ok((state, BinOp::TwoEqual(operator)))
+            match expect_type_table(state, left_brace) {
+                Ok(table) => ParserResult::Value(table),
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftParen,
+        }
+        | TokenType::Symbol {
+            symbol: Symbol::LessThan,
+        } => match expect_function_type(state, style) {
+            Ok(type_info) => ParserResult::Value(type_info),
+            Err(_) => ParserResult::LexerMoved,
+        },
+        _ => ParserResult::NotFound,
+    }
+}
+
+#[cfg(feature = "luau")]
+fn parse_type_suffix(
+    state: &mut ParserState,
+    simple_type: ast::TypeInfo,
+) -> ParserResult<ast::TypeInfo> {
+    let mut is_union = false;
+    let mut is_intersection = false;
+
+    let mut current_type = simple_type;
+
+    loop {
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
+        };
+
+        match current_token.token_type() {
+            TokenType::Symbol {
+                symbol: Symbol::Pipe,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let pipe = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
+                else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Union {
+                    left: Box::new(current_type),
+                    pipe,
+                    right: Box::new(right),
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::QuestionMark,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let question_mark = state.consume().unwrap();
+                current_type = ast::TypeInfo::Optional {
+                    base: Box::new(current_type),
+                    question_mark,
+                };
+                is_union = true;
+            }
+            TokenType::Symbol {
+                symbol: Symbol::Ampersand,
+            } => {
+                if is_union {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let ampersand = state.consume().unwrap();
+
+                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
+                else {
+                    return ParserResult::LexerMoved;
+                };
+
+                current_type = ast::TypeInfo::Intersection {
+                    left: Box::new(current_type),
+                    ampersand,
+                    right: Box::new(right),
+                };
+                is_intersection = true;
+            }
+            _ => break,
+        }
+    }
+
+    ParserResult::Value(current_type)
+}
+
+#[cfg(feature = "luau")]
+fn expect_type_table(
+    state: &mut ParserState,
+    left_brace: TokenReference,
+) -> Result<ast::TypeInfo, ()> {
+    let mut fields = Punctuated::new();
+
+    let mut has_indexer = false;
+    let mut array_type = None;
+
+    loop {
+        let current_token = state.current()?;
+
+        let field = if current_token.is_symbol(Symbol::RightBrace) {
+            debug_assert!(
+                array_type.is_none(),
+                "consuming right brace in loop but have seen array type"
+            );
+            let braces = ContainedSpan::new(left_brace, state.consume().unwrap());
+            return Ok(ast::TypeInfo::Table { braces, fields });
+        } else if current_token.is_symbol(Symbol::LeftBracket)
+            && matches!(state.peek(), Ok(token) if token.token_kind() == TokenKind::StringLiteral)
+        {
+            let left_brace = state.consume().unwrap();
+            let property = state.consume().unwrap();
+            let Some(right_brace) = state.require(
+                Symbol::RightBracket,
+                "expected `]` to close `[` for type table field",
+            ) else {
+                return Err(());
+            };
+            let Some(colon) = state.require(Symbol::Colon, "expected `:` after type field key")
+            else {
+                return Err(());
+            };
+
+            let value = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::LexerMoved | ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type after type field key",
+                    );
+                    return Err(());
+                }
+            };
+
+            ast::TypeField {
+                key: ast::TypeFieldKey::IndexSignature {
+                    brackets: ContainedSpan::new(left_brace, right_brace),
+                    inner: ast::TypeInfo::String(property),
+                },
+                colon,
+                value,
+            }
+        } else if current_token.is_symbol(Symbol::LeftBracket) {
+            let left_brace = state.consume().unwrap();
+            let key = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type for type field key",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            };
+            let Some(right_brace) = state.require(
+                Symbol::RightBracket,
+                "expected `]` to close `[` for type table field",
+            ) else {
+                return Err(());
+            };
+            let Some(colon) = state.require(Symbol::Colon, "expected `:` after type field key")
+            else {
+                return Err(());
+            };
+
+            let value = match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type after type field key",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            };
+
+            if has_indexer {
+                state.token_error_ranged(
+                    left_brace.clone(),
+                    "cannot have more than one table indexer",
+                    &left_brace,
+                    value.tokens().last().unwrap(),
+                );
+            }
+            has_indexer = true;
+
+            ast::TypeField {
+                key: ast::TypeFieldKey::IndexSignature {
+                    brackets: ContainedSpan::new(left_brace, right_brace),
+                    inner: key,
+                },
+                colon,
+                value,
+            }
+        } else if fields.is_empty()
+            && !has_indexer
+            && !(current_token.token_kind() == TokenKind::Identifier
+                && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon)))
+        {
+            array_type = Some(match parse_type(state) {
+                ParserResult::Value(value) => value,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected type for table array",
+                    );
+                    return Err(());
+                }
+                ParserResult::LexerMoved => return Err(()),
+            });
+            break;
+        } else {
+            match parse_name(state) {
+                ParserResult::Value(name) => {
+                    let Some(colon) =
+                        state.require(Symbol::Colon, "expected `:` after type field key")
+                    else {
+                        return Err(());
+                    };
+                    let value = match parse_type(state) {
+                        ParserResult::Value(value) => value,
+                        ParserResult::NotFound => {
+                            state.token_error(
+                                state.current().unwrap().clone(),
+                                "expected type after type field key",
+                            );
+                            return Err(());
+                        }
+                        ParserResult::LexerMoved => return Err(()),
+                    };
+
+                    ast::TypeField {
+                        key: ast::TypeFieldKey::Name(name.name),
+                        colon,
+                        value,
+                    }
+                }
+                ParserResult::NotFound => break,
+                ParserResult::LexerMoved => return Err(()),
+            }
+        };
+
+        match state.current() {
+            Ok(token) => {
+                if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Semicolon) {
+                    fields.push(Pair::Punctuated(field, state.consume().unwrap()))
+                } else {
+                    fields.push(Pair::End(field));
+                    break;
+                }
+            }
+
+            Err(()) => {
+                fields.push(Pair::End(field));
+                break;
+            }
+        };
+    }
+
+    let right_brace = state
+        .require(Symbol::RightBrace, "expected `}` to close type table")
+        .unwrap_or_else(|| TokenReference::basic_symbol("}"));
+
+    let braces = ContainedSpan::new(left_brace, right_brace);
+
+    if let Some(type_info) = array_type {
+        Ok(ast::TypeInfo::Array {
+            braces,
+            type_info: Box::new(type_info),
+        })
     } else {
-        // Luau & Lua 5.3
-        #[cfg(any(feature = "roblox", feature = "lua53"))]
-        if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleSlash).parse(state) {
-            return Ok((state, BinOp::DoubleSlash(operator)));
+        Ok(ast::TypeInfo::Table { braces, fields })
+    }
+}
+
+#[cfg(feature = "luau")]
+fn expect_function_type(
+    state: &mut ParserState,
+    style: SimpleTypeStyle,
+) -> Result<ast::TypeInfo, ()> {
+    let mut force_function_type =
+        matches!(state.current(), Ok(token) if token.is_symbol(Symbol::LessThan));
+
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
+        ParserResult::Value(generics) => Some(generics),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let mut arguments = Punctuated::new();
+
+    let Some(left_paren) = state.require(Symbol::LeftParen, "expected `(`") else {
+        return Err(());
+    };
+
+    while !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+        // vararg annotation
+        match parse_type_pack(state) {
+            ParserResult::Value(type_info) => {
+                arguments.push(Pair::End(ast::TypeArgument {
+                    name: None,
+                    type_info,
+                }));
+                break;
+            }
+            ParserResult::LexerMoved => return Err(()),
+            ParserResult::NotFound => (),
         }
 
-        // Lua 5.3
-        #[cfg(feature = "lua53")]
-        if let Ok((state, operator)) = ParseSymbol(Symbol::Ampersand).parse(state) {
-            return Ok((state, BinOp::Ampersand(operator)));
-        } else if let Ok((state, operator)) = ParseSymbol(Symbol::DoubleLessThan).parse(state) {
-            return Ok((state, BinOp::DoubleLessThan(operator)));
-        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Pipe).parse(state) {
-            return Ok((state, BinOp::Pipe(operator)));
-        } else if let Ok((state, operator)) = ParseSymbol(Symbol::Tilde).parse(state) {
-            return Ok((state, BinOp::Tilde(operator)));
+        let Ok(current_token) = state.current() else {
+            return Err(());
+        };
+
+        let name = if current_token.token_kind() == TokenKind::Identifier
+            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
+        {
+            Some((state.consume().unwrap(), state.consume().unwrap()))
+        } else {
+            None
+        };
+
+        let ParserResult::Value(type_info) = parse_type(state) else {
+            return Err(());
+        };
+
+        let type_argument = ast::TypeArgument { name, type_info };
+
+        if !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Comma)) {
+            arguments.push(Pair::End(type_argument));
+            break;
         }
 
-        Err(InternalAstError::NoMatch)
-    }
-});
+        let punctuation = state.consume().unwrap();
+        arguments.push(Pair::Punctuated(type_argument, punctuation));
 
-make_op_parser!(UnOp, ParseUnOp,
+        if matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+            state.token_error(
+                state.current().unwrap().clone(),
+                "expected type after `,` but got `)` instead",
+            );
+            break;
+        }
+    }
+
+    let Some(right_paren) = state.require(Symbol::RightParen, "expected `)` to close `(`") else {
+        return Err(());
+    };
+
+    let parentheses = ContainedSpan::new(left_paren, right_paren);
+
+    if arguments
+        .iter()
+        .any(|arg: &ast::TypeArgument| arg.name().is_some())
     {
-        Minus,
-        Not,
-        Hash,
-        #[cfg(feature = "lua53")]
-        Tilde,
+        force_function_type = true;
     }
-);
 
-#[cfg(feature = "roblox")]
-make_op_parser!(CompoundOp, ParseCompoundOp,
+    if !force_function_type
+        && !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::ThinArrow))
     {
-        PlusEqual,
-        MinusEqual,
-        StarEqual,
-        SlashEqual,
-        DoubleSlashEqual,
-        PercentEqual,
-        CaretEqual,
-        TwoDotsEqual,
+        // Simple type wrapped in parentheses (not allowed to be a vararg type), or an allowed type pack
+        if (arguments.len() == 1
+            && !matches!(
+                arguments.iter().next().unwrap().type_info,
+                ast::TypeInfo::Variadic { .. }
+            ))
+            || style == SimpleTypeStyle::AllowPack
+        {
+            return Ok(ast::TypeInfo::Tuple {
+                parentheses,
+                types: arguments
+                    .into_pairs()
+                    .map(|pair| pair.map(|argument| argument.type_info))
+                    .collect(),
+            });
+        }
     }
-);
 
-// TODO
+    let Some(arrow) = state.require(
+        Symbol::ThinArrow,
+        "expected `->` after `()` for function type",
+    ) else {
+        // rewrite todo: luau recovers from this, using an AstTypeError return type
+        return Err(());
+    };
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::{ast::extract_token_references, tokenizer::tokens};
-//     use pretty_assertions::assert_eq;
+    let return_type = match parse_return_type(state) {
+        ParserResult::Value(return_type) => return_type,
+        ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
+    };
 
-//     macro_rules! assert_state_eq {
-//         ($state: expr, $index: expr, $tokens: ident) => {
-//             assert_eq!($state.index, $index);
-//             assert_eq!($state.len, $tokens.len());
-//         };
-//     }
+    Ok(ast::TypeInfo::Callback {
+        generics,
+        parentheses,
+        arguments,
+        arrow,
+        return_type: Box::new(return_type),
+    })
+}
 
-//     macro_rules! tokens {
-//         ($body: expr) => {
-//             extract_token_references(tokens($body).expect("couldn't tokenize'"))
-//         };
-//     }
+#[cfg(feature = "luau")]
+fn expect_type_specifier(
+    state: &mut ParserState,
+    punctuation: TokenReference,
+) -> Result<ast::TypeSpecifier, ()> {
+    let ParserResult::Value(type_info) = parse_type(state) else {
+        state.token_error(punctuation, "expected type info after `:`");
+        return Err(());
+    };
 
-//     #[test]
-//     fn test_zero_or_more_empty() {
-//         let tokens = tokens!("local x");
-//         let state = ParserState::new(&tokens);
+    Ok(ast::TypeSpecifier {
+        punctuation,
+        type_info,
+    })
+}
 
-//         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma))
-//             .parse(state)
-//             .unwrap();
+#[cfg(feature = "luau")]
+fn parse_return_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
+    // rewrite todo: should this be gated behind a check?
+    match parse_type_pack(state) {
+        ParserResult::Value(type_info) => ParserResult::Value(type_info),
+        ParserResult::NotFound => parse_type_or_pack(state),
+        ParserResult::LexerMoved => ParserResult::LexerMoved,
+    }
+}
 
-//         assert_state_eq!(state, 0, tokens);
-//         assert_eq!(commas.len(), 0);
-//     }
+#[cfg(feature = "luau")]
+#[derive(PartialEq, Eq)]
+enum TypeListStyle {
+    Plain,
+    WithDefaults,
+}
 
-//     #[test]
-//     fn test_zero_or_more_exists() {
-//         let tokens = tokens!(",,, , ,\t ,local x");
-//         let state = ParserState::new(&tokens);
+#[cfg(feature = "luau")]
+fn parse_generic_type_list(
+    state: &mut ParserState,
+    style: TypeListStyle,
+) -> ParserResult<ast::GenericDeclaration> {
+    if !state.lua_version().has_luau() {
+        return ParserResult::NotFound;
+    }
 
-//         let (state, commas) = ZeroOrMore(ParseSymbol(Symbol::Comma))
-//             .parse(state)
-//             .unwrap();
+    let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) else {
+        return ParserResult::NotFound;
+    };
 
-//         assert_state_eq!(state, 9, tokens);
-//         assert_eq!(commas.len(), 6);
-//     }
+    let mut generics = Punctuated::new();
 
-//     #[test]
-//     fn test_one_or_more_empty() {
-//         let tokens = tokens!("local x");
-//         let state = ParserState::new(&tokens);
+    let mut seen_pack = false;
+    let mut seen_default = false;
 
-//         assert!(
-//             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
-//                 .parse(state)
-//                 .is_err()
-//         );
-//     }
+    loop {
+        let name = match state.current() {
+            Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
 
-//     #[test]
-//     fn test_one_or_more_exists_no_delimiter() {
-//         let tokens = tokens!("end,end, end,\t\tend local");
-//         let state = ParserState::new(&tokens);
+            Ok(token) => {
+                state.token_error(token.clone(), "expected a generic type name");
+                error_token()
+            }
 
-//         let (state, commas) =
-//             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), false)
-//                 .parse(state)
-//                 .expect("OneOrMore failed");
+            Err(()) => return ParserResult::LexerMoved,
+        };
 
-//         assert_state_eq!(state, 10, tokens);
-//         assert_eq!(commas.len(), 4);
-//     }
+        let Ok(current_token) = state.current() else {
+            return ParserResult::NotFound;
+        };
 
-//     #[test]
-//     fn test_one_or_more_exists_with_delimiter() {
-//         let tokens = tokens!("end,end, end,\t\tend, local");
-//         let state = ParserState::new(&tokens);
+        let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipse) {
+            seen_pack = true;
 
-//         let (state, commas) = OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
-//             .parse(state)
-//             .unwrap();
+            let ellipse = match state.consume_if(Symbol::Ellipse) {
+                Some(token) => token,
+                None => {
+                    state.token_error(name.clone(), "generic types come before generic type packs");
+                    TokenReference::basic_symbol("...")
+                }
+            };
 
-//         assert_state_eq!(state, 11, tokens);
-//         assert_eq!(commas.len(), 4);
-//     }
+            let default = if style == TypeListStyle::WithDefaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
 
-//     #[test]
-//     fn test_one_or_more_exists_with_nothing() {
-//         let tokens = tokens!("local");
-//         let state = ParserState::new(&tokens);
+                // rewrite todo: behind check? is this backtracking?
+                let default_type = match parse_type_pack(state) {
+                    ParserResult::Value(type_info) => type_info,
+                    ParserResult::NotFound => match parse_type_or_pack(state) {
+                        ParserResult::Value(type_info)
+                            if matches!(type_info, ast::TypeInfo::Tuple { .. }) =>
+                        {
+                            type_info
+                        }
+                        ParserResult::Value(type_info) => {
+                            state.token_error_ranged(
+                                equal_token.clone(),
+                                "expected type pack after `=` but got type instead",
+                                type_info.tokens().next().unwrap(),
+                                type_info.tokens().last().unwrap(),
+                            );
+                            type_info
+                        }
+                        _ => return ParserResult::LexerMoved,
+                    },
+                    ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                };
 
-//         assert!(
-//             OneOrMore(ParseSymbol(Symbol::End), ParseSymbol(Symbol::Comma), true)
-//                 .parse(state)
-//                 .is_err()
-//         );
-//     }
-// }
+                Some((equal_token, default_type))
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (
+                ast::GenericParameterInfo::Variadic { name, ellipse },
+                default,
+            )
+        } else {
+            let default = if style == TypeListStyle::WithDefaults
+                && matches!(state.current(), Ok(token) if token.is_symbol(Symbol::Equal))
+            {
+                seen_default = true;
+                let equal_token = state.consume().unwrap();
+                let default_type = match parse_type(state) {
+                    ParserResult::Value(default_type) => default_type,
+                    _ => return ParserResult::LexerMoved,
+                };
+
+                Some((equal_token, default_type))
+            } else {
+                if seen_default {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected default type after type name",
+                    )
+                }
+
+                None
+            };
+
+            (ast::GenericParameterInfo::Name(name), default)
+        };
+
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Comma) => {
+                let punctuation = state.consume().unwrap();
+                generics.push(Pair::Punctuated(
+                    ast::GenericDeclarationParameter { parameter, default },
+                    punctuation,
+                ));
+
+                if let Ok(token) = state.current() {
+                    if token.is_symbol(Symbol::GreaterThan) {
+                        state.token_error(
+                            token.clone(),
+                            "expected type after `,` but got `>` instead",
+                        );
+                    }
+                }
+            }
+            Ok(_) => {
+                generics.push(Pair::End(ast::GenericDeclarationParameter {
+                    parameter,
+                    default,
+                }));
+                break;
+            }
+            Err(()) => return ParserResult::LexerMoved,
+        };
+    }
+
+    let right_angle_bracket = state
+        .require(Symbol::GreaterThan, "expected `>` to close generic list")
+        .unwrap_or_else(|| TokenReference::basic_symbol(">"));
+
+    ParserResult::Value(ast::GenericDeclaration {
+        arrows: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+        generics,
+    })
+}
+
+#[cfg(feature = "luau")]
+struct GenericTypeParams {
+    arrows: ContainedSpan,
+    generics: Punctuated<ast::TypeInfo>,
+}
+
+#[cfg(feature = "luau")]
+fn expect_generic_type_params(
+    state: &mut ParserState,
+    left_arrow: TokenReference,
+) -> Result<GenericTypeParams, ()> {
+    let mut generics = Punctuated::new();
+
+    loop {
+        if state.current()?.is_symbol(Symbol::GreaterThan) {
+            break;
+        }
+
+        let type_info = match parse_type_pack(state) {
+            ParserResult::Value(type_info) => type_info,
+            ParserResult::NotFound => match parse_type_or_pack(state) {
+                ParserResult::Value(type_info) => type_info,
+                _ => return Err(()),
+            },
+            ParserResult::LexerMoved => return Err(()),
+        };
+
+        if let Some(punctuation) = state.consume_if(Symbol::Comma) {
+            generics.push(Pair::Punctuated(type_info, punctuation));
+            if state.current()?.is_symbol(Symbol::GreaterThan) {
+                state.token_error(
+                    state.current()?.clone(),
+                    "expected type after ',' but got '>' instead",
+                );
+                break;
+            }
+        } else {
+            generics.push(Pair::End(type_info));
+            break;
+        }
+    }
+
+    let Some(right_arrow) = state.require(
+        Symbol::GreaterThan,
+        "expected '>' to close generic type parameter list",
+    ) else {
+        return Err(());
+    };
+
+    Ok(GenericTypeParams {
+        arrows: ContainedSpan::new(left_arrow, right_arrow),
+        generics,
+    })
+}
+
+#[derive(Clone)]
+struct Name {
+    name: TokenReference,
+    #[cfg(feature = "lua54")]
+    attribute: Option<super::lua54::Attribute>,
+    #[cfg(feature = "luau")]
+    type_specifier: Option<ast::TypeSpecifier>,
+}
+
+#[cfg(feature = "luau")]
+fn parse_name(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_name_with_attributes(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name_with_attributes(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn parse_name_with_type_specifiers(state: &mut ParserState) -> ParserResult<Name> {
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
+    };
+
+    match current_token.token_type() {
+        TokenType::Identifier { .. } => {
+            let name_token = state.consume().unwrap();
+            ParserResult::Value(force_name_with_type_specifiers(state, name_token))
+        }
+
+        _ => ParserResult::NotFound,
+    }
+}
+
+fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
+    Name {
+        name,
+        #[cfg(feature = "lua54")]
+        attribute: None,
+        #[cfg(feature = "luau")]
+        type_specifier: None,
+    }
+}
+
+#[cfg(feature = "lua54")]
+fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    // NOTE: whenever attributes can be parsed, type specifiers are possible
+    // so we should fall back to parsing type specifiers if an attribute is not found.
+    // NOTE: we do not attempt to parse both type specifiers and attributes at the same time
+    if !state.lua_version().has_lua54() {
+        return force_name_with_type_specifiers(state, name);
+    }
+
+    #[cfg(feature = "lua54")]
+    if let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) {
+        const ERROR_INVALID_ATTRIBUTE: &str = "expected identifier after `<` for attribute";
+
+        let attribute_name = match state.current() {
+            Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+                state.consume().unwrap()
+            }
+
+            Ok(token) => {
+                state.token_error_ranged(
+                    token.clone(),
+                    ERROR_INVALID_ATTRIBUTE,
+                    &left_angle_bracket,
+                    &token.clone(),
+                );
+
+                return Name {
+                    name,
+                    attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
+                };
+            }
+
+            Err(()) => {
+                state.token_error(left_angle_bracket, ERROR_INVALID_ATTRIBUTE);
+
+                return Name {
+                    name,
+                    attribute: None,
+                    #[cfg(feature = "luau")]
+                    type_specifier: None,
+                };
+            }
+        };
+
+        let Some(right_angle_bracket) =
+            state.require(Symbol::GreaterThan, "expected `>` to close attribute")
+        else {
+            return Name {
+                name,
+                attribute: Some(super::lua54::Attribute {
+                    brackets: ContainedSpan::new(
+                        left_angle_bracket,
+                        TokenReference::basic_symbol(">"),
+                    ),
+                    name: attribute_name,
+                }),
+                #[cfg(feature = "luau")]
+                type_specifier: None,
+            };
+        };
+
+        return Name {
+            name,
+            attribute: Some(super::lua54::Attribute {
+                brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+                name: attribute_name,
+            }),
+            #[cfg(feature = "luau")]
+            type_specifier: None,
+        };
+    }
+
+    force_name_with_type_specifiers(state, name)
+}
+
+#[cfg(feature = "luau")]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
+    if !state.lua_version().has_luau() {
+        return force_name(state, name);
+    }
+
+    if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+        let Ok(type_specifier) = expect_type_specifier(state, punctuation) else {
+            return Name {
+                name,
+                #[cfg(feature = "lua52")]
+                attribute: None,
+                type_specifier: None,
+            };
+        };
+
+        Name {
+            name,
+            #[cfg(feature = "lua52")]
+            attribute: None,
+            type_specifier: Some(type_specifier),
+        }
+    } else {
+        force_name(state, name)
+    }
+}
+
+#[cfg(not(feature = "luau"))]
+fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference) -> Name {
+    force_name(state, name)
+}
+
+#[cfg(not(feature = "lua54"))]
+fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
+    force_name_with_type_specifiers(state, name)
+}
+
+fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(
+    state: &mut ParserState,
+    parser: F,
+    delimiter: Symbol,
+) -> ParserResult<Punctuated<T>> {
+    let mut values = Punctuated::new();
+
+    loop {
+        let value = match parser(state) {
+            ParserResult::Value(value) => value,
+            ParserResult::NotFound | ParserResult::LexerMoved => break,
+        };
+
+        match state.consume_if(delimiter) {
+            Some(delimiter) => {
+                values.push(Pair::Punctuated(value, delimiter));
+            }
+
+            None => {
+                values.push(Pair::End(value));
+                break;
+            }
+        }
+    }
+
+    if values.is_empty() {
+        return ParserResult::NotFound;
+    }
+
+    if let Some(Pair::Punctuated(..)) = values.last() {
+        let last_value = values.pop().unwrap();
+
+        state.token_error(
+            last_value.punctuation().unwrap().clone(),
+            "trailing commas are not allowed",
+        );
+
+        values.push(Pair::End(last_value.into_value()));
+    }
+
+    ParserResult::Value(values)
+}
+
+fn parse_name_list(state: &mut ParserState) -> ParserResult<Punctuated<Name>> {
+    one_or_more(state, parse_name_with_type_specifiers, Symbol::Comma)
+}
+
+fn parse_expression_list(state: &mut ParserState) -> ParserResult<Punctuated<Expression>> {
+    one_or_more(state, parse_expression, Symbol::Comma)
+}

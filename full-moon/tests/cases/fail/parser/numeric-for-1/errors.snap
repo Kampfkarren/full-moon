@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+input_file: full-moon/tests/cases/fail/parser/numeric-for-1
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 5
+        line: 1
+        character: 6
+      end_position:
+        bytes: 5
+        line: 1
+        character: 6
+      token_type:
+        type: Eof
+    additional: "expected `in` after name list"
+

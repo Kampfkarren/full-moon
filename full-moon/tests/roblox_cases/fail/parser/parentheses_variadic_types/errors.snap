@@ -1,0 +1,18 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 22
+        line: 1
+        character: 23
+      end_position:
+        bytes: 22
+        line: 1
+        character: 23
+      token_type:
+        type: Eof
+    additional: "expected `->` after `()` for function type"
+
