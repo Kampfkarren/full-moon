@@ -624,8 +624,6 @@ impl TokenReference {
                 }
 
                 Some(LexerResult::Ok(token)) => {
-                    // rewrite todo: I think buffing the lexer is going to result in
-                    // this actually receiving a Token and not just a char (or at least a variant for it)
                     return Err(TokenizerErrorType::UnexpectedToken(
                         token.to_string().chars().next().unwrap(),
                     ));
