@@ -227,6 +227,11 @@ impl fmt::Display for TokenizerErrorType {
     }
 }
 
+// Used by serde
+fn is_usize_zero(input: &usize) -> bool {
+    *input == 0
+}
+
 /// The type of tokens in parsed code
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -273,12 +278,12 @@ pub enum TokenType {
     StringLiteral {
         /// The literal itself, ignoring quotation marks
         literal: ShortString,
-        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_usize_zero"))]
         /// Number of equals signs used for a multi line string, if it is one
-        /// For example, `[=[string]=]` would have a `multi_line` value of Some(1)
-        /// `[[string]]` would have a `multi_line` value of Some(0)
-        /// A string such as `"string"` would have a `multi_line` value of None
-        multi_line: Option<usize>,
+        /// For example, `[=[string]=]` would have a `multi_line_depth` value of 1
+        /// `[[string]]` would have a `multi_line_depth` value of 0
+        /// A string such as `"string"` would have also have a `multi_line_depth` value of 0
+        multi_line_depth: usize,
         /// The type of quotation mark used to make the string
         quote_type: StringLiteralQuoteType,
     },
@@ -449,13 +454,18 @@ impl fmt::Display for Token {
             SingleLineComment { comment } => write!(formatter, "--{comment}"),
             StringLiteral {
                 literal,
-                multi_line,
+                multi_line_depth,
                 quote_type,
             } => {
-                if let Some(blocks) = multi_line {
-                    write!(formatter, "[{0}[{1}]{0}]", "=".repeat(*blocks), literal)
+                if *quote_type == StringLiteralQuoteType::Brackets {
+                    write!(
+                        formatter,
+                        "[{0}[{1}]{0}]",
+                        "=".repeat(*multi_line_depth),
+                        literal
+                    )
                 } else {
-                    write!(formatter, "{quote_type}{literal}{quote_type}")
+                    write!(formatter, "{0}{1}{0}", quote_type.to_string(), literal)
                 }
             }
             Symbol { symbol } => symbol.fmt(formatter),
@@ -842,7 +852,10 @@ pub enum StringLiteralQuoteType {
 impl fmt::Display for StringLiteralQuoteType {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            StringLiteralQuoteType::Brackets => unreachable!(),
+            // Brackets cannot be properly displayed, as not only do they have
+            // variable depth (`=`), but also they don't open the same as
+            // they end, meaning this can't really be used for display purposes.
+            StringLiteralQuoteType::Brackets => Err(fmt::Error),
             StringLiteralQuoteType::Double => "\"".fmt(formatter),
             StringLiteralQuoteType::Single => "'".fmt(formatter),
         }
