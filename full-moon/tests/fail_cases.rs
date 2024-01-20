@@ -15,16 +15,16 @@ use common::run_test_folder;
 fn process_fail_case(path: &Path, source: &str, lua_version: LuaVersion) {
     let result = full_moon::parse_fallible(source, lua_version);
 
-    if result.errors.is_empty() {
+    if result.errors().is_empty() {
         panic!("fail case passed for {path:?}");
     }
 
-    assert_yaml_snapshot!("errors", result.errors);
-    assert_yaml_snapshot!("ast", result.ast);
+    assert_yaml_snapshot!("errors", result.errors());
+    assert_yaml_snapshot!("ast", result.ast());
 
     process_codespan_display(source, &result);
 
-    let ast = result.ast.update_positions();
+    let ast = result.into_ast().update_positions();
     assert_yaml_snapshot!("ast_to_string", full_moon::print(&ast));
 }
 
@@ -36,7 +36,7 @@ fn process_codespan_display(source: &str, result: &AstResult) {
     let config = codespan_reporting::term::Config::default();
     let mut output = termcolor::NoColor::new(Vec::new());
 
-    for error in &result.errors {
+    for error in result.errors() {
         let range = error.range();
 
         let diagnostic = Diagnostic::error()

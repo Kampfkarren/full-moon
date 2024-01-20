@@ -233,12 +233,27 @@ impl<T> ParserResult<T> {
 }
 
 pub struct AstResult {
-    // rewrite todo: not pub
-    pub ast: Ast,
-    pub errors: Vec<crate::Error>,
+    ast: Ast,
+    errors: Vec<crate::Error>,
 }
 
 impl AstResult {
+    /// Returns the AST that was parsed.
+    /// If there were any errors, this will not be exactly the same,
+    /// as reconstruction will have occurred.
+    pub fn ast(&self) -> &Ast {
+        &self.ast
+    }
+
+    pub fn into_ast(self) -> Ast {
+        self.ast
+    }
+
+    /// Returns all errors that occurred during parsing.
+    pub fn errors(&self) -> &[crate::Error] {
+        &self.errors
+    }
+
     pub(crate) fn parse_fallible(code: &str, lua_version: LuaVersion) -> Self {
         const UNEXPECTED_TOKEN_ERROR: &str = "unexpected token, this needs to be a statement";
 
