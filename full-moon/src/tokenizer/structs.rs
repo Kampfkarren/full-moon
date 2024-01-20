@@ -197,8 +197,7 @@ pub enum TokenizerErrorType {
     UnclosedComment,
     /// An unclosed string was found
     UnclosedString,
-    // rewrite todo: changelog
-    // rewrite todo: this only makes sense with RANGE
+    /// An invalid number was found
     InvalidNumber,
     /// An unexpected token was found
     UnexpectedToken(char),
