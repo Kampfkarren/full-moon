@@ -68,8 +68,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
 // Blocks in general are not very fallible. This means, for instance, not finishing `function()`
 // will result in a completely ignored function body.
 // This is an opinionated choice because I believe selene is going to produce terrible outputs if we don't.
-// rewrite todo: expect_?
-fn parse_block_with_end(
+fn expect_block_with_end(
     state: &mut ParserState,
     name: &str,
     start_for_errors: &TokenReference,
@@ -195,7 +194,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
 
         TokenType::Symbol { symbol: Symbol::Do } => {
             let do_token = state.consume().unwrap();
-            let (block, end_token) = match parse_block_with_end(state, "do", &do_token) {
+            let (block, end_token) = match expect_block_with_end(state, "do", &do_token) {
                 Ok(block) => block,
                 Err(()) => return ParserResult::LexerMoved,
             };
@@ -741,7 +740,7 @@ fn expect_for_stmt(state: &mut ParserState, for_token: TokenReference) -> Result
         }));
     };
 
-    let (block, end) = match parse_block_with_end(state, "for loop", &do_token) {
+    let (block, end) = match expect_block_with_end(state, "for loop", &do_token) {
         Ok(block) => block,
         Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
     };
@@ -815,7 +814,7 @@ fn expect_numeric_for_stmt(
         return Err(());
     };
 
-    let (block, end_token) = match parse_block_with_end(state, "numeric for loop", &do_token) {
+    let (block, end_token) = match expect_block_with_end(state, "numeric for loop", &do_token) {
         Ok(block) => block,
         Err(()) => (ast::Block::new(), TokenReference::basic_symbol("end")),
     };
@@ -1278,7 +1277,7 @@ fn expect_while_stmt(
         return Ok(ast::While::new(condition));
     };
 
-    let (block, end_token) = match parse_block_with_end(state, "while loop", &do_token) {
+    let (block, end_token) = match expect_block_with_end(state, "while loop", &do_token) {
         Ok((block, end_token)) => (block, end_token),
 
         Err(()) => {
@@ -2021,7 +2020,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
         None
     };
 
-    let (block, end) = match parse_block_with_end(state, "function body", &right_parenthesis) {
+    let (block, end) = match expect_block_with_end(state, "function body", &right_parenthesis) {
         Ok((block, end)) => (block, end),
         Err(()) => return ParserResult::LexerMoved,
     };
