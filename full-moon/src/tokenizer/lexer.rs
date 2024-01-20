@@ -166,7 +166,6 @@ impl Lexer {
 
     fn process_first_with_trivia(&mut self) -> Option<LexerResult<TokenReference>> {
         if self.source.current() == Some('#') && self.source.peek() == Some('!') {
-            // rewrite todo: this changes shebang behavior to be more in line with the rest of full-moon. document
             let start_position = self.source.position();
             let mut line = "#!".to_string();
 

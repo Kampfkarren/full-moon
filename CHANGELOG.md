@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** `TokenType::StringLiteral::multi_line` has been replaced with `TokenType::StringLiteral::multi_line_depth`. It serves the same purpose except instead of being an `Option<usize>`, it is now a standard `usize`. It is advised to simply check `quote_type == StringLiteralQuoteType::Brackets` to get the previous behavior.
 - **[BREAKING CHANGE]** Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
 - **[BREAKING CHANGE]** `Symbol::PlusEqual` and friends are now only available when using Luau.
+- Shebangs provide their trailing trivia more accurately to the rest of full-moon.
 - Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
 - Significantly optimized the entire codebase, helping both time to parse and wasting less stack, especially in debug mode.
 - `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
