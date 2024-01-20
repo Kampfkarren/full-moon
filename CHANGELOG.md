@@ -11,32 +11,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for parsing Luau's floor division assignment `//=`
 
 ### Changed
+- **[BREAKING CHANGE]** `parse` now returns a vector of errors.
 - **[BREAKING CHANGE]** `TokenType::StringLiteral::multi_line` has been replaced with `TokenType::StringLiteral::multi_line_depth`. It serves the same purpose except instead of being an `Option<usize>`, it is now a standard `usize`. It is advised to simply check `quote_type == StringLiteralQuoteType::Brackets` to get the previous behavior.
+- **[BREAKING CHANGE]** Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
+- **[BREAKING CHANGE]** `Symbol::PlusEqual` and friends are now only available when using Luau.
 - Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
+- Significantly optimized the entire codebase, helping both time to parse and wasting less stack in debug mode (rewrite todo: is it less in release mode too?).
+- `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
+
+### Removed
+- **[BREAKING CHANGE]** Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
+- Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
+
+### Fixed
+- Fixed parsing of string interpolation double brace for Luau code
+- Fixed failure to parse `\z` escapes in strings in Luau mode
 
 ## [0.19.0] - 2023-11-10
 ### Added
 - Added support for parsing Luau's floor division `//`
 
 ### Changed
-- `parse`'s error type has changed from `Error` to `Vec<Error>`.
 - Flattened `Expression::Value` to all be variants of `Expression` directly, as this was not used anywhere else. The extra `type_assertion` field has been moved into a new variant `Expression::TypeAssertion`. None of these variants are boxed.
-- Flattened `AstError` into just what used to be `AstError::UnexpectedToken`.
 - The following fields/variants have been changed from `Expression` to `Box<Expression>`: `Prefix::Expression`, `Var::Expression`, `IfExpression::condition`, `IfExpression::if_expression`, `IfExpression::else_expression`.
-- Significantly optimized the entire codebase, helping both time to parse and wasting less stack in debug mode (rewrite todo: is it less in release mode too?).
 - When using serde, `Expression` will no longer act untagged.
-- `Symbol::PlusEqual` and friends are now only available when using Luau.
 
 ### Fixed
-- `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
-
-### Removed
-- Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
-- Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
-
-### Fixed
-- Fixed parsing of string interpolation double brace for Luau code
-- Fixed failure to parse `\z` escapes in strings in Luau mode
 
 ## [0.18.1] - 2023-03-19
 ### Fixed
