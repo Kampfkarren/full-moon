@@ -586,6 +586,18 @@ impl TokenReference {
         TokenReference::symbol_specific_lua_version(text, LuaVersion::lua51()).unwrap()
     }
 
+    /// Returns a symbol with the leading and trailing whitespace,
+    /// much like [`TokenReference::symbol`], but only if it's valid
+    /// for the given Lua version.
+    /// ```rust
+    /// # use full_moon::tokenizer::{Symbol, TokenReference, TokenType, TokenizerErrorType};
+    /// # use full_moon::LuaVersion;
+    /// # fn main() -> Result<(), Box<TokenizerErrorType>> {
+    /// assert!(TokenReference::symbol_specific_lua_version("goto", LuaVersion::lua51()).is_err());
+    /// assert!(TokenReference::symbol_specific_lua_version("goto", LuaVersion::lua52()).is_ok());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn symbol_specific_lua_version(
         text: &str,
         lua_version: LuaVersion,

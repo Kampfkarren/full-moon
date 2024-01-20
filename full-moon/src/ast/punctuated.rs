@@ -183,6 +183,8 @@ impl<T> Punctuated<T> {
         self.pairs.push(pair);
     }
 
+    /// Pushes a new node `T` onto the sequence, with the given punctuation.
+    /// Will apply the punctuation to the last item, which must exist.
     pub fn push_punctuated(&mut self, value: T, punctuation: TokenReference) {
         let last_pair = self.pairs.pop().expect(
             "push_punctuated adds the punctuation onto the last element, but there are no elements",

@@ -232,19 +232,27 @@ impl<T> ParserResult<T> {
     }
 }
 
+/// A produced [`Ast`](crate::ast::Ast), along with any errors found during parsing.
+/// This Ast may not be exactly the same as the input code, as reconstruction may have occurred.
+/// For more information, read the documentation for [`parse_fallible`](crate::parse_fallible).
 pub struct AstResult {
     ast: Ast,
     errors: Vec<crate::Error>,
 }
 
 impl AstResult {
-    /// Returns the AST that was parsed.
+    /// Returns a reference to the [`Ast`](crate::ast::Ast) that was parsed.
     /// If there were any errors, this will not be exactly the same,
     /// as reconstruction will have occurred.
+    /// For more information, read the documentation for [`parse_fallible`](crate::parse_fallible).
     pub fn ast(&self) -> &Ast {
         &self.ast
     }
 
+    /// Consumes the [`Ast`](crate::ast::Ast) that was parsed.
+    /// If there were any errors, this will not be exactly the same,
+    /// as reconstruction will have occurred.
+    /// For more information, read the documentation for [`parse_fallible`](crate::parse_fallible).
     pub fn into_ast(self) -> Ast {
         self.ast
     }
@@ -343,6 +351,7 @@ impl AstResult {
         }
     }
 
+    /// Consumes this AstResult, returning the [`Ast`](crate::ast::Ast) that was parsed.
     pub fn into_result(self) -> Result<Ast, Vec<crate::Error>> {
         self.into()
     }

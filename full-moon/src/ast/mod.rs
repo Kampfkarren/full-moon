@@ -2167,6 +2167,7 @@ impl BinOp {
         matches!(*self, BinOp::Caret(_) | BinOp::TwoDots(_))
     }
 
+    /// Given a token, returns whether it is a right associative binary operator.
     pub fn is_right_associative_token(token: &TokenReference) -> bool {
         matches!(
             token.token_type(),
@@ -2182,6 +2183,7 @@ impl BinOp {
 /// Operators that require just one operand, such as #X
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[allow(missing_docs)]
 #[non_exhaustive]
 #[display(fmt = "{}")]
 pub enum UnOp {
@@ -2219,10 +2221,12 @@ pub struct AstError {
 }
 
 impl AstError {
+    /// Returns a human readable error message
     pub fn error_message(&self) -> Cow<'static, str> {
         self.additional.clone()
     }
 
+    /// Returns the range of the error
     pub fn range(&self) -> (Position, Position) {
         self.range
             .or_else(|| Some((self.token.start_position(), self.token.end_position())))

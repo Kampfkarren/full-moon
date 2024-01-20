@@ -7,6 +7,9 @@ use super::{
 #[cfg(feature = "luau")]
 use super::{interpolated_strings, InterpolatedStringKind};
 
+/// A lexer, which will produce a stream of tokens from a source string.
+/// If you just want to create an [`Ast`](crate::ast::Ast) from a string, you want to use
+/// [`parse`](crate::parse) instead.
 pub struct Lexer {
     pub(crate) source: LexerSource,
     sent_eof: bool,
@@ -17,10 +20,12 @@ pub struct Lexer {
     #[cfg(feature = "luau")]
     pub(crate) brace_stack: Vec<interpolated_strings::BraceType>,
 
+    /// The Lua version(s) to parse for.
     pub lua_version: LuaVersion,
 }
 
 impl Lexer {
+    /// Creates a new Lexer from the given source string and Lua version(s).
     pub fn new(source: &str, lua_version: LuaVersion) -> Self {
         let mut lexer = Self::new_lazy(source, lua_version);
 
@@ -30,6 +35,8 @@ impl Lexer {
         lexer
     }
 
+    /// Creates a new Lexer from the given source string and Lua version(s), but does not process
+    /// the first token.
     pub fn new_lazy(source: &str, lua_version: LuaVersion) -> Self {
         Self {
             source: LexerSource::new(source),
@@ -45,14 +52,17 @@ impl Lexer {
         }
     }
 
+    /// Returns the current token.
     pub fn current(&self) -> Option<&LexerResult<TokenReference>> {
         self.next_token.as_ref()
     }
 
+    /// Returns the next token.
     pub fn peek(&self) -> Option<&LexerResult<TokenReference>> {
         self.peek_token.as_ref()
     }
 
+    /// Consumes the current token and returns the next token.
     pub fn consume(&mut self) -> Option<LexerResult<TokenReference>> {
         let next = self.next_token.take()?;
         self.next_token = self.peek_token.take();
@@ -60,6 +70,7 @@ impl Lexer {
         Some(next)
     }
 
+    /// Returns a vector of all tokens left in the source string.
     pub fn collect(self) -> LexerResult<Vec<Token>> {
         let mut tokens = Vec::new();
         let mut lexer = self;
@@ -236,6 +247,7 @@ impl Lexer {
         trailing_trivia
     }
 
+    /// Processes and returns the next token in the source string, ignoring trivia.
     pub fn process_next(&mut self) -> Option<LexerResult<Token>> {
         let start_position = self.source.position();
 
@@ -1246,7 +1258,7 @@ fn is_identifier_start(character: char) -> bool {
     matches!(character, 'a'..='z' | 'A'..='Z' | '_')
 }
 
-pub struct LexerSource {
+pub(crate) struct LexerSource {
     source: Vec<char>,
     lexer_position: LexerPosition,
 }
@@ -1298,7 +1310,7 @@ impl LexerSource {
 }
 
 #[derive(Clone, Copy)]
-pub struct LexerPosition {
+struct LexerPosition {
     position: Position,
     index: usize,
 }
@@ -1316,16 +1328,20 @@ impl LexerPosition {
     }
 }
 
+/// The result of a lexer operation.
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum LexerResult<T> {
+    /// The lexer operation was successful.
     Ok(T),
+    /// The lexer operation was unsuccessful, and could not be recovered.
     Fatal(Vec<TokenizerError>),
+    /// The lexer operation was unsuccessful, but some result can be extracted.
     Recovered(T, Vec<TokenizerError>),
 }
 
 impl<T: std::fmt::Debug> LexerResult<T> {
-    pub fn new(value: T, errors: Vec<TokenizerError>) -> Self {
+    fn new(value: T, errors: Vec<TokenizerError>) -> Self {
         if errors.is_empty() {
             Self::Ok(value)
         } else {
@@ -1333,6 +1349,7 @@ impl<T: std::fmt::Debug> LexerResult<T> {
         }
     }
 
+    /// Unwraps the result, panicking if it is not [`LexerResult::Ok`].
     pub fn unwrap(self) -> T {
         match self {
             Self::Ok(value) => value,
@@ -1340,6 +1357,7 @@ impl<T: std::fmt::Debug> LexerResult<T> {
         }
     }
 
+    /// Unwraps the errors, panicking if it is [`LexerResult::Ok`].
     pub fn unwrap_errors(self) -> Vec<TokenizerError> {
         match self {
             Self::Fatal(errors) | Self::Recovered(_, errors) => errors,
@@ -1347,6 +1365,7 @@ impl<T: std::fmt::Debug> LexerResult<T> {
         }
     }
 
+    /// Returns the errors, if there was any.
     pub fn errors(self) -> Vec<TokenizerError> {
         match self {
             Self::Recovered(_, errors) => errors,

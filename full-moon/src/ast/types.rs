@@ -679,6 +679,7 @@ impl ExportedTypeDeclaration {
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
+#[allow(missing_docs)]
 #[display(fmt = "{}")]
 /// Compound operators, such as X += Y or X -= Y
 pub enum CompoundOp {

@@ -1,4 +1,4 @@
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 #![allow(clippy::large_enum_variant)]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg))]
 //! # Full Moon
@@ -44,6 +44,7 @@ pub enum Error {
 }
 
 impl Error {
+    /// Returns a human readable error message
     pub fn error_message(&self) -> Cow<'static, str> {
         match self {
             Error::AstError(error) => error.error_message(),
@@ -51,6 +52,7 @@ impl Error {
         }
     }
 
+    /// Returns the range of the error
     pub fn range(&self) -> (Position, Position) {
         match self {
             Error::AstError(error) => error.range(),
