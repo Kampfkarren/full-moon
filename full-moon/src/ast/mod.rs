@@ -2221,6 +2221,11 @@ pub struct AstError {
 }
 
 impl AstError {
+    /// Returns the token that caused the error
+    pub fn token(&self) -> &Token {
+        &self.token
+    }
+
     /// Returns a human readable error message
     pub fn error_message(&self) -> Cow<'static, str> {
         self.additional.clone()
