@@ -33,7 +33,7 @@ macro_rules! symbol {
                             $(feature = "" $version),+
                         ))]
                     )*
-                    #[serde(rename = $string)]
+                    #[cfg_attr(feature = "serde", serde(rename = $string))]
                     $name,
                 )+
             }
