@@ -2055,7 +2055,7 @@ macro_rules! make_bin_op {
             }
 
             impl BinOp {
-                /// The precedence of the operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
+                /// The precedence of non-unary operator, from a scale of 1 to 10. The larger the number, the higher the precedence.
                 pub fn precedence_of_token(token: &TokenReference) -> Option<u8> {
                     match token.token_type() {
                         TokenType::Symbol { symbol } => match symbol {
@@ -2074,7 +2074,7 @@ macro_rules! make_bin_op {
                     }
                 }
 
-                /// The precedence of unary operators.
+                /// The precedence of unary operators
                 pub fn precedence_of_unary() -> u8 {
                     11
                 }
