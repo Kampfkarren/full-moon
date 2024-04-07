@@ -1815,7 +1815,17 @@ fn parse_unary_expression(
         _ => unreachable!(),
     };
 
-    let expression = match parse_expression(state) {
+    let primary_expression = match parse_primary_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::NotFound => return ParserResult::NotFound,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    let expression = match parse_expression_with_precedence(
+        state,
+        primary_expression,
+        ast::BinOp::precedence_of_unary(),
+    ) {
         ParserResult::Value(expression) => expression,
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
         ParserResult::NotFound => {

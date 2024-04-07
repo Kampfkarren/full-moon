@@ -2074,6 +2074,11 @@ macro_rules! make_bin_op {
                     }
                 }
 
+                /// The precedence of unary operators.
+                pub fn precedence_of_unary() -> u8 {
+                    11
+                }
+
                 /// The token associated with this operator
                 pub fn token(&self) -> &TokenReference {
                     match self {
