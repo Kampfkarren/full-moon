@@ -1817,7 +1817,16 @@ fn parse_unary_expression(
 
     let primary_expression = match parse_primary_expression(state) {
         ParserResult::Value(expression) => expression,
-        ParserResult::NotFound => return ParserResult::NotFound,
+        ParserResult::NotFound => {
+            state.token_error(
+                unary_operator.token().clone(),
+                format!(
+                    "expected an expression after {}",
+                    unary_operator.token().token()
+                ),
+            );
+            return ParserResult::NotFound;
+        }
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
     };
 
