@@ -1833,7 +1833,7 @@ fn parse_unary_expression(
     let expression = match parse_expression_with_precedence(
         state,
         primary_expression,
-        ast::BinOp::precedence_of_unary(),
+        ast::UnOp::precedence(),
     ) {
         ParserResult::Value(expression) => expression,
         ParserResult::LexerMoved => return ParserResult::LexerMoved,

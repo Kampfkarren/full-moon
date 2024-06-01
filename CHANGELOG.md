@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Punctuated<T>` now implements `Default` for all `T`, rather than if `T: Default`.
 
 ### Removed
-- Removed `UnOp::precedence`, as unary operators do not traditionally use precedence in the same way binary operators do.
 - Removed `TokenizerErrorType::UnexpectedShebang`.
 - Removed `stacker` feature flag, as rewrites to the parser should make it unnecessary.
 
