@@ -1,6 +1,5 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 40
 expression: tokens
 input_file: full-moon/tests/roblox_cases/pass/multiline_expressions
 ---
@@ -1688,4 +1687,3 @@ input_file: full-moon/tests/roblox_cases/pass/multiline_expressions
     character: 1
   token_type:
     type: Eof
-

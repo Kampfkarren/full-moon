@@ -1,6 +1,5 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 48
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/multiline_expressions
 ---
@@ -2230,4 +2229,3 @@ stmts:
                 type: Whitespace
                 characters: "\r\n"
     - ~
-
