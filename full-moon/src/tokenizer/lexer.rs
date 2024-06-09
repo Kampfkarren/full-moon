@@ -1137,7 +1137,11 @@ impl Lexer {
             };
 
             match (escape, next) {
-                (true, 'z') if self.lua_version.has_lua52() || self.lua_version.has_luau() => {
+                (true, 'z')
+                    if self.lua_version.has_lua52()
+                        || self.lua_version.has_luau()
+                        || self.lua_version.has_luajit() =>
+                {
                     escape = false;
                     z_escaped = true;
                     literal.push('z');
