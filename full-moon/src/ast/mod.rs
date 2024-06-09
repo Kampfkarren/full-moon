@@ -307,7 +307,7 @@ pub enum Expression {
 
     /// An anonymous function, such as `function() end)`
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
-    Function((TokenReference, FunctionBody)),
+    Function(Box<(TokenReference, FunctionBody)>),
 
     /// A call of a function, such as `call()`
     #[display(fmt = "{_0}")]
