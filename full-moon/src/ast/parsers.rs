@@ -1592,7 +1592,10 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                 }
             };
 
-            ParserResult::Value(Expression::Function((function_token, function_body)))
+            ParserResult::Value(Expression::Function(Box::new((
+                function_token,
+                function_body,
+            ))))
         }
 
         TokenType::Symbol {
