@@ -332,7 +332,7 @@ impl Lexer {
                 if matches!(self.source.current(), Some('x' | 'X')) {
                     let hex_character = self.source.next().unwrap();
                     self.read_hex_number(hex_character, start_position)
-                } else if self.lua_version.has_luau()
+                } else if (self.lua_version.has_luau() | self.lua_version.has_luajit())
                     && matches!(self.source.current(), Some('b' | 'B'))
                 {
                     let binary_character = self.source.next().unwrap();
@@ -903,6 +903,10 @@ impl Lexer {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, 'e' | 'E') {
                 return self.read_exponent_part(start_position, number);
+            } else if self.lua_version.has_luajit()
+                && matches!(next, 'u' | 'U' | 'l' | 'L' | 'i' | 'I')
+            {
+                return self.read_luajit_number_suffix(start_position, number);
             } else {
                 break;
             }
@@ -1012,6 +1016,10 @@ impl Lexer {
                     return self.read_exponent_part(start_position, number);
                 }
 
+                'u' | 'U' | 'l' | 'L' | 'i' | 'I' if self.lua_version.has_luajit() => {
+                    return self.read_luajit_number_suffix(start_position, number);
+                }
+
                 _ => break,
             }
         }
@@ -1033,7 +1041,7 @@ impl Lexer {
         binary_character: char,
         start_position: Position,
     ) -> Option<LexerResult<Token>> {
-        debug_assert!(self.lua_version.has_luau());
+        debug_assert!(self.lua_version.has_luau() | self.lua_version.has_luajit());
 
         let mut number = String::from_iter(['0', binary_character]);
 
@@ -1043,12 +1051,53 @@ impl Lexer {
                     number.push(self.source.next().expect("peeked, but no next"));
                 }
 
+                'u' | 'U' | 'l' | 'L' | 'i' | 'I' if self.lua_version.has_luajit() => {
+                    return self.read_luajit_number_suffix(start_position, number);
+                }
+
                 _ => break,
             }
         }
 
         if number.len() == 2 {
             return Some(self.eat_invalid_number(start_position, number));
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_luajit_number_suffix(
+        &mut self,
+        start_position: Position,
+        mut number: String,
+    ) -> Option<LexerResult<Token>> {
+        debug_assert!(self.lua_version.has_luajit());
+
+        while let Some(next) = self.source.current() {
+            if matches!(next, 'u' | 'U') {
+                number.push(self.source.next().expect("peeked, but no next"));
+                if !matches!(self.source.current(), Some('l' | 'L')) {
+                    return Some(self.eat_invalid_number(start_position, number));
+                }
+            } else if matches!(next, 'l' | 'L') {
+                number.push(self.source.next().expect("peeked, but no next"));
+                if matches!(self.source.current(), Some('l' | 'L')) {
+                    number.push(self.source.next().expect("peeked, but no next"));
+                    break;
+                } else {
+                    return Some(self.eat_invalid_number(start_position, number));
+                }
+            } else if matches!(next, 'i' | 'I') {
+                number.push(self.source.next().expect("peeked, but no next"));
+                break;
+            } else {
+                return Some(self.eat_invalid_number(start_position, number));
+            }
         }
 
         self.create(
