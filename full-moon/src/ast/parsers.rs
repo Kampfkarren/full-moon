@@ -1818,7 +1818,26 @@ fn parse_unary_expression(
         _ => unreachable!(),
     };
 
-    let expression = match parse_expression(state) {
+    let primary_expression = match parse_primary_expression(state) {
+        ParserResult::Value(expression) => expression,
+        ParserResult::NotFound => {
+            state.token_error(
+                unary_operator.token().clone(),
+                format!(
+                    "expected an expression after {}",
+                    unary_operator.token().token()
+                ),
+            );
+            return ParserResult::NotFound;
+        }
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    let expression = match parse_expression_with_precedence(
+        state,
+        primary_expression,
+        ast::UnOp::precedence(),
+    ) {
         ParserResult::Value(expression) => expression,
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
         ParserResult::NotFound => {
