@@ -498,7 +498,7 @@ impl Lexer {
 
             ':' => {
                 version_switch!(self.lua_version, {
-                    lua52 | luau => {
+                    lua52 | luau | luajit => {
                         if self.source.consume(':') {
                             return self.create(
                                 start_position,

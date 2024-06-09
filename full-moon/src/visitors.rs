@@ -4,7 +4,7 @@ use crate::{
     tokenizer::{Token, TokenReference},
 };
 
-#[cfg(feature = "lua52")]
+#[cfg(any(feature = "lua52", feature = "luajit"))]
 use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
@@ -298,7 +298,7 @@ create_visitor!(ast: {
     }
 
     // Lua 5.2
-    #[cfg(feature = "lua52")] {
+    #[cfg(any(feature = "lua52", feature = "luajit"))] {
         visit_goto => Goto,
         visit_label => Label,
     }
