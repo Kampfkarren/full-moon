@@ -332,7 +332,7 @@ impl Lexer {
                 if matches!(self.source.current(), Some('x' | 'X')) {
                     let hex_character = self.source.next().unwrap();
                     self.read_hex_number(hex_character, start_position)
-                } else if (self.lua_version.has_luau() | self.lua_version.has_luajit())
+                } else if (self.lua_version.has_luau() || self.lua_version.has_luajit())
                     && matches!(self.source.current(), Some('b' | 'B'))
                 {
                     let binary_character = self.source.next().unwrap();
@@ -1041,7 +1041,7 @@ impl Lexer {
         binary_character: char,
         start_position: Position,
     ) -> Option<LexerResult<Token>> {
-        debug_assert!(self.lua_version.has_luau() | self.lua_version.has_luajit());
+        debug_assert!(self.lua_version.has_luau() || self.lua_version.has_luajit());
 
         let mut number = String::from_iter(['0', binary_character]);
 
