@@ -212,7 +212,7 @@ stmts:
                     characters: " "
             return_type:
               Variadic:
-                ellipse:
+                ellipsis:
                   leading_trivia: []
                   token:
                     start_position:
@@ -447,7 +447,7 @@ stmts:
                             type: Identifier
                             identifier: U
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -580,7 +580,7 @@ stmts:
                           type: Identifier
                           identifier: U
                       trailing_trivia: []
-                    ellipse:
+                    ellipsis:
                       leading_trivia: []
                       token:
                         start_position:

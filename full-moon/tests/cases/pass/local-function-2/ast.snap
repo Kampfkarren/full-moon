@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-
 ---
 stmts:
   - - LocalFunction:
@@ -315,7 +314,7 @@ stmts:
           parameters:
             pairs:
               - End:
-                  Ellipse:
+                  Ellipsis:
                     leading_trivia: []
                     token:
                       start_position:
@@ -554,7 +553,7 @@ stmts:
                           type: Whitespace
                           characters: " "
               - End:
-                  Ellipse:
+                  Ellipsis:
                     leading_trivia: []
                     token:
                       start_position:

@@ -155,7 +155,7 @@ stmts:
                     name: ~
                     type_info:
                       Variadic:
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -431,7 +431,7 @@ stmts:
                     name: ~
                     type_info:
                       Variadic:
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -490,7 +490,7 @@ stmts:
                     characters: " "
             return_type:
               Variadic:
-                ellipse:
+                ellipsis:
                   leading_trivia: []
                   token:
                     start_position:
@@ -663,7 +663,7 @@ stmts:
                     name: ~
                     type_info:
                       Variadic:
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -813,7 +813,7 @@ stmts:
                         name: ~
                         type_info:
                           Variadic:
-                            ellipse:
+                            ellipsis:
                               leading_trivia: []
                               token:
                                 start_position:
@@ -872,7 +872,7 @@ stmts:
                         characters: " "
                 return_type:
                   Variadic:
-                    ellipse:
+                    ellipsis:
                       leading_trivia: []
                       token:
                         start_position:
@@ -1045,7 +1045,7 @@ stmts:
                     name: ~
                     type_info:
                       Variadic:
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -1252,7 +1252,7 @@ stmts:
                         name: ~
                         type_info:
                           Variadic:
-                            ellipse:
+                            ellipsis:
                               leading_trivia: []
                               token:
                                 start_position:
@@ -1458,7 +1458,7 @@ stmts:
                         characters: " "
                 return_type:
                   Variadic:
-                    ellipse:
+                    ellipsis:
                       leading_trivia: []
                       token:
                         start_position:
@@ -1684,7 +1684,7 @@ stmts:
           parameters:
             pairs:
               - End:
-                  Ellipse:
+                  Ellipsis:
                     leading_trivia: []
                     token:
                       start_position:
@@ -1771,7 +1771,7 @@ stmts:
                     characters: " "
             type_info:
               Variadic:
-                ellipse:
+                ellipsis:
                   leading_trivia: []
                   token:
                     start_position:
@@ -2095,7 +2095,7 @@ stmts:
                     parameters:
                       pairs:
                         - End:
-                            Ellipse:
+                            Ellipsis:
                               leading_trivia: []
                               token:
                                 start_position:
@@ -2257,7 +2257,7 @@ stmts:
                                                         type: Whitespace
                                                         characters: " "
                                             - End:
-                                                Ellipse:
+                                                Ellipsis:
                                                   leading_trivia: []
                                                   token:
                                                     start_position:
@@ -2837,7 +2837,7 @@ stmts:
                           type: Whitespace
                           characters: " "
               - End:
-                  Ellipse:
+                  Ellipsis:
                     leading_trivia: []
                     token:
                       start_position:
@@ -3129,7 +3129,7 @@ stmts:
                             name: ~
                             type_info:
                               Variadic:
-                                ellipse:
+                                ellipsis:
                                   leading_trivia: []
                                   token:
                                     start_position:
@@ -3480,7 +3480,7 @@ stmts:
                                                                   type: Whitespace
                                                                   characters: " "
                                                       - End:
-                                                          Ellipse:
+                                                          Ellipsis:
                                                             leading_trivia: []
                                                             token:
                                                               start_position:
@@ -3789,7 +3789,7 @@ stmts:
                             type: Identifier
                             identifier: U
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -3990,7 +3990,7 @@ stmts:
               pairs:
                 - End:
                     Variadic:
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:

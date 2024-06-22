@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/roblox_cases/pass/no_roblox_syntax
 ---
 stmts:
   - - LocalAssignment:
@@ -1265,7 +1264,7 @@ stmts:
                     parameters:
                       pairs:
                         - End:
-                            Ellipse:
+                            Ellipsis:
                               leading_trivia: []
                               token:
                                 start_position:
@@ -5623,3 +5622,4 @@ last_stmt:
                           type: Whitespace
                           characters: "\n"
   - ~
+

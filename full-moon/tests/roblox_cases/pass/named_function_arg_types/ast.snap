@@ -1,7 +1,6 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-
 ---
 stmts:
   - - TypeDeclaration:
@@ -1952,7 +1951,7 @@ stmts:
                                       characters: " "
                               return_type:
                                 Variadic:
-                                  ellipse:
+                                  ellipsis:
                                     leading_trivia: []
                                     token:
                                       start_position:
