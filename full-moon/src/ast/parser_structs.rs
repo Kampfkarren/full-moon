@@ -277,6 +277,8 @@ impl AstResult {
             _ => Block::new(),
         };
 
+        let block_has_last_stmt = block.last_stmt().is_some();
+
         loop {
             match parser_state.lexer.current() {
                 Some(LexerResult::Ok(token)) if token.token_kind() == TokenKind::Eof => {
@@ -313,6 +315,14 @@ impl AstResult {
                             }
 
                             continue;
+                        }
+
+                        if block_has_last_stmt {
+                            use crate::node::Node;
+                            parser_state.token_error(
+                                new_block.tokens().next().unwrap().clone(),
+                                "unexpected statement after last statement",
+                            )
                         }
 
                         block.merge_blocks(new_block);
