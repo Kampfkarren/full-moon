@@ -1,0 +1,187 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+---
+nodes:
+  stmts:
+    - - LocalAssignment:
+          local_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Symbol
+                symbol: local
+            trailing_trivia:
+              - start_position:
+                  bytes: 5
+                  line: 1
+                  character: 6
+                end_position:
+                  bytes: 6
+                  line: 1
+                  character: 7
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name_list:
+            pairs:
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 6
+                      line: 1
+                      character: 7
+                    end_position:
+                      bytes: 14
+                      line: 1
+                      character: 15
+                    token_type:
+                      type: Identifier
+                      identifier: endIndex
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 14
+                        line: 1
+                        character: 15
+                      end_position:
+                        bytes: 15
+                        line: 1
+                        character: 16
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+          equal_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 15
+                line: 1
+                character: 16
+              end_position:
+                bytes: 16
+                line: 1
+                character: 17
+              token_type:
+                type: Symbol
+                symbol: "="
+            trailing_trivia:
+              - start_position:
+                  bytes: 16
+                  line: 1
+                  character: 17
+                end_position:
+                  bytes: 17
+                  line: 1
+                  character: 18
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          expr_list:
+            pairs: []
+      - ~
+    - - FunctionCall:
+          prefix:
+            Name:
+              leading_trivia:
+                - start_position:
+                    bytes: 122
+                    line: 5
+                    character: 1
+                  end_position:
+                    bytes: 123
+                    line: 5
+                    character: 1
+                  token_type:
+                    type: Whitespace
+                    characters: "\n"
+              token:
+                start_position:
+                  bytes: 123
+                  line: 6
+                  character: 1
+                end_position:
+                  bytes: 128
+                  line: 6
+                  character: 6
+                token_type:
+                  type: Identifier
+                  identifier: print
+              trailing_trivia: []
+          suffixes:
+            - Call:
+                AnonymousCall:
+                  Parentheses:
+                    parentheses:
+                      tokens:
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 128
+                              line: 6
+                              character: 6
+                            end_position:
+                              bytes: 129
+                              line: 6
+                              character: 7
+                            token_type:
+                              type: Symbol
+                              symbol: (
+                          trailing_trivia: []
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 138
+                              line: 6
+                              character: 16
+                            end_position:
+                              bytes: 139
+                              line: 6
+                              character: 17
+                            token_type:
+                              type: Symbol
+                              symbol: )
+                          trailing_trivia: []
+                    arguments:
+                      pairs:
+                        - End:
+                            String:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 129
+                                  line: 6
+                                  character: 7
+                                end_position:
+                                  bytes: 138
+                                  line: 6
+                                  character: 16
+                                token_type:
+                                  type: StringLiteral
+                                  literal: testing
+                                  quote_type: Double
+                              trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 139
+      line: 6
+      character: 17
+    end_position:
+      bytes: 139
+      line: 6
+      character: 17
+    token_type:
+      type: Eof
+  trailing_trivia: []
+

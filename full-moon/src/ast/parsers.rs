@@ -2100,8 +2100,10 @@ fn expect_if_else_expression(
         })
     }
 
-    let Some(else_token) = state.require(Symbol::Else, "expected `else` to end if-else expression")
-    else {
+    let Some(else_token) = state.require(
+        Symbol::Else,
+        "expected `else` when parsing if then else expression",
+    ) else {
         return Err(());
     };
 
