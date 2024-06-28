@@ -34,9 +34,9 @@ use types::*;
 #[cfg(feature = "luau")]
 mod type_visitors;
 
-#[cfg(feature = "lua52")]
+#[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
-#[cfg(feature = "lua52")]
+#[cfg(any(feature = "lua52", feature = "luajit"))]
 use lua52::*;
 
 #[cfg(feature = "lua54")]
@@ -412,12 +412,12 @@ pub enum Stmt {
     TypeDeclaration(TypeDeclaration),
 
     /// A goto statement, such as `goto label`
-    /// Only available when the "lua52" feature flag is enabled.
-    #[cfg(feature = "lua52")]
+    /// Only available when the "lua52" or "luajit" feature flag is enabled.
+    #[cfg(any(feature = "lua52", feature = "luajit"))]
     Goto(Goto),
     /// A label, such as `::label::`
-    /// Only available when the "lua52" feature flag is enabled.
-    #[cfg(feature = "lua52")]
+    /// Only available when the "lua52" or "luajit" feature flag is enabled.
+    #[cfg(any(feature = "lua52", feature = "luajit"))]
     Label(Label),
 }
 

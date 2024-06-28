@@ -31,10 +31,14 @@ jobs:
         run: |
           cd full-moon
           cargo test --features lua54
+      - name: Test (LuaJIT feature)
+        run: |
+          cd full-moon
+          cargo test --features luajit
       - name: Test (all features)
         run: |
-          cd full-moon 
-          cargo test --features luau,lua52,lua53,lua54
+          cd full-moon
+          cargo test --features luau,lua52,lua53,lua54,luajit
       - name: Test (no default features)
         run: |
           cd full-moon

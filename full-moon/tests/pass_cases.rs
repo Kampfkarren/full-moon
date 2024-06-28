@@ -101,3 +101,12 @@ fn test_lua54_pass_cases() {
         test_pass_case(path, LuaVersion::lua54())
     });
 }
+
+#[test]
+#[cfg(feature = "luajit")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_luajit_pass_cases() {
+    run_test_folder("./tests/luajit_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::luajit())
+    });
+}

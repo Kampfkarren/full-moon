@@ -4,6 +4,7 @@ const VERSION_LUAU: u8 = 1 << 0;
 const VERSION_LUA52: u8 = 1 << 1;
 const VERSION_LUA53: u8 = 1 << 2;
 const VERSION_LUA54: u8 = 1 << 3;
+const VERSION_LUAJIT: u8 = 1 << 4;
 
 /// Represents the Lua version(s) to parse as.
 /// Lua 5.1 is always included.
@@ -101,12 +102,31 @@ impl LuaVersion {
     pub fn has_lua54(self) -> bool {
         cfg!(feature = "lua54") && (self.bitfield & VERSION_LUA54 != 0)
     }
+
+    /// Creates a new LuaVersion with only LuaJIT.
+    #[cfg(feature = "luajit")]
+    pub fn luajit() -> Self {
+        Self {
+            bitfield: VERSION_LUAJIT,
+        }
+    }
+
+    /// Adds LuaJIT as a version to parse for.
+    #[cfg(feature = "luajit")]
+    pub fn with_luajit(self) -> Self {
+        self | Self::luajit()
+    }
+
+    /// Returns true if LuaJIT is enabled.
+    pub fn has_luajit(self) -> bool {
+        cfg!(feature = "luajit") && (self.bitfield & VERSION_LUAJIT != 0)
+    }
 }
 
 impl Default for LuaVersion {
     fn default() -> Self {
         Self {
-            bitfield: VERSION_LUAU | VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54,
+            bitfield: VERSION_LUAU | VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54 | VERSION_LUAJIT,
         }
     }
 }

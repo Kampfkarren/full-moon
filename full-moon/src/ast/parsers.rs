@@ -483,11 +483,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
             })))
         }
 
-        #[cfg(feature = "lua52")]
+        #[cfg(any(feature = "lua52", feature = "luajit"))]
         TokenType::Symbol {
             symbol: Symbol::Goto,
         } => {
-            debug_assert!(state.lua_version().has_lua52());
+            debug_assert!(state.lua_version().has_lua52() || state.lua_version().has_luajit());
 
             let goto_token = state.consume().unwrap();
 
@@ -518,10 +518,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
             }
         }
 
-        #[cfg(feature = "lua52")]
+        #[cfg(any(feature = "lua52", feature = "luajit"))]
         TokenType::Symbol {
             symbol: Symbol::TwoColons,
-        } if state.lua_version().has_lua52() => {
+        } if state.lua_version().has_lua52() || state.lua_version().has_luajit() => {
             let left_colons = state.consume().unwrap();
 
             let name = match state.current() {

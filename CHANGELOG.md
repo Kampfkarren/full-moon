@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** `Symbol::PlusEqual` and friends are now only available when using Luau.
 - **[BREAKING CHANGE]** `Expression::Function((TokenReference, FunctionBody))` variant is now Boxed to ``Expression::Function(Box<(TokenReference, FunctionBody)>)` to reduce type sizes and reduce stack overflows
 - **[BREAKING CHANGE]** Associativity of union / intersection types are fixed: they are parsed as left associative, whilst originally parsed as right associative
+- **[BREAKING CHANGE]** LuaJIT parsing support is available as a separate feature flag `luajit`, rather than mixed with `lua52`. Added `LuaVersion::luajit()` to support this.
 - **[BREAKING CHANGE]** `Symbol::Ellipse` and other references of `ellipse` have been renamed to `Symbol::Ellipsis` / `ellipsis` 
 - Shebangs provide their trailing trivia more accurately to the rest of full-moon.
 - Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.

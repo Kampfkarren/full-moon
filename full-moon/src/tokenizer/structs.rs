@@ -121,7 +121,7 @@ symbol! {
         Until => "until",
         While => "while",
 
-        [lua52] Goto => "goto",
+        [lua52 | luajit] Goto => "goto",
 
         [luau] PlusEqual => "+=",
         [luau] MinusEqual => "-=",
@@ -134,7 +134,7 @@ symbol! {
 
         [luau | lua53] Ampersand => "&",
         [luau] ThinArrow => "->",
-        [luau | lua52] TwoColons => "::",
+        [luau | lua52 | luajit] TwoColons => "::",
 
         Caret => "^",
         Colon => ":",
