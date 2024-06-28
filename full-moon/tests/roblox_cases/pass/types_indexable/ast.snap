@@ -1075,7 +1075,7 @@ stmts:
                       pairs:
                         - End:
                             Variadic:
-                              ellipse:
+                              ellipsis:
                                 leading_trivia: []
                                 token:
                                   start_position:

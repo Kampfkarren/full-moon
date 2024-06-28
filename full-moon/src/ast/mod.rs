@@ -1470,7 +1470,7 @@ impl fmt::Display for FunctionBody {
 #[non_exhaustive]
 pub enum Parameter {
     /// The `...` vararg syntax, such as `function x(...)`
-    Ellipse(TokenReference),
+    Ellipsis(TokenReference),
     /// A name parameter, such as `function x(a, b, c)`
     Name(TokenReference),
 }

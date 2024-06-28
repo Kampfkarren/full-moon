@@ -74,12 +74,12 @@ pub enum TypeInfo {
 
     /// A generic pack: `T...`.
     /// Note, these are only available as return types, when annotating a vararg (`...`) in a function parameter, or as a generic type argument.
-    #[display(fmt = "{name}{ellipse}")]
+    #[display(fmt = "{name}{ellipsis}")]
     GenericPack {
         /// The name of the type that is generic: `T`.
         name: TokenReference,
-        /// The ellipse: `...`.
-        ellipse: TokenReference,
+        /// The ellipsis: `...`.
+        ellipsis: TokenReference,
     },
 
     /// An intersection type: `string & number`, denoting both types.
@@ -165,19 +165,19 @@ pub enum TypeInfo {
     },
 
     /// A variadic type: `...number`.
-    #[display(fmt = "{ellipse}{type_info}")]
+    #[display(fmt = "{ellipsis}{type_info}")]
     Variadic {
-        /// The ellipse: `...`.
-        ellipse: TokenReference,
+        /// The ellipsis: `...`.
+        ellipsis: TokenReference,
         /// The type that is variadic: `number`.
         type_info: Box<TypeInfo>,
     },
 
     /// A variadic type pack: `...T` in `Function<...T>`
-    #[display(fmt = "{ellipse}{name}")]
+    #[display(fmt = "{ellipsis}{name}")]
     VariadicPack {
-        /// The ellipse: `...`
-        ellipse: TokenReference,
+        /// The ellipsis: `...`
+        ellipsis: TokenReference,
         /// The name of the type that is variadic: `T`
         name: TokenReference,
     },
@@ -428,12 +428,12 @@ pub enum GenericParameterInfo {
     Name(TokenReference),
 
     /// A variadic type pack: `T...`.
-    #[display(fmt = "{name}{ellipse}")]
+    #[display(fmt = "{name}{ellipsis}")]
     Variadic {
         /// The name of the type that is variadic: `T`.
         name: TokenReference,
-        /// The ellipse: `...`.
-        ellipse: TokenReference,
+        /// The ellipsis: `...`.
+        ellipsis: TokenReference,
     },
 }
 /// A generic declaration parameter us in [`GenericDeclaration`]. Consists of a [`GenericParameterInfo`] and an optional default type.

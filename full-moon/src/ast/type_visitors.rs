@@ -50,9 +50,9 @@ impl Visit for TypeInfo {
                 generics.visit(visitor);
                 arrows.tokens.1.visit(visitor);
             }
-            TypeInfo::GenericPack { name, ellipse } => {
+            TypeInfo::GenericPack { name, ellipsis } => {
                 name.visit(visitor);
-                ellipse.visit(visitor);
+                ellipsis.visit(visitor);
             }
             TypeInfo::Module {
                 module,
@@ -104,12 +104,15 @@ impl Visit for TypeInfo {
                 ampersand.visit(visitor);
                 right.visit(visitor);
             }
-            TypeInfo::Variadic { ellipse, type_info } => {
-                ellipse.visit(visitor);
+            TypeInfo::Variadic {
+                ellipsis,
+                type_info,
+            } => {
+                ellipsis.visit(visitor);
                 type_info.visit(visitor);
             }
-            TypeInfo::VariadicPack { ellipse, name } => {
-                ellipse.visit(visitor);
+            TypeInfo::VariadicPack { ellipsis, name } => {
+                ellipsis.visit(visitor);
                 name.visit(visitor);
             }
         };
@@ -176,12 +179,12 @@ impl VisitMut for TypeInfo {
 
             TypeInfo::GenericPack {
                 mut name,
-                mut ellipse,
+                mut ellipsis,
             } => {
                 name = name.visit_mut(visitor);
-                ellipse = ellipse.visit_mut(visitor);
+                ellipsis = ellipsis.visit_mut(visitor);
 
-                TypeInfo::GenericPack { name, ellipse }
+                TypeInfo::GenericPack { name, ellipsis }
             }
 
             TypeInfo::Module {
@@ -263,13 +266,16 @@ impl VisitMut for TypeInfo {
                 right: right.visit_mut(visitor),
             },
 
-            TypeInfo::Variadic { ellipse, type_info } => TypeInfo::Variadic {
-                ellipse: ellipse.visit_mut(visitor),
+            TypeInfo::Variadic {
+                ellipsis,
+                type_info,
+            } => TypeInfo::Variadic {
+                ellipsis: ellipsis.visit_mut(visitor),
                 type_info: type_info.visit_mut(visitor),
             },
 
-            TypeInfo::VariadicPack { ellipse, name } => TypeInfo::VariadicPack {
-                ellipse: ellipse.visit_mut(visitor),
+            TypeInfo::VariadicPack { ellipsis, name } => TypeInfo::VariadicPack {
+                ellipsis: ellipsis.visit_mut(visitor),
                 name: name.visit_mut(visitor),
             },
         };
