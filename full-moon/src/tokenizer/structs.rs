@@ -141,7 +141,7 @@ symbol! {
         Comma => ",",
         Dot => ".",
         TwoDots => "..",
-        Ellipse => "...",
+        Ellipsis => "...",
         Equal => "=",
         TwoEqual => "==",
         GreaterThan => ">",

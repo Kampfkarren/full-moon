@@ -764,7 +764,7 @@ impl Lexer {
                         self.create(
                             start_position,
                             TokenType::Symbol {
-                                symbol: Symbol::Ellipse,
+                                symbol: Symbol::Ellipsis,
                             },
                         )
                     } else {

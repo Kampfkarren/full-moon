@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: result.ast
+expression: result.ast()
 ---
 nodes:
   stmts:
@@ -108,7 +108,7 @@ nodes:
                               type: Identifier
                               identifier: T
                           trailing_trivia: []
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:

@@ -1599,7 +1599,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
         }
 
         TokenType::Symbol {
-            symbol: Symbol::True | Symbol::False | Symbol::Nil | Symbol::Ellipse,
+            symbol: Symbol::True | Symbol::False | Symbol::Nil | Symbol::Ellipsis,
         } => ParserResult::Value(Expression::Symbol(state.consume().unwrap())),
 
         TokenType::StringLiteral { .. } => {
@@ -1910,29 +1910,29 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
                 break;
             }
 
-            Ok(token) if token.is_symbol(Symbol::Ellipse) => {
-                let ellipse = state.consume().unwrap();
-                parameters.push(Pair::End(ast::Parameter::Ellipse(ellipse)));
+            Ok(token) if token.is_symbol(Symbol::Ellipsis) => {
+                let ellipsis = state.consume().unwrap();
+                parameters.push(Pair::End(ast::Parameter::Ellipsis(ellipsis)));
 
                 #[cfg(feature = "luau")]
                 if state.lua_version().has_luau() {
                     let type_specifier = if let Some(colon) = state.consume_if(Symbol::Colon) {
                         // varargs can also be annotated using generic packs: T...
                         let type_info = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
-                            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+                            && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipsis))
                         {
                             let name = match parse_name(state) {
                                 ParserResult::Value(name) => name.name,
                                 _ => unreachable!(),
                             };
 
-                            let Some(ellipse) =
-                                state.require(Symbol::Ellipse, "expected `...` after type name")
+                            let Some(ellipsis) =
+                                state.require(Symbol::Ellipsis, "expected `...` after type name")
                             else {
                                 unreachable!()
                             };
 
-                            ast::TypeInfo::GenericPack { name, ellipse }
+                            ast::TypeInfo::GenericPack { name, ellipsis }
                         } else {
                             match parse_type(state) {
                                 ParserResult::Value(type_info) => type_info,
@@ -2100,8 +2100,10 @@ fn expect_if_else_expression(
         })
     }
 
-    let Some(else_token) = state.require(Symbol::Else, "expected `else` to end if-else expression")
-    else {
+    let Some(else_token) = state.require(
+        Symbol::Else,
+        "expected `else` when parsing if then else expression",
+    ) else {
         return Err(());
     };
 
@@ -2254,29 +2256,30 @@ fn parse_type_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
         return ParserResult::NotFound;
     };
 
-    if current_token.is_symbol(Symbol::Ellipse) {
-        let ellipse = state.consume().unwrap();
+    if current_token.is_symbol(Symbol::Ellipsis) {
+        let ellipsis = state.consume().unwrap();
         let ParserResult::Value(type_info) = parse_type(state) else {
             return ParserResult::LexerMoved;
         };
 
         ParserResult::Value(ast::TypeInfo::Variadic {
-            ellipse,
+            ellipsis,
             type_info: Box::new(type_info),
         })
     } else if current_token.token_kind() == TokenKind::Identifier
-        && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipse))
+        && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipsis))
     {
         let name = match parse_name(state) {
             ParserResult::Value(name) => name.name,
             _ => unreachable!(),
         };
 
-        let Some(ellipse) = state.require(Symbol::Ellipse, "expected `...` after type name") else {
+        let Some(ellipsis) = state.require(Symbol::Ellipsis, "expected `...` after type name")
+        else {
             unreachable!()
         };
 
-        ParserResult::Value(ast::TypeInfo::GenericPack { name, ellipse })
+        ParserResult::Value(ast::TypeInfo::GenericPack { name, ellipsis })
     } else {
         // rewrite todo: should we be returning this? or should this be unreachable
         ParserResult::NotFound
@@ -2904,10 +2907,10 @@ fn parse_generic_type_list(
             return ParserResult::NotFound;
         };
 
-        let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipse) {
+        let (parameter, default) = if seen_pack || current_token.is_symbol(Symbol::Ellipsis) {
             seen_pack = true;
 
-            let ellipse = match state.consume_if(Symbol::Ellipse) {
+            let ellipsis = match state.consume_if(Symbol::Ellipsis) {
                 Some(token) => token,
                 None => {
                     state.token_error(name.clone(), "generic types come before generic type packs");
@@ -2957,7 +2960,7 @@ fn parse_generic_type_list(
             };
 
             (
-                ast::GenericParameterInfo::Variadic { name, ellipse },
+                ast::GenericParameterInfo::Variadic { name, ellipsis },
                 default,
             )
         } else {

@@ -129,7 +129,7 @@ stmts:
                               type: Identifier
                               identifier: T
                           trailing_trivia: []
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -188,7 +188,7 @@ stmts:
                             type: Identifier
                             identifier: U
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -295,7 +295,7 @@ stmts:
                               type: Identifier
                               identifier: U
                           trailing_trivia: []
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -353,7 +353,7 @@ stmts:
                       type: Identifier
                       identifier: T
                   trailing_trivia: []
-                ellipse:
+                ellipsis:
                   leading_trivia: []
                   token:
                     start_position:
@@ -527,7 +527,7 @@ stmts:
                             type: Identifier
                             identifier: T
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -701,7 +701,7 @@ stmts:
                               type: Identifier
                               identifier: Args
                           trailing_trivia: []
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -754,7 +754,7 @@ stmts:
                               type: Whitespace
                               characters: " "
                       - Variadic:
-                          ellipse:
+                          ellipsis:
                             leading_trivia: []
                             token:
                               start_position:
@@ -828,7 +828,7 @@ stmts:
                             type: Identifier
                             identifier: Return
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -1004,7 +1004,7 @@ stmts:
                               type: Identifier
                               identifier: Args
                           trailing_trivia: []
-                        ellipse:
+                        ellipsis:
                           leading_trivia: []
                           token:
                             start_position:
@@ -1062,7 +1062,7 @@ stmts:
                       type: Identifier
                       identifier: Return
                   trailing_trivia: []
-                ellipse:
+                ellipsis:
                   leading_trivia: []
                   token:
                     start_position:
@@ -1287,7 +1287,7 @@ stmts:
                             type: Identifier
                             identifier: T
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -1587,7 +1587,7 @@ stmts:
                             type: Identifier
                             identifier: T
                         trailing_trivia: []
-                      ellipse:
+                      ellipsis:
                         leading_trivia: []
                         token:
                           start_position:
@@ -1738,7 +1738,7 @@ stmts:
                                 type: Identifier
                                 identifier: T
                             trailing_trivia: []
-                          ellipse:
+                          ellipsis:
                             leading_trivia: []
                             token:
                               start_position:

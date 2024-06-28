@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 123
+        line: 6
+        character: 1
+      end_position:
+        bytes: 128
+        line: 6
+        character: 6
+      token_type:
+        type: Identifier
+        identifier: print
+    additional: "expected `else` when parsing if then else expression"
+- AstError:
+    token:
+      start_position:
+        bytes: 15
+        line: 1
+        character: 16
+      end_position:
+        bytes: 16
+        line: 1
+        character: 17
+      token_type:
+        type: Symbol
+        symbol: "="
+    additional: expected an expression
+
