@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [1.0.0-rc.1] - 2024-07-05
 ### Added
 - **full-moon now has the ability to return multiple errors.** Added `parse_fallible`, which will return a struct containing the best possible AST, and a vector of errors. Read the documentation for guarantees on the partial AST.
 - The Lua version used to parse is no longer strictly based on features set, and can now be configured precisely using `LuaVersion`. `LuaVersion` is a bitfield that can attempt to parse multiple versions of Lua at once, or be used to pin down a specific version. `parse` will use the most completely available set possible (`LuaVersion::new()`), but `parse_fallible` accepts a `LuaVersion`.
