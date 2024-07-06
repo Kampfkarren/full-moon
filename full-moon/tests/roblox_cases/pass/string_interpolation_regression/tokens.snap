@@ -1,0 +1,129 @@
+---
+source: full-moon/tests/pass_cases.rs
+assertion_line: 40
+expression: tokens
+input_file: full-moon/tests/roblox_cases/pass/string_interpolation_regression
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Identifier
+    identifier: error
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 7
+    line: 1
+    character: 7
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 7
+    line: 2
+    character: 1
+  end_position:
+    bytes: 8
+    line: 2
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 8
+    line: 2
+    character: 2
+  end_position:
+    bytes: 12
+    line: 2
+    character: 6
+  token_type:
+    type: InterpolatedString
+    literal: "a "
+    kind: Begin
+- start_position:
+    bytes: 12
+    line: 2
+    character: 6
+  end_position:
+    bytes: 13
+    line: 2
+    character: 7
+  token_type:
+    type: Identifier
+    identifier: b
+- start_position:
+    bytes: 13
+    line: 2
+    character: 7
+  end_position:
+    bytes: 17
+    line: 2
+    character: 11
+  token_type:
+    type: InterpolatedString
+    literal: " c"
+    kind: End
+- start_position:
+    bytes: 17
+    line: 2
+    character: 11
+  end_position:
+    bytes: 18
+    line: 2
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 18
+    line: 3
+    character: 1
+  end_position:
+    bytes: 19
+    line: 3
+    character: 2
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 19
+    line: 3
+    character: 2
+  end_position:
+    bytes: 20
+    line: 3
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 20
+    line: 4
+    character: 1
+  end_position:
+    bytes: 20
+    line: 4
+    character: 1
+  token_type:
+    type: Eof
+
