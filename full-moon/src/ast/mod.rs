@@ -27,12 +27,12 @@ mod versions;
 pub use versions::*;
 
 #[cfg(feature = "luau")]
-pub mod types;
+pub mod luau;
 #[cfg(feature = "luau")]
-use types::*;
+use luau::*;
 
 #[cfg(feature = "luau")]
-mod type_visitors;
+mod luau_visitors;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;

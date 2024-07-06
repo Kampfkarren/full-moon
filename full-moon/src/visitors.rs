@@ -9,7 +9,7 @@ use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
 #[cfg(feature = "luau")]
-use crate::ast::types::*;
+use crate::ast::luau::*;
 
 macro_rules! create_visitor {
     (ast: {

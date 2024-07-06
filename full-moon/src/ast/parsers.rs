@@ -2133,7 +2133,7 @@ fn expect_interpolated_string(
 ) -> ast::InterpolatedString {
     use crate::ShortString;
 
-    use super::types::InterpolatedStringSegment;
+    use super::luau::InterpolatedStringSegment;
 
     let mut segments = Vec::new();
     let first_string = current.clone();
