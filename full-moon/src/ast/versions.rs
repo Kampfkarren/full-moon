@@ -141,6 +141,12 @@ impl std::ops::BitOr for LuaVersion {
     }
 }
 
+impl std::ops::BitOrAssign for LuaVersion {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.bitfield |= rhs.bitfield;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
