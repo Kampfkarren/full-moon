@@ -2234,8 +2234,8 @@ impl AstError {
     }
 
     /// Returns a human readable error message
-    pub fn error_message(&self) -> Cow<'static, str> {
-        self.additional.clone()
+    pub fn error_message(&self) -> &str {
+        self.additional.as_ref()
     }
 
     /// Returns the range of the error

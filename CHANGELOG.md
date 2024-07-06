@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.2] - 2024-07-05
+### Changed
+- Changed `Error::error_message()` to return `Cow<'_, str>` instead of `Cow<'static, str>`.
+- Changed `AstError::error_message()` to return `&str` instead of `Cow<'static, str>`.
+
 ## [1.0.0-rc.1] - 2024-07-05
 ### Added
 - **full-moon now has the ability to return multiple errors.** Added `parse_fallible`, which will return a struct containing the best possible AST, and a vector of errors. Read the documentation for guarantees on the partial AST.
@@ -19,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[BREAKING CHANGE]** `Expression::Function((TokenReference, FunctionBody))` variant is now Boxed to ``Expression::Function(Box<(TokenReference, FunctionBody)>)` to reduce type sizes and reduce stack overflows
 - **[BREAKING CHANGE]** Associativity of union / intersection types are fixed: they are parsed as left associative, whilst originally parsed as right associative
 - **[BREAKING CHANGE]** LuaJIT parsing support is available as a separate feature flag `luajit`, rather than mixed with `lua52`. Added `LuaVersion::luajit()` to support this.
-- **[BREAKING CHANGE]** `Symbol::Ellipse` and other references of `ellipse` have been renamed to `Symbol::Ellipsis` / `ellipsis` 
+- **[BREAKING CHANGE]** `Symbol::Ellipse` and other references of `ellipse` have been renamed to `Symbol::Ellipsis` / `ellipsis`
 - Shebangs provide their trailing trivia more accurately to the rest of full-moon.
 - Attempting to display `StringLiteralQuoteType::Brackets` now returns an error rather than being marked as unreachable.
 - Significantly optimized the entire codebase, helping both time to parse and wasting less stack, especially in debug mode.

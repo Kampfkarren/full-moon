@@ -45,9 +45,9 @@ pub enum Error {
 
 impl Error {
     /// Returns a human readable error message
-    pub fn error_message(&self) -> Cow<'static, str> {
+    pub fn error_message(&self) -> Cow<'_, str> {
         match self {
-            Error::AstError(error) => error.error_message(),
+            Error::AstError(error) => Cow::from(error.error_message()),
             Error::TokenizerError(error) => error.to_string().into(),
         }
     }
