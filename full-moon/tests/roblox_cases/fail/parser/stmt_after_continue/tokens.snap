@@ -1,0 +1,171 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 5
+    line: 1
+    character: 6
+  token_type:
+    type: Identifier
+    identifier: print
+- start_position:
+    bytes: 5
+    line: 1
+    character: 6
+  end_position:
+    bytes: 6
+    line: 1
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 6
+    line: 1
+    character: 7
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: StringLiteral
+    literal: "1"
+    quote_type: Double
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 11
+    line: 1
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 11
+    line: 2
+    character: 1
+  end_position:
+    bytes: 19
+    line: 2
+    character: 9
+  token_type:
+    type: Identifier
+    identifier: continue
+- start_position:
+    bytes: 19
+    line: 2
+    character: 9
+  end_position:
+    bytes: 20
+    line: 2
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 20
+    line: 2
+    character: 10
+  end_position:
+    bytes: 61
+    line: 2
+    character: 51
+  token_type:
+    type: SingleLineComment
+    comment: " this can be replaced with break/return"
+- start_position:
+    bytes: 61
+    line: 2
+    character: 51
+  end_position:
+    bytes: 62
+    line: 2
+    character: 51
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 62
+    line: 3
+    character: 1
+  end_position:
+    bytes: 67
+    line: 3
+    character: 6
+  token_type:
+    type: Identifier
+    identifier: print
+- start_position:
+    bytes: 67
+    line: 3
+    character: 6
+  end_position:
+    bytes: 68
+    line: 3
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 68
+    line: 3
+    character: 7
+  end_position:
+    bytes: 71
+    line: 3
+    character: 10
+  token_type:
+    type: StringLiteral
+    literal: "2"
+    quote_type: Double
+- start_position:
+    bytes: 71
+    line: 3
+    character: 10
+  end_position:
+    bytes: 72
+    line: 3
+    character: 11
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 72
+    line: 3
+    character: 11
+  end_position:
+    bytes: 73
+    line: 3
+    character: 11
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 73
+    line: 4
+    character: 1
+  end_position:
+    bytes: 73
+    line: 4
+    character: 1
+  token_type:
+    type: Eof
+

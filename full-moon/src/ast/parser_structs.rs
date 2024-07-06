@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
-use crate::tokenizer::{Lexer, LexerResult, Symbol, TokenKind, TokenReference};
+use crate::node::Node;
+use crate::tokenizer::{Lexer, LexerResult, Symbol, Token, TokenKind, TokenReference};
 
 use super::{parsers::parse_block, Ast, Block, LuaVersion};
 
@@ -192,7 +193,10 @@ impl ParserState {
             .push(crate::Error::AstError(crate::ast::AstError {
                 token: token_reference.token,
                 additional: error.into(),
-                range: Some((start_token.start_position(), end_token.end_position())),
+                range: Some((
+                    Token::start_position(start_token),
+                    Token::end_position(end_token),
+                )),
             }));
     }
 }
@@ -277,6 +281,8 @@ impl AstResult {
             _ => Block::new(),
         };
 
+        let block_has_last_stmt = block.last_stmt().is_some();
+
         loop {
             match parser_state.lexer.current() {
                 Some(LexerResult::Ok(token)) if token.token_kind() == TokenKind::Eof => {
@@ -313,6 +319,13 @@ impl AstResult {
                             }
 
                             continue;
+                        }
+
+                        if block_has_last_stmt {
+                            parser_state.token_error(
+                                new_block.tokens().next().unwrap().clone(),
+                                "unexpected statement after last statement",
+                            )
                         }
 
                         block.merge_blocks(new_block);
