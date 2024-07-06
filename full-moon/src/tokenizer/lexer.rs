@@ -215,33 +215,36 @@ impl Lexer {
 
         loop {
             let sent_eof = self.sent_eof;
-            let start_position = self.source.lexer_position;
+            let start_position: LexerPosition = self.source.lexer_position;
 
-            match self.process_next() {
-                Some(LexerResult::Ok(token)) if token.token_type().is_trivia() => {
-                    // Take all trivia up to and including the newline character. If we see a newline character
-                    // we should break once we have taken it in.
-                    let should_break =
-                        if let TokenType::Whitespace { ref characters } = token.token_type() {
-                            // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
-                            characters.contains('\n')
-                        } else {
-                            false
-                        };
+            // All things that can start trivia, so we can avoid when something definitely can't
+            if matches!(self.source.current(), Some('\n' | '\r' | '#' | '-' | ' ')) {
+                if let Some(LexerResult::Ok(token)) = self.process_next() {
+                    if token.token_type().is_trivia() {
+                        // Take all trivia up to and including the newline character. If we see a newline character
+                        // we should break once we have taken it in.
+                        let should_break =
+                            if let TokenType::Whitespace { ref characters } = token.token_type() {
+                                // Use contains in order to tolerate \r\n line endings and mixed whitespace tokens
+                                characters.contains('\n')
+                            } else {
+                                false
+                            };
 
-                    trailing_trivia.push(token);
+                        trailing_trivia.push(token);
 
-                    if should_break {
-                        break;
+                        if should_break {
+                            break;
+                        }
+
+                        continue;
                     }
                 }
-
-                _ => {
-                    self.source.lexer_position = start_position;
-                    self.sent_eof = sent_eof;
-                    break;
-                }
             }
+
+            self.source.lexer_position = start_position;
+            self.sent_eof = sent_eof;
+            break;
         }
 
         trailing_trivia
