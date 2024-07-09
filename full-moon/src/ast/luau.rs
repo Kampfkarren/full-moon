@@ -82,6 +82,10 @@ pub enum TypeInfo {
         ellipsis: TokenReference,
     },
 
+    /// An intersection type, such as `string & number`.
+    #[display(fmt = "{_0}")]
+    Intersection(TypeIntersection),
+
     /// A type coming from a module, such as `module.Foo`
     #[display(fmt = "{module}{punctuation}{type_info}")]
     Module {
@@ -142,6 +146,10 @@ pub enum TypeInfo {
         types: Punctuated<TypeInfo>,
     },
 
+    /// A union type, such as `string | number`.
+    #[display(fmt = "{_0}")]
+    Union(TypeUnion),
+
     /// A variadic type: `...number`.
     #[display(fmt = "{ellipsis}{type_info}")]
     Variadic {
@@ -159,14 +167,6 @@ pub enum TypeInfo {
         /// The name of the type that is variadic: `T`
         name: TokenReference,
     },
-
-    /// A union type, such as `string | number`.
-    #[display(fmt = "{_0}")]
-    Union(TypeUnion),
-
-    /// An intersection type, such as `string & number`.
-    #[display(fmt = "{_0}")]
-    Intersection(TypeIntersection),
 }
 
 /// A union type, such as `string | number`.
@@ -179,9 +179,25 @@ pub struct TypeUnion {
 }
 
 impl TypeUnion {
-    /// Creates a new Union from the given types.
+    /// Creates a new Union from the given types and optional leading pipe.
     pub fn new(leading: Option<TokenReference>, types: Punctuated<TypeInfo>) -> Self {
         Self { leading, types }
+    }
+
+    /// Creates a new Union from the given types, with no leading pipe.
+    pub fn with_types(types: Punctuated<TypeInfo>) -> Self {
+        Self {
+            leading: None,
+            types,
+        }
+    }
+
+    /// Creates a new Union with the given leading pipe, and no types.
+    pub fn with_leading(leading: TokenReference) -> Self {
+        Self {
+            leading: Some(leading),
+            types: Punctuated::new(),
+        }
     }
 
     /// The leading pipe, if one is present: `|`.
@@ -208,6 +224,22 @@ impl TypeIntersection {
     /// Creates a new Intersection from the given types.
     pub fn new(leading: Option<TokenReference>, types: Punctuated<TypeInfo>) -> Self {
         Self { leading, types }
+    }
+
+    /// Creates a new Intersection from the given types, with no leading pipe.
+    pub fn with_types(types: Punctuated<TypeInfo>) -> Self {
+        Self {
+            leading: None,
+            types,
+        }
+    }
+
+    /// Creates a new Intersection with the given leading pipe, and no types.
+    pub fn with_leading(leading: TokenReference) -> Self {
+        Self {
+            leading: Some(leading),
+            types: Punctuated::new(),
+        }
     }
 
     /// The leading pipe, if one is present: `&`.

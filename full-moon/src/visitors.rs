@@ -294,9 +294,9 @@ create_visitor!(ast: {
         visit_type_field => TypeField,
         visit_type_field_key => TypeFieldKey,
         visit_type_info => TypeInfo,
+        visit_type_intersection => TypeIntersection,
         visit_type_specifier => TypeSpecifier,
         visit_type_union => TypeUnion,
-        visit_type_intersection => TypeIntersection,
     }
 
     // Lua 5.2

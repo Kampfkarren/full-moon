@@ -2484,7 +2484,7 @@ fn parse_type_suffix(
     let mut current_type = simple_type;
 
     loop {
-        let ty = if current_type.is_some() {
+        let type_info = if current_type.is_some() {
             current_type.take().unwrap()
         } else {
             let ParserResult::Value(ty) = parse_simple_type(state, SimpleTypeStyle::Default) else {
@@ -2497,7 +2497,7 @@ fn parse_type_suffix(
         let current_token = match state.current() {
             Ok(token) => token,
             Err(()) => {
-                types.push(Pair::End(ty));
+                types.push(Pair::End(type_info));
                 break;
             }
         };
@@ -2517,7 +2517,7 @@ fn parse_type_suffix(
                 let question_mark = state.consume().unwrap();
 
                 current_type = Some(ast::TypeInfo::Optional {
-                    base: Box::new(ty),
+                    base: Box::new(type_info),
                     question_mark,
                 });
 
@@ -2536,7 +2536,7 @@ fn parse_type_suffix(
                 }
 
                 let pipe = state.consume().unwrap();
-                types.push(Pair::new(ty, Some(pipe)));
+                types.push(Pair::new(type_info, Some(pipe)));
                 is_union = true;
             }
 
@@ -2552,14 +2552,14 @@ fn parse_type_suffix(
                 }
 
                 let ampersand = state.consume().unwrap();
-                types.push(Pair::new(ty, Some(ampersand)));
+                types.push(Pair::new(type_info, Some(ampersand)));
                 is_intersection = true;
             }
 
-            _ if types.is_empty() => return ParserResult::Value(ty),
+            _ if types.is_empty() => return ParserResult::Value(type_info),
 
             _ => {
-                types.push(Pair::End(ty));
+                types.push(Pair::End(type_info));
                 break;
             }
         }
