@@ -184,19 +184,24 @@ impl TypeUnion {
         Self { leading, types }
     }
 
-    /// Creates a new Union from the given types, with no leading pipe.
-    pub fn with_types(types: Punctuated<TypeInfo>) -> Self {
+    /// Returns a new Union with the given types.
+    pub fn with_types(self, types: Punctuated<TypeInfo>) -> Self {
+        Self { types, ..self }
+    }
+
+    /// Returns a new Union with the given leading pipe.
+    pub fn with_leading(self, leading: TokenReference) -> Self {
         Self {
-            leading: None,
-            types,
+            leading: Some(leading),
+            ..self
         }
     }
 
-    /// Creates a new Union with the given leading pipe, and no types.
-    pub fn with_leading(leading: TokenReference) -> Self {
+    /// Returns a new Union without a leading pipe.
+    pub fn without_leading(self) -> Self {
         Self {
-            leading: Some(leading),
-            types: Punctuated::new(),
+            leading: None,
+            ..self
         }
     }
 
@@ -226,19 +231,24 @@ impl TypeIntersection {
         Self { leading, types }
     }
 
-    /// Creates a new Intersection from the given types, with no leading pipe.
-    pub fn with_types(types: Punctuated<TypeInfo>) -> Self {
+    /// Returns a new Intersection with the given types.
+    pub fn with_types(self, types: Punctuated<TypeInfo>) -> Self {
+        Self { types, ..self }
+    }
+
+    /// Returns a new Intersection with the given leading pipe.
+    pub fn with_leading(self, leading: TokenReference) -> Self {
         Self {
-            leading: None,
-            types,
+            leading: Some(leading),
+            ..self
         }
     }
 
-    /// Creates a new Intersection with the given leading pipe, and no types.
-    pub fn with_leading(leading: TokenReference) -> Self {
+    /// Returns a new Intersection without a leading pipe.
+    pub fn without_leading(self) -> Self {
         Self {
-            leading: Some(leading),
-            types: Punctuated::new(),
+            leading: None,
+            ..self
         }
     }
 
