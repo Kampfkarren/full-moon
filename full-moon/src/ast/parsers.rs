@@ -2225,12 +2225,24 @@ fn expect_interpolated_string(
 
 #[cfg(feature = "luau")]
 fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
-    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
-    else {
-        return ParserResult::LexerMoved;
+    let current_token = match state.current() {
+        Ok(token) => token,
+        Err(()) => return ParserResult::NotFound,
     };
 
-    parse_type_suffix(state, simple_type)
+    if let TokenType::Symbol {
+        symbol: Symbol::Pipe | Symbol::Ampersand,
+    } = current_token.token_type()
+    {
+        parse_type_suffix(state, None)
+    } else {
+        let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
+        else {
+            return ParserResult::LexerMoved;
+        };
+
+        parse_type_suffix(state, Some(simple_type))
+    }
 }
 
 #[cfg(feature = "luau")]
@@ -2246,7 +2258,7 @@ fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
             ParserResult::Value(simple_type)
         }
         ast::TypeInfo::VariadicPack { .. } | ast::TypeInfo::GenericPack { .. } => unreachable!(),
-        _ => parse_type_suffix(state, simple_type),
+        _ => parse_type_suffix(state, Some(simple_type)),
     }
 }
 
@@ -2437,44 +2449,60 @@ fn parse_simple_type(
 #[cfg(feature = "luau")]
 fn parse_type_suffix(
     state: &mut ParserState,
-    simple_type: ast::TypeInfo,
+    simple_type: Option<ast::TypeInfo>,
 ) -> ParserResult<ast::TypeInfo> {
     let mut is_union = false;
     let mut is_intersection = false;
 
-    let mut current_type = simple_type;
+    let mut types = Punctuated::new();
 
-    loop {
-        let Ok(current_token) = state.current() else {
-            return ParserResult::NotFound;
+    let leading = if simple_type.is_some() {
+        None
+    } else {
+        let current_token = match state.current() {
+            Ok(token) => token,
+            Err(()) => {
+                unreachable!("parse_type_suffix called with no simple_type and no current token")
+            }
         };
 
         match current_token.token_type() {
             TokenType::Symbol {
                 symbol: Symbol::Pipe,
-            } => {
-                if is_intersection {
-                    state.token_error(
-                        current_token.clone(),
-                        "cannot mix union and intersection types",
-                    );
-                    return ParserResult::LexerMoved;
-                }
+            } => is_union = true,
 
-                let pipe = state.consume().unwrap();
+            TokenType::Symbol {
+                symbol: Symbol::Ampersand,
+            } => is_intersection = true,
 
-                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
-                else {
-                    return ParserResult::LexerMoved;
-                };
+            _ => unreachable!("parse_type_suffix called with no simple_type and no `|` or `&`"),
+        }
 
-                current_type = ast::TypeInfo::Union {
-                    left: Box::new(current_type),
-                    pipe,
-                    right: Box::new(right),
-                };
-                is_union = true;
+        Some(state.consume().unwrap())
+    };
+
+    let mut current_type = simple_type;
+
+    loop {
+        let ty = if current_type.is_some() {
+            current_type.take().unwrap()
+        } else {
+            let ParserResult::Value(ty) = parse_simple_type(state, SimpleTypeStyle::Default) else {
+                return ParserResult::LexerMoved;
+            };
+
+            ty
+        };
+
+        let current_token = match state.current() {
+            Ok(token) => token,
+            Err(()) => {
+                types.push(Pair::End(ty));
+                break;
             }
+        };
+
+        match current_token.token_type() {
             TokenType::Symbol {
                 symbol: Symbol::QuestionMark,
             } => {
@@ -2487,12 +2515,31 @@ fn parse_type_suffix(
                 }
 
                 let question_mark = state.consume().unwrap();
-                current_type = ast::TypeInfo::Optional {
-                    base: Box::new(current_type),
+
+                current_type = Some(ast::TypeInfo::Optional {
+                    base: Box::new(ty),
                     question_mark,
-                };
+                });
+
                 is_union = true;
             }
+
+            TokenType::Symbol {
+                symbol: Symbol::Pipe,
+            } => {
+                if is_intersection {
+                    state.token_error(
+                        current_token.clone(),
+                        "cannot mix union and intersection types",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+
+                let pipe = state.consume().unwrap();
+                types.push(Pair::new(ty, Some(pipe)));
+                is_union = true;
+            }
+
             TokenType::Symbol {
                 symbol: Symbol::Ampersand,
             } => {
@@ -2505,24 +2552,30 @@ fn parse_type_suffix(
                 }
 
                 let ampersand = state.consume().unwrap();
-
-                let ParserResult::Value(right) = parse_simple_type(state, SimpleTypeStyle::Default)
-                else {
-                    return ParserResult::LexerMoved;
-                };
-
-                current_type = ast::TypeInfo::Intersection {
-                    left: Box::new(current_type),
-                    ampersand,
-                    right: Box::new(right),
-                };
+                types.push(Pair::new(ty, Some(ampersand)));
                 is_intersection = true;
             }
-            _ => break,
+
+            _ if types.is_empty() => return ParserResult::Value(ty),
+
+            _ => {
+                types.push(Pair::End(ty));
+                break;
+            }
         }
     }
 
-    ParserResult::Value(current_type)
+    match (is_union, is_intersection) {
+        (true, false) => {
+            ParserResult::Value(ast::TypeInfo::Union(ast::TypeUnion::new(leading, types)))
+        }
+
+        (false, true) => ParserResult::Value(ast::TypeInfo::Intersection(
+            ast::TypeIntersection::new(leading, types),
+        )),
+
+        _ => unreachable!(),
+    }
 }
 
 #[cfg(feature = "luau")]

@@ -82,17 +82,6 @@ pub enum TypeInfo {
         ellipsis: TokenReference,
     },
 
-    /// An intersection type: `string & number`, denoting both types.
-    #[display(fmt = "{left}{ampersand}{right}")]
-    Intersection {
-        /// The left hand side: `string`.
-        left: Box<TypeInfo>,
-        /// The ampersand (`&`) to separate the types.
-        ampersand: TokenReference,
-        /// The right hand side: `number`.
-        right: Box<TypeInfo>,
-    },
-
     /// A type coming from a module, such as `module.Foo`
     #[display(fmt = "{module}{punctuation}{type_info}")]
     Module {
@@ -153,17 +142,6 @@ pub enum TypeInfo {
         types: Punctuated<TypeInfo>,
     },
 
-    /// A union type: `string | number`, denoting one or the other.
-    #[display(fmt = "{left}{pipe}{right}")]
-    Union {
-        /// The left hand side: `string`.
-        left: Box<TypeInfo>,
-        /// The pipe (`|`) to separate the types.
-        pipe: TokenReference,
-        /// The right hand side: `number`.
-        right: Box<TypeInfo>,
-    },
-
     /// A variadic type: `...number`.
     #[display(fmt = "{ellipsis}{type_info}")]
     Variadic {
@@ -181,6 +159,66 @@ pub enum TypeInfo {
         /// The name of the type that is variadic: `T`
         name: TokenReference,
     },
+
+    /// A union type, such as `string | number`.
+    #[display(fmt = "{_0}")]
+    Union(TypeUnion),
+
+    /// An intersection type, such as `string & number`.
+    #[display(fmt = "{_0}")]
+    Intersection(TypeIntersection),
+}
+
+/// A union type, such as `string | number`.
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{types}", "display_option(leading)")]
+pub struct TypeUnion {
+    pub(crate) leading: Option<TokenReference>,
+    pub(crate) types: Punctuated<TypeInfo>,
+}
+
+impl TypeUnion {
+    /// Creates a new Union from the given types.
+    pub fn new(leading: Option<TokenReference>, types: Punctuated<TypeInfo>) -> Self {
+        Self { leading, types }
+    }
+
+    /// The leading pipe, if one is present: `|`.
+    pub fn leading(&self) -> Option<&TokenReference> {
+        self.leading.as_ref()
+    }
+
+    /// The types being unioned: `string | number`.
+    pub fn types(&self) -> &Punctuated<TypeInfo> {
+        &self.types
+    }
+}
+
+/// An intersection type, such as `string & number`.
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(fmt = "{}{types}", "display_option(leading)")]
+pub struct TypeIntersection {
+    pub(crate) leading: Option<TokenReference>,
+    pub(crate) types: Punctuated<TypeInfo>,
+}
+
+impl TypeIntersection {
+    /// Creates a new Intersection from the given types.
+    pub fn new(leading: Option<TokenReference>, types: Punctuated<TypeInfo>) -> Self {
+        Self { leading, types }
+    }
+
+    /// The leading pipe, if one is present: `&`.
+    pub fn leading(&self) -> Option<&TokenReference> {
+        self.leading.as_ref()
+    }
+
+    /// The types being intersected: `string & number`.
+    pub fn types(&self) -> &Punctuated<TypeInfo> {
+        &self.types
+    }
 }
 
 /// A subset of TypeInfo that consists of items which can only be used as an index, such as `Foo` and `Foo<Bar>`,
