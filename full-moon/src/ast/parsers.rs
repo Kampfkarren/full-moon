@@ -2225,9 +2225,8 @@ fn expect_interpolated_string(
 
 #[cfg(feature = "luau")]
 fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
-    let current_token = match state.current() {
-        Ok(token) => token,
-        Err(()) => return ParserResult::NotFound,
+    let Ok(current_token) = state.current() else {
+        return ParserResult::NotFound;
     };
 
     if let TokenType::Symbol {
@@ -2459,11 +2458,8 @@ fn parse_type_suffix(
     let leading = if simple_type.is_some() {
         None
     } else {
-        let current_token = match state.current() {
-            Ok(token) => token,
-            Err(()) => {
-                unreachable!("parse_type_suffix called with no simple_type and no current token")
-            }
+        let Ok(current_token) = state.current() else {
+            unreachable!("parse_type_suffix called with no simple_type and no current token")
         };
 
         match current_token.token_type() {
@@ -2494,12 +2490,9 @@ fn parse_type_suffix(
             ty
         };
 
-        let current_token = match state.current() {
-            Ok(token) => token,
-            Err(()) => {
-                types.push(Pair::End(type_info));
-                break;
-            }
+        let Ok(current_token) = state.current() else {
+            types.push(Pair::End(type_info));
+            break;
         };
 
         match current_token.token_type() {
