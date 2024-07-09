@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
+assertion_line: 48
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/types_indexable
 ---
 stmts:
   - - LocalAssignment:
@@ -538,118 +540,120 @@ stmts:
                     characters: " "
             type_info:
               Union:
-                left:
-                  Module:
-                    module:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 77
-                          line: 3
-                          character: 10
-                        end_position:
-                          bytes: 83
-                          line: 3
-                          character: 16
-                        token_type:
-                          type: Identifier
-                          identifier: module
-                      trailing_trivia: []
-                    punctuation:
-                      leading_trivia: []
-                      token:
-                        start_position:
-                          bytes: 83
-                          line: 3
-                          character: 16
-                        end_position:
-                          bytes: 84
-                          line: 3
-                          character: 17
-                        token_type:
-                          type: Symbol
-                          symbol: "."
-                      trailing_trivia: []
-                    type_info:
-                      Basic:
-                        leading_trivia: []
-                        token:
-                          start_position:
-                            bytes: 84
-                            line: 3
-                            character: 17
-                          end_position:
-                            bytes: 87
-                            line: 3
-                            character: 20
-                          token_type:
-                            type: Identifier
-                            identifier: Foo
-                        trailing_trivia:
-                          - start_position:
-                              bytes: 87
-                              line: 3
-                              character: 20
-                            end_position:
+                leading: ~
+                types:
+                  pairs:
+                    - Punctuated:
+                        - Module:
+                            module:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 77
+                                  line: 3
+                                  character: 10
+                                end_position:
+                                  bytes: 83
+                                  line: 3
+                                  character: 16
+                                token_type:
+                                  type: Identifier
+                                  identifier: module
+                              trailing_trivia: []
+                            punctuation:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 83
+                                  line: 3
+                                  character: 16
+                                end_position:
+                                  bytes: 84
+                                  line: 3
+                                  character: 17
+                                token_type:
+                                  type: Symbol
+                                  symbol: "."
+                              trailing_trivia: []
+                            type_info:
+                              Basic:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 84
+                                    line: 3
+                                    character: 17
+                                  end_position:
+                                    bytes: 87
+                                    line: 3
+                                    character: 20
+                                  token_type:
+                                    type: Identifier
+                                    identifier: Foo
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 87
+                                      line: 3
+                                      character: 20
+                                    end_position:
+                                      bytes: 88
+                                      line: 3
+                                      character: 21
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                        - leading_trivia: []
+                          token:
+                            start_position:
                               bytes: 88
                               line: 3
                               character: 21
+                            end_position:
+                              bytes: 89
+                              line: 3
+                              character: 22
                             token_type:
-                              type: Whitespace
-                              characters: " "
-                pipe:
-                  leading_trivia: []
-                  token:
-                    start_position:
-                      bytes: 88
-                      line: 3
-                      character: 21
-                    end_position:
-                      bytes: 89
-                      line: 3
-                      character: 22
-                    token_type:
-                      type: Symbol
-                      symbol: "|"
-                  trailing_trivia:
-                    - start_position:
-                        bytes: 89
-                        line: 3
-                        character: 22
-                      end_position:
-                        bytes: 90
-                        line: 3
-                        character: 23
-                      token_type:
-                        type: Whitespace
-                        characters: " "
-                right:
-                  Basic:
-                    leading_trivia: []
-                    token:
-                      start_position:
-                        bytes: 90
-                        line: 3
-                        character: 23
-                      end_position:
-                        bytes: 96
-                        line: 3
-                        character: 29
-                      token_type:
-                        type: Identifier
-                        identifier: string
-                    trailing_trivia:
-                      - start_position:
-                          bytes: 96
-                          line: 3
-                          character: 29
-                        end_position:
-                          bytes: 97
-                          line: 3
-                          character: 30
-                        token_type:
-                          type: Whitespace
-                          characters: " "
+                              type: Symbol
+                              symbol: "|"
+                          trailing_trivia:
+                            - start_position:
+                                bytes: 89
+                                line: 3
+                                character: 22
+                              end_position:
+                                bytes: 90
+                                line: 3
+                                character: 23
+                              token_type:
+                                type: Whitespace
+                                characters: " "
+                    - End:
+                        Basic:
+                          leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 90
+                              line: 3
+                              character: 23
+                            end_position:
+                              bytes: 96
+                              line: 3
+                              character: 29
+                            token_type:
+                              type: Identifier
+                              identifier: string
+                          trailing_trivia:
+                            - start_position:
+                                bytes: 96
+                                line: 3
+                                character: 29
+                              end_position:
+                                bytes: 97
+                                line: 3
+                                character: 30
+                              token_type:
+                                type: Whitespace
+                                characters: " "
         name_list:
           pairs:
             - End:
@@ -1168,4 +1172,3 @@ stmts:
                       symbol: nil
                   trailing_trivia: []
     - ~
-
