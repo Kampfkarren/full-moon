@@ -190,19 +190,8 @@ impl TypeUnion {
     }
 
     /// Returns a new Union with the given leading pipe.
-    pub fn with_leading(self, leading: TokenReference) -> Self {
-        Self {
-            leading: Some(leading),
-            ..self
-        }
-    }
-
-    /// Returns a new Union without a leading pipe.
-    pub fn without_leading(self) -> Self {
-        Self {
-            leading: None,
-            ..self
-        }
+    pub fn with_leading(self, leading: Option<TokenReference>) -> Self {
+        Self { leading, ..self }
     }
 
     /// The leading pipe, if one is present: `|`.
@@ -237,19 +226,8 @@ impl TypeIntersection {
     }
 
     /// Returns a new Intersection with the given leading pipe.
-    pub fn with_leading(self, leading: TokenReference) -> Self {
-        Self {
-            leading: Some(leading),
-            ..self
-        }
-    }
-
-    /// Returns a new Intersection without a leading pipe.
-    pub fn without_leading(self) -> Self {
-        Self {
-            leading: None,
-            ..self
-        }
+    pub fn with_leading(self, leading: Option<TokenReference>) -> Self {
+        Self { leading, ..self }
     }
 
     /// The leading pipe, if one is present: `&`.
