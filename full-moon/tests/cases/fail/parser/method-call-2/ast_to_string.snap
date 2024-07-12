@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/fail_cases.rs
 assertion_line: 30
-expression: "full_moon::print(&ast)"
+expression: "ast.to_string()"
 input_file: full-moon/tests/cases/fail/parser/method-call-2
 ---
 "return name:method()"

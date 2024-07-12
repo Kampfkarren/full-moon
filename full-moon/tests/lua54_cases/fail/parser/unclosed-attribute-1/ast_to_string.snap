@@ -1,6 +1,6 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: "full_moon::print(&ast)"
+expression: "ast.to_string()"
 input_file: full-moon/tests/lua54_cases/fail/parser/unclosed-attribute-1
 ---
 local name <const>
