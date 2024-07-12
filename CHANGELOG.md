@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0-rc.5] - 2024-07-06
 ### Changed
 - **[BREAKING CHANGE]** The `types` module is now named `luau`.
+- **[BREAKING CHANGE]** The `print()` function has been removed, use `ast.to_string()` instead.
 
 ## [1.0.0-rc.4] - 2024-07-06
 ### Fixed
