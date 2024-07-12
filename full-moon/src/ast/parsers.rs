@@ -2549,7 +2549,7 @@ fn parse_type_suffix(
                 is_intersection = true;
             }
 
-            _ if types.is_empty() => return ParserResult::Value(type_info),
+            _ if types.is_empty() && leading.is_none() => return ParserResult::Value(type_info),
 
             _ => {
                 types.push(Pair::End(type_info));
