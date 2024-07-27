@@ -225,12 +225,12 @@ impl TypeIntersection {
         Self { types, ..self }
     }
 
-    /// Returns a new Intersection with the given leading pipe.
+    /// Returns a new Intersection with the given leading ampersand.
     pub fn with_leading(self, leading: Option<TokenReference>) -> Self {
         Self { leading, ..self }
     }
 
-    /// The leading pipe, if one is present: `&`.
+    /// The leading ampersand, if one is present: `&`.
     pub fn leading(&self) -> Option<&TokenReference> {
         self.leading.as_ref()
     }
