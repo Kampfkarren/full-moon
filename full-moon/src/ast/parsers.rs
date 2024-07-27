@@ -2483,7 +2483,8 @@ fn parse_type_suffix(
         let type_info = if current_type.is_some() {
             current_type.take().unwrap()
         } else {
-            let ParserResult::Value(type_info) = parse_simple_type(state, SimpleTypeStyle::Default) else {
+            let ParserResult::Value(type_info) = parse_simple_type(state, SimpleTypeStyle::Default)
+            else {
                 return ParserResult::LexerMoved;
             };
 
