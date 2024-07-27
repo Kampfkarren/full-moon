@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added structs `TypeUnion` and `TypeIntersection` which both contain a field for a leading `TokenReference` (`|` or `&`), and a field which contains a `Punctuated<TypeInfo>`.
 - Added support for parsing leading `|` and `&` in types.
+
 ### Changed
 - **[BREAKING CHANGE]** Changed `TypeInfo::Union` and `TypeInfo::Intersection` to hold structs `TypeUnion` and `TypeIntersection` respectively.
 
