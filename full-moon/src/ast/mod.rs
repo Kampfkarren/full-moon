@@ -302,7 +302,7 @@ pub enum Expression {
         expression: Box<Expression>,
     },
 
-    /// An anonymous function, such as `function() end)`
+    /// An anonymous function, such as `function() end`
     #[display(fmt = "{}{}", "_0.0", "_0.1")]
     Function(Box<(TokenReference, FunctionBody)>),
 

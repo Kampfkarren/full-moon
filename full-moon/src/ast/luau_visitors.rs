@@ -90,20 +90,8 @@ impl Visit for TypeInfo {
                 types.visit(visitor);
                 parentheses.tokens.1.visit(visitor);
             }
-            TypeInfo::Union { left, pipe, right } => {
-                left.visit(visitor);
-                pipe.visit(visitor);
-                right.visit(visitor);
-            }
-            TypeInfo::Intersection {
-                left,
-                ampersand,
-                right,
-            } => {
-                left.visit(visitor);
-                ampersand.visit(visitor);
-                right.visit(visitor);
-            }
+            TypeInfo::Union(union) => union.visit(visitor),
+            TypeInfo::Intersection(intersection) => intersection.visit(visitor),
             TypeInfo::Variadic {
                 ellipsis,
                 type_info,
@@ -250,21 +238,11 @@ impl VisitMut for TypeInfo {
                 TypeInfo::Tuple { parentheses, types }
             }
 
-            TypeInfo::Union { left, pipe, right } => TypeInfo::Union {
-                left: left.visit_mut(visitor),
-                pipe: pipe.visit_mut(visitor),
-                right: right.visit_mut(visitor),
-            },
+            TypeInfo::Union(union) => TypeInfo::Union(union.visit_mut(visitor)),
 
-            TypeInfo::Intersection {
-                left,
-                ampersand,
-                right,
-            } => TypeInfo::Intersection {
-                left: left.visit_mut(visitor),
-                ampersand: ampersand.visit_mut(visitor),
-                right: right.visit_mut(visitor),
-            },
+            TypeInfo::Intersection(intersection) => {
+                TypeInfo::Intersection(intersection.visit_mut(visitor))
+            }
 
             TypeInfo::Variadic {
                 ellipsis,
@@ -281,6 +259,50 @@ impl VisitMut for TypeInfo {
         };
         self = visitor.visit_type_info_end(self);
         self
+    }
+}
+
+impl Visit for TypeUnion {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_type_union(self);
+
+        self.leading.visit(visitor);
+        self.types.visit(visitor);
+
+        visitor.visit_type_union_end(self);
+    }
+}
+
+impl VisitMut for TypeUnion {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_type_union(self);
+
+        self.leading = self.leading.visit_mut(visitor);
+        self.types = self.types.visit_mut(visitor);
+
+        visitor.visit_type_union_end(self)
+    }
+}
+
+impl Visit for TypeIntersection {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_type_intersection(self);
+
+        self.leading.visit(visitor);
+        self.types.visit(visitor);
+
+        visitor.visit_type_intersection_end(self);
+    }
+}
+
+impl VisitMut for TypeIntersection {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_type_intersection(self);
+
+        self.leading = self.leading.visit_mut(visitor);
+        self.types = self.types.visit_mut(visitor);
+
+        visitor.visit_type_intersection_end(self)
     }
 }
 
