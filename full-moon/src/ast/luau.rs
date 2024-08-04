@@ -15,7 +15,13 @@ use derive_more::Display;
 #[non_exhaustive]
 pub enum TypeInfo {
     /// A shorthand type annotating the structure of an array: { number }
-    #[display(fmt = "{}{}{}", "braces.tokens().0", "type_info", "braces.tokens().1")]
+    #[display(
+        fmt = "{}{}{}{}",
+        "braces.tokens().0",
+        "display_option(access)",
+        "type_info",
+        "braces.tokens().1"
+    )]
     Array {
         /// The braces (`{}`) containing the type info.
         braces: ContainedSpan,
