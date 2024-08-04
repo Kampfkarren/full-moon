@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-
+input_file: full-moon/tests/roblox_cases/pass/types_semicolon_delimeter
 ---
 stmts:
   - - TypeDeclaration:
@@ -130,7 +130,8 @@ stmts:
             fields:
               pairs:
                 - Punctuated:
-                    - key:
+                    - access: ~
+                      key:
                         Name:
                           leading_trivia:
                             - start_position:
@@ -225,7 +226,8 @@ stmts:
                             type: Whitespace
                             characters: "\n"
                 - Punctuated:
-                    - key:
+                    - access: ~
+                      key:
                         Name:
                           leading_trivia:
                             - start_position:
@@ -320,4 +322,3 @@ stmts:
                             type: Whitespace
                             characters: "\n"
     - ~
-

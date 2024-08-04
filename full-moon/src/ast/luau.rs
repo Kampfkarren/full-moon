@@ -19,6 +19,8 @@ pub enum TypeInfo {
     Array {
         /// The braces (`{}`) containing the type info.
         braces: ContainedSpan,
+        /// The access modifer of the array, `read` in `{ read number }`.
+        access: Option<TokenReference>,
         /// The type info for the values in the Array
         type_info: Box<TypeInfo>,
     },
@@ -266,8 +268,9 @@ pub enum IndexedTypeInfo {
 /// The `foo: number` in `{ foo: number }`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{key}{colon}{value}")]
+#[display(fmt = "{}{key}{colon}{value}", "display_option(access)")]
 pub struct TypeField {
+    pub(crate) access: Option<TokenReference>,
     pub(crate) key: TypeFieldKey,
     pub(crate) colon: TokenReference,
     pub(crate) value: TypeInfo,
@@ -277,10 +280,16 @@ impl TypeField {
     /// Creates a new TypeField from the given key and value
     pub fn new(key: TypeFieldKey, value: TypeInfo) -> Self {
         Self {
+            access: None,
             key,
             colon: TokenReference::symbol(": ").unwrap(),
             value,
         }
+    }
+
+    /// The access modifier of the field, `read` in `read foo: number`.
+    pub fn access(&self) -> Option<&TokenReference> {
+        self.access.as_ref()
     }
 
     /// The key of the field, `foo` in `foo: number`.
@@ -309,6 +318,11 @@ impl TypeField {
             colon: colon_token,
             ..self
         }
+    }
+
+    /// Returns a new TypeField with the given access modifier.
+    pub fn with_access(self, access: Option<TokenReference>) -> Self {
+        Self { access, ..self }
     }
 
     /// Returns a new TypeField with the `:` token

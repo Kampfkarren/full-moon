@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/types_generic
 ---
 stmts:
   - - TypeDeclaration:
@@ -187,6 +188,7 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: "\n"
+            access: ~
             type_info:
               Basic:
                 leading_trivia: []
@@ -415,4 +417,3 @@ stmts:
         expr_list:
           pairs: []
     - ~
-
