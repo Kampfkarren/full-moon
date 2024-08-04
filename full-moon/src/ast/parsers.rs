@@ -2583,6 +2583,14 @@ fn expect_type_table(
     let mut array_type = None;
 
     loop {
+        let access = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier && matches!(token.to_string().as_str(), "read" | "write"))
+            && !matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
+        {
+            Some(state.consume().unwrap())
+        } else {
+            None
+        };
+
         let current_token = state.current()?;
 
         let field = if current_token.is_symbol(Symbol::RightBrace) {
@@ -2620,6 +2628,7 @@ fn expect_type_table(
             };
 
             ast::TypeField {
+                access,
                 key: ast::TypeFieldKey::IndexSignature {
                     brackets: ContainedSpan::new(left_brace, right_brace),
                     inner: ast::TypeInfo::String(property),
@@ -2674,6 +2683,7 @@ fn expect_type_table(
             has_indexer = true;
 
             ast::TypeField {
+                access,
                 key: ast::TypeFieldKey::IndexSignature {
                     brackets: ContainedSpan::new(left_brace, right_brace),
                     inner: key,
@@ -2686,17 +2696,20 @@ fn expect_type_table(
             && !(current_token.token_kind() == TokenKind::Identifier
                 && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon)))
         {
-            array_type = Some(match parse_type(state) {
-                ParserResult::Value(value) => value,
-                ParserResult::NotFound => {
-                    state.token_error(
-                        state.current().unwrap().clone(),
-                        "expected type for table array",
-                    );
-                    return Err(());
-                }
-                ParserResult::LexerMoved => return Err(()),
-            });
+            array_type = Some((
+                access,
+                match parse_type(state) {
+                    ParserResult::Value(value) => value,
+                    ParserResult::NotFound => {
+                        state.token_error(
+                            state.current().unwrap().clone(),
+                            "expected type for table array",
+                        );
+                        return Err(());
+                    }
+                    ParserResult::LexerMoved => return Err(()),
+                },
+            ));
             break;
         } else {
             match parse_name(state) {
@@ -2719,6 +2732,7 @@ fn expect_type_table(
                     };
 
                     ast::TypeField {
+                        access,
                         key: ast::TypeFieldKey::Name(name.name),
                         colon,
                         value,
@@ -2752,9 +2766,10 @@ fn expect_type_table(
 
     let braces = ContainedSpan::new(left_brace, right_brace);
 
-    if let Some(type_info) = array_type {
+    if let Some((access, type_info)) = array_type {
         Ok(ast::TypeInfo::Array {
             braces,
+            access,
             type_info: Box::new(type_info),
         })
     } else {

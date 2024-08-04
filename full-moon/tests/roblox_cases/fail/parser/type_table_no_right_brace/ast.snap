@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: result.ast
+expression: result.ast()
+input_file: full-moon/tests/roblox_cases/fail/parser/type_table_no_right_brace
 ---
 nodes:
   stmts:
@@ -130,7 +131,8 @@ nodes:
               fields:
                 pairs:
                   - Punctuated:
-                      - key:
+                      - access: ~
+                        key:
                           Name:
                             leading_trivia: []
                             token:
@@ -214,6 +216,7 @@ nodes:
                               type: Whitespace
                               characters: " "
                   - End:
+                      access: ~
                       key:
                         Name:
                           leading_trivia: []
@@ -409,4 +412,3 @@ eof:
     token_type:
       type: Eof
   trailing_trivia: []
-

@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-
+input_file: full-moon/tests/roblox_cases/pass/types_nested_array
 ---
 stmts:
   - - TypeDeclaration:
@@ -138,6 +138,7 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: "\n"
+            access: ~
             type_info:
               Array:
                 braces:
@@ -192,6 +193,7 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: " "
+                access: ~
                 type_info:
                   Basic:
                     leading_trivia: []
@@ -343,6 +345,7 @@ stmts:
                       type: Symbol
                       symbol: "}"
                   trailing_trivia: []
+            access: ~
             type_info:
               Table:
                 braces:
@@ -389,7 +392,8 @@ stmts:
                 fields:
                   pairs:
                     - Punctuated:
-                        - key:
+                        - access: ~
+                          key:
                             Name:
                               leading_trivia: []
                               token:
@@ -473,6 +477,7 @@ stmts:
                                 type: Whitespace
                                 characters: " "
                     - End:
+                        access: ~
                         key:
                           Name:
                             leading_trivia: []
@@ -532,4 +537,3 @@ stmts:
                                 identifier: number
                             trailing_trivia: []
     - ~
-
