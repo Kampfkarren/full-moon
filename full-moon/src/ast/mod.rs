@@ -1,5 +1,5 @@
-use std::{borrow::Cow, fmt};
 use std::fmt::{Display, Formatter};
+use std::{borrow::Cow, fmt};
 
 use derive_more::Display;
 #[cfg(feature = "serde")]
@@ -31,11 +31,11 @@ pub mod span;
 mod update_positions;
 mod visitors;
 
-mod versions;
 #[cfg(feature = "luau")]
 pub mod luau;
 #[cfg(feature = "luau")]
 mod luau_visitors;
+mod versions;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
