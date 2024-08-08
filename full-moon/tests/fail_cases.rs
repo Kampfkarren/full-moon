@@ -25,7 +25,7 @@ fn process_fail_case(path: &Path, source: &str, lua_version: LuaVersion) {
     process_codespan_display(source, &result);
 
     let ast = result.into_ast().update_positions();
-    assert_yaml_snapshot!("ast_to_string", full_moon::print(&ast));
+    assert_yaml_snapshot!("ast_to_string", ast.to_string());
 }
 
 fn process_codespan_display(source: &str, result: &AstResult) {
