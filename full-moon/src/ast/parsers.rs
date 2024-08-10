@@ -2583,7 +2583,7 @@ fn expect_type_table(
     let mut array_type = None;
 
     loop {
-        let access = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier && matches!(token.to_string().as_str(), "read" | "write"))
+        let access = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier && matches!(token.token().to_string().as_str(), "read" | "write"))
             && !matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Colon))
         {
             Some(state.consume().unwrap())
