@@ -21,7 +21,7 @@ use crate::{
     util,
     visitors::{Visit, VisitMut, Visitor, VisitorMut},
 };
-use derive_more::Display;
+use derive_more::Display as DeriveDisplay;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, iter::FromIterator};
@@ -29,10 +29,10 @@ use std::{fmt::Display, iter::FromIterator};
 /// A punctuated sequence of node `T` separated by
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Display, PartialEq, Eq)]
+#[derive(Clone, Debug, DeriveDisplay, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(bound = "T: Display")]
-#[display(fmt = "{}", "util::join_vec(pairs)")]
+#[display(bound(T: Display))]
+#[display("{}", util::join_vec(pairs))]
 pub struct Punctuated<T> {
     pairs: Vec<Pair<T>>,
 }
@@ -335,17 +335,17 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 /// A node `T` followed by the possible trailing
 /// [`TokenReference`](crate::tokenizer::TokenReference).
 /// Refer to the [module documentation](index.html) for more details.
-#[derive(Clone, Debug, Display, PartialEq, Eq)]
-#[display(bound = "T: Display")]
+#[derive(Clone, Debug, DeriveDisplay, PartialEq, Eq)]
+#[display(bound(T: Display))]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum Pair<T> {
     /// A node `T` with no trailing punctuation
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     End(T),
 
     /// A node `T` followed by punctuation (in the form of a
     /// [`TokenReference`](crate::tokenizer::TokenReference))
-    #[display(fmt = "{_0}{_1}")]
+    #[display("{_0}{_1}")]
     Punctuated(T, TokenReference),
 }
 

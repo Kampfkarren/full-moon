@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// A goto statement, such as `goto label`.
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{goto_token}{label_name}")]
+#[display("{goto_token}{label_name}")]
 pub struct Goto {
     pub(crate) goto_token: TokenReference,
     pub(crate) label_name: TokenReference,
@@ -50,7 +50,7 @@ impl Goto {
 /// A label, such as `::label::`.
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{left_colons}{name}{right_colons}")]
+#[display("{left_colons}{name}{right_colons}")]
 pub struct Label {
     pub(crate) left_colons: TokenReference,
     pub(crate) name: TokenReference,
