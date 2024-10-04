@@ -6,7 +6,7 @@ use full_moon::{
     ast::{AstResult, LuaVersion},
     tokenizer::{self, LexerResult},
 };
-use insta::{assert_display_snapshot, assert_yaml_snapshot};
+use insta::{assert_snapshot, assert_yaml_snapshot};
 use std::{fs, path::Path};
 
 mod common;
@@ -53,7 +53,7 @@ fn process_codespan_display(source: &str, result: &AstResult) {
         codespan_reporting::term::emit(&mut output, &config, &files, &diagnostic).unwrap();
     }
 
-    assert_display_snapshot!(
+    assert_snapshot!(
         "error_display",
         String::from_utf8(output.into_inner()).unwrap()
     );
