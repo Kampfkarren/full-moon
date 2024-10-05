@@ -50,7 +50,7 @@ use lua54::*;
 #[display(
     "{}{}",
     display_optional_punctuated_vec(stmts),
-    display_option(&last_stmt.as_ref().map(display_optional_punctuated))
+    display_option(last_stmt.as_ref().map(display_optional_punctuated))
 )]
 pub struct Block {
     stmts: Vec<(Stmt, Option<TokenReference>)>,
