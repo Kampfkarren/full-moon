@@ -5,6 +5,7 @@ const VERSION_LUA52: u8 = 1 << 1;
 const VERSION_LUA53: u8 = 1 << 2;
 const VERSION_LUA54: u8 = 1 << 3;
 const VERSION_LUAJIT: u8 = 1 << 4;
+const VERSION_PLAYDATE: u8 = 1 << 5;
 
 /// Represents the Lua version(s) to parse as.
 /// Lua 5.1 is always included.
@@ -101,6 +102,23 @@ impl LuaVersion {
     /// Returns true if Lua 5.4 is enabled.
     pub fn has_lua54(self) -> bool {
         cfg!(feature = "lua54") && (self.bitfield & VERSION_LUA54 != 0)
+    }
+
+    #[cfg(feature = "playdate")]
+    pub fn playdate() -> Self {
+        Self {
+            bitfield: VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54 | VERSION_PLAYDATE,
+        }
+    }
+
+    #[cfg(feature = "playdate")]
+    pub fn with_playdate(self) -> Self {
+        self | Self::playdate()
+    }
+
+    #[cfg(feature = "playdate")]
+    pub fn has_playdate(self) -> bool {
+        cfg!(feature = "playdate") && (self.bitfield & VERSION_PLAYDATE != 0)
     }
 
     /// Creates a new LuaVersion with only LuaJIT.
