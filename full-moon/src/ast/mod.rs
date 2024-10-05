@@ -43,6 +43,10 @@ use lua52::*;
 pub mod lua54;
 #[cfg(feature = "lua54")]
 use lua54::*;
+#[cfg(feature = "playdate")]
+pub mod playdate_lua;
+#[cfg(feature = "playdate")]
+use playdate_lua::*;
 
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
