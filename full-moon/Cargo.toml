@@ -11,9 +11,9 @@ keywords = ["lua", "parser", "lua51", "lua52", "luau"]
 edition = "2021"
 
 [package.metadata.docs.rs]
-# Build Locally: RUSTDOCFLAGS="--cfg doc_cfg" cargo +nightly doc --features luau,lua52,lua53,lua54,luajit  --no-deps --open
+# Build Locally: RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --features luau,lua52,lua53,lua54,luajit  --no-deps --open
 features = ["luau", "lua52", "lua53", "lua54", "luajit"]
-rustdoc-args = ["--cfg", "doc_cfg"]
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["serde"]
@@ -28,7 +28,7 @@ no-source-tests = []
 [dependencies]
 bytecount = "0.6"
 cfg-if = "1.0"
-derive_more = "0.99"
+derive_more = { version = "1.0", features = ["display"] }
 full_moon_derive = { path = "../full-moon-derive", version = "=0.11.0" }
 paste = "1.0"
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }

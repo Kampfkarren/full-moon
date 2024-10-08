@@ -2345,7 +2345,7 @@ fn parse_simple_type(
         TokenType::Identifier { .. } => {
             let name = state.consume().unwrap();
 
-            if name.to_string() == "typeof" {
+            if name.token.to_string() == "typeof" {
                 let left_parenthesis =
                     match state.require(Symbol::LeftParen, "expected `(` after `typeof`") {
                         Some(token) => token,

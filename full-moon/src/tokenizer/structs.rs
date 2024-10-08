@@ -914,8 +914,9 @@ impl fmt::Display for TokenizerError {
 
 impl std::error::Error for TokenizerError {}
 
-// #[cfg(test)]
-#[cfg(feature = "rewrite todo: tokenizer tests")]
+/*
+// rewrite TODO: tokenizer tests
+
 mod tests {
     use crate::tokenizer::*;
     use pretty_assertions::assert_eq;
@@ -1193,3 +1194,4 @@ mod tests {
         let _ = tokens("¹;");
     }
 }
+*/
