@@ -21,11 +21,6 @@ type Foo = {
 	baz: number,
 }
 
-type Foo = {
-	read bar: number,
-	write baz: number,
-}
-
 local foo0: number = 3
 local _foo1: number?
 local _foo2: Array<string>
