@@ -16,11 +16,11 @@ use derive_more::Display;
 pub enum TypeInfo {
     /// A shorthand type annotating the structure of an array: { number }
     #[display(
-        fmt = "{}{}{}{}",
-        "braces.tokens().0",
-        "display_option(access)",
-        "type_info",
-        "braces.tokens().1"
+        "{}{}{}{}",
+        braces.tokens().0,
+        display_option(access),
+        type_info,
+        braces.tokens().1
     )]
     Array {
         /// The braces (`{}`) containing the type info.
@@ -274,7 +274,7 @@ pub enum IndexedTypeInfo {
 /// The `foo: number` in `{ foo: number }`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{key}{colon}{value}", "display_option(access)")]
+#[display("{}{key}{colon}{value}", display_option(access))]
 pub struct TypeField {
     pub(crate) access: Option<TokenReference>,
     pub(crate) key: TypeFieldKey,
