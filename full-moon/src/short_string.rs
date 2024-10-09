@@ -14,7 +14,7 @@ pub struct ShortString(SmolStr);
 impl ShortString {
     /// Creates a new ShortString from the given text.
     pub fn new<T: Into<String> + AsRef<str>>(text: T) -> Self {
-        ShortString(SmolStr::from(text))
+        ShortString(SmolStr::new(text))
     }
 
     /// Returns a `&str` representation of the ShortString.
@@ -49,7 +49,7 @@ impl Deref for ShortString {
 
 impl<T: Into<String> + AsRef<str>> From<T> for ShortString {
     fn from(value: T) -> Self {
-        ShortString(SmolStr::from(value))
+        ShortString(SmolStr::new(value))
     }
 }
 
