@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// An attribute on a local variable, `<const>` in `local x <const>`
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "brackets.tokens().0", "name", "brackets.tokens().1")]
+#[display("{}{}{}", brackets.tokens().0, name, brackets.tokens().1)]
 pub struct Attribute {
     #[node(full_range)]
     #[visit(contains = "name")]

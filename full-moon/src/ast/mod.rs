@@ -45,9 +45,9 @@ pub mod lua54;
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    fmt = "{}{}",
-    "display_optional_punctuated_vec(stmts)",
-    "display_option(&last_stmt.as_ref().map(display_optional_punctuated))"
+    "{}{}",
+    display_optional_punctuated_vec(stmts),
+    display_option(last_stmt.as_ref().map(display_optional_punctuated))
 )]
 pub struct Block {
     stmts: Vec<(Stmt, Option<TokenReference>)>,
@@ -127,7 +127,7 @@ pub enum LastStmt {
 /// A `return` statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{token}{returns}")]
+#[display("{token}{returns}")]
 pub struct Return {
     token: TokenReference,
     returns: Punctuated<Expression>,
@@ -177,12 +177,12 @@ impl Default for Return {
 pub enum Field {
     /// A key in the format of `[expression] = value`
     #[display(
-        fmt = "{}{}{}{}{}",
-        "brackets.tokens().0",
-        "key",
-        "brackets.tokens().1",
-        "equal",
-        "value"
+        "{}{}{}{}{}",
+        brackets.tokens().0,
+        key,
+        brackets.tokens().1,
+        equal,
+        value
     )]
     ExpressionKey {
         /// The `[...]` part of `[expression] = value`
@@ -196,7 +196,7 @@ pub enum Field {
     },
 
     /// A key in the format of `name = value`
-    #[display(fmt = "{key}{equal}{value}")]
+    #[display("{key}{equal}{value}")]
     NameKey {
         /// The `name` part of `name = value`
         key: TokenReference,
@@ -207,14 +207,14 @@ pub enum Field {
     },
 
     /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     NoKey(Expression),
 }
 
 /// A table being constructed, such as `{ 1, 2, 3 }` or `{ a = 1 }`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}{}", "braces.tokens().0", "fields", "braces.tokens().1")]
+#[display("{}{}{}", braces.tokens().0, fields, braces.tokens().1)]
 pub struct TableConstructor {
     #[node(full_range)]
     #[visit(contains = "fields")]
@@ -268,7 +268,7 @@ impl Default for TableConstructor {
 #[non_exhaustive]
 pub enum Expression {
     /// A binary operation, such as `1 + 3`
-    #[display(fmt = "{lhs}{binop}{rhs}")]
+    #[display("{lhs}{binop}{rhs}")]
     BinaryOperator {
         /// The left hand side of the binary operation, the `1` part of `1 + 3`
         lhs: Box<Expression>,
@@ -279,12 +279,7 @@ pub enum Expression {
     },
 
     /// A statement in parentheses, such as `(#list)`
-    #[display(
-        fmt = "{}{}{}",
-        "contained.tokens().0",
-        "expression",
-        "contained.tokens().1"
-    )]
+    #[display("{}{}{}", contained.tokens().0, expression, contained.tokens().1)]
     Parentheses {
         /// The parentheses of the expression
         #[node(full_range)]
@@ -294,7 +289,7 @@ pub enum Expression {
     },
 
     /// A unary operation, such as `#list`
-    #[display(fmt = "{unop}{expression}")]
+    #[display("{unop}{expression}")]
     UnaryOperator {
         /// The unary operation, the `#` part of `#list`
         unop: UnOp,
@@ -303,45 +298,45 @@ pub enum Expression {
     },
 
     /// An anonymous function, such as `function() end`
-    #[display(fmt = "{}{}", "_0.0", "_0.1")]
+    #[display("{}{}", _0.0, _0.1)]
     Function(Box<(TokenReference, FunctionBody)>),
 
     /// A call of a function, such as `call()`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     FunctionCall(FunctionCall),
 
     /// An if expression, such as `if foo then true else false`.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     IfExpression(IfExpression),
 
     /// An interpolated string, such as `` `hello {"world"}` ``
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     InterpolatedString(InterpolatedString),
 
     /// A table constructor, such as `{ 1, 2, 3 }`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     TableConstructor(TableConstructor),
 
     /// A number token, such as `3.3`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Number(TokenReference),
 
     /// A string token, such as `"hello"`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     String(TokenReference),
 
     /// A symbol, such as `true`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Symbol(TokenReference),
 
     /// A value that has been asserted for a particular type, for use in Luau.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    #[display(fmt = "{expression}{type_assertion}")]
+    #[display("{expression}{type_assertion}")]
     TypeAssertion {
         /// The expression being asserted
         expression: Box<Expression>,
@@ -351,7 +346,7 @@ pub enum Expression {
     },
 
     /// A more complex value, such as `call().x`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Var(Var),
 }
 
@@ -361,43 +356,43 @@ pub enum Expression {
 #[non_exhaustive]
 pub enum Stmt {
     /// An assignment, such as `x = 1`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Assignment(Assignment),
     /// A do block, `do end`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Do(Do),
     /// A function call on its own, such as `call()`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     FunctionCall(FunctionCall),
     /// A function declaration, such as `function x() end`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     FunctionDeclaration(FunctionDeclaration),
     /// A generic for loop, such as `for index, value in pairs(list) do end`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     GenericFor(GenericFor),
     /// An if statement
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     If(If),
     /// A local assignment, such as `local x = 1`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     LocalAssignment(LocalAssignment),
     /// A local function declaration, such as `local function x() end`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     LocalFunction(LocalFunction),
     /// A numeric for loop, such as `for index = 1, 10 do end`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     NumericFor(NumericFor),
     /// A repeat loop
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Repeat(Repeat),
     /// A while loop
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     While(While),
 
     /// A compound assignment, such as `+=`
     /// Only available when the "luau" feature flag is enabled
     #[cfg(feature = "luau")]
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
     /// Only available when the "luau" feature flag is enabled.
@@ -424,10 +419,10 @@ pub enum Stmt {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Prefix {
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// A complicated expression, such as `("foo")`
     Expression(Box<Expression>),
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// Just a name, such as `foo`
     Name(TokenReference),
 }
@@ -439,12 +434,7 @@ pub enum Prefix {
 #[non_exhaustive]
 pub enum Index {
     /// Indexing in the form of `x["y"]`
-    #[display(
-        fmt = "{}{}{}",
-        "brackets.tokens().0",
-        "expression",
-        "brackets.tokens().1"
-    )]
+    #[display("{}{}{}", brackets.tokens().0, expression, brackets.tokens().1)]
     Brackets {
         /// The `[...]` part of `["y"]`
         brackets: ContainedSpan,
@@ -453,7 +443,7 @@ pub enum Index {
     },
 
     /// Indexing in the form of `x.y`
-    #[display(fmt = "{dot}{name}")]
+    #[display("{dot}{name}")]
     Dot {
         /// The `.` part of `.y`
         dot: TokenReference,
@@ -469,10 +459,10 @@ pub enum Index {
 pub enum FunctionArgs {
     /// Used when a function is called in the form of `call(1, 2, 3)`
     #[display(
-        fmt = "{}{}{}",
-        "parentheses.tokens().0",
-        "arguments",
-        "parentheses.tokens().1"
+        "{}{}{}",
+        parentheses.tokens().0,
+        arguments,
+        parentheses.tokens().1
     )]
     Parentheses {
         /// The `(...) part of (1, 2, 3)`
@@ -482,10 +472,10 @@ pub enum FunctionArgs {
         arguments: Punctuated<Expression>,
     },
     /// Used when a function is called in the form of `call "foobar"`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     String(TokenReference),
     /// Used when a function is called in the form of `call { 1, 2, 3 }`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     TableConstructor(TableConstructor),
 }
 
@@ -888,15 +878,15 @@ impl fmt::Display for GenericFor {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    fmt = "{}{}{}{}{}{}{}{}",
-    "if_token",
-    "condition",
-    "then_token",
-    "block",
-    "display_option(else_if.as_ref().map(join_vec))",
-    "display_option(else_token)",
-    "display_option(r#else)",
-    "end_token"
+    "{}{}{}{}{}{}{}{}",
+    if_token,
+    condition,
+    then_token,
+    block,
+    display_option(else_if.as_ref().map(join_vec)),
+    display_option(else_token),
+    display_option(r#else),
+    end_token
 )]
 pub struct If {
     if_token: TokenReference,
@@ -1011,7 +1001,7 @@ impl If {
 /// An elseif block in a bigger [`If`] statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{else_if_token}{condition}{then_token}{block}")]
+#[display("{else_if_token}{condition}{then_token}{block}")]
 pub struct ElseIf {
     else_if_token: TokenReference,
     condition: Expression,
@@ -1077,7 +1067,7 @@ impl ElseIf {
 /// A while loop
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{while_token}{condition}{do_token}{block}{end_token}")]
+#[display("{while_token}{condition}{do_token}{block}{end_token}")]
 pub struct While {
     while_token: TokenReference,
     condition: Expression,
@@ -1155,7 +1145,7 @@ impl While {
 /// A repeat loop
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{repeat_token}{block}{until_token}{until}")]
+#[display("{repeat_token}{block}{until_token}{until}")]
 pub struct Repeat {
     repeat_token: TokenReference,
     block: Block,
@@ -1224,7 +1214,7 @@ impl Repeat {
 /// A method call, such as `x:y()`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{colon_token}{name}{args}")]
+#[display("{colon_token}{name}{args}")]
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
@@ -1280,10 +1270,10 @@ impl MethodCall {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Call {
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// A function being called directly, such as `x(1)`
     AnonymousCall(FunctionArgs),
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// A method call, such as `x:y()`
     MethodCall(MethodCall),
 }
@@ -1478,10 +1468,10 @@ pub enum Parameter {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
 pub enum Suffix {
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// A call, including method calls and direct calls
     Call(Call),
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     /// An index, such as `x.y`
     Index(Index),
 }
@@ -1489,7 +1479,7 @@ pub enum Suffix {
 /// A complex expression used by [`Var`], consisting of both a prefix and suffixes
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
+#[display("{}{}", prefix, join_vec(suffixes))]
 pub struct VarExpression {
     prefix: Prefix,
     suffixes: Vec<Suffix>,
@@ -1531,17 +1521,17 @@ impl VarExpression {
 #[non_exhaustive]
 pub enum Var {
     /// An expression, such as `x.y.z` or `x()`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Expression(Box<VarExpression>),
     /// A literal identifier, such as `x`
-    #[display(fmt = "{_0}")]
+    #[display("{_0}")]
     Name(TokenReference),
 }
 
 /// An assignment, such as `x = y`. Not used for [`LocalAssignment`s](LocalAssignment)
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{var_list}{equal_token}{expr_list}")]
+#[display("{var_list}{equal_token}{expr_list}")]
 pub struct Assignment {
     var_list: Punctuated<Var>,
     equal_token: TokenReference,
@@ -1599,12 +1589,9 @@ impl Assignment {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(
     not(feature = "luau"),
-    display(fmt = "{local_token}{function_token}{name}{body}")
+    display("{local_token}{function_token}{name}{body}")
 )]
-#[cfg_attr(
-    feature = "luau",
-    display(fmt = "{local_token}{function_token}{name}{body}")
-)]
+#[cfg_attr(feature = "luau", display("{local_token}{function_token}{name}{body}"))]
 pub struct LocalFunction {
     local_token: TokenReference,
     function_token: TokenReference,
@@ -1815,7 +1802,7 @@ impl fmt::Display for LocalAssignment {
 /// This is not used for things like `while true do end`, only those on their own
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{do_token}{block}{end_token}")]
+#[display("{do_token}{block}{end_token}")]
 pub struct Do {
     do_token: TokenReference,
     block: Block,
@@ -1872,7 +1859,7 @@ impl Default for Do {
 /// A function being called, such as `call()`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(fmt = "{}{}", "prefix", "join_vec(suffixes)")]
+#[display("{}{}", prefix, join_vec(suffixes))]
 pub struct FunctionCall {
     prefix: Prefix,
     suffixes: Vec<Suffix>,
@@ -1921,10 +1908,10 @@ impl FunctionCall {
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    fmt = "{}{}{}",
-    "names",
-    "display_option(self.method_colon())",
-    "display_option(self.method_name())"
+    "{}{}{}",
+    names,
+    display_option(self.method_colon()),
+    display_option(self.method_name())
 )]
 pub struct FunctionName {
     names: Punctuated<TokenReference>,
@@ -1975,8 +1962,8 @@ impl FunctionName {
 /// as well as complicated declarations such as `function x.y.z:a() end`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(not(feature = "luau"), display(fmt = "{function_token}{name}{body}"))]
-#[cfg_attr(feature = "luau", display(fmt = "{function_token}{name}{body}"))]
+#[cfg_attr(not(feature = "luau"), display("{function_token}{name}{body}"))]
+#[cfg_attr(feature = "luau", display("{function_token}{name}{body}"))]
 pub struct FunctionDeclaration {
     function_token: TokenReference,
     name: FunctionName,
@@ -2038,7 +2025,7 @@ macro_rules! make_bin_op {
             #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
             #[non_exhaustive]
             $(#[$outer])*
-            #[display(fmt = "{}")]
+            #[display("{_0}")]
             pub enum BinOp {
                 $(
                     #[allow(missing_docs)]
@@ -2183,7 +2170,7 @@ impl BinOp {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[allow(missing_docs)]
 #[non_exhaustive]
-#[display(fmt = "{}")]
+#[display("{_0}")]
 pub enum UnOp {
     Minus(TokenReference),
     Not(TokenReference),
