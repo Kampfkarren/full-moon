@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::Formatter;
 use std::{borrow::Cow, fmt};
 
 use derive_more::Display;
@@ -2291,7 +2291,7 @@ impl Ast {
     }
 }
 
-impl Display for Ast {
+impl fmt::Display for Ast {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.nodes())?;
         write!(f, "{}", self.eof())
