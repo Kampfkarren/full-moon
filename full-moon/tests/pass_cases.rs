@@ -1,7 +1,6 @@
 use full_moon::{
     ast::LuaVersion,
     node::Node,
-    print,
     tokenizer::{self, Token, TokenReference},
 };
 use insta::assert_yaml_snapshot;
@@ -46,7 +45,7 @@ fn test_pass_case(path: &Path, lua_version: LuaVersion) {
     let old_positions: Vec<_> = ast.tokens().flat_map(unpack_token_reference).collect();
 
     assert_yaml_snapshot!("ast", ast.nodes());
-    assert_eq!(PrettyString(&print(&ast)), PrettyString(&source));
+    assert_eq!(PrettyString(&ast.to_string()), PrettyString(&source));
 
     let ast = ast.update_positions();
     assert_eq!(

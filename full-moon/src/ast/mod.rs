@@ -1,3 +1,27 @@
+use std::fmt::Formatter;
+use std::{borrow::Cow, fmt};
+
+use derive_more::Display;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+use full_moon_derive::{Node, Visit};
+#[cfg(any(feature = "lua52", feature = "luajit"))]
+use lua52::*;
+#[cfg(feature = "lua54")]
+use lua54::*;
+#[cfg(feature = "luau")]
+use luau::*;
+pub use parser_structs::AstResult;
+use punctuated::{Pair, Punctuated};
+use span::ContainedSpan;
+pub use versions::*;
+
+use crate::{
+    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
+    util::*,
+};
+
 mod parser_structs;
 #[macro_use]
 mod parser_util;
@@ -7,43 +31,16 @@ pub mod span;
 mod update_positions;
 mod visitors;
 
-use crate::{
-    tokenizer::{Position, Symbol, Token, TokenReference, TokenType},
-    util::*,
-};
-use derive_more::Display;
-use full_moon_derive::{Node, Visit};
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt};
-
-use punctuated::{Pair, Punctuated};
-use span::ContainedSpan;
-
-pub use parser_structs::AstResult;
-
-mod versions;
-pub use versions::*;
-
 #[cfg(feature = "luau")]
 pub mod luau;
 #[cfg(feature = "luau")]
-use luau::*;
-
-#[cfg(feature = "luau")]
 mod luau_visitors;
+mod versions;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
-#[cfg(any(feature = "lua52", feature = "luajit"))]
-use lua52::*;
-
 #[cfg(feature = "lua54")]
 pub mod lua54;
-#[cfg(feature = "lua54")]
-use lua54::*;
-
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -2294,10 +2291,18 @@ impl Ast {
     }
 }
 
+impl fmt::Display for Ast {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.nodes())?;
+        write!(f, "{}", self.eof())
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::{parse, visitors::VisitorMut};
+
     use super::*;
-    use crate::{parse, print, visitors::VisitorMut};
 
     #[test]
     fn test_with_eof_safety() {
@@ -2307,7 +2312,7 @@ mod tests {
             ast.with_eof(eof)
         };
 
-        print(&new_ast);
+        assert_eq!("local foo = 1", new_ast.to_string());
     }
 
     #[test]
@@ -2318,7 +2323,7 @@ mod tests {
             ast.with_nodes(nodes)
         };
 
-        print(&new_ast);
+        assert_eq!(new_ast.to_string(), "local foo = 1");
     }
 
     #[test]
@@ -2336,7 +2341,7 @@ mod tests {
             SyntaxRewriter.visit_ast(ast)
         };
 
-        print(&new_ast);
+        assert_eq!(new_ast.to_string(), "local foo = 1");
     }
 
     // Tests AST nodes with new methods that call unwrap
@@ -2404,6 +2409,6 @@ mod tests {
         )]);
 
         let ast = parse("").unwrap().with_nodes(block);
-        assert_eq!(print(&ast), "local variable = 1");
+        assert_eq!(ast.to_string(), "local variable = 1");
     }
 }

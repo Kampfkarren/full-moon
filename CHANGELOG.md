@@ -5,13 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Added
-- Added structs `TypeUnion` and `TypeIntersection` which both contain a field for a leading `TokenReference` (`|` or `&`), and a field which contains a `Punctuated<TypeInfo>`.
-- Added support for parsing leading `|` and `&` in types.
 
 ### Changed
-- **[BREAKING CHANGE]** Changed `TypeInfo::Union` and `TypeInfo::Intersection` to hold structs `TypeUnion` and `TypeIntersection` respectively.
-
+- **[BREAKING CHANGE]** The `print()` function has been removed, use `ast.to_string()` instead.
 
 ## [1.0.0-rc.5] - 2024-07-06
 ### Changed
