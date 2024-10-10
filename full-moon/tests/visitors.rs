@@ -1,5 +1,5 @@
 use full_moon::{
-    ast, parse, print,
+    ast, parse,
     tokenizer::*,
     visitors::{Visitor, VisitorMut},
 };
@@ -57,7 +57,7 @@ fn test_visitor_mut() {
 
     let code = parse("local dogs, snakes = 1").unwrap();
     let code = SnakeNamer.visit_ast(code);
-    assert_eq!(print(&code), "local dogsss, sssnakesss = 1");
+    assert_eq!(code.to_string(), "local dogsss, sssnakesss = 1");
 
     struct PositionValidator;
 

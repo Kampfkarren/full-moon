@@ -109,8 +109,3 @@ pub fn parse(code: &str) -> Result<ast::Ast, Vec<Error>> {
 pub fn parse_fallible(code: &str, lua_version: LuaVersion) -> ast::AstResult {
     ast::AstResult::parse_fallible(code, lua_version)
 }
-
-/// Prints back Lua code from an [`Ast`](ast::Ast)
-pub fn print(ast: &ast::Ast) -> String {
-    format!("{}{}", ast.nodes(), ast.eof())
-}
