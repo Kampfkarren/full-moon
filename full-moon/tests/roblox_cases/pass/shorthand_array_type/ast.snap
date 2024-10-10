@@ -188,7 +188,6 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: "\n"
-            access: ~
             type_info:
               Basic:
                 leading_trivia: []
@@ -393,7 +392,6 @@ stmts:
             fields:
               pairs:
                 - End:
-                    access: ~
                     key:
                       IndexSignature:
                         brackets:

@@ -131,8 +131,7 @@ nodes:
               fields:
                 pairs:
                   - Punctuated:
-                      - access: ~
-                        key:
+                      - key:
                           Name:
                             leading_trivia: []
                             token:
@@ -216,7 +215,6 @@ nodes:
                               type: Whitespace
                               characters: " "
                   - End:
-                      access: ~
                       key:
                         Name:
                           leading_trivia: []

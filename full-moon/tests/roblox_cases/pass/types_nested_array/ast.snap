@@ -138,7 +138,6 @@ stmts:
                       token_type:
                         type: Whitespace
                         characters: "\n"
-            access: ~
             type_info:
               Array:
                 braces:
@@ -193,7 +192,6 @@ stmts:
                           token_type:
                             type: Whitespace
                             characters: " "
-                access: ~
                 type_info:
                   Basic:
                     leading_trivia: []
@@ -345,7 +343,6 @@ stmts:
                       type: Symbol
                       symbol: "}"
                   trailing_trivia: []
-            access: ~
             type_info:
               Table:
                 braces:
@@ -392,8 +389,7 @@ stmts:
                 fields:
                   pairs:
                     - Punctuated:
-                        - access: ~
-                          key:
+                        - key:
                             Name:
                               leading_trivia: []
                               token:
@@ -477,7 +473,6 @@ stmts:
                                 type: Whitespace
                                 characters: " "
                     - End:
-                        access: ~
                         key:
                           Name:
                             leading_trivia: []

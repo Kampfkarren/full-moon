@@ -430,7 +430,6 @@ stmts:
             fields:
               pairs:
                 - End:
-                    access: ~
                     key:
                       IndexSignature:
                         brackets:
@@ -763,7 +762,6 @@ stmts:
             fields:
               pairs:
                 - End:
-                    access: ~
                     key:
                       IndexSignature:
                         brackets:
@@ -1285,8 +1283,7 @@ stmts:
             fields:
               pairs:
                 - Punctuated:
-                    - access: ~
-                      key:
+                    - key:
                         Name:
                           leading_trivia: []
                           token:
@@ -1370,7 +1367,6 @@ stmts:
                             type: Whitespace
                             characters: " "
                 - End:
-                    access: ~
                     key:
                       Name:
                         leading_trivia: []
@@ -2050,7 +2046,6 @@ stmts:
             fields:
               pairs:
                 - End:
-                    access: ~
                     key:
                       IndexSignature:
                         brackets:
@@ -3802,7 +3797,6 @@ stmts:
                         fields:
                           pairs:
                             - End:
-                                access: ~
                                 key:
                                   Name:
                                     leading_trivia: []
@@ -3971,7 +3965,6 @@ stmts:
                       fields:
                         pairs:
                           - End:
-                              access: ~
                               key:
                                 Name:
                                   leading_trivia: []
@@ -4190,8 +4183,7 @@ stmts:
             fields:
               pairs:
                 - Punctuated:
-                    - access: ~
-                      key:
+                    - key:
                         Name:
                           leading_trivia:
                             - start_position:
@@ -4286,8 +4278,7 @@ stmts:
                             type: Whitespace
                             characters: "\n"
                 - Punctuated:
-                    - access: ~
-                      key:
+                    - key:
                         Name:
                           leading_trivia:
                             - start_position:

@@ -141,7 +141,6 @@ stmts:
             fields:
               pairs:
                 - End:
-                    access: ~
                     key:
                       Name:
                         leading_trivia: []
@@ -376,7 +375,6 @@ stmts:
               fields:
                 pairs:
                   - End:
-                      access: ~
                       key:
                         Name:
                           leading_trivia: []
