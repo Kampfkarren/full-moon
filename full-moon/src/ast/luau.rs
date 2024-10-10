@@ -26,6 +26,10 @@ pub enum TypeInfo {
         /// The braces (`{}`) containing the type info.
         braces: ContainedSpan,
         /// The access modifer of the array, `read` in `{ read number }`.
+        #[cfg_attr(
+            feature = "serde",
+            serde(default, skip_serializing_if = "Option::is_none")
+        )]
         access: Option<TokenReference>,
         /// The type info for the values in the Array
         type_info: Box<TypeInfo>,
@@ -276,6 +280,10 @@ pub enum IndexedTypeInfo {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display("{}{key}{colon}{value}", display_option(access))]
 pub struct TypeField {
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub(crate) access: Option<TokenReference>,
     pub(crate) key: TypeFieldKey,
     pub(crate) colon: TokenReference,
