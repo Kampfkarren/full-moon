@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-10-08
 
 ### Added
+- Added `access` fields that contain a `Option<TokenReference>` to `TypeInfo::Array` and `TypeField`.
+- Added support for parsing table type field access modifiers, such as `{ read foo: number }`.
 - Added structs `TypeUnion` and `TypeIntersection` which both contain a field for a leading `TokenReference` (`|` or `&`), and a field which contains a `Punctuated<TypeInfo>`.
 - Added support for parsing leading `|` and `&` in types.
 
