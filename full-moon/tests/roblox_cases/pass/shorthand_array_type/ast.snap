@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-
+input_file: full-moon/tests/roblox_cases/pass/shorthand_array_type
 ---
 stmts:
   - - TypeDeclaration:
@@ -494,4 +494,3 @@ stmts:
                               type: Whitespace
                               characters: " "
     - ~
-
