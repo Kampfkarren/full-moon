@@ -218,7 +218,10 @@ impl Lexer {
             let start_position: LexerPosition = self.source.lexer_position;
 
             // All things that can start trivia, so we can avoid when something definitely can't
-            if matches!(self.source.current(), Some('\n' | '\r' | '#' | '-' | ' ')) {
+            if matches!(
+                self.source.current(),
+                Some('\n' | '\r' | '\t' | '#' | '-' | ' ')
+            ) {
                 if let Some(LexerResult::Ok(token)) = self.process_next() {
                     if token.token_type().is_trivia() {
                         // Take all trivia up to and including the newline character. If we see a newline character
