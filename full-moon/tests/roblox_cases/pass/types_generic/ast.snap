@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/types_generic
 ---
 stmts:
   - - TypeDeclaration:
@@ -415,4 +416,3 @@ stmts:
         expr_list:
           pairs: []
     - ~
-

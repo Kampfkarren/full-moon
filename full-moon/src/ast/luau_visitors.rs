@@ -12,8 +12,13 @@ impl Visit for TypeInfo {
     fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_type_info(self);
         match self {
-            TypeInfo::Array { braces, type_info } => {
+            TypeInfo::Array {
+                braces,
+                access,
+                type_info,
+            } => {
                 braces.tokens.0.visit(visitor);
+                access.visit(visitor);
                 type_info.visit(visitor);
                 braces.tokens.1.visit(visitor);
             }
@@ -114,13 +119,19 @@ impl VisitMut for TypeInfo {
         self = match self {
             TypeInfo::Array {
                 mut braces,
+                mut access,
                 mut type_info,
             } => {
                 braces.tokens.0 = braces.tokens.0.visit_mut(visitor);
+                access = access.visit_mut(visitor);
                 type_info = type_info.visit_mut(visitor);
                 braces.tokens.1 = braces.tokens.1.visit_mut(visitor);
 
-                TypeInfo::Array { braces, type_info }
+                TypeInfo::Array {
+                    braces,
+                    access,
+                    type_info,
+                }
             }
             TypeInfo::Basic(__self_0) => TypeInfo::Basic(__self_0.visit_mut(visitor)),
             TypeInfo::Boolean(__self_0) => TypeInfo::Boolean(__self_0.visit_mut(visitor)),
