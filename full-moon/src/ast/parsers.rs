@@ -3296,7 +3296,7 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
         let Ok(type_specifier) = expect_type_specifier(state, punctuation) else {
             return Name {
                 name,
-                #[cfg(feature = "lua52")]
+                #[cfg(feature = "lua54")]
                 attribute: None,
                 type_specifier: None,
             };
@@ -3304,7 +3304,7 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
 
         Name {
             name,
-            #[cfg(feature = "lua52")]
+            #[cfg(feature = "lua54")]
             attribute: None,
             type_specifier: Some(type_specifier),
         }
