@@ -41,6 +41,11 @@ mod versions;
 pub mod lua52;
 #[cfg(feature = "lua54")]
 pub mod lua54;
+#[cfg(feature = "playdate")]
+pub mod playdate_lua;
+#[cfg(feature = "playdate")]
+use playdate_lua::*;
+
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
