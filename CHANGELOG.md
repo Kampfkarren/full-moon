@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed regression in trivia attachment causing trivia that begins with `\t` tab characters to be attached as leading trivia of the next token rather than trailing trivia of the current token.
+- Fixed compilation failure due to bad flag definition when only `lua52` and `luau` are enabled together.
 
 ## [1.1.0] - 2024-10-12
 ### Added
