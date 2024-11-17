@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2024-11-17
+
 ### Fixed
 - Fixed `TokenReference::symbol("//=")` returning DoubleSlash + UnexpectedToken when `luau` and `lua53` are enabled together
 - Fixed `\z` escapes not parsing in interpolated strings for `luau`
