@@ -1195,3 +1195,20 @@ mod tests {
     }
 }
 */
+
+mod tests {
+    #[cfg(all(feature = "luau", feature = "lua53"))]
+    #[test]
+    fn test_token_symbol_create_double_slash_equal() {
+        use crate::tokenizer::{Symbol, TokenType};
+
+        use super::TokenReference;
+
+        assert!(matches!(
+            TokenReference::symbol("//=").unwrap().token().token_type(),
+            TokenType::Symbol {
+                symbol: Symbol::DoubleSlashEqual
+            }
+        ))
+    }
+}
