@@ -577,32 +577,31 @@ impl Lexer {
 
             '/' => {
                 version_switch!(self.lua_version, {
-                    lua53 => {
-                        if self.source.current() == Some('/') {
-                            self.source.next();
-                            return self.create(
-                                start_position,
-                                TokenType::Symbol {
-                                    symbol: Symbol::DoubleSlash,
-                                },
-                            );
-                        }
-                    }
-                    luau => {
+                    lua53 | luau => {
                         if self.source.consume('/') {
-                            if self.source.consume('=') {
-                                return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlashEqual })
-                            } else {
-                                return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlash} )
-                            }
-                        } else if self.source.consume('=') {
-                            return self.create(
-                                start_position,
-                                TokenType::Symbol {
-                                    symbol: Symbol::SlashEqual,
-                                },
-                            );
+                            version_switch!(self.lua_version, {
+                                luau => {
+                                    if self.source.consume('=') {
+                                        return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlashEqual })
+                                    }
+                                }
+                            });
+
+                            return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlash} );
                         }
+
+                        version_switch!(self.lua_version, {
+                            luau => {
+                                if self.source.consume('=') {
+                                    return self.create(
+                                        start_position,
+                                        TokenType::Symbol {
+                                            symbol: Symbol::SlashEqual,
+                                        },
+                                    );
+                                }
+                            }
+                        });
                     }
                 });
 
