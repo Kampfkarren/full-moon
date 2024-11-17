@@ -1,6 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/z-escape-string
 ---
 stmts:
   - - FunctionCall:
@@ -178,4 +179,193 @@ stmts:
                                 quote_type: Double
                             trailing_trivia: []
     - ~
-
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia:
+              - start_position:
+                  bytes: 56
+                  line: 6
+                  character: 1
+                end_position:
+                  bytes: 57
+                  line: 6
+                  character: 1
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+            token:
+              start_position:
+                bytes: 57
+                line: 7
+                character: 1
+              end_position:
+                bytes: 62
+                line: 7
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 62
+                            line: 7
+                            character: 6
+                          end_position:
+                            bytes: 63
+                            line: 7
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 86
+                            line: 8
+                            character: 12
+                          end_position:
+                            bytes: 87
+                            line: 8
+                            character: 13
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 87
+                              line: 8
+                              character: 13
+                            end_position:
+                              bytes: 88
+                              line: 8
+                              character: 13
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          InterpolatedString:
+                            segments: []
+                            last_string:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 63
+                                  line: 7
+                                  character: 7
+                                end_position:
+                                  bytes: 86
+                                  line: 8
+                                  character: 12
+                                token_type:
+                                  type: InterpolatedString
+                                  literal: "testing \\z\n\t   twelve"
+                                  kind: Simple
+                              trailing_trivia: []
+    - ~
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia:
+              - start_position:
+                  bytes: 88
+                  line: 9
+                  character: 1
+                end_position:
+                  bytes: 89
+                  line: 9
+                  character: 1
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+            token:
+              start_position:
+                bytes: 89
+                line: 10
+                character: 1
+              end_position:
+                bytes: 94
+                line: 10
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 94
+                            line: 10
+                            character: 6
+                          end_position:
+                            bytes: 95
+                            line: 10
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 111
+                            line: 11
+                            character: 8
+                          end_position:
+                            bytes: 112
+                            line: 11
+                            character: 9
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 112
+                              line: 11
+                              character: 9
+                            end_position:
+                              bytes: 113
+                              line: 11
+                              character: 9
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          InterpolatedString:
+                            segments: []
+                            last_string:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 95
+                                  line: 10
+                                  character: 7
+                                end_position:
+                                  bytes: 111
+                                  line: 11
+                                  character: 8
+                                token_type:
+                                  type: InterpolatedString
+                                  literal: "Hello \\\n\tWorld"
+                                  kind: Simple
+                              trailing_trivia: []
+    - ~

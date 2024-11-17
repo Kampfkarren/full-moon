@@ -19,17 +19,25 @@ pub(crate) fn read_interpolated_string_section(
 ) -> LexerResult<Token> {
     let mut characters = Vec::new();
     let mut escape = false;
+    let mut z_escaped = false;
 
     while let Some(character) = lexer.source.current() {
-        if !escape && matches!(character, '\n' | '\r') {
+        if !escape && !z_escaped && matches!(character, '\n' | '\r') {
             break;
         }
 
         assert_eq!(character, lexer.source.next().unwrap());
 
         match (escape, character) {
+            (true, 'z') => {
+                escape = true;
+                z_escaped = true;
+                characters.push('z');
+            }
+
             (true, ..) => {
                 characters.push(character);
+                z_escaped = true; // support for '\' followed by a new line
                 escape = false;
             }
 
@@ -50,6 +58,11 @@ pub(crate) fn read_interpolated_string_section(
             (false, '\\') => {
                 characters.push(character);
                 escape = true;
+            }
+
+            (false, '\n' | '\r') if z_escaped => {
+                z_escaped = false;
+                characters.push(character);
             }
 
             (false, ..) if character == '{' => {
