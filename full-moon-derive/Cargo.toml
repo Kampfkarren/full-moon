@@ -1,6 +1,6 @@
 [package]
 name = "full_moon_derive"
-version = "0.11.0"
+version = "0.11.1"
 authors = ["Kampfkarren <kampfkarren@gmail.com>"]
 description = "Internally used for the full_moon project. Do not use."
 license = "MPL-2.0"
@@ -14,4 +14,4 @@ proc-macro = true
 indexmap = "2.0.2"
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0.107", features = ["extra-traits"] }
+syn = "2.0"
