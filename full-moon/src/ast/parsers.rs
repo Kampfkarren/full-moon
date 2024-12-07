@@ -351,6 +351,25 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                         Err(()) => return ParserResult::LexerMoved,
                                     };
 
+                                    if let Some(function_token) = state.consume_if(Symbol::Function)
+                                    {
+                                        return ParserResult::Value(StmtVariant::Stmt(
+                                            ast::Stmt::ExportedTypeFunction(
+                                                ast::ExportedTypeFunction {
+                                                    export_token,
+                                                    type_function: match expect_type_function(
+                                                        state,
+                                                        type_token,
+                                                        function_token,
+                                                    ) {
+                                                        Ok(type_function) => type_function,
+                                                        Err(()) => return ParserResult::LexerMoved,
+                                                    },
+                                                },
+                                            ),
+                                        ));
+                                    }
+
                                     return ParserResult::Value(StmtVariant::Stmt(
                                         ast::Stmt::ExportedTypeDeclaration(
                                             ast::ExportedTypeDeclaration {
@@ -369,6 +388,22 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                     if identifier.as_str() == "type" =>
                                 {
                                     let type_token = token;
+
+                                    if let Some(function_token) = state.consume_if(Symbol::Function)
+                                    {
+                                        return ParserResult::Value(StmtVariant::Stmt(
+                                            ast::Stmt::TypeFunction(
+                                                match expect_type_function(
+                                                    state,
+                                                    type_token,
+                                                    function_token,
+                                                ) {
+                                                    Ok(type_function) => type_function,
+                                                    Err(()) => return ParserResult::LexerMoved,
+                                                },
+                                            ),
+                                        ));
+                                    }
 
                                     return ParserResult::Value(StmtVariant::Stmt(
                                         ast::Stmt::TypeDeclaration(
@@ -1329,6 +1364,40 @@ fn expect_type_declaration(
         generics,
         equal_token,
         declare_as,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_type_function(
+    state: &mut ParserState,
+    type_token: TokenReference,
+    function_token: TokenReference,
+) -> Result<ast::TypeFunction, ()> {
+    let function_name = match state.current() {
+        Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+        Ok(token) => {
+            state.token_error(token.clone(), "expected a type function name");
+            return Err(());
+        }
+
+        Err(()) => return Err(()),
+    };
+
+    let function_body = match parse_function_body(state) {
+        ParserResult::Value(body) => body,
+        ParserResult::LexerMoved => return Err(()),
+        ParserResult::NotFound => {
+            state.token_error(function_token, "expected a type function body");
+            return Err(());
+        }
+    };
+
+    Ok(ast::TypeFunction {
+        type_token,
+        function_token,
+        function_name,
+        function_body,
     })
 }
 
