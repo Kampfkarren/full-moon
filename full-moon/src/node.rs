@@ -92,7 +92,7 @@ impl<'a> Iterator for Tokens<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Tokens<'a> {
+impl DoubleEndedIterator for Tokens<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.items.is_empty() {
             return None;
