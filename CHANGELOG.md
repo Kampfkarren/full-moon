@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a panic when parsing a malformed empty interpolated string, e.g. ``print(`{}`)``
+
 ## [1.1.2] - 2024-11-17
 
 ### Fixed
