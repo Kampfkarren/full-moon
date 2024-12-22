@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Luau: added support for user defined type functions (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md)
+
 ## [1.1.2] - 2024-11-17
 
 ### Fixed

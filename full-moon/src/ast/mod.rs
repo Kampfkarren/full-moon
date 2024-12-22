@@ -402,6 +402,14 @@ pub enum Stmt {
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
     TypeDeclaration(TypeDeclaration),
+    /// An exported type function, such as `export type function Pairs(...) end`
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    ExportedTypeFunction(ExportedTypeFunction),
+    /// A type function, such as `type function Pairs(...) end`
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    TypeFunction(TypeFunction),
 
     /// A goto statement, such as `goto label`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.
