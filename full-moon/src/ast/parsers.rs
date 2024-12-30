@@ -1881,7 +1881,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                     ))
                 }
 
-                other => unreachable!("unexpected interpolated string kind: {other:?}"),
+                _ => ParserResult::NotFound,
             }
         }
 
