@@ -135,6 +135,7 @@ symbol! {
         [luau | lua53] Ampersand => "&",
         [luau] ThinArrow => "->",
         [luau | lua52 | luajit] TwoColons => "::",
+        [luau] AtSign => "@",
 
         Caret => "^",
         Colon => ":",
