@@ -367,7 +367,7 @@ pub enum Expression {
 
     /// An anonymous function, such as `function() end`
     #[display("{_0}")]
-    Function(AnonymousFunction),
+    Function(Box<AnonymousFunction>),
 
     /// A call of a function, such as `call()`
     #[display("{_0}")]

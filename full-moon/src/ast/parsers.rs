@@ -1745,12 +1745,12 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                         }
                     };
 
-                    ParserResult::Value(Expression::Function(ast::AnonymousFunction {
+                    ParserResult::Value(Expression::Function(Box::new(ast::AnonymousFunction {
                         #[cfg(feature = "luau")]
                         attributes,
                         function_token,
                         body: function_body,
-                    }))
+                    })))
                 }
                 Ok(token) => {
                     state.token_error(token.clone(), "expected `function` after attributes");
@@ -1773,12 +1773,12 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                 }
             };
 
-            ParserResult::Value(Expression::Function(ast::AnonymousFunction {
+            ParserResult::Value(Expression::Function(Box::new(ast::AnonymousFunction {
                 #[cfg(feature = "luau")]
                 attributes: Vec::new(),
                 function_token,
                 body: function_body,
-            }))
+            })))
         }
 
         TokenType::Symbol {
