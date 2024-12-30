@@ -1,0 +1,20 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/string_interpolation_empty
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 6
+        line: 1
+        character: 7
+      end_position:
+        bytes: 8
+        line: 1
+        character: 9
+      token_type:
+        type: InterpolatedString
+        literal: ""
+        kind: Begin
+    additional: "expected expression after `{`"

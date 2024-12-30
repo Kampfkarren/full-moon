@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Luau: added support for user defined type functions (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md)
 
+### Fixed
+- Fixed a panic when parsing a malformed empty interpolated string, e.g. ``print(`{}`)``
+
 ## [1.1.2] - 2024-11-17
 
 ### Fixed
