@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Luau: added support for user defined type functions (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md)
+- Luau: support parsing function attributes (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/syntax-attributes-functions.md)
+
+### Changed
+- **[BREAKING CHANGE]** Introduced a new struct `AnonymousFunction` that is used in the `Expression::Function` variant. This replaces the old `Box<(TokenReference, FunctionBody)>`, and allows us to attach more data to an anonymous function (at the moment, mainly Luau attributes)
 
 ### Fixed
 - Fixed a panic when parsing a malformed empty interpolated string, e.g. ``print(`{}`)``
