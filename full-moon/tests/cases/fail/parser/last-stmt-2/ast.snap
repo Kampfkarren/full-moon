@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/fail_cases.rs
 expression: result.ast()
+input_file: full-moon/tests/cases/fail/parser/last-stmt-2
+snapshot_kind: text
 ---
 nodes:
   stmts:
@@ -143,7 +145,8 @@ nodes:
                                 pairs:
                                   - End:
                                       Function:
-                                        - leading_trivia: []
+                                        function_token:
+                                          leading_trivia: []
                                           token:
                                             start_position:
                                               bytes: 16
@@ -157,7 +160,8 @@ nodes:
                                               type: Symbol
                                               symbol: function
                                           trailing_trivia: []
-                                        - parameters_parentheses:
+                                        body:
+                                          parameters_parentheses:
                                             tokens:
                                               - leading_trivia: []
                                                 token:
@@ -316,4 +320,3 @@ eof:
     token_type:
       type: Eof
   trailing_trivia: []
-
