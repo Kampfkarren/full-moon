@@ -1599,8 +1599,20 @@ impl Assignment {
     not(feature = "luau"),
     display("{local_token}{function_token}{name}{body}")
 )]
-#[cfg_attr(feature = "luau", display("{local_token}{function_token}{name}{body}"))]
+#[cfg_attr(
+    feature = "luau",
+    display(
+        "{}{}{}{}{}",
+        join_vec(attributes),
+        local_token,
+        function_token,
+        name,
+        body
+    )
+)]
 pub struct LocalFunction {
+    #[cfg(feature = "luau")]
+    attributes: Vec<LuauAttribute>,
     local_token: TokenReference,
     function_token: TokenReference,
     name: TokenReference,
@@ -1611,11 +1623,19 @@ impl LocalFunction {
     /// Returns a new LocalFunction from the given name
     pub fn new(name: TokenReference) -> Self {
         LocalFunction {
+            #[cfg(feature = "luau")]
+            attributes: Vec::new(),
             local_token: TokenReference::basic_symbol("local "),
             function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }
+    }
+
+    /// The attributes in the function, e.g. `@native`
+    #[cfg(feature = "luau")]
+    pub fn attributes(&self) -> impl Iterator<Item = &LuauAttribute> {
+        self.attributes.iter()
     }
 
     /// The `local` token
@@ -1636,6 +1656,12 @@ impl LocalFunction {
     /// The name of the function, the `x` part of `local function x() end`
     pub fn name(&self) -> &TokenReference {
         &self.name
+    }
+
+    /// Returns a new LocalFunction with the given attributes (e.g. `@native`)
+    #[cfg(feature = "luau")]
+    pub fn with_attributes(self, attributes: Vec<LuauAttribute>) -> Self {
+        Self { attributes, ..self }
     }
 
     /// Returns a new LocalFunction with the given `local` token
@@ -1971,8 +1997,13 @@ impl FunctionName {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(not(feature = "luau"), display("{function_token}{name}{body}"))]
-#[cfg_attr(feature = "luau", display("{function_token}{name}{body}"))]
+#[cfg_attr(
+    feature = "luau",
+    display("{}{}{}{}", join_vec(attributes), function_token, name, body)
+)]
 pub struct FunctionDeclaration {
+    #[cfg(feature = "luau")]
+    attributes: Vec<LuauAttribute>,
     function_token: TokenReference,
     name: FunctionName,
     body: FunctionBody,
@@ -1982,10 +2013,18 @@ impl FunctionDeclaration {
     /// Creates a new FunctionDeclaration from the given name
     pub fn new(name: FunctionName) -> Self {
         Self {
+            #[cfg(feature = "luau")]
+            attributes: Vec::new(),
             function_token: TokenReference::basic_symbol("function "),
             name,
             body: FunctionBody::new(),
         }
+    }
+
+    /// The attributes in the function, e.g. `@native`
+    #[cfg(feature = "luau")]
+    pub fn attributes(&self) -> impl Iterator<Item = &LuauAttribute> {
+        self.attributes.iter()
     }
 
     /// The `function` token
@@ -2001,6 +2040,12 @@ impl FunctionDeclaration {
     /// The name of the function
     pub fn name(&self) -> &FunctionName {
         &self.name
+    }
+
+    /// Returns a new FunctionDeclaration with the given attributes (e.g. `@native`)
+    #[cfg(feature = "luau")]
+    pub fn with_attributes(self, attributes: Vec<LuauAttribute>) -> Self {
+        Self { attributes, ..self }
     }
 
     /// Returns a new FunctionDeclaration with the given `function` token
