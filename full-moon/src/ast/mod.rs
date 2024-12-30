@@ -262,6 +262,68 @@ impl Default for TableConstructor {
     }
 }
 
+/// An anonymous function, such as `function() end`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(not(feature = "luau"), display("{function_token}{body}"))]
+#[cfg_attr(
+    feature = "luau",
+    display("{}{}{}", join_vec(attributes), function_token, body)
+)]
+pub struct AnonymousFunction {
+    #[cfg(feature = "luau")]
+    attributes: Vec<LuauAttribute>,
+    function_token: TokenReference,
+    body: FunctionBody,
+}
+
+impl AnonymousFunction {
+    /// Returns a new AnonymousFunction
+    pub fn new() -> Self {
+        AnonymousFunction {
+            #[cfg(feature = "luau")]
+            attributes: Vec::new(),
+            function_token: TokenReference::basic_symbol("function"),
+            body: FunctionBody::new(),
+        }
+    }
+
+    /// The attributes in the function, e.g. `@native`
+    #[cfg(feature = "luau")]
+    pub fn attributes(&self) -> impl Iterator<Item = &LuauAttribute> {
+        self.attributes.iter()
+    }
+
+    /// The `function` token
+    pub fn function_token(&self) -> &TokenReference {
+        &self.function_token
+    }
+
+    /// The function body, everything except `function` in `function(a, b, c) call() end`
+    pub fn body(&self) -> &FunctionBody {
+        &self.body
+    }
+
+    /// Returns a new AnonymousFunction with the given attributes (e.g. `@native`)
+    #[cfg(feature = "luau")]
+    pub fn with_attributes(self, attributes: Vec<LuauAttribute>) -> Self {
+        Self { attributes, ..self }
+    }
+
+    /// Returns a new AnonymousFunction with the given `function` token
+    pub fn with_function_token(self, function_token: TokenReference) -> Self {
+        Self {
+            function_token,
+            ..self
+        }
+    }
+
+    /// Returns a new AnonymousFunction with the given function body
+    pub fn with_body(self, body: FunctionBody) -> Self {
+        Self { body, ..self }
+    }
+}
+
 /// An expression, mostly useful for getting values
 #[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -298,8 +360,8 @@ pub enum Expression {
     },
 
     /// An anonymous function, such as `function() end`
-    #[display("{}{}", _0.0, _0.1)]
-    Function(Box<(TokenReference, FunctionBody)>),
+    #[display("{_0}")]
+    Function(AnonymousFunction),
 
     /// A call of a function, such as `call()`
     #[display("{_0}")]

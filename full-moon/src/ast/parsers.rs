@@ -1661,10 +1661,10 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                 }
             };
 
-            ParserResult::Value(Expression::Function(Box::new((
+            ParserResult::Value(Expression::Function(ast::AnonymousFunction {
                 function_token,
-                function_body,
-            ))))
+                body: function_body,
+            }))
         }
 
         TokenType::Symbol {

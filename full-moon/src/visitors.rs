@@ -241,6 +241,7 @@ impl<T: VisitMut> VisitMut for Box<T> {
 
 create_visitor!(ast: {
     visit_anonymous_call => FunctionArgs,
+    visit_anonymous_function => AnonymousFunction,
     visit_assignment => Assignment,
     visit_block => Block,
     visit_call => Call,
