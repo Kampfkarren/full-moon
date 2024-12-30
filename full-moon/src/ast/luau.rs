@@ -762,6 +762,137 @@ impl ExportedTypeDeclaration {
     }
 }
 
+/// A user defined type function, such as `type function foo() ... end`.
+///
+/// See more: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{}{}{}{}", type_token, function_token, function_name, function_body)]
+pub struct TypeFunction {
+    pub(crate) type_token: TokenReference,
+    pub(crate) function_token: TokenReference,
+    pub(crate) function_name: TokenReference,
+    pub(crate) function_body: FunctionBody,
+}
+
+impl TypeFunction {
+    /// Creates a new TypeFunction from the given function name and body
+    pub fn new(function_name: TokenReference, function_body: FunctionBody) -> Self {
+        Self {
+            type_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "type".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            function_token: TokenReference::basic_symbol("function "),
+            function_name,
+            function_body,
+        }
+    }
+
+    /// The token `type`.
+    pub fn type_token(&self) -> &TokenReference {
+        &self.type_token
+    }
+
+    /// The token `function`.
+    pub fn function_token(&self) -> &TokenReference {
+        &self.function_token
+    }
+
+    /// The name of the type function, `Pairs` in `type function Pairs() ... end`.
+    pub fn function_name(&self) -> &TokenReference {
+        &self.function_name
+    }
+
+    /// The body of the type function.
+    pub fn function_body(&self) -> &FunctionBody {
+        &self.function_body
+    }
+
+    /// Returns a new TypeFunction with the given `type` token
+    pub fn with_type_token(self, type_token: TokenReference) -> Self {
+        Self { type_token, ..self }
+    }
+
+    /// Returns a new TypeFunction with the given function name
+    pub fn with_function_token(self, function_token: TokenReference) -> Self {
+        Self {
+            function_token,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeFunction with the given function name
+    pub fn with_function_name(self, function_name: TokenReference) -> Self {
+        Self {
+            function_name,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeFunction with the given function body
+    pub fn with_function_body(self, function_body: FunctionBody) -> Self {
+        Self {
+            function_body,
+            ..self
+        }
+    }
+}
+
+/// An exported type function, such as `export type function Pairs() ... end`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{export_token}{type_function}")]
+pub struct ExportedTypeFunction {
+    pub(crate) export_token: TokenReference,
+    pub(crate) type_function: TypeFunction,
+}
+
+impl ExportedTypeFunction {
+    /// Creates a new ExportedTypeFunction with the given type function
+    pub fn new(type_function: TypeFunction) -> Self {
+        Self {
+            export_token: TokenReference::new(
+                vec![],
+                Token::new(TokenType::Identifier {
+                    identifier: ShortString::new("export"),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            type_function,
+        }
+    }
+
+    /// The token `export`.
+    pub fn export_token(&self) -> &TokenReference {
+        &self.export_token
+    }
+
+    /// The type function, `type function Pairs() ... end`.
+    pub fn type_function(&self) -> &TypeFunction {
+        &self.type_function
+    }
+
+    /// Returns a new ExportedTypeFunction with the `export` token
+    pub fn with_export_token(self, export_token: TokenReference) -> Self {
+        Self {
+            export_token,
+            ..self
+        }
+    }
+
+    /// Returns a new ExportedTypeFunction with the given type function
+    pub fn with_type_function(self, type_function: TypeFunction) -> Self {
+        Self {
+            type_function,
+            ..self
+        }
+    }
+}
+
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
