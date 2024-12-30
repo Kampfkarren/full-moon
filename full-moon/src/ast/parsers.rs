@@ -1767,7 +1767,7 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                     ))
                 }
 
-                other => ParserResult::NotFound,
+                _ => ParserResult::NotFound,
             }
         }
 
