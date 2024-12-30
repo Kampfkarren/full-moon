@@ -1,6 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/no_roblox_syntax
+snapshot_kind: text
 ---
 stmts:
   - - LocalAssignment:
@@ -1162,6 +1164,7 @@ stmts:
         block:
           stmts:
             - - FunctionDeclaration:
+                  attributes: []
                   function_token:
                     leading_trivia:
                       - start_position:
@@ -1485,6 +1488,7 @@ stmts:
         else:
           stmts:
             - - FunctionDeclaration:
+                  attributes: []
                   function_token:
                     leading_trivia:
                       - start_position:
@@ -1697,7 +1701,9 @@ last_stmt:
         pairs:
           - End:
               Function:
-                - leading_trivia: []
+                attributes: []
+                function_token:
+                  leading_trivia: []
                   token:
                     start_position:
                       bytes: 454
@@ -1711,7 +1717,8 @@ last_stmt:
                       type: Symbol
                       symbol: function
                   trailing_trivia: []
-                - generics: ~
+                body:
+                  generics: ~
                   parameters_parentheses:
                     tokens:
                       - leading_trivia: []
@@ -5622,4 +5629,3 @@ last_stmt:
                           type: Whitespace
                           characters: "\n"
   - ~
-

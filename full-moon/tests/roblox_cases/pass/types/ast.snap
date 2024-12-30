@@ -2,6 +2,7 @@
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/types
+snapshot_kind: text
 ---
 stmts:
   - - LocalAssignment:
@@ -6646,6 +6647,7 @@ stmts:
           pairs: []
     - ~
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia:
             - start_position:
@@ -6949,6 +6951,7 @@ stmts:
                   characters: "\n"
     - ~
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia:
             - start_position:
@@ -7359,7 +7362,9 @@ stmts:
           pairs:
             - End:
                 Function:
-                  - leading_trivia: []
+                  attributes: []
+                  function_token:
+                    leading_trivia: []
                     token:
                       start_position:
                         bytes: 1206
@@ -7373,7 +7378,8 @@ stmts:
                         type: Symbol
                         symbol: function
                     trailing_trivia: []
-                  - generics: ~
+                  body:
+                    generics: ~
                     parameters_parentheses:
                       tokens:
                         - leading_trivia: []
@@ -7617,6 +7623,7 @@ stmts:
                             characters: "\n"
     - ~
   - - LocalFunction:
+        attributes: []
         local_token:
           leading_trivia:
             - start_position:
