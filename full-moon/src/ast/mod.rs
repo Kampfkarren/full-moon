@@ -324,6 +324,12 @@ impl AnonymousFunction {
     }
 }
 
+impl Default for AnonymousFunction {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// An expression, mostly useful for getting values
 #[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
