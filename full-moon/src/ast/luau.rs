@@ -1298,3 +1298,42 @@ impl<'a> Iterator for ExpressionsIterator<'a> {
         Some(&segment.expression)
     }
 }
+
+/// An attribute, such as `@native`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{at_sign}{name}")]
+pub struct LuauAttribute {
+    pub(crate) at_sign: TokenReference,
+    pub(crate) name: TokenReference,
+}
+
+impl LuauAttribute {
+    /// Creates a new ElseIf from the given condition
+    pub fn new(name: TokenReference) -> Self {
+        Self {
+            at_sign: TokenReference::symbol("@").unwrap(),
+            name,
+        }
+    }
+
+    /// The `@` token
+    pub fn at_sign(&self) -> &TokenReference {
+        &self.at_sign
+    }
+
+    /// The name of the attribute, `native` in `@native`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// Returns a new Attribute with the given `@` token
+    pub fn with_at_sign(self, at_sign: TokenReference) -> Self {
+        Self { at_sign, ..self }
+    }
+
+    /// Returns a new Attribute with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+}

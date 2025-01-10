@@ -1,9 +1,12 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
+input_file: full-moon/tests/roblox_cases/pass/types_packs
+snapshot_kind: text
 ---
 stmts:
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia:
             - start_position:
@@ -632,6 +635,7 @@ stmts:
                         characters: "\n"
     - ~
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia:
             - start_position:
@@ -3004,4 +3008,3 @@ stmts:
                       symbol: nil
                   trailing_trivia: []
     - ~
-

@@ -1,11 +1,12 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/string_interpolation_conformance
+snapshot_kind: text
 ---
 stmts:
   - - LocalFunction:
+        attributes: []
         local_token:
           leading_trivia: []
           token:
@@ -3520,7 +3521,9 @@ stmts:
                               trailing_trivia: []
                         expression:
                           Function:
-                            - leading_trivia: []
+                            attributes: []
+                            function_token:
+                              leading_trivia: []
                               token:
                                 start_position:
                                   bytes: 738
@@ -3534,7 +3537,8 @@ stmts:
                                   type: Symbol
                                   symbol: function
                               trailing_trivia: []
-                            - generics: ~
+                            body:
+                              generics: ~
                               parameters_parentheses:
                                 tokens:
                                   - leading_trivia: []
@@ -5754,6 +5758,7 @@ stmts:
                                 trailing_trivia: []
     - ~
   - - LocalFunction:
+        attributes: []
         local_token:
           leading_trivia:
             - start_position:
@@ -6602,4 +6607,3 @@ last_stmt:
                       type: Whitespace
                       characters: "\n"
   - ~
-
