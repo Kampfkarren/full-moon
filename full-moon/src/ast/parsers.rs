@@ -129,13 +129,13 @@ fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<
         return ParserResult::LexerMoved;
     };
 
-    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
+    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
         ast::CompoundAssignment {
             lhs: var,
             compound_operator: ast::CompoundOp::from_token(compound_operator),
             rhs: expr,
         },
-    )));
+    )))
 }
 
 

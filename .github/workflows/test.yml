@@ -35,10 +35,14 @@ jobs:
         run: |
           cd full-moon
           cargo test --features luajit
+      - name: Test (CfxLua feature)
+        run: |
+          cd full-moon
+          cargo test --features cfxlua
       - name: Test (all features)
         run: |
           cd full-moon
-          cargo test --features luau,lua52,lua53,lua54,luajit
+          cargo test --features luau,lua52,lua53,lua54,luajit,cfxlua
       - name: Test (no default features)
         run: |
           cd full-moon

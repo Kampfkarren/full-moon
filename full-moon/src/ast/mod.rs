@@ -11,13 +11,14 @@ use lua52::*;
 #[cfg(feature = "lua54")]
 use lua54::*;
 
+#[cfg(feature = "luau")]
+use luau::*;
+
 #[cfg(any(feature = "luau", feature = "cfxlua"))]
 mod compound;
 #[cfg(any(feature = "luau", feature = "cfxlua"))]
 pub use compound::*;
 
-#[cfg(feature = "luau")]
-use luau::*;
 pub use parser_structs::AstResult;
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;

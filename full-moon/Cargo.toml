@@ -11,7 +11,7 @@ keywords = ["lua", "parser", "lua51", "lua52", "luau", "cfxlua"]
 edition = "2021"
 
 [package.metadata.docs.rs]
-# Build Locally: RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --features luau,lua52,lua53,lua54,luajit  --no-deps --open
+# Build Locally: RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --features luau,lua52,lua53,lua54,luajit,cfxlua  --no-deps --open
 features = ["luau", "lua52", "lua53", "lua54", "luajit", "cfxlua"]
 rustdoc-args = ["--cfg", "docsrs"]
 
