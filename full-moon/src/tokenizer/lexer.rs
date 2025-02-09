@@ -350,7 +350,17 @@ impl Lexer {
 
             initial @ ('1'..='9') => self.read_number(start_position, initial.to_string()),
 
-            quote @ ('"' | '\'') => {
+            quote @ ('"' | '\'' | '`') => {
+                #[cfg(feature = "luau")]
+                if self.lua_version.has_luau() && quote == '`' {
+                    return Some(interpolated_strings::read_interpolated_string_section(
+                        self,
+                        start_position,
+                        InterpolatedStringKind::Begin,
+                        InterpolatedStringKind::Simple,
+                    ))
+                }
+
                 let (string, recovered) = self.read_string(quote);
                 self.create_recovered(
                     start_position,
@@ -366,15 +376,7 @@ impl Lexer {
                 )
             }
 
-            #[cfg(feature = "luau")]
-            '`' if self.lua_version.has_luau() => {
-                Some(interpolated_strings::read_interpolated_string_section(
-                    self,
-                    start_position,
-                    InterpolatedStringKind::Begin,
-                    InterpolatedStringKind::Simple,
-                ))
-            }
+
 
             '=' => {
                 if self.source.consume('=') {
@@ -533,7 +535,7 @@ impl Lexer {
 
             '+' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | cfxlua => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -555,7 +557,7 @@ impl Lexer {
 
             '*' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | cfxlua => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -577,7 +579,7 @@ impl Lexer {
 
             '/' => {
                 version_switch!(self.lua_version, {
-                    lua53 | luau => {
+                    lua53 | luau | cfxlua => {
                         if self.source.consume('/') {
                             version_switch!(self.lua_version, {
                                 luau => {
@@ -591,7 +593,7 @@ impl Lexer {
                         }
 
                         version_switch!(self.lua_version, {
-                            luau => {
+                            luau | cfxlua => {
                                 if self.source.consume('=') {
                                     return self.create(
                                         start_position,
@@ -602,7 +604,30 @@ impl Lexer {
                                 }
                             }
                         });
+
+                        version_switch!(self.lua_version, {
+                             cfxlua => {
+                                if self.source.consume('*') {
+                                    let (token, recovered) = self.read_c_style_comment();
+
+                                    return self.create_recovered(
+                                        start_position,
+                                        token,
+                                        if recovered {
+                                            vec![TokenizerError {
+                                                error: TokenizerErrorType::UnclosedComment,
+                                                range: (start_position, self.source.position()),
+                                            }]
+                                        } else {
+                                            Vec::new()
+                                        },
+                                    )
+                                }
+                            }
+                        });
                     }
+
+
                 });
 
                 self.create(
@@ -637,7 +662,7 @@ impl Lexer {
 
             '^' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | cfxlua => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -666,8 +691,21 @@ impl Lexer {
 
             '<' => {
                 version_switch!(self.lua_version, {
-                    lua53 => {
+                    lua53 | cfxlua => {
                         if self.source.consume('<') {
+                            version_switch!(self.lua_version, {
+                                cfxlua => {
+                                    if self.source.consume('=') {
+                                        return self.create(
+                                            start_position,
+                                            TokenType::Symbol {
+                                                symbol: Symbol::LeftShift,
+                                            },
+                                        );
+                                    }
+                                }
+                            });
+
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
@@ -697,8 +735,21 @@ impl Lexer {
 
             '>' => {
                 version_switch!(self.lua_version, {
-                    lua53 => {
+                    lua53 | cfxlua => {
                         if self.source.consume('>') {
+                            version_switch!(self.lua_version, {
+                                cfxlua => {
+                                    if self.source.consume('=') {
+                                        return self.create(
+                                            start_position,
+                                            TokenType::Symbol {
+                                                symbol: Symbol::RightShift,
+                                            },
+                                        );
+                                    }
+                                }
+                            });
+
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
@@ -807,7 +858,7 @@ impl Lexer {
 
             '-' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | cfxlua => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -815,14 +866,20 @@ impl Lexer {
                                     symbol: Symbol::MinusEqual,
                                 },
                             );
-                        } else if self.source.consume('>') {
-                            return self.create(
-                                start_position,
-                                TokenType::Symbol {
-                                    symbol: Symbol::ThinArrow
-                                }
-                            );
                         }
+
+                        version_switch!(self.lua_version, {
+                            luau => {
+                                if self.source.consume('>') {
+                                    return self.create(
+                                        start_position,
+                                        TokenType::Symbol {
+                                            symbol: Symbol::ThinArrow
+                                        }
+                                    );
+                                }
+                            }
+                        });
                     }
                 });
 
@@ -879,6 +936,30 @@ impl Lexer {
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::QuestionMark,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '&' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::BitwiseAndAssignment,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '|' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::BitwiseOrAssignment,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::SafeNavigation,
                 },
             ),
 
@@ -1118,6 +1199,8 @@ impl Lexer {
         let quote_type = match quote {
             '"' => StringLiteralQuoteType::Double,
             '\'' => StringLiteralQuoteType::Single,
+            #[cfg(feature = "cfxlua")]
+            '`' => StringLiteralQuoteType::Backtick,
             _ => unreachable!(),
         };
 
@@ -1309,6 +1392,30 @@ impl Lexer {
         }
 
         MultiLineBodyResult::Ok { blocks, body }
+    }
+
+    #[cfg(feature = "cfxlua")]
+    fn read_c_style_comment(&mut self) -> (TokenType, bool) {
+        let mut comment = String::new();
+
+        while let Some(next) = self.source.next() {
+            if next == '*' && self.source.consume('/') {
+                return (
+                    TokenType::CStyleComment {
+                        comment: comment.into(),
+                    },
+                    false,
+                );
+            }
+            comment.push(next);
+        }
+
+        (
+            TokenType::CStyleComment {
+                comment: comment.into(),
+            },
+            true,
+        )
     }
 }
 

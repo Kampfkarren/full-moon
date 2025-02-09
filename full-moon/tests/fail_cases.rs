@@ -135,3 +135,25 @@ fn test_lua53_parser_fail_cases() {
 fn test_lua54_parser_fail_cases() {
     run_parser_fail_cases("./tests/lua54_cases/fail/parser", LuaVersion::lua54());
 }
+
+#[test]
+#[cfg(feature = "cfxlua")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_cfxlua_parser_fail_cases() {
+    run_parser_fail_cases("./tests/cfxlua_cases/fail/parser", LuaVersion::cfxlua());
+}
+
+#[test]
+#[cfg(feature = "cfxlua")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_cfxlua_tokenizer_fail_cases() {
+    run_test_folder("./tests/cfxlua_cases/fail/tokenizer", |path| {
+        let source = fs::read_to_string(path.join("source.lua")).expect("couldn't read source.lua");
+
+        let tokens = tokenizer::Lexer::new(&source, LuaVersion::cfxlua()).collect();
+        assert!(!matches!(tokens, LexerResult::Ok(_)));
+        assert_yaml_snapshot!("tokens_result", tokens);
+
+        process_fail_case(path, &source, LuaVersion::cfxlua());
+    })
+}

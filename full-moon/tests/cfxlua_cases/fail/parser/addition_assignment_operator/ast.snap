@@ -1,0 +1,132 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/addition_assignment_operator
+---
+nodes:
+  stmts:
+    - - LocalAssignment:
+          local_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Symbol
+                symbol: local
+            trailing_trivia:
+              - start_position:
+                  bytes: 5
+                  line: 1
+                  character: 6
+                end_position:
+                  bytes: 6
+                  line: 1
+                  character: 7
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name_list:
+            pairs:
+              - End:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 6
+                      line: 1
+                      character: 7
+                    end_position:
+                      bytes: 11
+                      line: 1
+                      character: 12
+                    token_type:
+                      type: Identifier
+                      identifier: index
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      end_position:
+                        bytes: 12
+                        line: 1
+                        character: 13
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+          equal_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 12
+                line: 1
+                character: 13
+              end_position:
+                bytes: 13
+                line: 1
+                character: 14
+              token_type:
+                type: Symbol
+                symbol: "="
+            trailing_trivia:
+              - start_position:
+                  bytes: 13
+                  line: 1
+                  character: 14
+                end_position:
+                  bytes: 14
+                  line: 1
+                  character: 15
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          expr_list:
+            pairs:
+              - End:
+                  Number:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 14
+                        line: 1
+                        character: 15
+                      end_position:
+                        bytes: 15
+                        line: 1
+                        character: 16
+                      token_type:
+                        type: Number
+                        text: "1"
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 15
+                          line: 1
+                          character: 16
+                        end_position:
+                          bytes: 17
+                          line: 1
+                          character: 17
+                        token_type:
+                          type: Whitespace
+                          characters: "\r\n"
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 27
+      line: 3
+      character: 9
+    end_position:
+      bytes: 27
+      line: 3
+      character: 9
+    token_type:
+      type: Eof
+  trailing_trivia: []

@@ -10,7 +10,6 @@ use std::{
     cmp::Ordering,
     fmt::{self, Display},
 };
-
 use super::{Lexer, LexerResult};
 
 macro_rules! symbol {
@@ -121,20 +120,27 @@ symbol! {
         Until => "until",
         While => "while",
 
-        [lua52 | luajit] Goto => "goto",
+        [lua52 | luajit | cfxlua] Goto => "goto",
 
-        [luau] PlusEqual => "+=",
-        [luau] MinusEqual => "-=",
-        [luau] StarEqual => "*=",
-        [luau] SlashEqual => "/=",
+        [luau | cfxlua] PlusEqual => "+=",
+        [luau | cfxlua] MinusEqual => "-=",
+        [luau | cfxlua] StarEqual => "*=",
+        [luau | cfxlua] SlashEqual => "/=",
+
         [luau] DoubleSlashEqual => "//=",
         [luau] PercentEqual => "%=",
-        [luau] CaretEqual => "^=",
+        [luau | cfxlua] CaretEqual => "^=",
         [luau] TwoDotsEqual => "..=",
 
         [luau | lua53] Ampersand => "&",
         [luau] ThinArrow => "->",
         [luau | lua52 | luajit] TwoColons => "::",
+
+        [cfxlua] LeftShift => "<<=",
+        [cfxlua] RightShift => ">>=",
+        [cfxlua] BitwiseAndAssignment => "&=",
+        [cfxlua] BitwiseOrAssignment => "|=",
+        [cfxlua] SafeNavigation => "?.",
 
         Caret => "^",
         Colon => ":",
@@ -305,19 +311,37 @@ pub enum TokenType {
         /// If it is the beginning, middle, end, or a standalone string.
         kind: InterpolatedStringKind,
     },
+
+    #[cfg(feature = "cfxlua")]
+    /// A single/multi line C-style comment, such as `/* comment */`
+    CStyleComment {
+        /// The comment, ignoring initial `--`
+        comment: ShortString,
+    },
 }
 
 impl TokenType {
     /// Returns whether a token can be practically ignored in most cases
     /// Comments and whitespace will return `true`, everything else will return `false`
     pub fn is_trivia(&self) -> bool {
-        matches!(
+        #[cfg(not(feature = "cfxlua"))]
+        return matches!(
             self,
             TokenType::Shebang { .. }
                 | TokenType::SingleLineComment { .. }
                 | TokenType::MultiLineComment { .. }
                 | TokenType::Whitespace { .. }
-        )
+        );
+
+        #[cfg(feature = "cfxlua")]
+        return matches!(
+            self,
+            TokenType::Shebang { .. }
+                | TokenType::SingleLineComment { .. }
+                | TokenType::MultiLineComment { .. }
+                | TokenType::Whitespace { .. }
+                | TokenType::CStyleComment { .. }
+        );
     }
 
     /// Returns the kind of the token type.
@@ -346,6 +370,9 @@ impl TokenType {
 
             #[cfg(feature = "luau")]
             TokenType::InterpolatedString { .. } => TokenKind::InterpolatedString,
+
+            #[cfg(feature = "cfxlua")]
+            TokenType::CStyleComment { .. } => TokenKind::CStylComment,
         }
     }
 
@@ -390,6 +417,10 @@ pub enum TokenKind {
     #[cfg(feature = "luau")]
     /// Some form of interpolated string
     InterpolatedString,
+
+    #[cfg(feature = "cfxlua")]
+    /// A single/multi line C-style comment, such as `/* comment */`
+    CStylComment,
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
@@ -484,6 +515,9 @@ impl fmt::Display for Token {
                     write!(formatter, "`{literal}`")
                 }
             },
+
+            #[cfg(feature = "cfxlua")]
+            CStyleComment { comment } => write!(formatter, "/*{comment}*/"),
         }
     }
 }
@@ -517,6 +551,9 @@ impl Visit for Token {
 
             #[cfg(feature = "luau")]
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(self),
+
+            #[cfg(feature = "cfxlua")]
+            TokenKind::CStylComment => visitor.visit_c_style_comment(self),
         }
     }
 }
@@ -538,6 +575,9 @@ impl VisitMut for Token {
 
             #[cfg(feature = "luau")]
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(token),
+
+            #[cfg(feature = "cfxlua")]
+            TokenKind::CStylComment => visitor.visit_c_style_comment(token),
         }
     }
 }
@@ -856,6 +896,9 @@ pub enum StringLiteralQuoteType {
     Double,
     /// Strings formatted 'with single quotes'
     Single,
+    /// Strings in form of Jenkins Hash `with backticks`
+    #[cfg(feature = "cfxlua")]
+    Backtick,
 }
 
 impl fmt::Display for StringLiteralQuoteType {
@@ -867,6 +910,8 @@ impl fmt::Display for StringLiteralQuoteType {
             StringLiteralQuoteType::Brackets => Err(fmt::Error),
             StringLiteralQuoteType::Double => "\"".fmt(formatter),
             StringLiteralQuoteType::Single => "'".fmt(formatter),
+            #[cfg(feature = "cfxlua")]
+            StringLiteralQuoteType::Backtick => "`".fmt(formatter),
         }
     }
 }

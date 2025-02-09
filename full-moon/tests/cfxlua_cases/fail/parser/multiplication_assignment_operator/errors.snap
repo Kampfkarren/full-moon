@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/multiplication_assignment_operator
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 22
+        line: 2
+        character: 6
+      end_position:
+        bytes: 24
+        line: 2
+        character: 8
+      token_type:
+        type: Symbol
+        symbol: "*="
+    additional: expected expression to set to

@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/bitwise_xor_assignment_operator
+---
+"local num = 5\r\n"

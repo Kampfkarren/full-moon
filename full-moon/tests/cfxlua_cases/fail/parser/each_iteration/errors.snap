@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/each_iteration
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 23
+        line: 2
+        character: 1
+      end_position:
+        bytes: 26
+        line: 2
+        character: 4
+      token_type:
+        type: Symbol
+        symbol: for
+    additional: "expected name after `for`"
+- AstError:
+    token:
+      start_position:
+        bytes: 27
+        line: 2
+        character: 5
+      end_position:
+        bytes: 29
+        line: 2
+        character: 7
+      token_type:
+        type: Symbol
+        symbol: in
+    additional: "unexpected token, this needs to be a statement"

@@ -1,0 +1,14 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/c_style_comments
+---
+- TokenizerError:
+    error: UnclosedComment
+    range:
+      - bytes: 23
+        line: 1
+        character: 24
+      - bytes: 48
+        line: 3
+        character: 1

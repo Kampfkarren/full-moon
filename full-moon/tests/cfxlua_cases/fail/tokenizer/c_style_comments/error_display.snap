@@ -1,0 +1,13 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/c_style_comments
+---
+error[tokenizer]: unclosed comment (1:24 to 3:1)
+  ┌─ source.lua:1:24
+  │  
+1 │   print("Hello, World!") /* Comment
+  │ ╭────────────────────────^
+2 │ │ local a = 2
+3 │ │ 
+  │ ╰^

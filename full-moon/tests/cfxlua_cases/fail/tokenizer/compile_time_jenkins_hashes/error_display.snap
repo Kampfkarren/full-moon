@@ -1,0 +1,16 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/compile_time_jenkins_hashes
+---
+error[tokenizer]: unclosed string (1:7 to 1:23)
+  ┌─ source.lua:1:7
+  │
+1 │ print('Hello, World!)
+  │       ^^^^^^^^^^^^^^^^
+
+error[ast]: expected `)` to close function call
+  ┌─ source.lua:1:6
+  │
+1 │ print('Hello, World!)
+  │      ^

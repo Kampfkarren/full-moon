@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cfxlua_cases/fail/parser/addition_assignment_operator
+---
+error[ast]: expected expression to set to
+  ┌─ source.lua:3:7
+  │
+3 │ index +=
+  │       ^^

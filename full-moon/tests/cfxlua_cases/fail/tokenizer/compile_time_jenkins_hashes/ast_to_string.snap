@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/compile_time_jenkins_hashes
+---
+"print('Hello, World!)'\n)"

@@ -84,6 +84,20 @@ impl ParserState {
         }
     }
 
+    pub fn consume_if_symbols(&mut self, symbols: &[Symbol]) -> Option<TokenReference> {
+        match self.current() {
+            Ok(token) => {
+                if symbols.iter().any(|&symbol| token.is_symbol(symbol)) {
+                    Some(self.consume().unwrap())
+                } else {
+                    None
+                }
+            }
+
+            Err(()) => None,
+        }
+    }
+
     pub fn require(&mut self, symbol: Symbol, error: &'static str) -> Option<TokenReference> {
         match self.current() {
             Ok(token) => {

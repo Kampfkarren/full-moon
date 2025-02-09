@@ -6,7 +6,7 @@ use crate::{
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 use crate::ast::lua52::*;
-#[cfg(feature = "lua54")]
+#[cfg(any(feature = "lua54", feature = "cfxlua"))]
 use crate::ast::lua54::*;
 #[cfg(feature = "luau")]
 use crate::ast::luau::*;
@@ -302,7 +302,7 @@ create_visitor!(ast: {
     }
 
     // Lua 5.2
-    #[cfg(any(feature = "lua52", feature = "luajit"))] {
+    #[cfg(any(feature = "lua52", feature = "luajit", feature = "cfxlua"))] {
         visit_goto => Goto,
         visit_label => Label,
     }
@@ -310,12 +310,18 @@ create_visitor!(ast: {
     #[cfg(feature = "lua54")] {
         visit_attribute => Attribute,
     }
+
+    #[cfg(all(feature = "cfxlua", not(feature = "luau")))] {
+        visit_compound_assignment => CompoundAssignment,
+        visit_compound_op => CompoundOp,
+    }
 }, token: {
     visit_identifier,
     visit_multi_line_comment,
     visit_number,
     visit_single_line_comment,
     visit_string_literal,
+    visit_c_style_comment,
     visit_symbol,
     visit_token,
     visit_whitespace,

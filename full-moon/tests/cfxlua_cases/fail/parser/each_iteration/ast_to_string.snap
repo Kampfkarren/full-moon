@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/each_iteration
+---
+"local t = { 1, 2, 3 }\r\neach(t) do print(k, v) end\r\n"

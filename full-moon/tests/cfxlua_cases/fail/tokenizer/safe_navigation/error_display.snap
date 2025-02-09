@@ -1,0 +1,22 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/safe_navigation
+---
+error[tokenizer]: unexpected character ? (9:12 to 9:13)
+  ┌─ source.lua:9:12
+  │
+9 │ local x = a?b
+  │            ^
+
+error[ast]: unexpected expression when looking for a statement
+   ┌─ source.lua:10:1
+   │
+10 │ local y = a?.d?
+   │ ^^^^^
+
+error[tokenizer]: unexpected character ? (10:15 to 10:16)
+   ┌─ source.lua:10:15
+   │
+10 │ local y = a?.d?
+   │               ^
