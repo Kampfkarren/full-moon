@@ -10,9 +10,7 @@ use super::{
 };
 
 #[cfg(any(feature = "cfxlua", feature = "luau"))]
-use super::{
-    Var
-};
+use super::Var;
 
 use crate::{
     ast,
@@ -137,7 +135,6 @@ fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<
         },
     )))
 }
-
 
 fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
     let Ok(current_token) = state.current() else {
@@ -334,19 +331,19 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
 
                 #[cfg(feature = "cfxlua")]
                 Ok(token)
-                if state.lua_version().has_cfxlua()
-                    && (token.is_symbol(Symbol::PlusEqual)
-                    || token.is_symbol(Symbol::MinusEqual)
-                    || token.is_symbol(Symbol::StarEqual)
-                    || token.is_symbol(Symbol::SlashEqual)
-                    || token.is_symbol(Symbol::CaretEqual)
-                    || token.is_symbol(Symbol::LeftShift)
-                    || token.is_symbol(Symbol::RightShift)
-                    || token.is_symbol(Symbol::BitwiseAndAssignment)
-                    || token.is_symbol(Symbol::BitwiseOrAssignment)) =>
-                    {
-                        return parse_compound_assignment(state, var);
-                    }
+                    if state.lua_version().has_cfxlua()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::LeftShift)
+                            || token.is_symbol(Symbol::RightShift)
+                            || token.is_symbol(Symbol::BitwiseAndAssignment)
+                            || token.is_symbol(Symbol::BitwiseOrAssignment)) =>
+                {
+                    return parse_compound_assignment(state, var);
+                }
 
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
 
@@ -1075,12 +1072,10 @@ fn expect_local_assignment(
     #[cfg(feature = "cfxlua")]
     let symbols = [Symbol::Equal, Symbol::In];
 
-
     local_assignment.equal_token = match state.consume_if_symbols(&symbols) {
         Some(equal_token) => Some(equal_token),
         None => return Ok(local_assignment),
     };
-
 
     match parse_expression_list(state) {
         ParserResult::Value(expr_list) => local_assignment.expr_list = expr_list,
@@ -1237,7 +1232,9 @@ fn force_table_constructor(
                 let dot = state.consume().unwrap();
 
                 let key = match state.current() {
-                    Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+                    Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                        state.consume().unwrap()
+                    }
                     Ok(token) => {
                         state.token_error(token.clone(), "expected identifier after `.`");
                         return unfinished_table(left_brace, fields);
@@ -1580,7 +1577,10 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(ast::Suffix::Index(ast::Index::Dot { dot: safe_navigation, name }))
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Dot {
+                dot: safe_navigation,
+                name,
+            }))
         }
 
         TokenType::Symbol {

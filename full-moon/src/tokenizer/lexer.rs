@@ -358,7 +358,7 @@ impl Lexer {
                         start_position,
                         InterpolatedStringKind::Begin,
                         InterpolatedStringKind::Simple,
-                    ))
+                    ));
                 }
 
                 let (string, recovered) = self.read_string(quote);
@@ -375,8 +375,6 @@ impl Lexer {
                     },
                 )
             }
-
-
 
             '=' => {
                 if self.source.consume('=') {

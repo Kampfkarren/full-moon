@@ -1,8 +1,8 @@
-use derive_more::Display;
-use serde::{Deserialize, Serialize};
-use full_moon_derive::{Node, Visit};
 use crate::ast::{Expression, Var};
 use crate::tokenizer::{Symbol, TokenReference};
+use derive_more::Display;
+use full_moon_derive::{Node, Visit};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -50,41 +50,40 @@ impl CompoundOp {
 
     pub(crate) fn from_token(token: TokenReference) -> Self {
         if token.is_symbol(Symbol::PlusEqual) {
-            return Self::PlusEqual(token)
+            return Self::PlusEqual(token);
         } else if token.is_symbol(Symbol::MinusEqual) {
-            return Self::MinusEqual(token)
+            return Self::MinusEqual(token);
         } else if token.is_symbol(Symbol::StarEqual) {
-            return Self::StarEqual(token)
+            return Self::StarEqual(token);
         } else if token.is_symbol(Symbol::SlashEqual) {
-            return Self::SlashEqual(token)
+            return Self::SlashEqual(token);
         } else if token.is_symbol(Symbol::CaretEqual) {
-            return Self::CaretEqual(token)
+            return Self::CaretEqual(token);
         }
 
         #[cfg(feature = "luau")]
         if token.is_symbol(Symbol::DoubleSlashEqual) {
-            return Self::DoubleSlashEqual(token)
+            return Self::DoubleSlashEqual(token);
         } else if token.is_symbol(Symbol::PercentEqual) {
-            return Self::PercentEqual(token)
+            return Self::PercentEqual(token);
         } else if token.is_symbol(Symbol::TwoDotsEqual) {
-            return Self::TwoDotsEqual(token)
+            return Self::TwoDotsEqual(token);
         }
 
         #[cfg(feature = "cfxlua")]
         if token.is_symbol(Symbol::LeftShift) {
-            return Self::LeftShift(token)
+            return Self::LeftShift(token);
         } else if token.is_symbol(Symbol::RightShift) {
-            return Self::RightShift(token)
+            return Self::RightShift(token);
         } else if token.is_symbol(Symbol::BitwiseAndAssignment) {
-            return Self::BitwiseAndAssignment(token)
+            return Self::BitwiseAndAssignment(token);
         } else if token.is_symbol(Symbol::BitwiseOrAssignment) {
-            return Self::BitwiseOrAssignment(token)
+            return Self::BitwiseOrAssignment(token);
         }
 
         unreachable!("converting an unknown token into a compound operator")
     }
 }
-
 
 /// A Compound Assignment statement, such as `x += 1` or `x -= 1`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]

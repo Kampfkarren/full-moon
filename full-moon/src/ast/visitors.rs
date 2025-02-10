@@ -27,10 +27,7 @@ impl Visit for Field {
             }
 
             #[cfg(feature = "cfxlua")]
-            Field::SetConstructorField {
-                dot,
-                name
-            } => {
+            Field::SetConstructorField { dot, name } => {
                 dot.visit(visitor);
                 name.visit(visitor);
             }
@@ -74,10 +71,7 @@ impl VisitMut for Field {
             }
 
             #[cfg(feature = "cfxlua")]
-            Field::SetConstructorField {
-                dot,
-                name
-            } => Field::SetConstructorField {
+            Field::SetConstructorField { dot, name } => Field::SetConstructorField {
                 dot: dot.visit_mut(visitor),
                 name: name.visit_mut(visitor),
             },

@@ -639,4 +639,7 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: "\r\n"
+        type_specifiers:
+          - ~
+          - ~
     - ~

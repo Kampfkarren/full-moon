@@ -4,13 +4,13 @@ use crate::{
     ShortString,
 };
 
+use super::{Lexer, LexerResult};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
 };
-use super::{Lexer, LexerResult};
 
 macro_rules! symbol {
     {
