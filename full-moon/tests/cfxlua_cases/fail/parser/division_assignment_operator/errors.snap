@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/division_assignment_operato
 - AstError:
     token:
       start_position:
-        bytes: 19
+        bytes: 18
         line: 2
         character: 4
       end_position:
-        bytes: 21
+        bytes: 20
         line: 2
         character: 6
       token_type:

@@ -3,4 +3,4 @@ source: full-moon/tests/fail_cases.rs
 expression: ast.to_string()
 input_file: full-moon/tests/cfxlua_cases/fail/parser/in_unpacking
 ---
-"local t = {\r\n  a = 1,\r\n  b = 2,\r\n  c = 3\r\n}\r\n\r\nlocal a, b, c in"
+"local t = {\n  a = 1,\n  b = 2,\n  c = 3\n}\n\nlocal a, b, c in"

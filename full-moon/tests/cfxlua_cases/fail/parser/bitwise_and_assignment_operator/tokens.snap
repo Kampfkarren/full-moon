@@ -85,51 +85,51 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/bitwise_and_assignment_oper
     line: 1
     character: 14
   end_position:
-    bytes: 15
+    bytes: 14
     line: 1
-    character: 15
+    character: 14
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 15
+    bytes: 14
     line: 2
     character: 1
   end_position:
-    bytes: 17
+    bytes: 16
     line: 2
     character: 3
   token_type:
     type: Symbol
     symbol: "&="
 - start_position:
-    bytes: 17
+    bytes: 16
     line: 2
     character: 3
   end_position:
-    bytes: 18
+    bytes: 17
     line: 2
     character: 4
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
-    bytes: 18
+    bytes: 17
     line: 2
     character: 4
   end_position:
-    bytes: 19
+    bytes: 18
     line: 2
     character: 5
   token_type:
     type: Number
     text: "3"
 - start_position:
-    bytes: 19
+    bytes: 18
     line: 2
     character: 5
   end_position:
-    bytes: 19
+    bytes: 18
     line: 2
     character: 5
   token_type:

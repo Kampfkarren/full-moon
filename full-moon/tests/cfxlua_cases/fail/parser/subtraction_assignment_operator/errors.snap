@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/subtraction_assignment_oper
 - AstError:
     token:
       start_position:
-        bytes: 16
+        bytes: 15
         line: 2
         character: 1
       end_position:
-        bytes: 18
+        bytes: 17
         line: 2
         character: 3
       token_type:

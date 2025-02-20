@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/each_iteration
 - AstError:
     token:
       start_position:
-        bytes: 23
+        bytes: 22
         line: 2
         character: 1
       end_position:
-        bytes: 26
+        bytes: 25
         line: 2
         character: 4
       token_type:
@@ -20,11 +20,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/each_iteration
 - AstError:
     token:
       start_position:
-        bytes: 27
+        bytes: 26
         line: 2
         character: 5
       end_position:
-        bytes: 29
+        bytes: 28
         line: 2
         character: 7
       token_type:

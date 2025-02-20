@@ -109,22 +109,22 @@ nodes:
                           line: 1
                           character: 15
                         end_position:
-                          bytes: 16
+                          bytes: 15
                           line: 1
-                          character: 16
+                          character: 15
                         token_type:
                           type: Whitespace
-                          characters: "\r\n"
+                          characters: "\n"
       - ~
 eof:
   leading_trivia: []
   token:
     start_position:
-      bytes: 22
+      bytes: 20
       line: 3
       character: 1
     end_position:
-      bytes: 22
+      bytes: 20
       line: 3
       character: 1
     token_type:

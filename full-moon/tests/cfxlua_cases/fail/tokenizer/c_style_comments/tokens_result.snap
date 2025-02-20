@@ -65,18 +65,18 @@ Recovered:
         line: 1
         character: 24
       end_position:
-        bytes: 48
+        bytes: 46
         line: 3
         character: 1
       token_type:
         type: CStyleComment
-        comment: " Comment\r\nlocal a = 2\r\n"
+        comment: " Comment\nlocal a = 2\n"
     - start_position:
-        bytes: 48
+        bytes: 46
         line: 3
         character: 1
       end_position:
-        bytes: 48
+        bytes: 46
         line: 3
         character: 1
       token_type:
@@ -86,6 +86,6 @@ Recovered:
         - bytes: 23
           line: 1
           character: 24
-        - bytes: 48
+        - bytes: 46
           line: 3
           character: 1

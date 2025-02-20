@@ -53,18 +53,18 @@ input_file: full-moon/tests/cfxlua_cases/pass/compile_time_jenkins_hashes
     line: 1
     character: 23
   end_position:
-    bytes: 24
+    bytes: 23
     line: 1
-    character: 24
+    character: 23
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 24
+    bytes: 23
     line: 2
     character: 1
   end_position:
-    bytes: 24
+    bytes: 23
     line: 2
     character: 1
   token_type:

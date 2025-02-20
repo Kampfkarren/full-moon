@@ -195,18 +195,18 @@ input_file: full-moon/tests/cfxlua_cases/pass/set_constructor
     line: 1
     character: 22
   end_position:
-    bytes: 23
+    bytes: 22
     line: 1
-    character: 23
+    character: 22
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 23
+    bytes: 22
     line: 2
     character: 1
   end_position:
-    bytes: 23
+    bytes: 22
     line: 2
     character: 1
   token_type:

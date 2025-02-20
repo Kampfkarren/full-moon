@@ -3,4 +3,4 @@ source: full-moon/tests/fail_cases.rs
 expression: ast.to_string()
 input_file: full-moon/tests/cfxlua_cases/fail/parser/left_shift_assignment_operator
 ---
-"local num = 1\r\n"
+"local num = 1\n"

@@ -10,8 +10,8 @@ input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/compile_time_jenkins_has
         line: 1
         character: 7
       - bytes: 22
-        line: 1
-        character: 23
+        line: 2
+        character: 1
 - AstError:
     token:
       start_position:

@@ -85,62 +85,62 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/addition_assignment_operato
     line: 1
     character: 16
   end_position:
-    bytes: 17
+    bytes: 16
     line: 1
-    character: 17
+    character: 16
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 17
+    bytes: 16
     line: 2
     character: 1
   end_position:
-    bytes: 19
+    bytes: 17
     line: 2
-    character: 2
+    character: 1
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 19
+    bytes: 17
     line: 3
     character: 1
   end_position:
-    bytes: 24
+    bytes: 22
     line: 3
     character: 6
   token_type:
     type: Identifier
     identifier: index
 - start_position:
-    bytes: 24
+    bytes: 22
     line: 3
     character: 6
   end_position:
-    bytes: 25
+    bytes: 23
     line: 3
     character: 7
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
-    bytes: 25
+    bytes: 23
     line: 3
     character: 7
   end_position:
-    bytes: 27
+    bytes: 25
     line: 3
     character: 9
   token_type:
     type: Symbol
     symbol: +=
 - start_position:
-    bytes: 27
+    bytes: 25
     line: 3
     character: 9
   end_position:
-    bytes: 27
+    bytes: 25
     line: 3
     character: 9
   token_type:

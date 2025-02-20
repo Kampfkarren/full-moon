@@ -9,6 +9,6 @@ input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/c_style_comments
       - bytes: 23
         line: 1
         character: 24
-      - bytes: 48
+      - bytes: 46
         line: 3
         character: 1

@@ -110,12 +110,12 @@ stmts:
                               line: 1
                               character: 22
                             end_position:
-                              bytes: 23
+                              bytes: 22
                               line: 1
-                              character: 23
+                              character: 22
                             token_type:
                               type: Whitespace
-                              characters: "\r\n"
+                              characters: "\n"
                   fields:
                     pairs:
                       - Punctuated:

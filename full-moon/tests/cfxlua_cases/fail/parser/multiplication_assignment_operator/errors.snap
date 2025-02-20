@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/multiplication_assignment_o
 - AstError:
     token:
       start_position:
-        bytes: 22
+        bytes: 21
         line: 2
         character: 6
       end_position:
-        bytes: 24
+        bytes: 23
         line: 2
         character: 8
       token_type:

@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/right_shift_assignment_oper
 - AstError:
     token:
       start_position:
-        bytes: 15
+        bytes: 14
         line: 2
         character: 1
       end_position:
-        bytes: 18
+        bytes: 17
         line: 2
         character: 4
       token_type:

@@ -85,51 +85,51 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/right_shift_assignment_oper
     line: 1
     character: 14
   end_position:
-    bytes: 15
+    bytes: 14
     line: 1
-    character: 15
+    character: 14
   token_type:
     type: Whitespace
-    characters: "\r\n"
+    characters: "\n"
 - start_position:
-    bytes: 15
+    bytes: 14
     line: 2
     character: 1
   end_position:
-    bytes: 18
+    bytes: 17
     line: 2
     character: 4
   token_type:
     type: Symbol
     symbol: ">>="
 - start_position:
-    bytes: 18
+    bytes: 17
     line: 2
     character: 4
   end_position:
-    bytes: 19
+    bytes: 18
     line: 2
     character: 5
   token_type:
     type: Whitespace
     characters: " "
 - start_position:
-    bytes: 19
+    bytes: 18
     line: 2
     character: 5
   end_position:
-    bytes: 20
+    bytes: 19
     line: 2
     character: 6
   token_type:
     type: Number
     text: "2"
 - start_position:
-    bytes: 20
+    bytes: 19
     line: 2
     character: 6
   end_position:
-    bytes: 20
+    bytes: 19
     line: 2
     character: 6
   token_type:

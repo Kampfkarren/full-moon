@@ -32,29 +32,18 @@ Recovered:
         character: 7
       end_position:
         bytes: 22
-        line: 1
-        character: 23
+        line: 2
+        character: 1
       token_type:
         type: StringLiteral
         literal: "Hello, World!)"
         quote_type: Single
     - start_position:
         bytes: 22
-        line: 1
-        character: 23
-      end_position:
-        bytes: 23
-        line: 1
-        character: 23
-      token_type:
-        type: Whitespace
-        characters: "\n"
-    - start_position:
-        bytes: 23
         line: 2
         character: 1
       end_position:
-        bytes: 23
+        bytes: 22
         line: 2
         character: 1
       token_type:
@@ -65,5 +54,5 @@ Recovered:
           line: 1
           character: 7
         - bytes: 22
-          line: 1
-          character: 23
+          line: 2
+          character: 1

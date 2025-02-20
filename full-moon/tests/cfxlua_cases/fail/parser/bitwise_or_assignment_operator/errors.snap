@@ -6,11 +6,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/bitwise_or_assignment_opera
 - AstError:
     token:
       start_position:
-        bytes: 15
+        bytes: 14
         line: 2
         character: 1
       end_position:
-        bytes: 16
+        bytes: 15
         line: 2
         character: 2
       token_type:
@@ -20,11 +20,11 @@ input_file: full-moon/tests/cfxlua_cases/fail/parser/bitwise_or_assignment_opera
 - AstError:
     token:
       start_position:
-        bytes: 25
+        bytes: 23
         line: 3
         character: 1
       end_position:
-        bytes: 25
+        bytes: 23
         line: 3
         character: 1
       token_type:

@@ -60,12 +60,12 @@ stmts:
                               line: 1
                               character: 23
                             end_position:
-                              bytes: 24
+                              bytes: 23
                               line: 1
-                              character: 24
+                              character: 23
                             token_type:
                               type: Whitespace
-                              characters: "\r\n"
+                              characters: "\n"
                   arguments:
                     pairs:
                       - End:

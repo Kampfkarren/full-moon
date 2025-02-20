@@ -111,20 +111,20 @@ nodes:
                                 line: 1
                                 character: 12
                               end_position:
-                                bytes: 13
+                                bytes: 12
                                 line: 1
-                                character: 13
+                                character: 12
                               token_type:
                                 type: Whitespace
-                                characters: "\r\n"
+                                characters: "\n"
                         - leading_trivia: []
                           token:
                             start_position:
-                              bytes: 42
+                              bytes: 38
                               line: 5
                               character: 1
                             end_position:
-                              bytes: 43
+                              bytes: 39
                               line: 5
                               character: 2
                             token_type:
@@ -132,16 +132,16 @@ nodes:
                               symbol: "}"
                           trailing_trivia:
                             - start_position:
-                                bytes: 43
+                                bytes: 39
                                 line: 5
                                 character: 2
                               end_position:
-                                bytes: 45
+                                bytes: 40
                                 line: 5
-                                character: 3
+                                character: 2
                               token_type:
                                 type: Whitespace
-                                characters: "\r\n"
+                                characters: "\n"
                     fields:
                       pairs:
                         - Punctuated:
@@ -149,11 +149,11 @@ nodes:
                                 key:
                                   leading_trivia:
                                     - start_position:
-                                        bytes: 13
+                                        bytes: 12
                                         line: 2
                                         character: 1
                                       end_position:
-                                        bytes: 15
+                                        bytes: 14
                                         line: 2
                                         character: 3
                                       token_type:
@@ -161,11 +161,11 @@ nodes:
                                         characters: "  "
                                   token:
                                     start_position:
-                                      bytes: 15
+                                      bytes: 14
                                       line: 2
                                       character: 3
                                     end_position:
-                                      bytes: 16
+                                      bytes: 15
                                       line: 2
                                       character: 4
                                     token_type:
@@ -173,11 +173,11 @@ nodes:
                                       identifier: a
                                   trailing_trivia:
                                     - start_position:
-                                        bytes: 16
+                                        bytes: 15
                                         line: 2
                                         character: 4
                                       end_position:
-                                        bytes: 17
+                                        bytes: 16
                                         line: 2
                                         character: 5
                                       token_type:
@@ -187,11 +187,11 @@ nodes:
                                   leading_trivia: []
                                   token:
                                     start_position:
-                                      bytes: 17
+                                      bytes: 16
                                       line: 2
                                       character: 5
                                     end_position:
-                                      bytes: 18
+                                      bytes: 17
                                       line: 2
                                       character: 6
                                     token_type:
@@ -199,11 +199,11 @@ nodes:
                                       symbol: "="
                                   trailing_trivia:
                                     - start_position:
-                                        bytes: 18
+                                        bytes: 17
                                         line: 2
                                         character: 6
                                       end_position:
-                                        bytes: 19
+                                        bytes: 18
                                         line: 2
                                         character: 7
                                       token_type:
@@ -214,11 +214,11 @@ nodes:
                                     leading_trivia: []
                                     token:
                                       start_position:
-                                        bytes: 19
+                                        bytes: 18
                                         line: 2
                                         character: 7
                                       end_position:
-                                        bytes: 20
+                                        bytes: 19
                                         line: 2
                                         character: 8
                                       token_type:
@@ -228,11 +228,11 @@ nodes:
                             - leading_trivia: []
                               token:
                                 start_position:
-                                  bytes: 20
+                                  bytes: 19
                                   line: 2
                                   character: 8
                                 end_position:
-                                  bytes: 21
+                                  bytes: 20
                                   line: 2
                                   character: 9
                                 token_type:
@@ -240,26 +240,26 @@ nodes:
                                   symbol: ","
                               trailing_trivia:
                                 - start_position:
-                                    bytes: 21
+                                    bytes: 20
                                     line: 2
                                     character: 9
                                   end_position:
-                                    bytes: 23
+                                    bytes: 21
                                     line: 2
-                                    character: 10
+                                    character: 9
                                   token_type:
                                     type: Whitespace
-                                    characters: "\r\n"
+                                    characters: "\n"
                         - Punctuated:
                             - NameKey:
                                 key:
                                   leading_trivia:
                                     - start_position:
-                                        bytes: 23
+                                        bytes: 21
                                         line: 3
                                         character: 1
                                       end_position:
-                                        bytes: 25
+                                        bytes: 23
                                         line: 3
                                         character: 3
                                       token_type:
@@ -267,11 +267,11 @@ nodes:
                                         characters: "  "
                                   token:
                                     start_position:
-                                      bytes: 25
+                                      bytes: 23
                                       line: 3
                                       character: 3
                                     end_position:
-                                      bytes: 26
+                                      bytes: 24
                                       line: 3
                                       character: 4
                                     token_type:
@@ -279,11 +279,11 @@ nodes:
                                       identifier: b
                                   trailing_trivia:
                                     - start_position:
-                                        bytes: 26
+                                        bytes: 24
                                         line: 3
                                         character: 4
                                       end_position:
-                                        bytes: 27
+                                        bytes: 25
                                         line: 3
                                         character: 5
                                       token_type:
@@ -293,11 +293,11 @@ nodes:
                                   leading_trivia: []
                                   token:
                                     start_position:
-                                      bytes: 27
+                                      bytes: 25
                                       line: 3
                                       character: 5
                                     end_position:
-                                      bytes: 28
+                                      bytes: 26
                                       line: 3
                                       character: 6
                                     token_type:
@@ -305,11 +305,11 @@ nodes:
                                       symbol: "="
                                   trailing_trivia:
                                     - start_position:
-                                        bytes: 28
+                                        bytes: 26
                                         line: 3
                                         character: 6
                                       end_position:
-                                        bytes: 29
+                                        bytes: 27
                                         line: 3
                                         character: 7
                                       token_type:
@@ -320,11 +320,11 @@ nodes:
                                     leading_trivia: []
                                     token:
                                       start_position:
-                                        bytes: 29
+                                        bytes: 27
                                         line: 3
                                         character: 7
                                       end_position:
-                                        bytes: 30
+                                        bytes: 28
                                         line: 3
                                         character: 8
                                       token_type:
@@ -334,11 +334,11 @@ nodes:
                             - leading_trivia: []
                               token:
                                 start_position:
-                                  bytes: 30
+                                  bytes: 28
                                   line: 3
                                   character: 8
                                 end_position:
-                                  bytes: 31
+                                  bytes: 29
                                   line: 3
                                   character: 9
                                 token_type:
@@ -346,26 +346,26 @@ nodes:
                                   symbol: ","
                               trailing_trivia:
                                 - start_position:
-                                    bytes: 31
+                                    bytes: 29
                                     line: 3
                                     character: 9
                                   end_position:
-                                    bytes: 33
+                                    bytes: 30
                                     line: 3
-                                    character: 10
+                                    character: 9
                                   token_type:
                                     type: Whitespace
-                                    characters: "\r\n"
+                                    characters: "\n"
                         - End:
                             NameKey:
                               key:
                                 leading_trivia:
                                   - start_position:
-                                      bytes: 33
+                                      bytes: 30
                                       line: 4
                                       character: 1
                                     end_position:
-                                      bytes: 35
+                                      bytes: 32
                                       line: 4
                                       character: 3
                                     token_type:
@@ -373,11 +373,11 @@ nodes:
                                       characters: "  "
                                 token:
                                   start_position:
-                                    bytes: 35
+                                    bytes: 32
                                     line: 4
                                     character: 3
                                   end_position:
-                                    bytes: 36
+                                    bytes: 33
                                     line: 4
                                     character: 4
                                   token_type:
@@ -385,11 +385,11 @@ nodes:
                                     identifier: c
                                 trailing_trivia:
                                   - start_position:
-                                      bytes: 36
+                                      bytes: 33
                                       line: 4
                                       character: 4
                                     end_position:
-                                      bytes: 37
+                                      bytes: 34
                                       line: 4
                                       character: 5
                                     token_type:
@@ -399,11 +399,11 @@ nodes:
                                 leading_trivia: []
                                 token:
                                   start_position:
-                                    bytes: 37
+                                    bytes: 34
                                     line: 4
                                     character: 5
                                   end_position:
-                                    bytes: 38
+                                    bytes: 35
                                     line: 4
                                     character: 6
                                   token_type:
@@ -411,11 +411,11 @@ nodes:
                                     symbol: "="
                                 trailing_trivia:
                                   - start_position:
-                                      bytes: 38
+                                      bytes: 35
                                       line: 4
                                       character: 6
                                     end_position:
-                                      bytes: 39
+                                      bytes: 36
                                       line: 4
                                       character: 7
                                     token_type:
@@ -426,11 +426,11 @@ nodes:
                                   leading_trivia: []
                                   token:
                                     start_position:
-                                      bytes: 39
+                                      bytes: 36
                                       line: 4
                                       character: 7
                                     end_position:
-                                      bytes: 40
+                                      bytes: 37
                                       line: 4
                                       character: 8
                                     token_type:
@@ -438,38 +438,38 @@ nodes:
                                       text: "3"
                                   trailing_trivia:
                                     - start_position:
-                                        bytes: 40
+                                        bytes: 37
                                         line: 4
                                         character: 8
                                       end_position:
-                                        bytes: 42
+                                        bytes: 38
                                         line: 4
-                                        character: 9
+                                        character: 8
                                       token_type:
                                         type: Whitespace
-                                        characters: "\r\n"
+                                        characters: "\n"
       - ~
     - - LocalAssignment:
           local_token:
             leading_trivia:
               - start_position:
-                  bytes: 45
+                  bytes: 40
                   line: 6
                   character: 1
                 end_position:
-                  bytes: 47
+                  bytes: 41
                   line: 6
-                  character: 2
+                  character: 1
                 token_type:
                   type: Whitespace
-                  characters: "\r\n"
+                  characters: "\n"
             token:
               start_position:
-                bytes: 47
+                bytes: 41
                 line: 7
                 character: 1
               end_position:
-                bytes: 52
+                bytes: 46
                 line: 7
                 character: 6
               token_type:
@@ -477,11 +477,11 @@ nodes:
                 symbol: local
             trailing_trivia:
               - start_position:
-                  bytes: 52
+                  bytes: 46
                   line: 7
                   character: 6
                 end_position:
-                  bytes: 53
+                  bytes: 47
                   line: 7
                   character: 7
                 token_type:
@@ -493,11 +493,11 @@ nodes:
                   - leading_trivia: []
                     token:
                       start_position:
-                        bytes: 53
+                        bytes: 47
                         line: 7
                         character: 7
                       end_position:
-                        bytes: 54
+                        bytes: 48
                         line: 7
                         character: 8
                       token_type:
@@ -507,11 +507,11 @@ nodes:
                   - leading_trivia: []
                     token:
                       start_position:
-                        bytes: 54
+                        bytes: 48
                         line: 7
                         character: 8
                       end_position:
-                        bytes: 55
+                        bytes: 49
                         line: 7
                         character: 9
                       token_type:
@@ -519,11 +519,11 @@ nodes:
                         symbol: ","
                     trailing_trivia:
                       - start_position:
-                          bytes: 55
+                          bytes: 49
                           line: 7
                           character: 9
                         end_position:
-                          bytes: 56
+                          bytes: 50
                           line: 7
                           character: 10
                         token_type:
@@ -533,11 +533,11 @@ nodes:
                   - leading_trivia: []
                     token:
                       start_position:
-                        bytes: 56
+                        bytes: 50
                         line: 7
                         character: 10
                       end_position:
-                        bytes: 57
+                        bytes: 51
                         line: 7
                         character: 11
                       token_type:
@@ -547,11 +547,11 @@ nodes:
                   - leading_trivia: []
                     token:
                       start_position:
-                        bytes: 57
+                        bytes: 51
                         line: 7
                         character: 11
                       end_position:
-                        bytes: 58
+                        bytes: 52
                         line: 7
                         character: 12
                       token_type:
@@ -559,11 +559,11 @@ nodes:
                         symbol: ","
                     trailing_trivia:
                       - start_position:
-                          bytes: 58
+                          bytes: 52
                           line: 7
                           character: 12
                         end_position:
-                          bytes: 59
+                          bytes: 53
                           line: 7
                           character: 13
                         token_type:
@@ -573,11 +573,11 @@ nodes:
                   leading_trivia: []
                   token:
                     start_position:
-                      bytes: 59
+                      bytes: 53
                       line: 7
                       character: 13
                     end_position:
-                      bytes: 60
+                      bytes: 54
                       line: 7
                       character: 14
                     token_type:
@@ -585,11 +585,11 @@ nodes:
                       identifier: c
                   trailing_trivia:
                     - start_position:
-                        bytes: 60
+                        bytes: 54
                         line: 7
                         character: 14
                       end_position:
-                        bytes: 61
+                        bytes: 55
                         line: 7
                         character: 15
                       token_type:
@@ -599,11 +599,11 @@ nodes:
             leading_trivia: []
             token:
               start_position:
-                bytes: 61
+                bytes: 55
                 line: 7
                 character: 15
               end_position:
-                bytes: 63
+                bytes: 57
                 line: 7
                 character: 17
               token_type:
@@ -617,11 +617,11 @@ eof:
   leading_trivia: []
   token:
     start_position:
-      bytes: 63
+      bytes: 57
       line: 7
       character: 17
     end_position:
-      bytes: 63
+      bytes: 57
       line: 7
       character: 17
     token_type:

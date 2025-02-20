@@ -108,35 +108,35 @@ stmts:
                         line: 1
                         character: 16
                       end_position:
-                        bytes: 17
+                        bytes: 16
                         line: 1
-                        character: 17
+                        character: 16
                       token_type:
                         type: Whitespace
-                        characters: "\r\n"
+                        characters: "\n"
     - ~
   - - CompoundAssignment:
         lhs:
           Name:
             leading_trivia:
               - start_position:
-                  bytes: 17
+                  bytes: 16
                   line: 2
                   character: 1
                 end_position:
-                  bytes: 19
+                  bytes: 17
                   line: 2
-                  character: 2
+                  character: 1
                 token_type:
                   type: Whitespace
-                  characters: "\r\n"
+                  characters: "\n"
             token:
               start_position:
-                bytes: 19
+                bytes: 17
                 line: 3
                 character: 1
               end_position:
-                bytes: 24
+                bytes: 22
                 line: 3
                 character: 6
               token_type:
@@ -144,11 +144,11 @@ stmts:
                 identifier: index
             trailing_trivia:
               - start_position:
-                  bytes: 24
+                  bytes: 22
                   line: 3
                   character: 6
                 end_position:
-                  bytes: 25
+                  bytes: 23
                   line: 3
                   character: 7
                 token_type:
@@ -159,11 +159,11 @@ stmts:
             leading_trivia: []
             token:
               start_position:
-                bytes: 25
+                bytes: 23
                 line: 3
                 character: 7
               end_position:
-                bytes: 27
+                bytes: 25
                 line: 3
                 character: 9
               token_type:
@@ -171,11 +171,11 @@ stmts:
                 symbol: +=
             trailing_trivia:
               - start_position:
-                  bytes: 27
+                  bytes: 25
                   line: 3
                   character: 9
                 end_position:
-                  bytes: 28
+                  bytes: 26
                   line: 3
                   character: 10
                 token_type:
@@ -186,11 +186,11 @@ stmts:
             leading_trivia: []
             token:
               start_position:
-                bytes: 28
+                bytes: 26
                 line: 3
                 character: 10
               end_position:
-                bytes: 29
+                bytes: 27
                 line: 3
                 character: 11
               token_type:

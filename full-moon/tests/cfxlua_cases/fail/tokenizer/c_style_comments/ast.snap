@@ -94,19 +94,19 @@ eof:
         line: 1
         character: 24
       end_position:
-        bytes: 48
+        bytes: 46
         line: 3
         character: 1
       token_type:
         type: CStyleComment
-        comment: " Comment\r\nlocal a = 2\r\n"
+        comment: " Comment\nlocal a = 2\n"
   token:
     start_position:
-      bytes: 48
+      bytes: 46
       line: 3
       character: 1
     end_position:
-      bytes: 48
+      bytes: 46
       line: 3
       character: 1
     token_type:
