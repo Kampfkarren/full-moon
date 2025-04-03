@@ -120,7 +120,7 @@ symbol! {
         Until => "until",
         While => "while",
 
-        [lua52 | luajit | cfxlua] Goto => "goto",
+        [lua52 | luajit] Goto => "goto",
 
         [luau | cfxlua] PlusEqual => "+=",
         [luau | cfxlua] MinusEqual => "-=",
@@ -136,11 +136,11 @@ symbol! {
         [luau] ThinArrow => "->",
         [luau | lua52 | luajit] TwoColons => "::",
 
-        [cfxlua] LeftShift => "<<=",
-        [cfxlua] RightShift => ">>=",
-        [cfxlua] BitwiseAndAssignment => "&=",
-        [cfxlua] BitwiseOrAssignment => "|=",
-        [cfxlua] SafeNavigation => "?.",
+        [cfxlua] DoubleLessThanEqual => "<<=",
+        [cfxlua] DoubleGreaterThanEqual => ">>=",
+        [cfxlua] AmpersandEqual => "&=",
+        [cfxlua] PipeEqual => "|=",
+        [cfxlua] QuestionMarkDot => "?.",
 
         Caret => "^",
         Colon => ":",
@@ -372,7 +372,7 @@ impl TokenType {
             TokenType::InterpolatedString { .. } => TokenKind::InterpolatedString,
 
             #[cfg(feature = "cfxlua")]
-            TokenType::CStyleComment { .. } => TokenKind::CStylComment,
+            TokenType::CStyleComment { .. } => TokenKind::CStyleComment,
         }
     }
 
@@ -419,8 +419,8 @@ pub enum TokenKind {
     InterpolatedString,
 
     #[cfg(feature = "cfxlua")]
-    /// A single/multi line C-style comment, such as `/* comment */`
-    CStylComment,
+    /// A C-style comment, such as `/* comment */`
+    CStyleComment,
 }
 
 /// A token such consisting of its [`Position`] and a [`TokenType`]
@@ -553,7 +553,7 @@ impl Visit for Token {
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(self),
 
             #[cfg(feature = "cfxlua")]
-            TokenKind::CStylComment => visitor.visit_c_style_comment(self),
+            TokenKind::CStyleComment => visitor.visit_c_style_comment(self),
         }
     }
 }
@@ -577,7 +577,7 @@ impl VisitMut for Token {
             TokenKind::InterpolatedString => visitor.visit_interpolated_string_segment(token),
 
             #[cfg(feature = "cfxlua")]
-            TokenKind::CStylComment => visitor.visit_c_style_comment(token),
+            TokenKind::CStyleComment => visitor.visit_c_style_comment(token),
         }
     }
 }

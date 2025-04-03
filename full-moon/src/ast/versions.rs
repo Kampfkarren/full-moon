@@ -123,11 +123,11 @@ impl LuaVersion {
         cfg!(feature = "luajit") && (self.bitfield & VERSION_LUAJIT != 0)
     }
 
-    /// Creates a new LuaVersion with only CFX Lua.
+    /// Creates a new LuaVersion with CFX Lua, which includes Lua 5.2, 5.3, and Lua 5.4 features.
     #[cfg(feature = "cfxlua")]
     pub fn cfxlua() -> Self {
         Self {
-            bitfield: VERSION_CFXLUA,
+            bitfield: VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54 | VERSION_CFXLUA,
         }
     }
 

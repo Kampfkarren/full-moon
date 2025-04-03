@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: tokens
-input_file: full-moon/tests/cfxlua_cases/pass/bitwise_and_assignment_operator
+input_file: full-moon/tests/cfxlua_cases/pass/ampersand_equal
 ---
 - start_position:
     bytes: 0

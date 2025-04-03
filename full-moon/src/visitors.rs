@@ -6,7 +6,7 @@ use crate::{
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 use crate::ast::lua52::*;
-#[cfg(any(feature = "lua54", feature = "cfxlua"))]
+#[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
 #[cfg(feature = "luau")]
 use crate::ast::luau::*;
@@ -278,8 +278,6 @@ create_visitor!(ast: {
 
     // Types
     #[cfg(feature = "luau")] {
-        visit_compound_assignment => CompoundAssignment,
-        visit_compound_op => CompoundOp,
         visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,
@@ -302,7 +300,7 @@ create_visitor!(ast: {
     }
 
     // Lua 5.2
-    #[cfg(any(feature = "lua52", feature = "luajit", feature = "cfxlua"))] {
+    #[cfg(any(feature = "lua52", feature = "luajit"))] {
         visit_goto => Goto,
         visit_label => Label,
     }
@@ -311,7 +309,7 @@ create_visitor!(ast: {
         visit_attribute => Attribute,
     }
 
-    #[cfg(all(feature = "cfxlua", not(feature = "luau")))] {
+    #[cfg(any(feature = "cfxlua", feature = "luau"))] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
     }
@@ -321,12 +319,15 @@ create_visitor!(ast: {
     visit_number,
     visit_single_line_comment,
     visit_string_literal,
-    visit_c_style_comment,
     visit_symbol,
     visit_token,
     visit_whitespace,
 
     #[cfg(feature = "luau")] {
         visit_interpolated_string_segment,
+    }
+
+    #[cfg(feature = "cfxlua")] {
+        visit_c_style_comment,
     }
 });

@@ -10,7 +10,7 @@ use super::{
 };
 
 #[cfg(any(feature = "cfxlua", feature = "luau"))]
-use super::Var;
+use ast::Var;
 
 use crate::{
     ast,
@@ -337,10 +337,10 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::StarEqual)
                             || token.is_symbol(Symbol::SlashEqual)
                             || token.is_symbol(Symbol::CaretEqual)
-                            || token.is_symbol(Symbol::LeftShift)
-                            || token.is_symbol(Symbol::RightShift)
-                            || token.is_symbol(Symbol::BitwiseAndAssignment)
-                            || token.is_symbol(Symbol::BitwiseOrAssignment)) =>
+                            || token.is_symbol(Symbol::DoubleLessThanEqual)
+                            || token.is_symbol(Symbol::DoubleGreaterThanEqual)
+                            || token.is_symbol(Symbol::AmpersandEqual)
+                            || token.is_symbol(Symbol::PipeEqual)) =>
                 {
                     return parse_compound_assignment(state, var);
                 }
@@ -1244,7 +1244,7 @@ fn force_table_constructor(
                     }
                 };
 
-                ast::Field::SetConstructorField { dot, name: key }
+                ast::Field::SetConstructor { dot, name: key }
             }
 
             _ => {
@@ -1561,7 +1561,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
     match current.token_type() {
         #[cfg(feature = "cfxlua")]
         TokenType::Symbol {
-            symbol: Symbol::SafeNavigation,
+            symbol: Symbol::QuestionMarkDot,
         } => {
             let safe_navigation = state.consume().unwrap();
             let name = match state.current() {
