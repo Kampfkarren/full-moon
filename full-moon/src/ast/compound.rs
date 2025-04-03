@@ -45,14 +45,12 @@ impl CompoundOp {
             | Self::StarEqual(token)
             | Self::SlashEqual(token)
             | Self::CaretEqual(token) => token,
-            
             #[cfg(feature = "luau")]
             Self::DoubleSlashEqual(token) => token,
             #[cfg(feature = "luau")]
             Self::PercentEqual(token) => token,
             #[cfg(feature = "luau")]
             Self::TwoDotsEqual(token) => token,
-            
             #[cfg(feature = "cfxlua")]
             Self::DoubleLessThanEqual(token) => token,
             #[cfg(feature = "cfxlua")]
