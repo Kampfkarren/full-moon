@@ -17,16 +17,23 @@ pub enum CompoundOp {
     SlashEqual(TokenReference),
     CaretEqual(TokenReference),
 
-    // luau sepcific
+    // luau specific
+    #[cfg(feature = "luau")]
     DoubleSlashEqual(TokenReference),
+    #[cfg(feature = "luau")]
     PercentEqual(TokenReference),
+    #[cfg(feature = "luau")]
     TwoDotsEqual(TokenReference),
 
-    // cfxlua sepcific
-    LeftShift(TokenReference),
-    RightShift(TokenReference),
-    BitwiseAndAssignment(TokenReference),
-    BitwiseOrAssignment(TokenReference),
+    // cfxlua specific
+    #[cfg(feature = "cfxlua")]
+    DoubleLessThanEqual(TokenReference),
+    #[cfg(feature = "cfxlua")]
+    DoubleGreaterThanEqual(TokenReference),
+    #[cfg(feature = "cfxlua")]
+    AmpersandEqual(TokenReference),
+    #[cfg(feature = "cfxlua")]
+    PipeEqual(TokenReference),
 }
 
 impl CompoundOp {
@@ -37,14 +44,23 @@ impl CompoundOp {
             | Self::MinusEqual(token)
             | Self::StarEqual(token)
             | Self::SlashEqual(token)
-            | Self::DoubleSlashEqual(token)
-            | Self::PercentEqual(token)
-            | Self::CaretEqual(token)
-            | Self::TwoDotsEqual(token)
-            | Self::LeftShift(token)
-            | Self::RightShift(token)
-            | Self::BitwiseAndAssignment(token)
-            | Self::BitwiseOrAssignment(token) => token,
+            | Self::CaretEqual(token) => token,
+            
+            #[cfg(feature = "luau")]
+            Self::DoubleSlashEqual(token) => token,
+            #[cfg(feature = "luau")]
+            Self::PercentEqual(token) => token,
+            #[cfg(feature = "luau")]
+            Self::TwoDotsEqual(token) => token,
+            
+            #[cfg(feature = "cfxlua")]
+            Self::DoubleLessThanEqual(token) => token,
+            #[cfg(feature = "cfxlua")]
+            Self::DoubleGreaterThanEqual(token) => token,
+            #[cfg(feature = "cfxlua")]
+            Self::AmpersandEqual(token) => token,
+            #[cfg(feature = "cfxlua")]
+            Self::PipeEqual(token) => token,
         }
     }
 
@@ -71,14 +87,14 @@ impl CompoundOp {
         }
 
         #[cfg(feature = "cfxlua")]
-        if token.is_symbol(Symbol::LeftShift) {
-            return Self::LeftShift(token);
-        } else if token.is_symbol(Symbol::RightShift) {
-            return Self::RightShift(token);
-        } else if token.is_symbol(Symbol::BitwiseAndAssignment) {
-            return Self::BitwiseAndAssignment(token);
-        } else if token.is_symbol(Symbol::BitwiseOrAssignment) {
-            return Self::BitwiseOrAssignment(token);
+        if token.is_symbol(Symbol::DoubleLessThanEqual) {
+            return Self::DoubleLessThanEqual(token);
+        } else if token.is_symbol(Symbol::DoubleGreaterThanEqual) {
+            return Self::DoubleGreaterThanEqual(token);
+        } else if token.is_symbol(Symbol::AmpersandEqual) {
+            return Self::AmpersandEqual(token);
+        } else if token.is_symbol(Symbol::PipeEqual) {
+            return Self::PipeEqual(token);
         }
 
         unreachable!("converting an unknown token into a compound operator")

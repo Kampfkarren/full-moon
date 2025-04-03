@@ -46,7 +46,7 @@ mod versions;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
-#[cfg(any(feature = "lua54", feature = "cfxlua"))]
+#[cfg(feature = "lua54")]
 pub mod lua54;
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
@@ -216,7 +216,7 @@ pub enum Field {
     /// A set constructor field, such as .a inside { .a } which is equivalent to { a = true }
     #[display("{dot}{name}")]
     #[cfg(feature = "cfxlua")]
-    SetConstructorField {
+    SetConstructor {
         /// The `.` part of `.a`
         dot: TokenReference,
         /// The `a` part of `.a`
@@ -430,11 +430,11 @@ pub enum Stmt {
 
     /// A goto statement, such as `goto label`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.
-    #[cfg(any(feature = "lua52", feature = "luajit", feature = "cfxlua"))]
+    #[cfg(any(feature = "lua52", feature = "luajit"))]
     Goto(Goto),
     /// A label, such as `::label::`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.
-    #[cfg(any(feature = "lua52", feature = "luajit", feature = "cfxlua"))]
+    #[cfg(any(feature = "lua52", feature = "luajit"))]
     Label(Label),
 }
 

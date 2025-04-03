@@ -893,9 +893,25 @@ impl ExportedTypeFunction {
     }
 }
 
-/*
-    CompoundOp and CompoundAssignment have been moved to `compound.rs´, since CfxLua makes use of them as well.
-*/
+/// A compound assignment operator, such as `+=`, `-=`, etc.
+/// This has been moved to `compound.rs` since CfxLua makes use of it as well.
+#[cfg(not(feature = "luau"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
+#[deprecated(
+    since = "full-moon 0.18.0",
+    note = "CompoundAssignment has been moved to full_moon::ast::compound::CompoundAssignment"
+)]
+pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
+
+/// The operator in a compound assignment, such as `+=`.
+/// This has been moved to `compound.rs` since CfxLua makes use of it as well.
+#[cfg(not(feature = "luau"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
+#[deprecated(
+    since = "full-moon 0.18.0",
+    note = "CompoundOp has been moved to full_moon::ast::compound::CompoundOp"
+)]
+pub type CompoundOp = crate::ast::compound::CompoundOp;
 
 /// An if statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]

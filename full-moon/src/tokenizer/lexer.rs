@@ -697,7 +697,7 @@ impl Lexer {
                                         return self.create(
                                             start_position,
                                             TokenType::Symbol {
-                                                symbol: Symbol::LeftShift,
+                                                symbol: Symbol::DoubleLessThanEqual,
                                             },
                                         );
                                     }
@@ -741,7 +741,7 @@ impl Lexer {
                                         return self.create(
                                             start_position,
                                             TokenType::Symbol {
-                                                symbol: Symbol::RightShift,
+                                                symbol: Symbol::DoubleGreaterThanEqual,
                                             },
                                         );
                                     }
@@ -913,6 +913,32 @@ impl Lexer {
                 },
             ),
 
+            // Ensure compound assignment operators (cfxlua) are checked first.
+            #[cfg(feature = "cfxlua")]
+            '&' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::AmpersandEqual,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '|' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::PipeEqual,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::QuestionMarkDot,
+                },
+            ),
+
+            // Now fall back to the plain operators
             #[cfg(any(feature = "lua53", feature = "luau"))]
             '&' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
                 start_position,
@@ -934,30 +960,6 @@ impl Lexer {
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::QuestionMark,
-                },
-            ),
-
-            #[cfg(feature = "cfxlua")]
-            '&' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::BitwiseAndAssignment,
-                },
-            ),
-
-            #[cfg(feature = "cfxlua")]
-            '|' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::BitwiseOrAssignment,
-                },
-            ),
-
-            #[cfg(feature = "cfxlua")]
-            '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
-                start_position,
-                TokenType::Symbol {
-                    symbol: Symbol::SafeNavigation,
                 },
             ),
 
