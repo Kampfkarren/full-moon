@@ -119,7 +119,7 @@ stmts:
                   fields:
                     pairs:
                       - Punctuated:
-                          - SetConstructorField:
+                          - SetConstructor:
                               dot:
                                 leading_trivia: []
                                 token:

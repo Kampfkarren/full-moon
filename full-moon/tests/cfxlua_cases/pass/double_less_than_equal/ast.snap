@@ -1,7 +1,7 @@
 ---
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
-input_file: full-moon/tests/cfxlua_cases/pass/bitwise_and_assignment_operator
+input_file: full-moon/tests/cfxlua_cases/pass/left_shift_assignment_operator
 ---
 stmts:
   - - LocalAssignment:
@@ -101,7 +101,7 @@ stmts:
                       character: 14
                     token_type:
                       type: Number
-                      text: "6"
+                      text: "1"
                   trailing_trivia:
                     - start_position:
                         bytes: 13
@@ -144,7 +144,7 @@ stmts:
                   type: Whitespace
                   characters: " "
         compound_operator:
-          BitwiseAndAssignment:
+          DoubleLessThanEqual:
             leading_trivia: []
             token:
               start_position:
@@ -152,21 +152,21 @@ stmts:
                 line: 2
                 character: 5
               end_position:
-                bytes: 20
+                bytes: 21
                 line: 2
-                character: 7
+                character: 8
               token_type:
                 type: Symbol
-                symbol: "&="
+                symbol: "<<="
             trailing_trivia:
               - start_position:
-                  bytes: 20
-                  line: 2
-                  character: 7
-                end_position:
                   bytes: 21
                   line: 2
                   character: 8
+                end_position:
+                  bytes: 22
+                  line: 2
+                  character: 9
                 token_type:
                   type: Whitespace
                   characters: " "
@@ -175,15 +175,26 @@ stmts:
             leading_trivia: []
             token:
               start_position:
-                bytes: 21
-                line: 2
-                character: 8
-              end_position:
                 bytes: 22
                 line: 2
                 character: 9
+              end_position:
+                bytes: 23
+                line: 2
+                character: 10
               token_type:
                 type: Number
-                text: "3"
-            trailing_trivia: []
+                text: "2"
+            trailing_trivia:
+              - start_position:
+                  bytes: 23
+                  line: 2
+                  character: 10
+                end_position:
+                  bytes: 24
+                  line: 2
+                  character: 10
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
     - ~
