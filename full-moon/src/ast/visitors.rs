@@ -115,8 +115,7 @@ impl Visit for Expression {
             }
 
             Expression::Function(func) => {
-                func.0.visit(visitor);
-                func.1.visit(visitor);
+                func.visit(visitor);
             }
 
             Expression::FunctionCall(function_call) => {
@@ -188,10 +187,7 @@ impl VisitMut for Expression {
                 expression: expression.visit_mut(visitor),
             },
 
-            Expression::Function(func) => Expression::Function(Box::new((
-                func.0.visit_mut(visitor),
-                func.1.visit_mut(visitor),
-            ))),
+            Expression::Function(func) => Expression::Function(func.visit_mut(visitor)),
 
             Expression::FunctionCall(function_call) => {
                 Expression::FunctionCall(function_call.visit_mut(visitor))

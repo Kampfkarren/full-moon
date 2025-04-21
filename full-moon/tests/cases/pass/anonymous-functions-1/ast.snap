@@ -1,8 +1,8 @@
 ---
 source: full-moon/tests/pass_cases.rs
-assertion_line: 52
 expression: ast.nodes()
 input_file: full-moon/tests/cases/pass/anonymous-functions-1
+snapshot_kind: text
 ---
 stmts:
   - - LocalAssignment:
@@ -90,7 +90,8 @@ stmts:
           pairs:
             - End:
                 Function:
-                  - leading_trivia: []
+                  function_token:
+                    leading_trivia: []
                     token:
                       start_position:
                         bytes: 10
@@ -104,7 +105,8 @@ stmts:
                         type: Symbol
                         symbol: function
                     trailing_trivia: []
-                  - parameters_parentheses:
+                  body:
+                    parameters_parentheses:
                       tokens:
                         - leading_trivia: []
                           token:
@@ -268,4 +270,3 @@ stmts:
                             type: Whitespace
                             characters: "\n"
     - ~
-

@@ -961,6 +961,14 @@ impl Lexer {
                 },
             ),
 
+            #[cfg(feature = "luau")]
+            '@' if self.lua_version.has_luau() => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::AtSign,
+                },
+            ),
+
             unknown_char => Some(LexerResult::Fatal(vec![TokenizerError {
                 error: TokenizerErrorType::UnexpectedToken(unknown_char),
                 range: (start_position, self.source.position()),

@@ -2,6 +2,7 @@
 source: full-moon/tests/pass_cases.rs
 expression: ast.nodes()
 input_file: full-moon/tests/roblox_cases/pass/types_variadic
+snapshot_kind: text
 ---
 stmts:
   - - TypeDeclaration:
@@ -1597,6 +1598,7 @@ stmts:
                                             trailing_trivia: []
     - ~
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia:
             - start_position:
@@ -2042,7 +2044,9 @@ stmts:
           pairs:
             - End:
                 Function:
-                  - leading_trivia: []
+                  attributes: []
+                  function_token:
+                    leading_trivia: []
                     token:
                       start_position:
                         bytes: 308
@@ -2056,7 +2060,8 @@ stmts:
                         type: Symbol
                         symbol: function
                     trailing_trivia: []
-                  - generics: ~
+                  body:
+                    generics: ~
                     parameters_parentheses:
                       tokens:
                         - leading_trivia: []
@@ -2163,7 +2168,9 @@ stmts:
                               pairs:
                                 - End:
                                     Function:
-                                      - leading_trivia: []
+                                      attributes: []
+                                      function_token:
+                                        leading_trivia: []
                                         token:
                                           start_position:
                                             bytes: 330
@@ -2177,7 +2184,8 @@ stmts:
                                             type: Symbol
                                             symbol: function
                                         trailing_trivia: []
-                                      - generics: ~
+                                      body:
+                                        generics: ~
                                         parameters_parentheses:
                                           tokens:
                                             - leading_trivia: []
@@ -2694,6 +2702,7 @@ stmts:
                     pairs: []
     - ~
   - - FunctionDeclaration:
+        attributes: []
         function_token:
           leading_trivia: []
           token:
@@ -3282,7 +3291,9 @@ stmts:
                     pairs:
                       - End:
                           Function:
-                            - leading_trivia: []
+                            attributes: []
+                            function_token:
+                              leading_trivia: []
                               token:
                                 start_position:
                                   bytes: 487
@@ -3296,7 +3307,8 @@ stmts:
                                   type: Symbol
                                   symbol: function
                               trailing_trivia: []
-                            - generics: ~
+                            body:
+                              generics: ~
                               parameters_parentheses:
                                 tokens:
                                   - leading_trivia: []
@@ -3386,7 +3398,9 @@ stmts:
                                         pairs:
                                           - End:
                                               Function:
-                                                - leading_trivia: []
+                                                attributes: []
+                                                function_token:
+                                                  leading_trivia: []
                                                   token:
                                                     start_position:
                                                       bytes: 507
@@ -3400,7 +3414,8 @@ stmts:
                                                       type: Symbol
                                                       symbol: function
                                                   trailing_trivia: []
-                                                - generics: ~
+                                                body:
+                                                  generics: ~
                                                   parameters_parentheses:
                                                     tokens:
                                                       - leading_trivia: []

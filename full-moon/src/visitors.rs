@@ -241,6 +241,7 @@ impl<T: VisitMut> VisitMut for Box<T> {
 
 create_visitor!(ast: {
     visit_anonymous_call => FunctionArgs,
+    visit_anonymous_function => AnonymousFunction,
     visit_assignment => Assignment,
     visit_block => Block,
     visit_call => Call,
@@ -278,6 +279,7 @@ create_visitor!(ast: {
 
     // Types
     #[cfg(feature = "luau")] {
+        visit_luau_attribute => LuauAttribute,
         visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,

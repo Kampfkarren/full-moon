@@ -1,10 +1,13 @@
 ---
 source: full-moon/tests/fail_cases.rs
-expression: result.ast
+expression: result.ast()
+input_file: full-moon/tests/roblox_cases/fail/parser/param_tuple_types
+snapshot_kind: text
 ---
 nodes:
   stmts:
     - - FunctionDeclaration:
+          attributes: []
           function_token:
             leading_trivia: []
             token:
@@ -145,4 +148,3 @@ eof:
     token_type:
       type: Eof
   trailing_trivia: []
-

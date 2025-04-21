@@ -164,36 +164,14 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 } => {
                     let function_token = state.consume().unwrap();
 
-                    let function_name = match state.current() {
-                        Ok(token) if token.token_kind() == TokenKind::Identifier => {
-                            state.consume().unwrap()
-                        }
+                    let local_function =
+                        match expect_local_function_declaration(state, local_token, function_token)
+                        {
+                            Ok(local_function) => local_function,
+                            Err(()) => return ParserResult::LexerMoved,
+                        };
 
-                        Ok(token) => {
-                            state.token_error(token.clone(), "expected a function name");
-                            return ParserResult::LexerMoved;
-                        }
-
-                        Err(()) => return ParserResult::LexerMoved,
-                    };
-
-                    let function_body = match parse_function_body(state) {
-                        ParserResult::Value(function_body) => function_body,
-                        ParserResult::NotFound => {
-                            state.token_error(function_token, "expected a function body");
-                            return ParserResult::LexerMoved;
-                        }
-                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
-                    };
-
-                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
-                        ast::LocalFunction {
-                            local_token,
-                            function_token,
-                            name: function_name,
-                            body: function_body,
-                        },
-                    )))
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(local_function)))
                 }
 
                 _ => {
@@ -616,6 +594,68 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
             })))
         }
 
+        #[cfg(feature = "luau")]
+        TokenType::Symbol {
+            symbol: Symbol::AtSign,
+        } if state.lua_version().has_luau() => {
+            let ParserResult::Value(attributes) = parse_attributes(state) else {
+                return ParserResult::LexerMoved;
+            };
+
+            match state.current() {
+                Ok(token) if token.is_symbol(Symbol::Function) => {
+                    let function_token = state.consume().unwrap();
+
+                    let function_declaration =
+                        match expect_function_declaration(state, function_token) {
+                            Ok(function_declaration) => function_declaration,
+                            Err(()) => return ParserResult::LexerMoved,
+                        };
+
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
+                        function_declaration.with_attributes(attributes),
+                    )))
+                }
+                Ok(token) if token.is_symbol(Symbol::Local) => {
+                    let local_token = state.consume().unwrap();
+                    match state.current() {
+                        Ok(token) if token.is_symbol(Symbol::Function) => {
+                            let function_token = state.consume().unwrap();
+
+                            let local_function = match expect_local_function_declaration(
+                                state,
+                                local_token,
+                                function_token,
+                            ) {
+                                Ok(local_function) => local_function,
+                                Err(()) => return ParserResult::LexerMoved,
+                            };
+
+                            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
+                                local_function.with_attributes(attributes),
+                            )))
+                        }
+                        Ok(token) => {
+                            state.token_error(
+                                token.clone(),
+                                "expected `local function` after attribute",
+                            );
+                            ParserResult::LexerMoved
+                        }
+                        Err(()) => ParserResult::LexerMoved,
+                    }
+                }
+                Ok(token) => {
+                    state.token_error(
+                        token.clone(),
+                        "expected `function` or `local function` after attribute",
+                    );
+                    ParserResult::LexerMoved
+                }
+                Err(()) => ParserResult::LexerMoved,
+            }
+        }
+
         _ => ParserResult::NotFound,
     }
 }
@@ -735,6 +775,43 @@ fn expect_function_declaration(
     };
 
     Ok(ast::FunctionDeclaration {
+        #[cfg(feature = "luau")]
+        attributes: Vec::new(),
+        function_token,
+        name: function_name,
+        body: function_body,
+    })
+}
+
+fn expect_local_function_declaration(
+    state: &mut ParserState,
+    local_token: TokenReference,
+    function_token: TokenReference,
+) -> Result<ast::LocalFunction, ()> {
+    let function_name = match state.current() {
+        Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+        Ok(token) => {
+            state.token_error(token.clone(), "expected a function name");
+            return Err(());
+        }
+
+        Err(()) => return Err(()),
+    };
+
+    let function_body = match parse_function_body(state) {
+        ParserResult::Value(function_body) => function_body,
+        ParserResult::NotFound => {
+            state.token_error(function_token, "expected a function body");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    Ok(ast::LocalFunction {
+        #[cfg(feature = "luau")]
+        attributes: Vec::new(),
+        local_token,
         function_token,
         name: function_name,
         body: function_body,
@@ -1729,6 +1806,41 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
     };
 
     let expression = match current_token.token_type() {
+        #[cfg(feature = "luau")]
+        TokenType::Symbol {
+            symbol: Symbol::AtSign,
+        } => {
+            let ParserResult::Value(attributes) = parse_attributes(state) else {
+                return ParserResult::LexerMoved;
+            };
+
+            match state.current() {
+                Ok(token) if token.is_symbol(Symbol::Function) => {
+                    let function_token = state.consume().unwrap();
+                    let function_body = match parse_function_body(state) {
+                        ParserResult::Value(body) => body,
+                        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                        ParserResult::NotFound => {
+                            state.token_error(function_token, "expected a function body");
+                            return ParserResult::LexerMoved;
+                        }
+                    };
+
+                    ParserResult::Value(Expression::Function(Box::new(ast::AnonymousFunction {
+                        #[cfg(feature = "luau")]
+                        attributes,
+                        function_token,
+                        body: function_body,
+                    })))
+                }
+                Ok(token) => {
+                    state.token_error(token.clone(), "expected `function` after attributes");
+                    return ParserResult::LexerMoved;
+                }
+                Err(()) => return ParserResult::LexerMoved,
+            }
+        }
+
         TokenType::Symbol {
             symbol: Symbol::Function,
         } => {
@@ -1742,10 +1854,12 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
                 }
             };
 
-            ParserResult::Value(Expression::Function(Box::new((
+            ParserResult::Value(Expression::Function(Box::new(ast::AnonymousFunction {
+                #[cfg(feature = "luau")]
+                attributes: Vec::new(),
                 function_token,
-                function_body,
-            ))))
+                body: function_body,
+            })))
         }
 
         TokenType::Symbol {
@@ -3292,6 +3406,33 @@ fn expect_generic_type_params(
         arrows: ContainedSpan::new(left_arrow, right_arrow),
         generics,
     })
+}
+
+#[cfg(feature = "luau")]
+fn parse_attributes(state: &mut ParserState) -> ParserResult<Vec<ast::LuauAttribute>> {
+    debug_assert!(state
+        .current()
+        .is_ok_and(|token| token.is_symbol(Symbol::AtSign)));
+
+    let mut attributes = Vec::new();
+
+    while let Some(at_sign) = state.consume_if(Symbol::AtSign) {
+        let name = match parse_name(state) {
+            ParserResult::Value(name) => name.name,
+            ParserResult::NotFound => {
+                state.token_error(
+                    state.current().unwrap().clone(),
+                    "expected identifier after `@`",
+                );
+                return ParserResult::LexerMoved;
+            }
+            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+        };
+
+        attributes.push(ast::LuauAttribute { at_sign, name });
+    }
+
+    ParserResult::Value(attributes)
 }
 
 #[derive(Clone)]
