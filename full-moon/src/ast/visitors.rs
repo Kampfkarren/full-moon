@@ -26,6 +26,12 @@ impl Visit for Field {
                 value.visit(visitor);
             }
 
+            #[cfg(feature = "cfxlua")]
+            Field::SetConstructor { dot, name } => {
+                dot.visit(visitor);
+                name.visit(visitor);
+            }
+
             Field::NameKey { key, equal, value } => {
                 key.visit(visitor);
                 equal.visit(visitor);
@@ -63,6 +69,12 @@ impl VisitMut for Field {
                     value: value.visit_mut(visitor),
                 }
             }
+
+            #[cfg(feature = "cfxlua")]
+            Field::SetConstructor { dot, name } => Field::SetConstructor {
+                dot: dot.visit_mut(visitor),
+                name: name.visit_mut(visitor),
+            },
 
             Field::NameKey { key, equal, value } => Field::NameKey {
                 key: key.visit_mut(visitor),

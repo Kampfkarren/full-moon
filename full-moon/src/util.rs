@@ -11,6 +11,14 @@ pub fn empty_optional_vector<T>(vec: &Vec<Option<T>>) -> bool {
     vec.iter().all(Option::is_none)
 }
 
+// This allows to check if the vector is full of None's -> true
+// If the vector length is 0 or there is at least one Some -> false
+#[cfg(feature = "luau")]
+#[allow(clippy::ptr_arg)]
+pub fn vec_empty_or_all_none<T>(vec: &Vec<Option<T>>) -> bool {
+    vec.iter().all(Option::is_none) && !vec.is_empty()
+}
+
 pub fn display_option<T: Display, O: Borrow<Option<T>>>(option: O) -> String {
     match option.borrow() {
         Some(x) => x.to_string(),

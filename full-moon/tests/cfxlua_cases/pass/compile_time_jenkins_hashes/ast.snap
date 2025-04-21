@@ -1,0 +1,88 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/cfxlua_cases/pass/compile_time_jenkins_hashes
+---
+stmts:
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 5
+                            line: 1
+                            character: 6
+                          end_position:
+                            bytes: 6
+                            line: 1
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 21
+                            line: 1
+                            character: 22
+                          end_position:
+                            bytes: 22
+                            line: 1
+                            character: 23
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia:
+                          - start_position:
+                              bytes: 22
+                              line: 1
+                              character: 23
+                            end_position:
+                              bytes: 23
+                              line: 1
+                              character: 23
+                            token_type:
+                              type: Whitespace
+                              characters: "\n"
+                  arguments:
+                    pairs:
+                      - End:
+                          String:
+                            leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 6
+                                line: 1
+                                character: 7
+                              end_position:
+                                bytes: 21
+                                line: 1
+                                character: 22
+                              token_type:
+                                type: StringLiteral
+                                literal: "Hello, World!"
+                                quote_type: Backtick
+                            trailing_trivia: []
+    - ~

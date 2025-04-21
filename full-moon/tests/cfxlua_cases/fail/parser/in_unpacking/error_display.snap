@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/cfxlua_cases/fail/parser/in_unpacking
+---
+error[ast]: expected an expression
+  ┌─ source.lua:7:15
+  │
+7 │ local a, b, c in
+  │               ^^

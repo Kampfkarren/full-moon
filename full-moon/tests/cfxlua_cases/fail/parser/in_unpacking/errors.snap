@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/cfxlua_cases/fail/parser/in_unpacking
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 55
+        line: 7
+        character: 15
+      end_position:
+        bytes: 57
+        line: 7
+        character: 17
+      token_type:
+        type: Symbol
+        symbol: in
+    additional: expected an expression

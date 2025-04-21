@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
+
+### Added
+- Implemented CFX Lua as a feature flag - `cfxlua`
+  - Compound Operators: `+=, -=, *=, /=, <<=, >>=, &=, |=, and ^=`
+  - Safe Navigation e.g. `t?.x?.y == nil`
+  - In Unpacking e.g. `local a, b, c = t` is equivalent to `local a, b, c = t.a, t.b, t.c`
+  - Set Constructors e.g. `t = { .x, .y }` is equivalent to `t = { x = true, y = true }`
+  - C-Style Comments (single & multiline) e.g. `/* comment */`
+  - Compile Time Jenkins' Hashes e.g. ``` `Hello, World!` -> 1395890823``` 
+
+## [1.2.0] - 2025-01-09
 
 ### Added
 - Luau: added support for user defined type functions (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md)

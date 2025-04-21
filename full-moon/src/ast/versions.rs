@@ -5,6 +5,7 @@ const VERSION_LUA52: u8 = 1 << 1;
 const VERSION_LUA53: u8 = 1 << 2;
 const VERSION_LUA54: u8 = 1 << 3;
 const VERSION_LUAJIT: u8 = 1 << 4;
+const VERSION_CFXLUA: u8 = 1 << 5;
 
 /// Represents the Lua version(s) to parse as.
 /// Lua 5.1 is always included.
@@ -120,6 +121,25 @@ impl LuaVersion {
     /// Returns true if LuaJIT is enabled.
     pub fn has_luajit(self) -> bool {
         cfg!(feature = "luajit") && (self.bitfield & VERSION_LUAJIT != 0)
+    }
+
+    /// Creates a new LuaVersion with CFX Lua, which includes Lua 5.2, 5.3, and Lua 5.4 features.
+    #[cfg(feature = "cfxlua")]
+    pub fn cfxlua() -> Self {
+        Self {
+            bitfield: VERSION_LUA52 | VERSION_LUA53 | VERSION_LUA54 | VERSION_CFXLUA,
+        }
+    }
+
+    /// Adds CFX Lua as a version to parse for.
+    #[cfg(feature = "cfxlua")]
+    pub fn with_cfxlua(self) -> Self {
+        self | Self::cfxlua()
+    }
+
+    /// Returns true if CFX Lua is enabled.
+    pub fn has_cfxlua(self) -> bool {
+        cfg!(feature = "cfxlua") && (self.bitfield & VERSION_CFXLUA != 0)
     }
 }
 

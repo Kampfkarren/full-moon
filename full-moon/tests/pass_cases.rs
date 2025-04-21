@@ -109,3 +109,12 @@ fn test_luajit_pass_cases() {
         test_pass_case(path, LuaVersion::luajit())
     });
 }
+
+#[test]
+#[cfg(feature = "cfxlua")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_cfxlua_pass_cases() {
+    run_test_folder("./tests/cfxlua_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::cfxlua())
+    });
+}
