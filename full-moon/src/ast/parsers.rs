@@ -87,12 +87,12 @@ fn expect_block_with_end(
     let (start, end) = if let Some(last_stmt) = block.last_stmt() {
         let mut tokens = last_stmt.tokens();
         let start = tokens.next().unwrap();
-        let end = tokens.last().unwrap_or(start);
+        let end = tokens.next_back().unwrap_or(start);
         (start, end)
     } else if let Some(the_last_of_the_stmts) = block.stmts().last() {
         let mut tokens = the_last_of_the_stmts.tokens();
         let start = tokens.next().unwrap();
-        let end = tokens.last().unwrap_or(start);
+        let end = tokens.next_back().unwrap_or(start);
         (start, end)
     } else {
         (start_for_errors, start_for_errors)
@@ -490,7 +490,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 match next_suffixes.last() {
                     Some(ast::Suffix::Call(call)) => {
                         state.token_error(
-                            call.tokens().last().unwrap().clone(),
+                            call.tokens().next_back().unwrap().clone(),
                             "can't assign to the result of a call",
                         );
                         break;
@@ -1117,7 +1117,7 @@ fn expect_expression_key(
         || {
             (
                 left_bracket.clone(),
-                expression.tokens().last().unwrap().clone(),
+                expression.tokens().next_back().unwrap().clone(),
             )
         },
     ) else {
@@ -1254,9 +1254,9 @@ fn force_table_constructor(
                     ParserResult::NotFound => {
                         state.token_error(
                             match fields.last() {
-                                Some(Pair::End(field)) => field.tokens().last().unwrap().clone(),
+                                Some(Pair::End(field)) => field.tokens().next_back().unwrap().clone(),
                                 Some(Pair::Punctuated(field, _)) => {
-                                    field.tokens().last().unwrap().clone()
+                                    field.tokens().next_back().unwrap().clone()
                                 }
                                 None => left_brace.clone(),
                             },
@@ -1621,7 +1621,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 Symbol::RightBracket,
                 "expected `]` to close index expression",
                 &left_bracket,
-                expression.tokens().last().unwrap(),
+                expression.tokens().next_back().unwrap(),
             ) {
                 Some(right_bracket) => right_bracket,
 
