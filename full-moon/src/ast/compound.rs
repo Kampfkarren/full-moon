@@ -11,10 +11,15 @@ use serde::{Deserialize, Serialize};
 #[display("{_0}")]
 /// Compound operators, such as X += Y or X -= Y
 pub enum CompoundOp {
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     PlusEqual(TokenReference),
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     MinusEqual(TokenReference),
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     StarEqual(TokenReference),
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     SlashEqual(TokenReference),
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     CaretEqual(TokenReference),
 
     // luau specific
