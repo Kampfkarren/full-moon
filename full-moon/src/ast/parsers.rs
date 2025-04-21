@@ -2825,7 +2825,7 @@ fn expect_type_table(
                     left_brace.clone(),
                     "cannot have more than one table indexer",
                     &left_brace,
-                    value.tokens().last().unwrap(),
+                    value.tokens().next_back().unwrap(),
                 );
             }
             has_indexer = true;
@@ -3148,7 +3148,7 @@ fn parse_generic_type_list(
                                 equal_token.clone(),
                                 "expected type pack after `=` but got type instead",
                                 type_info.tokens().next().unwrap(),
-                                type_info.tokens().last().unwrap(),
+                                type_info.tokens().next_back().unwrap(),
                             );
                             type_info
                         }
