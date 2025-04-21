@@ -7,7 +7,7 @@ license = "MPL-2.0"
 readme = "README.md"
 repository = "https://github.com/Kampfkarren/full-moon"
 categories = ["parsing"]
-keywords = ["lua", "parser", "lua51", "lua52", "luau", "cfxlua"]
+keywords = ["lua", "parser", "lua51", "lua52", "luau"]
 edition = "2021"
 
 [package.metadata.docs.rs]
