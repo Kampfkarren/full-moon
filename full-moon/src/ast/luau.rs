@@ -898,7 +898,6 @@ impl ExportedTypeFunction {
 #[cfg(not(feature = "luau"))]
 #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
 #[deprecated(
-    since = "full-moon 0.18.0",
     note = "CompoundAssignment has been moved to full_moon::ast::compound::CompoundAssignment"
 )]
 pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
@@ -907,10 +906,7 @@ pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
 /// This has been moved to `compound.rs` since CfxLua makes use of it as well.
 #[cfg(not(feature = "luau"))]
 #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
-#[deprecated(
-    since = "full-moon 0.18.0",
-    note = "CompoundOp has been moved to full_moon::ast::compound::CompoundOp"
-)]
+#[deprecated(note = "CompoundOp has been moved to full_moon::ast::compound::CompoundOp")]
 pub type CompoundOp = crate::ast::compound::CompoundOp;
 
 /// An if statement

@@ -756,7 +756,10 @@ pub struct GenericFor {
     block: Block,
     end_token: TokenReference,
     #[cfg(feature = "luau")]
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "no_luau_usage"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "vec_empty_or_all_none")
+    )]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 }
 

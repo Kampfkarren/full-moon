@@ -624,8 +624,6 @@ impl Lexer {
                             }
                         });
                     }
-
-
                 });
 
                 self.create(

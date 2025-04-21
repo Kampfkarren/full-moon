@@ -15,7 +15,7 @@ pub fn empty_optional_vector<T>(vec: &Vec<Option<T>>) -> bool {
 // If the vector length is 0 or there is at least one Some -> false
 #[cfg(feature = "luau")]
 #[allow(clippy::ptr_arg)]
-pub fn no_luau_usage<T>(vec: &Vec<Option<T>>) -> bool {
+pub fn vec_empty_or_all_none<T>(vec: &Vec<Option<T>>) -> bool {
     vec.iter().all(Option::is_none) && !vec.is_empty()
 }
 
