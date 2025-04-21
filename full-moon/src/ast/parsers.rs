@@ -1254,7 +1254,9 @@ fn force_table_constructor(
                     ParserResult::NotFound => {
                         state.token_error(
                             match fields.last() {
-                                Some(Pair::End(field)) => field.tokens().next_back().unwrap().clone(),
+                                Some(Pair::End(field)) => {
+                                    field.tokens().next_back().unwrap().clone()
+                                }
                                 Some(Pair::Punctuated(field, _)) => {
                                     field.tokens().next_back().unwrap().clone()
                                 }
