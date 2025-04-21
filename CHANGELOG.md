@@ -13,16 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - In Unpacking e.g. `local a, b, c = t` is equivalent to `local a, b, c = t.a, t.b, t.c`
   - Set Constructors e.g. `t = { .x, .y }` is equivalent to `t = { x = true, y = true }`
   - C-Style Comments (single & multiline) e.g. `/* comment */`
-  - Compile Time Jenkins' Hashes e.g. ``` `Hello, World!` -> 1395890823``` 
+  - Compile Time Jenkins' Hashes e.g. ``` `Hello, World!` -> 1395890823```
+- Luau: support parsing function attributes (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/syntax-attributes-functions.md)
+
+### Changed
+- **[BREAKING CHANGE]** Introduced a new struct `AnonymousFunction` that is used in the `Expression::Function` variant. The old `Box<(TokenReference, FunctionBody)>` is now replaced with `Box<AnonymousFunction>`, and allows us to attach more data to an anonymous function (at the moment, mainly Luau attributes)
 
 ## [1.2.0] - 2025-01-09
 
 ### Added
 - Luau: added support for user defined type functions (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/user-defined-type-functions.md)
-- Luau: support parsing function attributes (rfc: https://github.com/luau-lang/rfcs/blob/master/docs/syntax-attributes-functions.md)
-
-### Changed
-- **[BREAKING CHANGE]** Introduced a new struct `AnonymousFunction` that is used in the `Expression::Function` variant. The old `Box<(TokenReference, FunctionBody)>` is now replaced with `Box<AnonymousFunction>`, and allows us to attach more data to an anonymous function (at the moment, mainly Luau attributes)
 
 ### Fixed
 - Fixed a panic when parsing a malformed empty interpolated string, e.g. ``print(`{}`)``
