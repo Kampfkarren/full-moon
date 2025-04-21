@@ -5,7 +5,7 @@
 	</h1>
 </div>
 
-A lossless Lua 5.1 / 5.2 / 5.3 / 5.4 / [Luau](https://luau-lang.org/) parser written in Rust.
+A lossless Lua 5.1 / 5.2 / 5.3 / 5.4 / [Luau](https://luau-lang.org/) / [CfxLua](https://docs.fivem.net/docs/scripting-manual/runtimes/lua/) parser written in Rust.
 
 
 ## Lossless?

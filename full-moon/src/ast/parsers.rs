@@ -8,6 +8,10 @@ use super::{
     span::ContainedSpan,
     Expression, FunctionBody, Parameter,
 };
+
+#[cfg(any(feature = "cfxlua", feature = "luau"))]
+use ast::Var;
+
 use crate::{
     ast,
     node::Node,
@@ -40,6 +44,7 @@ pub fn parse_block(state: &mut ParserState) -> ParserResult<ast::Block> {
                 let semicolon = state.consume_if(Symbol::Semicolon);
                 stmts.push((stmt, semicolon));
             }
+
             ParserResult::Value(StmtVariant::LastStmt(last_stmt)) => {
                 let semicolon = state.consume_if(Symbol::Semicolon);
                 let last_stmt = Some((last_stmt, semicolon));
@@ -82,12 +87,12 @@ fn expect_block_with_end(
     let (start, end) = if let Some(last_stmt) = block.last_stmt() {
         let mut tokens = last_stmt.tokens();
         let start = tokens.next().unwrap();
-        let end = tokens.last().unwrap_or(start);
+        let end = tokens.next_back().unwrap_or(start);
         (start, end)
     } else if let Some(the_last_of_the_stmts) = block.stmts().last() {
         let mut tokens = the_last_of_the_stmts.tokens();
         let start = tokens.next().unwrap();
-        let end = tokens.last().unwrap_or(start);
+        let end = tokens.next_back().unwrap_or(start);
         (start, end)
     } else {
         (start_for_errors, start_for_errors)
@@ -111,6 +116,24 @@ enum StmtVariant {
     // Used for things like Luau's `continue`, but nothing constructs it in Lua 5.1 alone.
     #[allow(unused)]
     LastStmt(ast::LastStmt),
+}
+
+#[cfg(any(feature = "luau", feature = "cfxlua"))]
+fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<StmtVariant> {
+    let compound_operator = state.consume().unwrap();
+
+    let ParserResult::Value(expr) = parse_expression(state) else {
+        state.token_error(compound_operator, "expected expression to set to");
+        return ParserResult::LexerMoved;
+    };
+
+    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
+        ast::CompoundAssignment {
+            lhs: var,
+            compound_operator: ast::CompoundOp::from_token(compound_operator),
+            rhs: expr,
+        },
+    )))
 }
 
 fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
@@ -303,20 +326,23 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::TwoDotsEqual)) =>
                 {
-                    let compound_operator = state.consume().unwrap();
+                    return parse_compound_assignment(state, var);
+                }
 
-                    let ParserResult::Value(expr) = parse_expression(state) else {
-                        state.token_error(compound_operator, "expected expression to set to");
-                        return ParserResult::LexerMoved;
-                    };
-
-                    return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
-                        ast::CompoundAssignment {
-                            lhs: var,
-                            compound_operator: ast::CompoundOp::from_token(compound_operator),
-                            rhs: expr,
-                        },
-                    )));
+                #[cfg(feature = "cfxlua")]
+                Ok(token)
+                    if state.lua_version().has_cfxlua()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::DoubleLessThanEqual)
+                            || token.is_symbol(Symbol::DoubleGreaterThanEqual)
+                            || token.is_symbol(Symbol::AmpersandEqual)
+                            || token.is_symbol(Symbol::PipeEqual)) =>
+                {
+                    return parse_compound_assignment(state, var);
                 }
 
                 Ok(token) if token.is_symbol(Symbol::Comma) || token.is_symbol(Symbol::Equal) => {}
@@ -464,7 +490,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 match next_suffixes.last() {
                     Some(ast::Suffix::Call(call)) => {
                         state.token_error(
-                            call.tokens().last().unwrap().clone(),
+                            call.tokens().next_back().unwrap().clone(),
                             "can't assign to the result of a call",
                         );
                         break;
@@ -518,7 +544,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
             })))
         }
 
-        #[cfg(any(feature = "lua52", feature = "luajit"))]
+        #[cfg(any(feature = "lua52", feature = "luajit", feature = "cfxlua"))]
         TokenType::Symbol {
             symbol: Symbol::Goto,
         } => {
@@ -1011,13 +1037,13 @@ fn expect_local_assignment(
 
     #[cfg(feature = "luau")]
     let mut type_specifiers = Vec::new();
-    #[cfg(feature = "lua54")]
+    #[cfg(any(feature = "lua54", feature = "cfxlua"))]
     let mut attributes = Vec::new();
 
     for name in names.into_pairs() {
         let (name, punctuation) = name.into_tuple();
 
-        #[cfg(feature = "lua54")]
+        #[cfg(any(feature = "lua54", feature = "cfxlua"))]
         attributes.push(name.attribute);
 
         #[cfg(feature = "luau")]
@@ -1040,7 +1066,13 @@ fn expect_local_assignment(
         attributes,
     };
 
-    local_assignment.equal_token = match state.consume_if(Symbol::Equal) {
+    #[cfg(not(feature = "cfxlua"))]
+    let symbols = [Symbol::Equal];
+
+    #[cfg(feature = "cfxlua")]
+    let symbols = [Symbol::Equal, Symbol::In];
+
+    local_assignment.equal_token = match state.consume_if_symbols(&symbols) {
         Some(equal_token) => Some(equal_token),
         None => return Ok(local_assignment),
     };
@@ -1085,7 +1117,7 @@ fn expect_expression_key(
         || {
             (
                 left_bracket.clone(),
-                expression.tokens().last().unwrap().clone(),
+                expression.tokens().next_back().unwrap().clone(),
             )
         },
     ) else {
@@ -1192,6 +1224,29 @@ fn force_table_constructor(
                 }
             }
 
+            // used for assignments like this { .a }, its equivalent to { a=true }
+            #[cfg(feature = "cfxlua")]
+            TokenType::Symbol {
+                symbol: Symbol::Dot,
+            } => {
+                let dot = state.consume().unwrap();
+
+                let key = match state.current() {
+                    Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                        state.consume().unwrap()
+                    }
+                    Ok(token) => {
+                        state.token_error(token.clone(), "expected identifier after `.`");
+                        return unfinished_table(left_brace, fields);
+                    }
+                    Err(()) => {
+                        return unfinished_table(left_brace, fields);
+                    }
+                };
+
+                ast::Field::SetConstructor { dot, name: key }
+            }
+
             _ => {
                 let value = match parse_expression(state) {
                     ParserResult::Value(expression) => expression,
@@ -1199,9 +1254,11 @@ fn force_table_constructor(
                     ParserResult::NotFound => {
                         state.token_error(
                             match fields.last() {
-                                Some(Pair::End(field)) => field.tokens().last().unwrap().clone(),
+                                Some(Pair::End(field)) => {
+                                    field.tokens().next_back().unwrap().clone()
+                                }
                                 Some(Pair::Punctuated(field, _)) => {
-                                    field.tokens().last().unwrap().clone()
+                                    field.tokens().next_back().unwrap().clone()
                                 }
                                 None => left_brace.clone(),
                             },
@@ -1504,6 +1561,30 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
     };
 
     match current.token_type() {
+        #[cfg(feature = "cfxlua")]
+        TokenType::Symbol {
+            symbol: Symbol::QuestionMarkDot,
+        } => {
+            let safe_navigation = state.consume().unwrap();
+            let name = match state.current() {
+                Ok(token) if token.token_kind() == TokenKind::Identifier => {
+                    state.consume().unwrap()
+                }
+
+                Ok(_) => {
+                    state.token_error(safe_navigation, "expected identifier after `?.`");
+                    return ParserResult::LexerMoved;
+                }
+
+                Err(()) => return ParserResult::LexerMoved,
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Dot {
+                dot: safe_navigation,
+                name,
+            }))
+        }
+
         TokenType::Symbol {
             symbol: Symbol::Dot,
         } => {
@@ -1542,7 +1623,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 Symbol::RightBracket,
                 "expected `]` to close index expression",
                 &left_bracket,
-                expression.tokens().last().unwrap(),
+                expression.tokens().next_back().unwrap(),
             ) {
                 Some(right_bracket) => right_bracket,
 
@@ -2746,7 +2827,7 @@ fn expect_type_table(
                     left_brace.clone(),
                     "cannot have more than one table indexer",
                     &left_brace,
-                    value.tokens().last().unwrap(),
+                    value.tokens().next_back().unwrap(),
                 );
             }
             has_indexer = true;
@@ -3069,7 +3150,7 @@ fn parse_generic_type_list(
                                 equal_token.clone(),
                                 "expected type pack after `=` but got type instead",
                                 type_info.tokens().next().unwrap(),
-                                type_info.tokens().last().unwrap(),
+                                type_info.tokens().next_back().unwrap(),
                             );
                             type_info
                         }
@@ -3216,7 +3297,7 @@ fn expect_generic_type_params(
 #[derive(Clone)]
 struct Name {
     name: TokenReference,
-    #[cfg(feature = "lua54")]
+    #[cfg(any(feature = "lua54", feature = "cfxlua"))]
     attribute: Option<super::lua54::Attribute>,
     #[cfg(feature = "luau")]
     type_specifier: Option<ast::TypeSpecifier>,
@@ -3278,16 +3359,16 @@ fn force_name(_state: &mut ParserState, name: TokenReference) -> Name {
     }
 }
 
-#[cfg(feature = "lua54")]
+#[cfg(any(feature = "lua54", feature = "cfxlua"))]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
     // NOTE: whenever attributes can be parsed, type specifiers are possible
     // so we should fall back to parsing type specifiers if an attribute is not found.
     // NOTE: we do not attempt to parse both type specifiers and attributes at the same time
-    if !state.lua_version().has_lua54() {
+    if !state.lua_version().has_lua54() && !state.lua_version().has_cfxlua() {
         return force_name_with_type_specifiers(state, name);
     }
 
-    #[cfg(feature = "lua54")]
+    #[cfg(any(feature = "lua54", feature = "cfxlua"))]
     if let Some(left_angle_bracket) = state.consume_if(Symbol::LessThan) {
         const ERROR_INVALID_ATTRIBUTE: &str = "expected identifier after `<` for attribute";
 

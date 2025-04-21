@@ -1,0 +1,39 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/safe_navigation
+---
+- TokenizerError:
+    error:
+      UnexpectedToken: "?"
+    range:
+      - bytes: 66
+        line: 9
+        character: 12
+      - bytes: 67
+        line: 9
+        character: 13
+- AstError:
+    token:
+      start_position:
+        bytes: 69
+        line: 10
+        character: 1
+      end_position:
+        bytes: 74
+        line: 10
+        character: 6
+      token_type:
+        type: Symbol
+        symbol: local
+    additional: unexpected expression when looking for a statement
+- TokenizerError:
+    error:
+      UnexpectedToken: "?"
+    range:
+      - bytes: 83
+        line: 10
+        character: 15
+      - bytes: 84
+        line: 10
+        character: 16

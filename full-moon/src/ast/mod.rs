@@ -10,8 +10,15 @@ use full_moon_derive::{Node, Visit};
 use lua52::*;
 #[cfg(feature = "lua54")]
 use lua54::*;
+
 #[cfg(feature = "luau")]
 use luau::*;
+
+#[cfg(any(feature = "luau", feature = "cfxlua"))]
+mod compound;
+#[cfg(any(feature = "luau", feature = "cfxlua"))]
+pub use compound::*;
+
 pub use parser_structs::AstResult;
 use punctuated::{Pair, Punctuated};
 use span::ContainedSpan;
@@ -206,6 +213,16 @@ pub enum Field {
         value: Expression,
     },
 
+    /// A set constructor field, such as .a inside { .a } which is equivalent to { a = true }
+    #[display("{dot}{name}")]
+    #[cfg(feature = "cfxlua")]
+    SetConstructor {
+        /// The `.` part of `.a`
+        dot: TokenReference,
+        /// The `a` part of `.a`
+        name: TokenReference,
+    },
+
     /// A field with no key, just a value (such as `"a"` in `{ "a" }`)
     #[display("{_0}")]
     NoKey(Expression),
@@ -391,7 +408,7 @@ pub enum Stmt {
 
     /// A compound assignment, such as `+=`
     /// Only available when the "luau" feature flag is enabled
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "cfxlua"))]
     #[display("{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
@@ -739,6 +756,10 @@ pub struct GenericFor {
     block: Block,
     end_token: TokenReference,
     #[cfg(feature = "luau")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "vec_empty_or_all_none")
+    )]
     type_specifiers: Vec<Option<TypeSpecifier>>,
 }
 
@@ -1695,7 +1716,7 @@ impl LocalAssignment {
             #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
             name_list,
-            #[cfg(feature = "lua54")]
+            #[cfg(any(feature = "lua54", feature = "cfxlua"))]
             attributes: Vec::new(),
             equal_token: None,
             expr_list: Punctuated::new(),
@@ -1737,7 +1758,7 @@ impl LocalAssignment {
     /// `local foo <const>, bar, baz <close>` returns an iterator containing:
     /// `Some(Attribute("const")), None, Some(Attribute("close"))`
     /// Only available when the "lua54" feature flag is enabled.
-    #[cfg(feature = "lua54")]
+    #[cfg(any(feature = "lua54", feature = "cfxlua"))]
     pub fn attributes(&self) -> impl Iterator<Item = Option<&Attribute>> {
         self.attributes.iter().map(Option::as_ref)
     }
@@ -1760,7 +1781,7 @@ impl LocalAssignment {
     }
 
     /// Returns a new LocalAssignment with the given attributes
-    #[cfg(feature = "lua54")]
+    #[cfg(any(feature = "lua54", feature = "cfxlua"))]
     pub fn with_attributes(self, attributes: Vec<Option<Attribute>>) -> Self {
         Self { attributes, ..self }
     }
@@ -1786,7 +1807,7 @@ impl LocalAssignment {
 
 impl fmt::Display for LocalAssignment {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        #[cfg(feature = "lua54")]
+        #[cfg(any(feature = "lua54", feature = "cfxlua"))]
         let attributes = self.attributes().chain(std::iter::repeat(None));
         #[cfg(not(feature = "lua54"))]
         let attributes = std::iter::repeat_with(|| None::<TokenReference>);

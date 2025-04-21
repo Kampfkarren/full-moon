@@ -1,0 +1,92 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/compile_time_jenkins_hashes
+---
+nodes:
+  stmts:
+    - - FunctionCall:
+          prefix:
+            Name:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 5
+                  line: 1
+                  character: 6
+                token_type:
+                  type: Identifier
+                  identifier: print
+              trailing_trivia: []
+          suffixes:
+            - Call:
+                AnonymousCall:
+                  Parentheses:
+                    parentheses:
+                      tokens:
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 5
+                              line: 1
+                              character: 6
+                            end_position:
+                              bytes: 6
+                              line: 1
+                              character: 7
+                            token_type:
+                              type: Symbol
+                              symbol: (
+                          trailing_trivia: []
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 0
+                              line: 1
+                              character: 1
+                            end_position:
+                              bytes: 1
+                              line: 1
+                              character: 2
+                            token_type:
+                              type: Symbol
+                              symbol: )
+                          trailing_trivia: []
+                    arguments:
+                      pairs:
+                        - End:
+                            String:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 6
+                                  line: 1
+                                  character: 7
+                                end_position:
+                                  bytes: 22
+                                  line: 2
+                                  character: 1
+                                token_type:
+                                  type: StringLiteral
+                                  literal: "Hello, World!)"
+                                  quote_type: Single
+                              trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 22
+      line: 2
+      character: 1
+    end_position:
+      bytes: 22
+      line: 2
+      character: 1
+    token_type:
+      type: Eof
+  trailing_trivia: []

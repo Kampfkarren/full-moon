@@ -278,8 +278,6 @@ create_visitor!(ast: {
 
     // Types
     #[cfg(feature = "luau")] {
-        visit_compound_assignment => CompoundAssignment,
-        visit_compound_op => CompoundOp,
         visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,
@@ -310,6 +308,11 @@ create_visitor!(ast: {
     #[cfg(feature = "lua54")] {
         visit_attribute => Attribute,
     }
+
+    #[cfg(any(feature = "cfxlua", feature = "luau"))] {
+        visit_compound_assignment => CompoundAssignment,
+        visit_compound_op => CompoundOp,
+    }
 }, token: {
     visit_identifier,
     visit_multi_line_comment,
@@ -322,5 +325,9 @@ create_visitor!(ast: {
 
     #[cfg(feature = "luau")] {
         visit_interpolated_string_segment,
+    }
+
+    #[cfg(feature = "cfxlua")] {
+        visit_c_style_comment,
     }
 });

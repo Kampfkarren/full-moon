@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/safe_navigation
+---
+"local a = {\n  b = 1,\n  c = 2,\n  d = {\n    e = 3\n  }\n}\n\nlocal x = alocal y = a?.d\n"

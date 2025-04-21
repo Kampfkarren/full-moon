@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/cfxlua_cases/fail/tokenizer/c_style_comments
+---
+"print(\"Hello, World!\") /* Comment\nlocal a = 2\n*/"
