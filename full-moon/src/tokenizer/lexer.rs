@@ -253,6 +253,15 @@ impl Lexer {
         trailing_trivia
     }
 
+    fn is_identifier_start(&self, character: char) -> bool {
+        #[cfg(feature = "pluto")]
+        if self.lua_version.has_pluto() && !character.is_ascii() {
+            return true;
+        };
+
+        matches!(character, 'a'..='z' | 'A'..='Z' | '_')
+    }
+
     /// Processes and returns the next token in the source string, ignoring trivia.
     pub fn process_next(&mut self) -> Option<LexerResult<Token>> {
         let start_position = self.source.position();
@@ -267,12 +276,12 @@ impl Lexer {
         };
 
         match next {
-            initial if is_identifier_start(initial) => {
+            initial if self.is_identifier_start(initial) => {
                 let mut identifier = String::new();
                 identifier.push(initial);
 
                 while let Some(next) = self.source.current() {
-                    if is_identifier_start(next) || next.is_ascii_digit() {
+                    if self.is_identifier_start(next) || next.is_ascii_digit() {
                         identifier.push(self.source.next().expect("peeked, but no next"));
                     } else {
                         break;
@@ -1440,10 +1449,6 @@ impl Lexer {
             true,
         )
     }
-}
-
-fn is_identifier_start(character: char) -> bool {
-    matches!(character, 'a'..='z' | 'A'..='Z' | '_')
 }
 
 pub(crate) struct LexerSource {
