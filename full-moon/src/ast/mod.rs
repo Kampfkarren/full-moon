@@ -2288,6 +2288,7 @@ make_bin_op!(
         And = 2,
 
         Or = 1,
+        [pluto] DoubleQuestionMark = 1,
     }
 );
 

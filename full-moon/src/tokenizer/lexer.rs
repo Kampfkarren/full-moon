@@ -954,8 +954,34 @@ impl Lexer {
                 },
             ),
 
-            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
-            '?' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('.') => self.create(
+            #[cfg(feature = "pluto")]
+            '?' if self.lua_version.has_pluto() => {
+                if self.source.consume('.') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::QuestionMarkDot,
+                        },
+                    )
+                } else if self.source.consume('?') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::DoubleQuestionMark,
+                        },
+                    )
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::QuestionMark,
+                        },
+                    )
+                }
+            }
+
+            #[cfg(feature = "cfxlua")]
+            '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::QuestionMarkDot,
