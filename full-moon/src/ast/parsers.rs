@@ -2011,6 +2011,14 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             parse_unary_expression(state, unary_operator_token)
         }
 
+        #[cfg(feature = "pluto")]
+        TokenType::Symbol {
+            symbol: Symbol::ExclamationMark
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
         TokenType::Symbol {
             symbol: Symbol::LeftBrace,
         } => {
@@ -2159,6 +2167,8 @@ fn parse_unary_expression(
         TokenType::Symbol { symbol } => match symbol {
             Symbol::Minus => ast::UnOp::Minus(unary_operator_token),
             Symbol::Not => ast::UnOp::Not(unary_operator_token),
+            #[cfg(feature = "pluto")]
+            Symbol::ExclamationMark => ast::UnOp::Not(unary_operator_token),
             Symbol::Hash => ast::UnOp::Hash(unary_operator_token),
             #[cfg(feature = "lua53")]
             Symbol::Tilde if state.lua_version().has_lua53() => {

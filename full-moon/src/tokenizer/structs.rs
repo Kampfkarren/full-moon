@@ -178,6 +178,7 @@ symbol! {
         Star => "*",
         [lua53] Tilde => "~",
         TildeEqual => "~=",
+        [pluto] ExclamationMark => "!",
         [pluto] ExclamationMarkEqual => "!=",
     }
 }

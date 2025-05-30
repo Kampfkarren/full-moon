@@ -440,10 +440,12 @@ impl Lexer {
                         },
                     )
                 } else {
-                    Some(LexerResult::Fatal(vec![TokenizerError {
-                        error: TokenizerErrorType::InvalidSymbol("!".to_owned()),
-                        range: (start_position, self.source.position()),
-                    }]))
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ExclamationMark,
+                        },
+                    )
                 }
             }
 
