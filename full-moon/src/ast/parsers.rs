@@ -1024,8 +1024,22 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
-        return Err(());
+    let then_token = match state.current() {
+        Ok(token) if token.is_symbol(Symbol::Then) || (state.lua_version().has_pluto() && token.is_symbol(Symbol::Do)) => {
+            state.consume().unwrap()
+        }
+        Ok(token) => {
+            if state.lua_version().has_pluto() {
+                state.token_error(token.clone(), "expected `then` or `do` after condition");
+            }
+            else {
+                state.token_error(token.clone(), "expected `then` after condition");
+            }
+            return Err(())
+        }
+        Err(()) => {
+            return Err(())
+        }
     };
 
     let then_block = match parse_block(state) {
@@ -1076,9 +1090,22 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             }
         };
 
-        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
-        else {
-            return unfinished_if(condition, else_if);
+        let then_token = match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Then) || (state.lua_version().has_pluto() && token.is_symbol(Symbol::Do)) => {
+                state.consume().unwrap()
+            }
+            Ok(token) => {
+                if state.lua_version().has_pluto() {
+                    state.token_error(token.clone(), "expected `then` or `do` after condition");
+                }
+                else {
+                    state.token_error(token.clone(), "expected `then` after condition");
+                }
+                return unfinished_if(condition, else_if);
+            }
+            Err(()) => {
+                return unfinished_if(condition, else_if);
+            }
         };
 
         let then_block = match parse_block(state) {
