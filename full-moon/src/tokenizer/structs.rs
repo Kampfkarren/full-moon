@@ -143,6 +143,8 @@ symbol! {
         [cfxlua | pluto] PipeEqual => "|=",
         [cfxlua | pluto] QuestionMarkDot => "?.",
 
+        [pluto] DoubleQuestionMarkEqual => "??=",
+
         Caret => "^",
         Colon => ":",
         Comma => ",",

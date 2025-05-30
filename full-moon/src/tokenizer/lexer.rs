@@ -964,12 +964,21 @@ impl Lexer {
                         },
                     )
                 } else if self.source.consume('?') {
-                    self.create(
-                        start_position,
-                        TokenType::Symbol {
-                            symbol: Symbol::DoubleQuestionMark,
-                        },
-                    )
+                    if self.source.consume('=') {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleQuestionMarkEqual,
+                            },
+                        )
+                    } else {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleQuestionMark,
+                            },
+                        )
+                    }
                 } else {
                     self.create(
                         start_position,

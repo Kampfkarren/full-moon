@@ -40,6 +40,8 @@ pub enum CompoundOp {
 
     #[cfg(feature = "pluto")]
     TildeEqual(TokenReference),
+    #[cfg(feature = "pluto")]
+    DoubleQuestionMarkEqual(TokenReference),
 }
 
 impl CompoundOp {
@@ -67,6 +69,8 @@ impl CompoundOp {
             Self::PipeEqual(token) => token,
             #[cfg(feature = "pluto")]
             Self::TildeEqual(token) => token,
+            #[cfg(feature = "pluto")]
+            Self::DoubleQuestionMarkEqual(token) => token,
         }
     }
 
@@ -106,6 +110,8 @@ impl CompoundOp {
         #[cfg(feature = "pluto")]
         if token.is_symbol(Symbol::TildeEqual) {
             return Self::TildeEqual(token);
+        } else if token.is_symbol(Symbol::DoubleQuestionMarkEqual) {
+            return Self::DoubleQuestionMarkEqual(token);
         }
 
         unreachable!("converting an unknown token into a compound operator")
