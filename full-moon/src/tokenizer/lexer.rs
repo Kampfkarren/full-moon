@@ -533,7 +533,7 @@ impl Lexer {
 
             '+' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -555,7 +555,7 @@ impl Lexer {
 
             '*' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -577,10 +577,10 @@ impl Lexer {
 
             '/' => {
                 version_switch!(self.lua_version, {
-                    lua53 | luau | cfxlua => {
+                    lua53 | luau => {
                         if self.source.consume('/') {
                             version_switch!(self.lua_version, {
-                                luau => {
+                                luau | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlashEqual })
                                     }
@@ -591,7 +591,7 @@ impl Lexer {
                         }
 
                         version_switch!(self.lua_version, {
-                            luau | cfxlua => {
+                            luau | cfxlua | pluto => {
                                 if self.source.consume('=') {
                                     return self.create(
                                         start_position,
@@ -636,7 +636,7 @@ impl Lexer {
 
             '%' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -658,7 +658,7 @@ impl Lexer {
 
             '^' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -687,10 +687,10 @@ impl Lexer {
 
             '<' => {
                 version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
+                    lua53 => {
                         if self.source.consume('<') {
                             version_switch!(self.lua_version, {
-                                cfxlua => {
+                                cfxlua | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(
                                             start_position,
@@ -731,10 +731,10 @@ impl Lexer {
 
             '>' => {
                 version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
+                    lua53 => {
                         if self.source.consume('>') {
                             version_switch!(self.lua_version, {
-                                cfxlua => {
+                                cfxlua | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(
                                             start_position,
@@ -821,7 +821,7 @@ impl Lexer {
                         )
                     } else {
                         version_switch!(self.lua_version, {
-                            luau => {
+                            luau | pluto => {
                                 if self.source.consume('=') {
                                     return self.create(
                                         start_position,
@@ -854,7 +854,7 @@ impl Lexer {
 
             '-' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -911,25 +911,25 @@ impl Lexer {
                 },
             ),
 
-            // Ensure compound assignment operators (cfxlua) are checked first.
-            #[cfg(feature = "cfxlua")]
-            '&' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+            // Ensure compound assignment operators (cfxlua and pluto) are checked first.
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
+            '&' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('=') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::AmpersandEqual,
                 },
             ),
 
-            #[cfg(feature = "cfxlua")]
-            '|' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
+            '|' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('=') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::PipeEqual,
                 },
             ),
 
-            #[cfg(feature = "cfxlua")]
-            '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
+            '?' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('.') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::QuestionMarkDot,

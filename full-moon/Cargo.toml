@@ -24,6 +24,7 @@ lua53 = ["lua52"]
 lua54 = ["lua53"]
 luajit = []
 cfxlua = ["lua54"]
+pluto = ["lua54"]
 no-source-tests = []
 
 [dependencies]

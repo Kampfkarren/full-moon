@@ -14,9 +14,9 @@ use lua54::*;
 #[cfg(feature = "luau")]
 use luau::*;
 
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 mod compound;
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 pub use compound::*;
 
 pub use parser_structs::AstResult;
@@ -475,8 +475,8 @@ pub enum Stmt {
     While(While),
 
     /// A compound assignment, such as `+=`
-    /// Only available when the "luau" feature flag is enabled
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    /// Only available with the "luau", "cfxlua", and "pluto" feature flags
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     #[display("{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`

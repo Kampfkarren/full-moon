@@ -311,7 +311,7 @@ create_visitor!(ast: {
         visit_attribute => Attribute,
     }
 
-    #[cfg(any(feature = "cfxlua", feature = "luau"))] {
+    #[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
     }

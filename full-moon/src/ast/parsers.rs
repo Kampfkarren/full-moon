@@ -9,7 +9,7 @@ use super::{
     Expression, FunctionBody, Parameter,
 };
 
-#[cfg(any(feature = "cfxlua", feature = "luau"))]
+#[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))]
 use ast::Var;
 
 use crate::{
@@ -118,7 +118,7 @@ enum StmtVariant {
     LastStmt(ast::LastStmt),
 }
 
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<StmtVariant> {
     let compound_operator = state.consume().unwrap();
 
@@ -299,9 +299,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::MinusEqual)
                             || token.is_symbol(Symbol::StarEqual)
                             || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::DoubleSlashEqual)
                             || token.is_symbol(Symbol::PercentEqual)
-                            || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::TwoDotsEqual)) =>
                 {
                     return parse_compound_assignment(state, var);
@@ -315,6 +315,25 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::StarEqual)
                             || token.is_symbol(Symbol::SlashEqual)
                             || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::DoubleLessThanEqual)
+                            || token.is_symbol(Symbol::DoubleGreaterThanEqual)
+                            || token.is_symbol(Symbol::AmpersandEqual)
+                            || token.is_symbol(Symbol::PipeEqual)) =>
+                {
+                    return parse_compound_assignment(state, var);
+                }
+
+                #[cfg(feature = "pluto")]
+                Ok(token)
+                    if state.lua_version().has_pluto()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::DoubleSlashEqual)
+                            || token.is_symbol(Symbol::PercentEqual)
+                            || token.is_symbol(Symbol::TwoDotsEqual)
                             || token.is_symbol(Symbol::DoubleLessThanEqual)
                             || token.is_symbol(Symbol::DoubleGreaterThanEqual)
                             || token.is_symbol(Symbol::AmpersandEqual)
