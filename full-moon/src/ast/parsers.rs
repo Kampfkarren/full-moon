@@ -451,7 +451,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                         }
                     }
 
-                    #[cfg(feature = "pluto")]
+                    #[cfg(all(feature = "pluto", not(feature = "luau")))]
                     if state.lua_version().has_pluto() {
                         if let ast::Var::Name(token) = var {
                             match token.token_type() {
