@@ -2274,6 +2274,7 @@ make_bin_op!(
         LessThanEqual = 3,
         TildeEqual = 3,
         TwoEqual = 3,
+        [pluto] ExclamationMarkEqual = 3,
 
         And = 2,
 

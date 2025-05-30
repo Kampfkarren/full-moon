@@ -421,6 +421,23 @@ impl Lexer {
                 }
             }
 
+            #[cfg(feature = "pluto")]
+            '!' if self.lua_version.has_pluto() => {
+                if self.source.consume('=') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ExclamationMarkEqual,
+                        },
+                    )
+                } else {
+                    Some(LexerResult::Fatal(vec![TokenizerError {
+                        error: TokenizerErrorType::InvalidSymbol("!".to_owned()),
+                        range: (start_position, self.source.position()),
+                    }]))
+                }
+            }
+
             '\n' => Some(LexerResult::Ok(Token {
                 token_type: TokenType::Whitespace {
                     characters: ShortString::from("\n"),
