@@ -337,7 +337,8 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::DoubleLessThanEqual)
                             || token.is_symbol(Symbol::DoubleGreaterThanEqual)
                             || token.is_symbol(Symbol::AmpersandEqual)
-                            || token.is_symbol(Symbol::PipeEqual)) =>
+                            || token.is_symbol(Symbol::PipeEqual)
+                            || token.is_symbol(Symbol::TildeEqual)) =>
                 {
                     return parse_compound_assignment(state, var);
                 }

@@ -37,6 +37,9 @@ pub enum CompoundOp {
     AmpersandEqual(TokenReference),
     #[cfg(any(feature = "cfxlua", feature = "pluto"))]
     PipeEqual(TokenReference),
+
+    #[cfg(feature = "pluto")]
+    TildeEqual(TokenReference),
 }
 
 impl CompoundOp {
@@ -62,6 +65,8 @@ impl CompoundOp {
             Self::AmpersandEqual(token) => token,
             #[cfg(any(feature = "cfxlua", feature = "pluto"))]
             Self::PipeEqual(token) => token,
+            #[cfg(feature = "pluto")]
+            Self::TildeEqual(token) => token,
         }
     }
 
@@ -96,6 +101,11 @@ impl CompoundOp {
             return Self::AmpersandEqual(token);
         } else if token.is_symbol(Symbol::PipeEqual) {
             return Self::PipeEqual(token);
+        }
+
+        #[cfg(feature = "pluto")]
+        if token.is_symbol(Symbol::TildeEqual) {
+            return Self::TildeEqual(token);
         }
 
         unreachable!("converting an unknown token into a compound operator")
