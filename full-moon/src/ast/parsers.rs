@@ -1657,7 +1657,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
     };
 
     match current.token_type() {
-        #[cfg(feature = "cfxlua")]
+        #[cfg(any(feature = "cfxlua", feature = "pluto"))]
         TokenType::Symbol {
             symbol: Symbol::QuestionMarkDot,
         } => {
