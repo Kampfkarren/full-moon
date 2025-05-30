@@ -124,8 +124,8 @@ pub enum LastStmt {
     /// A `break` statement
     Break(TokenReference),
     /// A continue statement
-    /// Only available when the "luau" feature flag is enabled.
-    #[cfg(feature = "luau")]
+    /// Only available with the "luau" and "pluto" feature flags.
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     Continue(TokenReference),
     /// A `return` statement
     Return(Return),

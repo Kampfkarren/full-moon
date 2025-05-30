@@ -451,6 +451,23 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                         }
                     }
 
+                    #[cfg(feature = "pluto")]
+                    if state.lua_version().has_pluto() {
+                        if let ast::Var::Name(token) = var {
+                            match token.token_type() {
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "continue" =>
+                                {
+                                    let continue_token = token;
+                                    return ParserResult::Value(StmtVariant::LastStmt(
+                                        ast::LastStmt::Continue(continue_token),
+                                    ));
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+
                     state.token_error(
                         token.clone(),
                         "unexpected expression when looking for a statement",
