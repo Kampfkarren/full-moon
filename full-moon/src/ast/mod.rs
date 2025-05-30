@@ -123,6 +123,15 @@ impl Block {
 pub enum LastStmt {
     /// A `break` statement
     Break(TokenReference),
+    /// A `break <number>` statement
+    #[cfg(feature = "pluto")]
+    #[display("{stmt}{depth}")]
+    NestedBreak{
+        /// The `break` token
+        stmt: TokenReference,
+        /// The integer token indicating how many levels of loops we're going up.
+        depth: TokenReference,
+    },
     /// A continue statement
     /// Only available with the "luau" and "pluto" feature flags.
     #[cfg(any(feature = "luau", feature = "pluto"))]

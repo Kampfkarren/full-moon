@@ -717,6 +717,29 @@ fn parse_last_stmt(
 
         Ok(token) if token.is_symbol(Symbol::Break) => {
             let break_token = state.consume().unwrap();
+            #[cfg(feature = "pluto")] {
+                let opt_depth = if state.lua_version().has_pluto() {
+                    match state.current() {
+                        Ok(token) => {
+                            match token.token_type() {
+                                TokenType::Number { .. } => {
+                                    Some(state.consume().unwrap())
+                                },
+                                _ => None
+                            }
+                        },
+                        Err(()) => None
+                    }
+                } else {
+                    None
+                };
+                if let Some(depth) = opt_depth {
+                    ast::LastStmt::NestedBreak{ stmt: break_token, depth: depth }
+                } else {
+                    ast::LastStmt::Break(break_token)
+                }
+            }
+            #[cfg(not(feature = "pluto"))]
             ast::LastStmt::Break(break_token)
         }
 
