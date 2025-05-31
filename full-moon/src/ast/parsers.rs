@@ -2471,25 +2471,29 @@ fn expect_if_else_expression(
         return Err(());
     };
 
+    #[allow(unused_mut)]
     let mut else_if_expressions = Vec::new();
-    while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
-        let ParserResult::Value(condition) = parse_expression(state) else {
-            return Err(());
-        };
+    #[cfg(feature = "luau")]
+    if state.lua_version().has_luau() {
+        while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+            let ParserResult::Value(condition) = parse_expression(state) else {
+                return Err(());
+            };
 
-        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
-        else {
-            return Err(());
-        };
-        let ParserResult::Value(expression) = parse_expression(state) else {
-            return Err(());
-        };
-        else_if_expressions.push(ast::ElseIfExpression {
-            else_if_token,
-            condition,
-            then_token,
-            expression,
-        })
+            let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+            else {
+                return Err(());
+            };
+            let ParserResult::Value(expression) = parse_expression(state) else {
+                return Err(());
+            };
+            else_if_expressions.push(ast::ElseIfExpression {
+                else_if_token,
+                condition,
+                then_token,
+                expression,
+            })
+        }
     }
 
     let Some(else_token) = state.require(
