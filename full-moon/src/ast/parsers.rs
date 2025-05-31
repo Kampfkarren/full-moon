@@ -747,6 +747,7 @@ fn parse_last_stmt(
 }
 
 #[cfg(any(feature = "luau", feature = "pluto"))]
+#[allow(unused)] // 'state' is unused with --features luau
 fn parse_continue_stmt(
     state: &mut ParserState,
     continue_token: TokenReference
