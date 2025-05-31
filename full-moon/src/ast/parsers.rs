@@ -2509,12 +2509,16 @@ fn expect_if_else_expression(
 
     let end_token: Option<TokenReference>;
     #[cfg(feature = "pluto")] {
-        end_token = state.consume_if(Symbol::End);
-        if end_token.is_none() && !state.lua_version().has_luau() {
-            state.require(Symbol::End, "expected `end` to terminate if then else expression");
-            return Err(());
+        if state.lua_version().has_pluto() {
+            end_token = state.consume_if(Symbol::End);
+            if end_token.is_none() && !state.lua_version().has_luau() {
+                state.require(Symbol::End, "expected `end` to terminate if then else expression");
+                return Err(());
+            }
+        } else {
+            end_token = None;
         }
-    };
+    }
     #[cfg(not(feature = "pluto"))] {
         end_token = None;
     }
