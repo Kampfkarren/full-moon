@@ -12,6 +12,9 @@ use super::{
 #[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))]
 use ast::Var;
 
+#[cfg(feature = "pluto")]
+use super::pluto::AssignmentExpression;
+
 use crate::{
     ast,
     node::Node,
@@ -1068,15 +1071,95 @@ fn expect_numeric_for_stmt(
     })
 }
 
-fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
-    let condition = match parse_expression(state) {
+fn parse_condition(state: &mut ParserState, stmt_token: &TokenReference) -> Result<Expression, ()> {
+    #[allow(unused_mut)]
+    let mut condition = match parse_expression(state) {
         ParserResult::Value(condition) => condition,
         ParserResult::NotFound => {
-            state.token_error(if_token, "expected condition after `if`");
+            let error = if stmt_token.is_symbol(Symbol::If) { "expected a condition after `if`" } else { "expected a condition after `while" };
+            state.token_error(stmt_token.clone(), error);
             return Err(());
         }
         ParserResult::LexerMoved => return Err(()),
     };
+
+    #[cfg(feature = "pluto")]
+    if state.lua_version().has_pluto() {
+        match state.current() {
+            Ok(token) => {
+                if token.is_symbol(Symbol::ColonEqual) || token.is_symbol(Symbol::Comma) { // Walrus assignment?
+                    match condition {
+                        Expression::Var(var) => {
+                            let mut var_list: Punctuated<Var> = Punctuated::new();
+                            if token.is_symbol(Symbol::ColonEqual) {
+                                var_list.push(Pair::End(var));
+                            } else {
+                                var_list.push(Pair::Punctuated(var, state.consume().unwrap()));
+                                loop {
+                                    let var: Var = {
+                                        let token = state.consume().unwrap();
+                                        match token.token_type() {
+                                            TokenType::Identifier { identifier: _ } => {
+                                                ast::Var::Name(token)
+                                            }
+                                            _ => {
+                                                state.token_error(token, "expected another variable");
+                                                return Err(());
+                                            }
+                                        }
+                                    };
+                                    let res = state.current();
+                                    if let Ok(token) = res {
+                                        if token.is_symbol(Symbol::ColonEqual) {
+                                            var_list.push(Pair::End(var));
+                                            break;
+                                        }
+                                        if !token.is_symbol(Symbol::Comma) {
+                                            state.token_error(token.clone(), "expected `:=` or `,` after variable name");
+                                            return Err(());
+                                        }
+                                        var_list.push(Pair::Punctuated(var, state.consume().unwrap()));
+                                    } else {
+                                        return Err(());
+                                    }
+                                }
+                            }
+
+                            let walrus_token = state.consume().unwrap();
+
+                            let expr = match parse_expression(state) {
+                                ParserResult::Value(expr) => expr,
+
+                                ParserResult::NotFound => {
+                                    state.token_error(walrus_token.clone(), "expected values to set to");
+                                    return Err(());
+                                }
+
+                                ParserResult::LexerMoved => {
+                                    return Err(());
+                                }
+                            };
+
+                            condition = ast::Expression::AssignmentExpression(AssignmentExpression{ var_list, walrus_token, expr: Box::new(expr) });
+                        }
+                        _ => {
+                            state.token_error(token.clone(), "unexpected `,` after non-var condition");
+                            return Err(());
+                        }
+                    };
+                }
+            }
+            Err(()) => {
+                return Err(())
+            }
+        }
+    };
+
+    return Ok(condition);
+}
+
+fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
+    let condition = parse_condition(state, &if_token)?;
 
     let then_token = match state.current() {
         Ok(token) if token.is_symbol(Symbol::Then) || (state.lua_version().has_pluto() && token.is_symbol(Symbol::Do)) => {
@@ -1547,19 +1630,7 @@ fn expect_while_stmt(
     state: &mut ParserState,
     while_token: TokenReference,
 ) -> Result<ast::While, ()> {
-    let condition = match parse_expression(state) {
-        ParserResult::Value(expression) => expression,
-
-        ParserResult::NotFound => {
-            state.token_error(while_token, "expected a condition after `while`");
-
-            return Err(());
-        }
-
-        ParserResult::LexerMoved => {
-            return Err(());
-        }
-    };
+    let condition = parse_condition(state, &while_token)?;
 
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after condition") else {
         return Ok(ast::While::new(condition));

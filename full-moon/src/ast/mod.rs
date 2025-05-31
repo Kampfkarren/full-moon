@@ -19,6 +19,9 @@ use luau::{
 #[cfg(any(feature = "luau", feature = "pluto"))]
 use ifexpr::*;
 
+#[cfg(feature = "pluto")]
+use pluto::*;
+
 #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 mod compound;
 #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
@@ -50,6 +53,9 @@ pub mod ifexpr;
 #[cfg(feature = "luau")]
 mod luau_visitors;
 mod versions;
+
+#[cfg(feature = "pluto")]
+pub mod pluto;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
@@ -458,6 +464,12 @@ pub enum Expression {
     /// A more complex value, such as `call().x`
     #[display("{_0}")]
     Var(Var),
+
+    /// An assignment expression, such as `val := getval()` within an if or while condition.
+    /// Only available when the "pluto" feature flag is enabled.
+    #[cfg(feature = "pluto")]
+    #[display("{_0}")]
+    AssignmentExpression(AssignmentExpression),
 }
 
 /// A statement that stands alone

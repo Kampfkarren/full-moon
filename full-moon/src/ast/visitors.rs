@@ -152,6 +152,11 @@ impl Visit for Expression {
             Expression::Var(var) => {
                 var.visit(visitor);
             }
+
+            #[cfg(feature = "pluto")]
+            Expression::AssignmentExpression(expr) => {
+                expr.visit(visitor);
+            }
         };
 
         visitor.visit_expression_end(self);
@@ -223,6 +228,9 @@ impl VisitMut for Expression {
             Expression::Symbol(token) => Expression::Symbol(token.visit_mut(visitor)),
 
             Expression::Var(var) => Expression::Var(var.visit_mut(visitor)),
+
+            #[cfg(feature = "pluto")]
+            Expression::AssignmentExpression(expr) => Expression::AssignmentExpression(expr.visit_mut(visitor)),
         };
 
         self = visitor.visit_expression_end(self);

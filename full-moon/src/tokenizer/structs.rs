@@ -147,6 +147,7 @@ symbol! {
 
         Caret => "^",
         Colon => ":",
+        [pluto] ColonEqual => ":=",
         Comma => ",",
         Dot => ".",
         TwoDots => "..",

@@ -549,6 +549,16 @@ impl Lexer {
                     }
                 });
 
+                #[cfg(feature = "pluto")]
+                if self.lua_version.has_pluto() && self.source.consume('=') {
+                     return self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ColonEqual,
+                        },
+                    );
+                }
+
                 self.create(
                     start_position,
                     TokenType::Symbol {

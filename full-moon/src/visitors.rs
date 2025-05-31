@@ -15,6 +15,8 @@ use crate::ast::luau::{
 };
 #[cfg(any(feature = "luau", feature = "pluto"))]
 use crate::ast::ifexpr::*;
+#[cfg(feature = "pluto")]
+use crate::ast::pluto::*;
 
 macro_rules! create_visitor {
     (ast: {
@@ -322,6 +324,10 @@ create_visitor!(ast: {
     #[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
+    }
+
+    #[cfg(feature = "pluto")] {
+        visit_assignment_expression => AssignmentExpression,
     }
 }, token: {
     visit_identifier,
