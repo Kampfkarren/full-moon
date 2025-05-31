@@ -122,7 +122,7 @@ impl Visit for Expression {
                 function_call.visit(visitor);
             }
 
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Expression::IfExpression(if_expression) => {
                 if_expression.visit(visitor);
             }
@@ -193,7 +193,7 @@ impl VisitMut for Expression {
                 Expression::FunctionCall(function_call.visit_mut(visitor))
             }
 
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Expression::IfExpression(if_expression) => {
                 Expression::IfExpression(if_expression.visit_mut(visitor))
             }

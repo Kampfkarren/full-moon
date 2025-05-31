@@ -13,7 +13,7 @@ use crate::ast::luau::{
     LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
     InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
 };
-#[cfg(feature = "luau")]
+#[cfg(any(feature = "luau", feature = "pluto"))]
 use crate::ast::ifexpr::*;
 
 macro_rules! create_visitor {
@@ -285,13 +285,11 @@ create_visitor!(ast: {
     // Types
     #[cfg(feature = "luau")] {
         visit_luau_attribute => LuauAttribute,
-        visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,
         visit_generic_declaration => GenericDeclaration,
         visit_generic_declaration_parameter => GenericDeclarationParameter,
         visit_generic_parameter_info => GenericParameterInfo,
-        visit_if_expression => IfExpression,
         visit_indexed_type_info => IndexedTypeInfo,
         visit_interpolated_string => InterpolatedString,
         visit_type_argument => TypeArgument,
@@ -304,6 +302,11 @@ create_visitor!(ast: {
         visit_type_intersection => TypeIntersection,
         visit_type_specifier => TypeSpecifier,
         visit_type_union => TypeUnion,
+    }
+
+    #[cfg(any(feature = "luau", feature = "pluto"))] {
+        visit_else_if_expression => ElseIfExpression,
+        visit_if_expression => IfExpression,
     }
 
     // Lua 5.2

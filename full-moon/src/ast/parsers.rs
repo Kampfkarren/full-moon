@@ -2058,8 +2058,8 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             )))
         }
 
-        #[cfg(feature = "luau")]
-        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() => {
+        #[cfg(any(feature = "luau", feature = "pluto"))]
+        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() || state.lua_version().has_pluto() => {
             let if_token = state.consume().unwrap();
             match expect_if_else_expression(state, if_token) {
                 Ok(if_expression) => {
@@ -2454,7 +2454,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     })
 }
 
-#[cfg(feature = "luau")]
+#[cfg(any(feature = "luau", feature = "pluto"))]
 fn expect_if_else_expression(
     state: &mut ParserState,
     if_token: TokenReference,
@@ -2503,6 +2503,18 @@ fn expect_if_else_expression(
         return Err(());
     };
 
+    let end_token: Option<TokenReference>;
+    #[cfg(feature = "pluto")] {
+        end_token = state.consume_if(Symbol::End);
+        if end_token.is_none() && !state.lua_version().has_luau() {
+            state.require(Symbol::End, "expected `end` to terminate if then else expression");
+            return Err(());
+        }
+    };
+    #[cfg(not(feature = "pluto"))] {
+        end_token = None;
+    }
+
     Ok(ast::IfExpression {
         if_token,
         condition: Box::new(condition),
@@ -2515,6 +2527,7 @@ fn expect_if_else_expression(
         },
         else_token,
         else_expression: Box::new(else_expression),
+        end_token,
     })
 }
 

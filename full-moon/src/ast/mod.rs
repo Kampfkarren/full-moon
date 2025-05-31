@@ -16,7 +16,7 @@ use luau::{
     LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
     InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
 };
-#[cfg(feature = "luau")]
+#[cfg(any(feature = "luau", feature = "pluto"))]
 use ifexpr::*;
 
 #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
@@ -45,7 +45,7 @@ mod visitors;
 
 #[cfg(feature = "luau")]
 pub mod luau;
-#[cfg(feature = "luau")]
+#[cfg(any(feature = "luau", feature = "pluto"))]
 pub mod ifexpr;
 #[cfg(feature = "luau")]
 mod luau_visitors;
@@ -417,7 +417,7 @@ pub enum Expression {
 
     /// An if expression, such as `if foo then true else false`.
     /// Only available when the "luau" feature flag is enabled.
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     #[display("{_0}")]
     IfExpression(IfExpression),
 

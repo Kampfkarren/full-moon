@@ -9,14 +9,15 @@ use derive_more::Display;
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    "{}{}{}{}{}{}{}",
+    "{}{}{}{}{}{}{}{}",
     if_token,
     condition,
     then_token,
     if_expression,
     display_option(else_if_expressions.as_ref().map(join_vec)),
     else_token,
-    else_expression
+    else_expression,
+    display_option(end_token),
 )]
 pub struct IfExpression {
     pub(crate) if_token: TokenReference,
@@ -26,6 +27,7 @@ pub struct IfExpression {
     pub(crate) else_if_expressions: Option<Vec<ElseIfExpression>>,
     pub(crate) else_token: TokenReference,
     pub(crate) else_expression: Box<Expression>,
+    pub(crate) end_token: Option<TokenReference>,
 }
 
 impl IfExpression {
@@ -43,6 +45,7 @@ impl IfExpression {
             else_if_expressions: None,
             else_token: TokenReference::symbol(" else ").unwrap(),
             else_expression: Box::new(else_expression),
+            end_token: Some(TokenReference::symbol(" end").unwrap()),
         }
     }
 
@@ -127,6 +130,11 @@ impl IfExpression {
             else_expression: Box::new(else_expression),
             ..self
         }
+    }
+
+    /// Returns a new IfExpression with the given `end` toke
+    pub fn with_end_token(self, end_token: TokenReference) -> Self {
+        Self { end_token: Some(end_token), ..self }
     }
 }
 
