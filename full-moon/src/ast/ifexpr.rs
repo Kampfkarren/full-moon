@@ -45,7 +45,7 @@ impl IfExpression {
             else_if_expressions: None,
             else_token: TokenReference::symbol(" else ").unwrap(),
             else_expression: Box::new(else_expression),
-            end_token: Some(TokenReference::symbol(" end").unwrap()),
+            end_token: None,
         }
     }
 
