@@ -9,7 +9,12 @@ use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
 #[cfg(feature = "luau")]
-use crate::ast::luau::*;
+use crate::ast::luau::{
+    LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
+    InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
+};
+#[cfg(feature = "luau")]
+use crate::ast::ifexpr::*;
 
 macro_rules! create_visitor {
     (ast: {

@@ -12,7 +12,12 @@ use lua52::*;
 use lua54::*;
 
 #[cfg(feature = "luau")]
-use luau::*;
+use luau::{
+    LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
+    InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
+};
+#[cfg(feature = "luau")]
+use ifexpr::*;
 
 #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 mod compound;
@@ -40,6 +45,8 @@ mod visitors;
 
 #[cfg(feature = "luau")]
 pub mod luau;
+#[cfg(feature = "luau")]
+pub mod ifexpr;
 #[cfg(feature = "luau")]
 mod luau_visitors;
 mod versions;
