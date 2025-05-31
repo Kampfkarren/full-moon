@@ -352,6 +352,11 @@ impl Lexer {
                 {
                     let binary_character = self.source.next().unwrap();
                     self.read_binary_number(binary_character, start_position)
+                } else if self.lua_version.has_pluto()
+                    && matches!(self.source.current(), Some('o' | 'O'))
+                {
+                    let octal_character = self.source.next().unwrap();
+                    self.read_octal_number(octal_character, start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -1208,6 +1213,37 @@ impl Lexer {
 
                 'u' | 'U' | 'l' | 'L' | 'i' | 'I' if self.lua_version.has_luajit() => {
                     return self.read_luajit_number_suffix(start_position, number);
+                }
+
+                _ => break,
+            }
+        }
+
+        if number.len() == 2 {
+            return Some(self.eat_invalid_number(start_position, number));
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_octal_number(
+        &mut self,
+        octal_character: char,
+        start_position: Position,
+    ) -> Option<LexerResult<Token>> {
+        debug_assert!(self.lua_version.has_pluto());
+
+        let mut number = String::from_iter(['0', octal_character]);
+
+        while let Some(next) = self.source.current() {
+            match next {
+                '0'..='7' | '_' => {
+                    number.push(self.source.next().expect("peeked, but no next"));
                 }
 
                 _ => break,
