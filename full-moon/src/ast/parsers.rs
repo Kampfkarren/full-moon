@@ -442,10 +442,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                 TokenType::Identifier { identifier }
                                     if identifier.as_str() == "continue" =>
                                 {
-                                    let continue_token = token;
-                                    return ParserResult::Value(StmtVariant::LastStmt(
-                                        ast::LastStmt::Continue(continue_token),
-                                    ));
+                                    return parse_continue_stmt(state, token);
                                 }
                                 _ => (),
                             }
@@ -459,10 +456,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                 TokenType::Identifier { identifier }
                                     if identifier.as_str() == "continue" =>
                                 {
-                                    let continue_token = token;
-                                    return ParserResult::Value(StmtVariant::LastStmt(
-                                        ast::LastStmt::Continue(continue_token),
-                                    ));
+                                    return parse_continue_stmt(state, token);
                                 }
                                 _ => (),
                             }
@@ -735,7 +729,7 @@ fn parse_last_stmt(
                     None
                 };
                 if let Some(depth) = opt_depth {
-                    ast::LastStmt::NestedBreak{ stmt: break_token, depth: depth }
+                    ast::LastStmt::CountedBreak{ stmt: break_token, depth: depth }
                 } else {
                     ast::LastStmt::Break(break_token)
                 }
@@ -750,6 +744,41 @@ fn parse_last_stmt(
     let semicolon = state.consume_if(Symbol::Semicolon);
 
     ParserResult::Value((last_stmt, semicolon))
+}
+
+#[cfg(any(feature = "luau", feature = "pluto"))]
+fn parse_continue_stmt(
+    state: &mut ParserState,
+    continue_token: TokenReference
+) -> ParserResult<StmtVariant> {
+    let last_stmt = {
+        #[cfg(feature = "pluto")] {
+            let opt_depth = if state.lua_version().has_pluto() {
+                match state.current() {
+                    Ok(token) => {
+                        match token.token_type() {
+                            TokenType::Number { .. } => {
+                                Some(state.consume().unwrap())
+                            },
+                            _ => None
+                        }
+                    },
+                    Err(()) => None
+                }
+            } else {
+                None
+            };
+            if let Some(depth) = opt_depth {
+                ast::LastStmt::CountedContinue{ stmt: continue_token, depth: depth }
+            } else {
+                ast::LastStmt::Continue(continue_token)
+            }
+        }
+        #[cfg(not(feature = "pluto"))]
+        ast::LastStmt::Continue(continue_token)
+    };
+
+    ParserResult::Value(StmtVariant::LastStmt(last_stmt))
 }
 
 fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionName> {
