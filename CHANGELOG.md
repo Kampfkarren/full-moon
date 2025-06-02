@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Initial support for Pluto with, handling the following of its features:
+  - Compound operators
+  - Member access safe navigation
+  - Continue statement
+  - Numeral parsing
+  - Universal block opener
+  - Operator aliases
+  - Counted break statement
+  - Unicode identifiers
+  - Coalescing operator
+  - If expressions
+  - Walrus operator
+
 ## [2.0.0] - 2025-04-21
 
 ### Added

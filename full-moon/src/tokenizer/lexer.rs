@@ -253,6 +253,15 @@ impl Lexer {
         trailing_trivia
     }
 
+    fn is_identifier_start(&self, character: char) -> bool {
+        #[cfg(feature = "pluto")]
+        if self.lua_version.has_pluto() && !character.is_ascii() {
+            return true;
+        };
+
+        matches!(character, 'a'..='z' | 'A'..='Z' | '_')
+    }
+
     /// Processes and returns the next token in the source string, ignoring trivia.
     pub fn process_next(&mut self) -> Option<LexerResult<Token>> {
         let start_position = self.source.position();
@@ -267,12 +276,12 @@ impl Lexer {
         };
 
         match next {
-            initial if is_identifier_start(initial) => {
+            initial if self.is_identifier_start(initial) => {
                 let mut identifier = String::new();
                 identifier.push(initial);
 
                 while let Some(next) = self.source.current() {
-                    if is_identifier_start(next) || next.is_ascii_digit() {
+                    if self.is_identifier_start(next) || next.is_ascii_digit() {
                         identifier.push(self.source.next().expect("peeked, but no next"));
                     } else {
                         break;
@@ -338,11 +347,16 @@ impl Lexer {
                 if matches!(self.source.current(), Some('x' | 'X')) {
                     let hex_character = self.source.next().unwrap();
                     self.read_hex_number(hex_character, start_position)
-                } else if (self.lua_version.has_luau() || self.lua_version.has_luajit())
+                } else if (self.lua_version.has_luau() || self.lua_version.has_luajit() || self.lua_version.has_pluto())
                     && matches!(self.source.current(), Some('b' | 'B'))
                 {
                     let binary_character = self.source.next().unwrap();
                     self.read_binary_number(binary_character, start_position)
+                } else if self.lua_version.has_pluto()
+                    && matches!(self.source.current(), Some('o' | 'O'))
+                {
+                    let octal_character = self.source.next().unwrap();
+                    self.read_octal_number(octal_character, start_position)
                 } else {
                     self.read_number(start_position, initial.to_string())
                 }
@@ -418,6 +432,25 @@ impl Lexer {
                         error: TokenizerErrorType::InvalidSymbol("~".to_owned()),
                         range: (start_position, self.source.position()),
                     }]))
+                }
+            }
+
+            #[cfg(feature = "pluto")]
+            '!' if self.lua_version.has_pluto() => {
+                if self.source.consume('=') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ExclamationMarkEqual,
+                        },
+                    )
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ExclamationMark,
+                        },
+                    )
                 }
             }
 
@@ -516,6 +549,16 @@ impl Lexer {
                     }
                 });
 
+                #[cfg(feature = "pluto")]
+                if self.lua_version.has_pluto() && self.source.consume('=') {
+                     return self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::ColonEqual,
+                        },
+                    );
+                }
+
                 self.create(
                     start_position,
                     TokenType::Symbol {
@@ -533,7 +576,7 @@ impl Lexer {
 
             '+' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -555,7 +598,7 @@ impl Lexer {
 
             '*' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -577,10 +620,10 @@ impl Lexer {
 
             '/' => {
                 version_switch!(self.lua_version, {
-                    lua53 | luau | cfxlua => {
+                    lua53 | luau => {
                         if self.source.consume('/') {
                             version_switch!(self.lua_version, {
-                                luau => {
+                                luau | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(start_position, TokenType::Symbol { symbol: Symbol::DoubleSlashEqual })
                                     }
@@ -591,7 +634,7 @@ impl Lexer {
                         }
 
                         version_switch!(self.lua_version, {
-                            luau | cfxlua => {
+                            luau | cfxlua | pluto => {
                                 if self.source.consume('=') {
                                     return self.create(
                                         start_position,
@@ -636,7 +679,7 @@ impl Lexer {
 
             '%' => {
                 version_switch!(self.lua_version, {
-                    luau => {
+                    luau | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -658,7 +701,7 @@ impl Lexer {
 
             '^' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -687,10 +730,10 @@ impl Lexer {
 
             '<' => {
                 version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
+                    lua53 => {
                         if self.source.consume('<') {
                             version_switch!(self.lua_version, {
-                                cfxlua => {
+                                cfxlua | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(
                                             start_position,
@@ -731,10 +774,10 @@ impl Lexer {
 
             '>' => {
                 version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
+                    lua53 => {
                         if self.source.consume('>') {
                             version_switch!(self.lua_version, {
-                                cfxlua => {
+                                cfxlua | pluto => {
                                     if self.source.consume('=') {
                                         return self.create(
                                             start_position,
@@ -821,7 +864,7 @@ impl Lexer {
                         )
                     } else {
                         version_switch!(self.lua_version, {
-                            luau => {
+                            luau | pluto => {
                                 if self.source.consume('=') {
                                     return self.create(
                                         start_position,
@@ -854,7 +897,7 @@ impl Lexer {
 
             '-' => {
                 version_switch!(self.lua_version, {
-                    luau | cfxlua => {
+                    luau | cfxlua | pluto => {
                         if self.source.consume('=') {
                             return self.create(
                                 start_position,
@@ -911,22 +954,57 @@ impl Lexer {
                 },
             ),
 
-            // Ensure compound assignment operators (cfxlua) are checked first.
-            #[cfg(feature = "cfxlua")]
-            '&' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+            // Ensure compound assignment operators (cfxlua and pluto) are checked first.
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
+            '&' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('=') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::AmpersandEqual,
                 },
             ),
 
-            #[cfg(feature = "cfxlua")]
-            '|' if self.lua_version.has_cfxlua() && self.source.consume('=') => self.create(
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
+            '|' if (self.lua_version.has_cfxlua() || self.lua_version.has_pluto()) && self.source.consume('=') => self.create(
                 start_position,
                 TokenType::Symbol {
                     symbol: Symbol::PipeEqual,
                 },
             ),
+
+            #[cfg(feature = "pluto")]
+            '?' if self.lua_version.has_pluto() => {
+                if self.source.consume('.') {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::QuestionMarkDot,
+                        },
+                    )
+                } else if self.source.consume('?') {
+                    if self.source.consume('=') {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleQuestionMarkEqual,
+                            },
+                        )
+                    } else {
+                        self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleQuestionMark,
+                            },
+                        )
+                    }
+                } else {
+                    self.create(
+                        start_position,
+                        TokenType::Symbol {
+                            symbol: Symbol::QuestionMark,
+                        },
+                    )
+                }
+            }
 
             #[cfg(feature = "cfxlua")]
             '?' if self.lua_version.has_cfxlua() && self.source.consume('.') => self.create(
@@ -984,7 +1062,7 @@ impl Lexer {
         let mut hit_decimal = false;
 
         while let Some(next) = self.source.current() {
-            if next.is_ascii_digit() || (self.lua_version.has_luau() && matches!(next, '_')) {
+            if next.is_ascii_digit() || ((self.lua_version.has_luau() || self.lua_version.has_pluto()) && matches!(next, '_')) {
                 number.push(self.source.next().expect("peeked, but no next"));
             } else if matches!(next, '.') {
                 if hit_decimal {
@@ -1087,7 +1165,7 @@ impl Lexer {
                     number.push(self.source.next().expect("peeked, but no next"));
                 }
 
-                '_' if self.lua_version.has_luau() => {
+                '_' if self.lua_version.has_luau() || self.lua_version.has_pluto() => {
                     number.push(self.source.next().expect("peeked, but no next"));
                 }
 
@@ -1133,7 +1211,7 @@ impl Lexer {
         binary_character: char,
         start_position: Position,
     ) -> Option<LexerResult<Token>> {
-        debug_assert!(self.lua_version.has_luau() || self.lua_version.has_luajit());
+        debug_assert!(self.lua_version.has_luau() || self.lua_version.has_luajit() || self.lua_version.has_pluto());
 
         let mut number = String::from_iter(['0', binary_character]);
 
@@ -1145,6 +1223,37 @@ impl Lexer {
 
                 'u' | 'U' | 'l' | 'L' | 'i' | 'I' if self.lua_version.has_luajit() => {
                     return self.read_luajit_number_suffix(start_position, number);
+                }
+
+                _ => break,
+            }
+        }
+
+        if number.len() == 2 {
+            return Some(self.eat_invalid_number(start_position, number));
+        }
+
+        self.create(
+            start_position,
+            TokenType::Number {
+                text: ShortString::from(number),
+            },
+        )
+    }
+
+    fn read_octal_number(
+        &mut self,
+        octal_character: char,
+        start_position: Position,
+    ) -> Option<LexerResult<Token>> {
+        debug_assert!(self.lua_version.has_pluto());
+
+        let mut number = String::from_iter(['0', octal_character]);
+
+        while let Some(next) = self.source.current() {
+            match next {
+                '0'..='7' | '_' => {
+                    number.push(self.source.next().expect("peeked, but no next"));
                 }
 
                 _ => break,
@@ -1423,10 +1532,6 @@ impl Lexer {
             true,
         )
     }
-}
-
-fn is_identifier_start(character: char) -> bool {
-    matches!(character, 'a'..='z' | 'A'..='Z' | '_')
 }
 
 pub(crate) struct LexerSource {

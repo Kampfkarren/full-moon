@@ -11,34 +11,37 @@ use serde::{Deserialize, Serialize};
 #[display("{_0}")]
 /// Compound operators, such as X += Y or X -= Y
 pub enum CompoundOp {
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     PlusEqual(TokenReference),
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     MinusEqual(TokenReference),
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     StarEqual(TokenReference),
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     SlashEqual(TokenReference),
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     CaretEqual(TokenReference),
 
-    // luau specific
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     DoubleSlashEqual(TokenReference),
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     PercentEqual(TokenReference),
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     TwoDotsEqual(TokenReference),
 
-    // cfxlua specific
-    #[cfg(feature = "cfxlua")]
+    #[cfg(any(feature = "cfxlua", feature = "pluto"))]
     DoubleLessThanEqual(TokenReference),
-    #[cfg(feature = "cfxlua")]
+    #[cfg(any(feature = "cfxlua", feature = "pluto"))]
     DoubleGreaterThanEqual(TokenReference),
-    #[cfg(feature = "cfxlua")]
+    #[cfg(any(feature = "cfxlua", feature = "pluto"))]
     AmpersandEqual(TokenReference),
-    #[cfg(feature = "cfxlua")]
+    #[cfg(any(feature = "cfxlua", feature = "pluto"))]
     PipeEqual(TokenReference),
+
+    #[cfg(feature = "pluto")]
+    TildeEqual(TokenReference),
+    #[cfg(feature = "pluto")]
+    DoubleQuestionMarkEqual(TokenReference),
 }
 
 impl CompoundOp {
@@ -50,20 +53,24 @@ impl CompoundOp {
             | Self::StarEqual(token)
             | Self::SlashEqual(token)
             | Self::CaretEqual(token) => token,
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Self::DoubleSlashEqual(token) => token,
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Self::PercentEqual(token) => token,
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Self::TwoDotsEqual(token) => token,
-            #[cfg(feature = "cfxlua")]
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
             Self::DoubleLessThanEqual(token) => token,
-            #[cfg(feature = "cfxlua")]
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
             Self::DoubleGreaterThanEqual(token) => token,
-            #[cfg(feature = "cfxlua")]
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
             Self::AmpersandEqual(token) => token,
-            #[cfg(feature = "cfxlua")]
+            #[cfg(any(feature = "cfxlua", feature = "pluto"))]
             Self::PipeEqual(token) => token,
+            #[cfg(feature = "pluto")]
+            Self::TildeEqual(token) => token,
+            #[cfg(feature = "pluto")]
+            Self::DoubleQuestionMarkEqual(token) => token,
         }
     }
 
@@ -80,7 +87,7 @@ impl CompoundOp {
             return Self::CaretEqual(token);
         }
 
-        #[cfg(feature = "luau")]
+        #[cfg(any(feature = "luau", feature = "pluto"))]
         if token.is_symbol(Symbol::DoubleSlashEqual) {
             return Self::DoubleSlashEqual(token);
         } else if token.is_symbol(Symbol::PercentEqual) {
@@ -89,7 +96,7 @@ impl CompoundOp {
             return Self::TwoDotsEqual(token);
         }
 
-        #[cfg(feature = "cfxlua")]
+        #[cfg(any(feature = "cfxlua", feature = "pluto"))]
         if token.is_symbol(Symbol::DoubleLessThanEqual) {
             return Self::DoubleLessThanEqual(token);
         } else if token.is_symbol(Symbol::DoubleGreaterThanEqual) {
@@ -98,6 +105,13 @@ impl CompoundOp {
             return Self::AmpersandEqual(token);
         } else if token.is_symbol(Symbol::PipeEqual) {
             return Self::PipeEqual(token);
+        }
+
+        #[cfg(feature = "pluto")]
+        if token.is_symbol(Symbol::TildeEqual) {
+            return Self::TildeEqual(token);
+        } else if token.is_symbol(Symbol::DoubleQuestionMarkEqual) {
+            return Self::DoubleQuestionMarkEqual(token);
         }
 
         unreachable!("converting an unknown token into a compound operator")

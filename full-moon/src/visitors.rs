@@ -9,7 +9,14 @@ use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
 #[cfg(feature = "luau")]
-use crate::ast::luau::*;
+use crate::ast::luau::{
+    LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
+    InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
+};
+#[cfg(any(feature = "luau", feature = "pluto"))]
+use crate::ast::ifexpr::*;
+#[cfg(feature = "pluto")]
+use crate::ast::pluto::*;
 
 macro_rules! create_visitor {
     (ast: {
@@ -280,13 +287,11 @@ create_visitor!(ast: {
     // Types
     #[cfg(feature = "luau")] {
         visit_luau_attribute => LuauAttribute,
-        visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,
         visit_generic_declaration => GenericDeclaration,
         visit_generic_declaration_parameter => GenericDeclarationParameter,
         visit_generic_parameter_info => GenericParameterInfo,
-        visit_if_expression => IfExpression,
         visit_indexed_type_info => IndexedTypeInfo,
         visit_interpolated_string => InterpolatedString,
         visit_type_argument => TypeArgument,
@@ -301,6 +306,11 @@ create_visitor!(ast: {
         visit_type_union => TypeUnion,
     }
 
+    #[cfg(any(feature = "luau", feature = "pluto"))] {
+        visit_else_if_expression => ElseIfExpression,
+        visit_if_expression => IfExpression,
+    }
+
     // Lua 5.2
     #[cfg(any(feature = "lua52", feature = "luajit"))] {
         visit_goto => Goto,
@@ -311,9 +321,13 @@ create_visitor!(ast: {
         visit_attribute => Attribute,
     }
 
-    #[cfg(any(feature = "cfxlua", feature = "luau"))] {
+    #[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))] {
         visit_compound_assignment => CompoundAssignment,
         visit_compound_op => CompoundOp,
+    }
+
+    #[cfg(feature = "pluto")] {
+        visit_assignment_expression => AssignmentExpression,
     }
 }, token: {
     visit_identifier,

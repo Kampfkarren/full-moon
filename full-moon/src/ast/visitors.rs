@@ -122,7 +122,7 @@ impl Visit for Expression {
                 function_call.visit(visitor);
             }
 
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Expression::IfExpression(if_expression) => {
                 if_expression.visit(visitor);
             }
@@ -151,6 +151,11 @@ impl Visit for Expression {
 
             Expression::Var(var) => {
                 var.visit(visitor);
+            }
+
+            #[cfg(feature = "pluto")]
+            Expression::AssignmentExpression(expr) => {
+                expr.visit(visitor);
             }
         };
 
@@ -193,7 +198,7 @@ impl VisitMut for Expression {
                 Expression::FunctionCall(function_call.visit_mut(visitor))
             }
 
-            #[cfg(feature = "luau")]
+            #[cfg(any(feature = "luau", feature = "pluto"))]
             Expression::IfExpression(if_expression) => {
                 Expression::IfExpression(if_expression.visit_mut(visitor))
             }
@@ -223,6 +228,9 @@ impl VisitMut for Expression {
             Expression::Symbol(token) => Expression::Symbol(token.visit_mut(visitor)),
 
             Expression::Var(var) => Expression::Var(var.visit_mut(visitor)),
+
+            #[cfg(feature = "pluto")]
+            Expression::AssignmentExpression(expr) => Expression::AssignmentExpression(expr.visit_mut(visitor)),
         };
 
         self = visitor.visit_expression_end(self);

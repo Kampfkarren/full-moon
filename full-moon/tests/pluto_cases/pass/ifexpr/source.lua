@@ -1,0 +1,1 @@
+print(if x then "yeah" else "nah" end)

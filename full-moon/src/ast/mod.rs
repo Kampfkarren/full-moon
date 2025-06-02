@@ -12,11 +12,19 @@ use lua52::*;
 use lua54::*;
 
 #[cfg(feature = "luau")]
-use luau::*;
+use luau::{
+    LuauAttribute, ExportedTypeDeclaration, ExportedTypeFunction, GenericDeclaration, GenericDeclarationParameter, GenericParameterInfo, IndexedTypeInfo,
+    InterpolatedString, TypeArgument, TypeAssertion, TypeDeclaration, TypeField, TypeFieldKey, TypeFunction, TypeInfo, TypeIntersection, TypeSpecifier, TypeUnion
+};
+#[cfg(any(feature = "luau", feature = "pluto"))]
+use ifexpr::*;
 
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(feature = "pluto")]
+use pluto::*;
+
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 mod compound;
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 pub use compound::*;
 
 pub use parser_structs::AstResult;
@@ -40,9 +48,14 @@ mod visitors;
 
 #[cfg(feature = "luau")]
 pub mod luau;
+#[cfg(any(feature = "luau", feature = "pluto"))]
+pub mod ifexpr;
 #[cfg(feature = "luau")]
 mod luau_visitors;
 mod versions;
+
+#[cfg(feature = "pluto")]
+pub mod pluto;
 
 #[cfg(any(feature = "lua52", feature = "luajit"))]
 pub mod lua52;
@@ -123,10 +136,28 @@ impl Block {
 pub enum LastStmt {
     /// A `break` statement
     Break(TokenReference),
+    /// A `break <number>` statement, only available with the "pluto" feature flag.
+    #[cfg(feature = "pluto")]
+    #[display("{stmt}{depth}")]
+    CountedBreak{
+        /// The `break` token
+        stmt: TokenReference,
+        /// The integer token indicating how many levels of loops we're going up.
+        depth: TokenReference,
+    },
     /// A continue statement
-    /// Only available when the "luau" feature flag is enabled.
-    #[cfg(feature = "luau")]
+    /// Only available with the "luau" and "pluto" feature flags.
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     Continue(TokenReference),
+    /// A `continue <number>` statement, only available with the "pluto" feature flag.
+    #[cfg(feature = "pluto")]
+    #[display("{stmt}{depth}")]
+    CountedContinue{
+        /// The `continue` token
+        stmt: TokenReference,
+        /// The integer token indicating how many levels of loops we're going up.
+        depth: TokenReference,
+    },
     /// A `return` statement
     Return(Return),
 }
@@ -392,7 +423,7 @@ pub enum Expression {
 
     /// An if expression, such as `if foo then true else false`.
     /// Only available when the "luau" feature flag is enabled.
-    #[cfg(feature = "luau")]
+    #[cfg(any(feature = "luau", feature = "pluto"))]
     #[display("{_0}")]
     IfExpression(IfExpression),
 
@@ -433,6 +464,12 @@ pub enum Expression {
     /// A more complex value, such as `call().x`
     #[display("{_0}")]
     Var(Var),
+
+    /// An assignment expression, such as `val := getval()` within an if or while condition.
+    /// Only available when the "pluto" feature flag is enabled.
+    #[cfg(feature = "pluto")]
+    #[display("{_0}")]
+    AssignmentExpression(AssignmentExpression),
 }
 
 /// A statement that stands alone
@@ -475,8 +512,8 @@ pub enum Stmt {
     While(While),
 
     /// A compound assignment, such as `+=`
-    /// Only available when the "luau" feature flag is enabled
-    #[cfg(any(feature = "luau", feature = "cfxlua"))]
+    /// Only available with the "luau", "cfxlua", and "pluto" feature flags
+    #[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
     #[display("{_0}")]
     CompoundAssignment(CompoundAssignment),
     /// An exported type declaration, such as `export type Meters = number`
@@ -2274,10 +2311,12 @@ make_bin_op!(
         LessThanEqual = 3,
         TildeEqual = 3,
         TwoEqual = 3,
+        [pluto] ExclamationMarkEqual = 3,
 
         And = 2,
 
         Or = 1,
+        [pluto] DoubleQuestionMark = 1,
     }
 );
 

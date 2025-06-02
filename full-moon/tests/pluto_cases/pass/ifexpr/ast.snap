@@ -1,0 +1,240 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: ast.nodes()
+input_file: full-moon/tests/pluto_cases/pass/ifexpr
+---
+stmts:
+  - - FunctionCall:
+        prefix:
+          Name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 5
+                line: 1
+                character: 6
+              token_type:
+                type: Identifier
+                identifier: print
+            trailing_trivia: []
+        suffixes:
+          - Call:
+              AnonymousCall:
+                Parentheses:
+                  parentheses:
+                    tokens:
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 5
+                            line: 1
+                            character: 6
+                          end_position:
+                            bytes: 6
+                            line: 1
+                            character: 7
+                          token_type:
+                            type: Symbol
+                            symbol: (
+                        trailing_trivia: []
+                      - leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 37
+                            line: 1
+                            character: 38
+                          end_position:
+                            bytes: 38
+                            line: 1
+                            character: 39
+                          token_type:
+                            type: Symbol
+                            symbol: )
+                        trailing_trivia: []
+                  arguments:
+                    pairs:
+                      - End:
+                          IfExpression:
+                            if_token:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 6
+                                  line: 1
+                                  character: 7
+                                end_position:
+                                  bytes: 8
+                                  line: 1
+                                  character: 9
+                                token_type:
+                                  type: Symbol
+                                  symbol: if
+                              trailing_trivia:
+                                - start_position:
+                                    bytes: 8
+                                    line: 1
+                                    character: 9
+                                  end_position:
+                                    bytes: 9
+                                    line: 1
+                                    character: 10
+                                  token_type:
+                                    type: Whitespace
+                                    characters: " "
+                            condition:
+                              Var:
+                                Name:
+                                  leading_trivia: []
+                                  token:
+                                    start_position:
+                                      bytes: 9
+                                      line: 1
+                                      character: 10
+                                    end_position:
+                                      bytes: 10
+                                      line: 1
+                                      character: 11
+                                    token_type:
+                                      type: Identifier
+                                      identifier: x
+                                  trailing_trivia:
+                                    - start_position:
+                                        bytes: 10
+                                        line: 1
+                                        character: 11
+                                      end_position:
+                                        bytes: 11
+                                        line: 1
+                                        character: 12
+                                      token_type:
+                                        type: Whitespace
+                                        characters: " "
+                            then_token:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 11
+                                  line: 1
+                                  character: 12
+                                end_position:
+                                  bytes: 15
+                                  line: 1
+                                  character: 16
+                                token_type:
+                                  type: Symbol
+                                  symbol: then
+                              trailing_trivia:
+                                - start_position:
+                                    bytes: 15
+                                    line: 1
+                                    character: 16
+                                  end_position:
+                                    bytes: 16
+                                    line: 1
+                                    character: 17
+                                  token_type:
+                                    type: Whitespace
+                                    characters: " "
+                            if_expression:
+                              String:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 16
+                                    line: 1
+                                    character: 17
+                                  end_position:
+                                    bytes: 22
+                                    line: 1
+                                    character: 23
+                                  token_type:
+                                    type: StringLiteral
+                                    literal: yeah
+                                    quote_type: Double
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 22
+                                      line: 1
+                                      character: 23
+                                    end_position:
+                                      bytes: 23
+                                      line: 1
+                                      character: 24
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                            else_if_expressions: ~
+                            else_token:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 23
+                                  line: 1
+                                  character: 24
+                                end_position:
+                                  bytes: 27
+                                  line: 1
+                                  character: 28
+                                token_type:
+                                  type: Symbol
+                                  symbol: else
+                              trailing_trivia:
+                                - start_position:
+                                    bytes: 27
+                                    line: 1
+                                    character: 28
+                                  end_position:
+                                    bytes: 28
+                                    line: 1
+                                    character: 29
+                                  token_type:
+                                    type: Whitespace
+                                    characters: " "
+                            else_expression:
+                              String:
+                                leading_trivia: []
+                                token:
+                                  start_position:
+                                    bytes: 28
+                                    line: 1
+                                    character: 29
+                                  end_position:
+                                    bytes: 33
+                                    line: 1
+                                    character: 34
+                                  token_type:
+                                    type: StringLiteral
+                                    literal: nah
+                                    quote_type: Double
+                                trailing_trivia:
+                                  - start_position:
+                                      bytes: 33
+                                      line: 1
+                                      character: 34
+                                    end_position:
+                                      bytes: 34
+                                      line: 1
+                                      character: 35
+                                    token_type:
+                                      type: Whitespace
+                                      characters: " "
+                            end_token:
+                              leading_trivia: []
+                              token:
+                                start_position:
+                                  bytes: 34
+                                  line: 1
+                                  character: 35
+                                end_position:
+                                  bytes: 37
+                                  line: 1
+                                  character: 38
+                                token_type:
+                                  type: Symbol
+                                  symbol: end
+                              trailing_trivia: []
+    - ~

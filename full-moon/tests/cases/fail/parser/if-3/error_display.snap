@@ -4,7 +4,7 @@ assertion_line: 56
 expression: "String::from_utf8(output.into_inner()).unwrap()"
 input_file: full-moon/tests/cases/fail/parser/if-3
 ---
-error[ast]: expected condition after `if`
+error[ast]: expected a condition after `if`
   ┌─ source.lua:1:1
   │
 1 │ if local then end

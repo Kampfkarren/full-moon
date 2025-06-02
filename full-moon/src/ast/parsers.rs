@@ -9,8 +9,11 @@ use super::{
     Expression, FunctionBody, Parameter,
 };
 
-#[cfg(any(feature = "cfxlua", feature = "luau"))]
+#[cfg(any(feature = "cfxlua", feature = "luau", feature = "pluto"))]
 use ast::Var;
+
+#[cfg(feature = "pluto")]
+use super::pluto::AssignmentExpression;
 
 use crate::{
     ast,
@@ -118,7 +121,7 @@ enum StmtVariant {
     LastStmt(ast::LastStmt),
 }
 
-#[cfg(any(feature = "luau", feature = "cfxlua"))]
+#[cfg(any(feature = "luau", feature = "cfxlua", feature = "pluto"))]
 fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<StmtVariant> {
     let compound_operator = state.consume().unwrap();
 
@@ -299,9 +302,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::MinusEqual)
                             || token.is_symbol(Symbol::StarEqual)
                             || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::DoubleSlashEqual)
                             || token.is_symbol(Symbol::PercentEqual)
-                            || token.is_symbol(Symbol::CaretEqual)
                             || token.is_symbol(Symbol::TwoDotsEqual)) =>
                 {
                     return parse_compound_assignment(state, var);
@@ -319,6 +322,27 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             || token.is_symbol(Symbol::DoubleGreaterThanEqual)
                             || token.is_symbol(Symbol::AmpersandEqual)
                             || token.is_symbol(Symbol::PipeEqual)) =>
+                {
+                    return parse_compound_assignment(state, var);
+                }
+
+                #[cfg(feature = "pluto")]
+                Ok(token)
+                    if state.lua_version().has_pluto()
+                        && (token.is_symbol(Symbol::PlusEqual)
+                            || token.is_symbol(Symbol::MinusEqual)
+                            || token.is_symbol(Symbol::StarEqual)
+                            || token.is_symbol(Symbol::SlashEqual)
+                            || token.is_symbol(Symbol::CaretEqual)
+                            || token.is_symbol(Symbol::DoubleSlashEqual)
+                            || token.is_symbol(Symbol::PercentEqual)
+                            || token.is_symbol(Symbol::TwoDotsEqual)
+                            || token.is_symbol(Symbol::DoubleLessThanEqual)
+                            || token.is_symbol(Symbol::DoubleGreaterThanEqual)
+                            || token.is_symbol(Symbol::AmpersandEqual)
+                            || token.is_symbol(Symbol::PipeEqual)
+                            || token.is_symbol(Symbol::TildeEqual)
+                            || token.is_symbol(Symbol::DoubleQuestionMarkEqual)) =>
                 {
                     return parse_compound_assignment(state, var);
                 }
@@ -421,10 +445,21 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                 TokenType::Identifier { identifier }
                                     if identifier.as_str() == "continue" =>
                                 {
-                                    let continue_token = token;
-                                    return ParserResult::Value(StmtVariant::LastStmt(
-                                        ast::LastStmt::Continue(continue_token),
-                                    ));
+                                    return parse_continue_stmt(state, token);
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+
+                    #[cfg(all(feature = "pluto", not(feature = "luau")))]
+                    if state.lua_version().has_pluto() {
+                        if let ast::Var::Name(token) = var {
+                            match token.token_type() {
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "continue" =>
+                                {
+                                    return parse_continue_stmt(state, token);
                                 }
                                 _ => (),
                             }
@@ -680,6 +715,29 @@ fn parse_last_stmt(
 
         Ok(token) if token.is_symbol(Symbol::Break) => {
             let break_token = state.consume().unwrap();
+            #[cfg(feature = "pluto")] {
+                let opt_depth = if state.lua_version().has_pluto() {
+                    match state.current() {
+                        Ok(token) => {
+                            match token.token_type() {
+                                TokenType::Number { .. } => {
+                                    Some(state.consume().unwrap())
+                                },
+                                _ => None
+                            }
+                        },
+                        Err(()) => None
+                    }
+                } else {
+                    None
+                };
+                if let Some(depth) = opt_depth {
+                    ast::LastStmt::CountedBreak{ stmt: break_token, depth: depth }
+                } else {
+                    ast::LastStmt::Break(break_token)
+                }
+            }
+            #[cfg(not(feature = "pluto"))]
             ast::LastStmt::Break(break_token)
         }
 
@@ -689,6 +747,42 @@ fn parse_last_stmt(
     let semicolon = state.consume_if(Symbol::Semicolon);
 
     ParserResult::Value((last_stmt, semicolon))
+}
+
+#[cfg(any(feature = "luau", feature = "pluto"))]
+#[allow(unused)] // 'state' is unused with --features luau
+fn parse_continue_stmt(
+    state: &mut ParserState,
+    continue_token: TokenReference
+) -> ParserResult<StmtVariant> {
+    let last_stmt = {
+        #[cfg(feature = "pluto")] {
+            let opt_depth = if state.lua_version().has_pluto() {
+                match state.current() {
+                    Ok(token) => {
+                        match token.token_type() {
+                            TokenType::Number { .. } => {
+                                Some(state.consume().unwrap())
+                            },
+                            _ => None
+                        }
+                    },
+                    Err(()) => None
+                }
+            } else {
+                None
+            };
+            if let Some(depth) = opt_depth {
+                ast::LastStmt::CountedContinue{ stmt: continue_token, depth: depth }
+            } else {
+                ast::LastStmt::Continue(continue_token)
+            }
+        }
+        #[cfg(not(feature = "pluto"))]
+        ast::LastStmt::Continue(continue_token)
+    };
+
+    ParserResult::Value(StmtVariant::LastStmt(last_stmt))
 }
 
 fn expect_function_name(state: &mut ParserState) -> ParserResult<ast::FunctionName> {
@@ -977,18 +1071,112 @@ fn expect_numeric_for_stmt(
     })
 }
 
-fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
-    let condition = match parse_expression(state) {
+fn parse_condition(state: &mut ParserState, stmt_token: &TokenReference) -> Result<Expression, ()> {
+    #[allow(unused_mut)]
+    let mut condition = match parse_expression(state) {
         ParserResult::Value(condition) => condition,
         ParserResult::NotFound => {
-            state.token_error(if_token, "expected condition after `if`");
+            let error = if stmt_token.is_symbol(Symbol::If) { "expected a condition after `if`" } else { "expected a condition after `while`" };
+            state.token_error(stmt_token.clone(), error);
             return Err(());
         }
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition") else {
-        return Err(());
+    #[cfg(feature = "pluto")]
+    if state.lua_version().has_pluto() {
+        match state.current() {
+            Ok(token) => {
+                if token.is_symbol(Symbol::ColonEqual) || token.is_symbol(Symbol::Comma) { // Walrus assignment?
+                    match condition {
+                        Expression::Var(var) => {
+                            let mut var_list: Punctuated<Var> = Punctuated::new();
+                            if token.is_symbol(Symbol::ColonEqual) {
+                                var_list.push(Pair::End(var));
+                            } else {
+                                var_list.push(Pair::Punctuated(var, state.consume().unwrap()));
+                                loop {
+                                    let var: Var = {
+                                        let token = state.consume().unwrap();
+                                        match token.token_type() {
+                                            TokenType::Identifier { identifier: _ } => {
+                                                ast::Var::Name(token)
+                                            }
+                                            _ => {
+                                                state.token_error(token, "expected another variable");
+                                                return Err(());
+                                            }
+                                        }
+                                    };
+                                    let res = state.current();
+                                    if let Ok(token) = res {
+                                        if token.is_symbol(Symbol::ColonEqual) {
+                                            var_list.push(Pair::End(var));
+                                            break;
+                                        }
+                                        if !token.is_symbol(Symbol::Comma) {
+                                            state.token_error(token.clone(), "expected `:=` or `,` after variable name");
+                                            return Err(());
+                                        }
+                                        var_list.push(Pair::Punctuated(var, state.consume().unwrap()));
+                                    } else {
+                                        return Err(());
+                                    }
+                                }
+                            }
+
+                            let walrus_token = state.consume().unwrap();
+
+                            let expr = match parse_expression(state) {
+                                ParserResult::Value(expr) => expr,
+
+                                ParserResult::NotFound => {
+                                    state.token_error(walrus_token.clone(), "expected values to set to");
+                                    return Err(());
+                                }
+
+                                ParserResult::LexerMoved => {
+                                    return Err(());
+                                }
+                            };
+
+                            condition = ast::Expression::AssignmentExpression(AssignmentExpression{ var_list, walrus_token, expr: Box::new(expr) });
+                        }
+                        _ => {
+                            state.token_error(token.clone(), "unexpected `,` after non-var condition");
+                            return Err(());
+                        }
+                    };
+                }
+            }
+            Err(()) => {
+                return Err(())
+            }
+        }
+    };
+
+    return Ok(condition);
+}
+
+fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
+    let condition = parse_condition(state, &if_token)?;
+
+    let then_token = match state.current() {
+        Ok(token) if token.is_symbol(Symbol::Then) || (state.lua_version().has_pluto() && token.is_symbol(Symbol::Do)) => {
+            state.consume().unwrap()
+        }
+        Ok(token) => {
+            if state.lua_version().has_pluto() {
+                state.token_error(token.clone(), "expected `then` or `do` after condition");
+            }
+            else {
+                state.token_error(token.clone(), "expected `then` after condition");
+            }
+            return Err(())
+        }
+        Err(()) => {
+            return Err(())
+        }
     };
 
     let then_block = match parse_block(state) {
@@ -1039,9 +1227,22 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             }
         };
 
-        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
-        else {
-            return unfinished_if(condition, else_if);
+        let then_token = match state.current() {
+            Ok(token) if token.is_symbol(Symbol::Then) || (state.lua_version().has_pluto() && token.is_symbol(Symbol::Do)) => {
+                state.consume().unwrap()
+            }
+            Ok(token) => {
+                if state.lua_version().has_pluto() {
+                    state.token_error(token.clone(), "expected `then` or `do` after condition");
+                }
+                else {
+                    state.token_error(token.clone(), "expected `then` after condition");
+                }
+                return unfinished_if(condition, else_if);
+            }
+            Err(()) => {
+                return unfinished_if(condition, else_if);
+            }
         };
 
         let then_block = match parse_block(state) {
@@ -1429,19 +1630,7 @@ fn expect_while_stmt(
     state: &mut ParserState,
     while_token: TokenReference,
 ) -> Result<ast::While, ()> {
-    let condition = match parse_expression(state) {
-        ParserResult::Value(expression) => expression,
-
-        ParserResult::NotFound => {
-            state.token_error(while_token, "expected a condition after `while`");
-
-            return Err(());
-        }
-
-        ParserResult::LexerMoved => {
-            return Err(());
-        }
-    };
+    let condition = parse_condition(state, &while_token)?;
 
     let Some(do_token) = state.require(Symbol::Do, "expected `do` after condition") else {
         return Ok(ast::While::new(condition));
@@ -1638,7 +1827,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
     };
 
     match current.token_type() {
-        #[cfg(feature = "cfxlua")]
+        #[cfg(any(feature = "cfxlua", feature = "pluto"))]
         TokenType::Symbol {
             symbol: Symbol::QuestionMarkDot,
         } => {
@@ -1923,6 +2112,14 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             parse_unary_expression(state, unary_operator_token)
         }
 
+        #[cfg(feature = "pluto")]
+        TokenType::Symbol {
+            symbol: Symbol::ExclamationMark
+        } => {
+            let unary_operator_token = state.consume().unwrap();
+            parse_unary_expression(state, unary_operator_token)
+        }
+
         TokenType::Symbol {
             symbol: Symbol::LeftBrace,
         } => {
@@ -1932,8 +2129,8 @@ fn parse_primary_expression(state: &mut ParserState) -> ParserResult<Expression>
             )))
         }
 
-        #[cfg(feature = "luau")]
-        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() => {
+        #[cfg(any(feature = "luau", feature = "pluto"))]
+        TokenType::Symbol { symbol: Symbol::If } if state.lua_version().has_luau() || state.lua_version().has_pluto() => {
             let if_token = state.consume().unwrap();
             match expect_if_else_expression(state, if_token) {
                 Ok(if_expression) => {
@@ -2071,6 +2268,8 @@ fn parse_unary_expression(
         TokenType::Symbol { symbol } => match symbol {
             Symbol::Minus => ast::UnOp::Minus(unary_operator_token),
             Symbol::Not => ast::UnOp::Not(unary_operator_token),
+            #[cfg(feature = "pluto")]
+            Symbol::ExclamationMark => ast::UnOp::Not(unary_operator_token),
             Symbol::Hash => ast::UnOp::Hash(unary_operator_token),
             #[cfg(feature = "lua53")]
             Symbol::Tilde if state.lua_version().has_lua53() => {
@@ -2326,7 +2525,7 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
     })
 }
 
-#[cfg(feature = "luau")]
+#[cfg(any(feature = "luau", feature = "pluto"))]
 fn expect_if_else_expression(
     state: &mut ParserState,
     if_token: TokenReference,
@@ -2343,25 +2542,29 @@ fn expect_if_else_expression(
         return Err(());
     };
 
+    #[allow(unused_mut)]
     let mut else_if_expressions = Vec::new();
-    while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
-        let ParserResult::Value(condition) = parse_expression(state) else {
-            return Err(());
-        };
+    #[cfg(feature = "luau")]
+    if state.lua_version().has_luau() {
+        while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+            let ParserResult::Value(condition) = parse_expression(state) else {
+                return Err(());
+            };
 
-        let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
-        else {
-            return Err(());
-        };
-        let ParserResult::Value(expression) = parse_expression(state) else {
-            return Err(());
-        };
-        else_if_expressions.push(ast::ElseIfExpression {
-            else_if_token,
-            condition,
-            then_token,
-            expression,
-        })
+            let Some(then_token) = state.require(Symbol::Then, "expected `then` after condition")
+            else {
+                return Err(());
+            };
+            let ParserResult::Value(expression) = parse_expression(state) else {
+                return Err(());
+            };
+            else_if_expressions.push(ast::ElseIfExpression {
+                else_if_token,
+                condition,
+                then_token,
+                expression,
+            })
+        }
     }
 
     let Some(else_token) = state.require(
@@ -2375,6 +2578,22 @@ fn expect_if_else_expression(
         return Err(());
     };
 
+    let end_token: Option<TokenReference>;
+    #[cfg(feature = "pluto")] {
+        if state.lua_version().has_pluto() {
+            end_token = state.consume_if(Symbol::End);
+            if end_token.is_none() && !state.lua_version().has_luau() {
+                state.require(Symbol::End, "expected `end` to terminate if then else expression");
+                return Err(());
+            }
+        } else {
+            end_token = None;
+        }
+    }
+    #[cfg(not(feature = "pluto"))] {
+        end_token = None;
+    }
+
     Ok(ast::IfExpression {
         if_token,
         condition: Box::new(condition),
@@ -2387,6 +2606,7 @@ fn expect_if_else_expression(
         },
         else_token,
         else_expression: Box::new(else_expression),
+        end_token,
     })
 }
 

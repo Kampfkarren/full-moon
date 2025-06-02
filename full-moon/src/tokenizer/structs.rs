@@ -122,29 +122,32 @@ symbol! {
 
         [lua52 | luajit] Goto => "goto",
 
-        [luau | cfxlua] PlusEqual => "+=",
-        [luau | cfxlua] MinusEqual => "-=",
-        [luau | cfxlua] StarEqual => "*=",
-        [luau | cfxlua] SlashEqual => "/=",
+        [luau | cfxlua | pluto] PlusEqual => "+=",
+        [luau | cfxlua | pluto] MinusEqual => "-=",
+        [luau | cfxlua | pluto] StarEqual => "*=",
+        [luau | cfxlua | pluto] SlashEqual => "/=",
 
-        [luau] DoubleSlashEqual => "//=",
-        [luau] PercentEqual => "%=",
-        [luau | cfxlua] CaretEqual => "^=",
-        [luau] TwoDotsEqual => "..=",
+        [luau | pluto] DoubleSlashEqual => "//=",
+        [luau | pluto] PercentEqual => "%=",
+        [luau | cfxlua | pluto] CaretEqual => "^=",
+        [luau | pluto] TwoDotsEqual => "..=",
 
         [luau | lua53] Ampersand => "&",
-        [luau] ThinArrow => "->",
+        [luau | pluto] ThinArrow => "->",
         [luau | lua52 | luajit] TwoColons => "::",
         [luau] AtSign => "@",
 
-        [cfxlua] DoubleLessThanEqual => "<<=",
-        [cfxlua] DoubleGreaterThanEqual => ">>=",
-        [cfxlua] AmpersandEqual => "&=",
-        [cfxlua] PipeEqual => "|=",
-        [cfxlua] QuestionMarkDot => "?.",
+        [cfxlua | pluto] DoubleLessThanEqual => "<<=",
+        [cfxlua | pluto] DoubleGreaterThanEqual => ">>=",
+        [cfxlua | pluto] AmpersandEqual => "&=",
+        [cfxlua | pluto] PipeEqual => "|=",
+        [cfxlua | pluto] QuestionMarkDot => "?.",
+
+        [pluto] DoubleQuestionMarkEqual => "??=",
 
         Caret => "^",
         Colon => ":",
+        [pluto] ColonEqual => ":=",
         Comma => ",",
         Dot => ".",
         TwoDots => "..",
@@ -165,7 +168,8 @@ symbol! {
         Percent => "%",
         [luau | lua53] Pipe => "|",
         Plus => "+",
-        [luau] QuestionMark => "?",
+        [luau | pluto] QuestionMark => "?",
+        [pluto] DoubleQuestionMark => "??",
         RightBrace => "}",
         RightBracket => "]",
         RightParen => ")",
@@ -175,6 +179,8 @@ symbol! {
         Star => "*",
         [lua53] Tilde => "~",
         TildeEqual => "~=",
+        [pluto] ExclamationMark => "!",
+        [pluto] ExclamationMarkEqual => "!=",
     }
 }
 

@@ -16,7 +16,7 @@ input_file: full-moon/tests/cases/fail/parser/if-3
       token_type:
         type: Symbol
         symbol: if
-    additional: "expected condition after `if`"
+    additional: "expected a condition after `if`"
 - AstError:
     token:
       start_position:
