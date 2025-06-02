@@ -1076,7 +1076,7 @@ fn parse_condition(state: &mut ParserState, stmt_token: &TokenReference) -> Resu
     let mut condition = match parse_expression(state) {
         ParserResult::Value(condition) => condition,
         ParserResult::NotFound => {
-            let error = if stmt_token.is_symbol(Symbol::If) { "expected a condition after `if`" } else { "expected a condition after `while" };
+            let error = if stmt_token.is_symbol(Symbol::If) { "expected a condition after `if`" } else { "expected a condition after `while`" };
             state.token_error(stmt_token.clone(), error);
             return Err(());
         }
