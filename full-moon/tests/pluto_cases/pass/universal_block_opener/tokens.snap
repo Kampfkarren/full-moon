@@ -1,0 +1,292 @@
+---
+source: full-moon/tests/pass_cases.rs
+expression: tokens
+input_file: full-moon/tests/pluto_cases/pass/universal_block_opener
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: if
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: "true"
+- start_position:
+    bytes: 7
+    line: 1
+    character: 8
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 10
+    line: 1
+    character: 11
+  token_type:
+    type: Symbol
+    symbol: do
+- start_position:
+    bytes: 10
+    line: 1
+    character: 11
+  end_position:
+    bytes: 12
+    line: 1
+    character: 12
+  token_type:
+    type: Whitespace
+    characters: "\r\n"
+- start_position:
+    bytes: 12
+    line: 2
+    character: 1
+  end_position:
+    bytes: 13
+    line: 2
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 13
+    line: 2
+    character: 2
+  end_position:
+    bytes: 18
+    line: 2
+    character: 7
+  token_type:
+    type: Identifier
+    identifier: print
+- start_position:
+    bytes: 18
+    line: 2
+    character: 7
+  end_position:
+    bytes: 19
+    line: 2
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 19
+    line: 2
+    character: 8
+  end_position:
+    bytes: 25
+    line: 2
+    character: 14
+  token_type:
+    type: StringLiteral
+    literal: yeah
+    quote_type: Double
+- start_position:
+    bytes: 25
+    line: 2
+    character: 14
+  end_position:
+    bytes: 26
+    line: 2
+    character: 15
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 26
+    line: 2
+    character: 15
+  end_position:
+    bytes: 28
+    line: 2
+    character: 16
+  token_type:
+    type: Whitespace
+    characters: "\r\n"
+- start_position:
+    bytes: 28
+    line: 3
+    character: 1
+  end_position:
+    bytes: 34
+    line: 3
+    character: 7
+  token_type:
+    type: Symbol
+    symbol: elseif
+- start_position:
+    bytes: 34
+    line: 3
+    character: 7
+  end_position:
+    bytes: 35
+    line: 3
+    character: 8
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 35
+    line: 3
+    character: 8
+  end_position:
+    bytes: 40
+    line: 3
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: "false"
+- start_position:
+    bytes: 40
+    line: 3
+    character: 13
+  end_position:
+    bytes: 41
+    line: 3
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 41
+    line: 3
+    character: 14
+  end_position:
+    bytes: 43
+    line: 3
+    character: 16
+  token_type:
+    type: Symbol
+    symbol: do
+- start_position:
+    bytes: 43
+    line: 3
+    character: 16
+  end_position:
+    bytes: 45
+    line: 3
+    character: 17
+  token_type:
+    type: Whitespace
+    characters: "\r\n"
+- start_position:
+    bytes: 45
+    line: 4
+    character: 1
+  end_position:
+    bytes: 46
+    line: 4
+    character: 2
+  token_type:
+    type: Whitespace
+    characters: "\t"
+- start_position:
+    bytes: 46
+    line: 4
+    character: 2
+  end_position:
+    bytes: 51
+    line: 4
+    character: 7
+  token_type:
+    type: Identifier
+    identifier: print
+- start_position:
+    bytes: 51
+    line: 4
+    character: 7
+  end_position:
+    bytes: 52
+    line: 4
+    character: 8
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 52
+    line: 4
+    character: 8
+  end_position:
+    bytes: 57
+    line: 4
+    character: 13
+  token_type:
+    type: StringLiteral
+    literal: nah
+    quote_type: Double
+- start_position:
+    bytes: 57
+    line: 4
+    character: 13
+  end_position:
+    bytes: 58
+    line: 4
+    character: 14
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 58
+    line: 4
+    character: 14
+  end_position:
+    bytes: 60
+    line: 4
+    character: 15
+  token_type:
+    type: Whitespace
+    characters: "\r\n"
+- start_position:
+    bytes: 60
+    line: 5
+    character: 1
+  end_position:
+    bytes: 63
+    line: 5
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 63
+    line: 5
+    character: 4
+  end_position:
+    bytes: 63
+    line: 5
+    character: 4
+  token_type:
+    type: Eof
