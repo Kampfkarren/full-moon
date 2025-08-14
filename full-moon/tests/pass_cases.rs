@@ -75,6 +75,15 @@ fn test_roblox_pass_cases() {
 }
 
 #[test]
+#[cfg(feature = "luau")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_luau_declarations_pass_cases() {
+    run_test_folder("./tests/luau_declarations_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::luau_with_declarations())
+    });
+}
+
+#[test]
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_pass_cases() {

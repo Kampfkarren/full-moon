@@ -426,6 +426,21 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                         ast::LastStmt::Continue(continue_token),
                                     ));
                                 }
+                                TokenType::Identifier { identifier }
+                                    if identifier.as_str() == "declare"
+                                        && state.lua_version().has_luau_with_declarations() =>
+                                {
+                                    let declare_token = token;
+
+                                    return ParserResult::Value(StmtVariant::Stmt(
+                                        ast::Stmt::DeclaredGlobal(
+                                            match expect_declared_global(state, declare_token) {
+                                                Ok(declared_global) => declared_global,
+                                                Err(()) => return ParserResult::LexerMoved,
+                                            },
+                                        ),
+                                    ));
+                                }
                                 _ => (),
                             }
                         }
@@ -1532,6 +1547,38 @@ fn expect_type_function(
         function_token,
         function_name,
         function_body,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_declared_global(
+    state: &mut ParserState,
+    declare_token: TokenReference,
+) -> Result<ast::DeclaredGlobal, ()> {
+    let name = match state.current() {
+        Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+        Ok(token) => {
+            state.token_error(token.clone(), "expected a type function name");
+            return Err(());
+        }
+
+        Err(()) => return Err(()),
+    };
+
+    let Some(colon) = state.require(
+        Symbol::Colon,
+        "expected `:` after declared global variable name",
+    ) else {
+        return Err(());
+    };
+
+    let type_specifier = expect_type_specifier(state, colon)?;
+
+    Ok(ast::DeclaredGlobal {
+        declare_token,
+        name,
+        type_specifier,
     })
 }
 

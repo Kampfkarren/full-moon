@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/declared_globals
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 8
+        line: 1
+        character: 9
+      end_position:
+        bytes: 11
+        line: 1
+        character: 12
+      token_type:
+        type: Identifier
+        identifier: foo
+    additional: unexpected expression when looking for a statement
+- AstError:
+    token:
+      start_position:
+        bytes: 13
+        line: 1
+        character: 14
+      end_position:
+        bytes: 16
+        line: 1
+        character: 17
+      token_type:
+        type: Identifier
+        identifier: Bar
+    additional: "expected arguments after `:`"

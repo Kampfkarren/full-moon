@@ -893,6 +893,69 @@ impl ExportedTypeFunction {
     }
 }
 
+/// A declared global, such as `declare game: DataModel`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{declare_token}{name}{type_specifier}")]
+pub struct DeclaredGlobal {
+    pub(crate) declare_token: TokenReference,
+    pub(crate) name: TokenReference,
+    pub(crate) type_specifier: TypeSpecifier,
+}
+
+impl DeclaredGlobal {
+    /// Creates a new DeclaredGlobal with the given name and type specifier
+    pub fn new(name: TokenReference, type_specifier: TypeSpecifier) -> Self {
+        Self {
+            declare_token: TokenReference::new(
+                vec![],
+                Token::new(TokenType::Identifier {
+                    identifier: ShortString::new("declare"),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            name,
+            type_specifier,
+        }
+    }
+
+    /// The token `declare`.
+    pub fn declare_token(&self) -> &TokenReference {
+        &self.declare_token
+    }
+
+    /// The name of the global, `game` in `declare game: DataModule`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The type specifier, `: DataModule` in `declare game: DataModule`
+    pub fn type_specifier(&self) -> &TypeSpecifier {
+        &self.type_specifier
+    }
+
+    /// Returns a new DeclaredGlobal with the `declare` token
+    pub fn with_declare_token(self, declare_token: TokenReference) -> Self {
+        Self {
+            declare_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredGlobal with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new DeclaredGlobal with the given type specifier
+    pub fn with_type_specifier(self, type_specifier: TypeSpecifier) -> Self {
+        Self {
+            type_specifier,
+            ..self
+        }
+    }
+}
+
 /// A compound assignment operator, such as `+=`, `-=`, etc.
 /// This has been moved to `compound.rs` since CfxLua makes use of it as well.
 #[cfg(not(feature = "luau"))]

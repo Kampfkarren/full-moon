@@ -283,6 +283,7 @@ create_visitor!(ast: {
         visit_else_if_expression => ElseIfExpression,
         visit_exported_type_declaration => ExportedTypeDeclaration,
         visit_exported_type_function => ExportedTypeFunction,
+        visit_declared_global => DeclaredGlobal,
         visit_generic_declaration => GenericDeclaration,
         visit_generic_declaration_parameter => GenericDeclarationParameter,
         visit_generic_parameter_info => GenericParameterInfo,

@@ -495,6 +495,10 @@ pub enum Stmt {
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
     TypeFunction(TypeFunction),
+    /// A declared global, such as `declare game: DataModel`
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    DeclaredGlobal(DeclaredGlobal),
 
     /// A goto statement, such as `goto label`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.
