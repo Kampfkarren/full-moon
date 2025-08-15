@@ -960,25 +960,23 @@ impl DeclaredGlobal {
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    "{}{}{}{}{}",
+    "{}{}{}{}",
     join_vec(attributes),
     declare_token,
     function_token,
-    name,
     signature
 )]
 pub struct DeclaredGlobalFunction {
     pub(crate) attributes: Vec<LuauAttribute>,
     pub(crate) declare_token: TokenReference,
     pub(crate) function_token: TokenReference,
-    pub(crate) name: TokenReference,
     pub(crate) signature: DeclaredFunctionSignature,
 }
 
 impl DeclaredGlobalFunction {
     /// Returns a new DeclaredGlobalFunction from the given name
     pub fn new(name: TokenReference) -> Self {
-        DeclaredGlobalFunction {
+        Self {
             attributes: Vec::new(),
             declare_token: TokenReference::new(
                 Vec::new(),
@@ -988,8 +986,7 @@ impl DeclaredGlobalFunction {
                 vec![Token::new(TokenType::spaces(1))],
             ),
             function_token: TokenReference::basic_symbol("function "),
-            name,
-            signature: DeclaredFunctionSignature::new(),
+            signature: DeclaredFunctionSignature::new(name),
         }
     }
 
@@ -1008,12 +1005,7 @@ impl DeclaredGlobalFunction {
         &self.function_token
     }
 
-    /// The name of the function, `x` in `declare function x()`
-    pub fn name(&self) -> &TokenReference {
-        &self.name
-    }
-
-    /// The function signature, everything except `declare function x` in `declare function x(a: number, b: string)`
+    /// The function signature, everything except `declare function` in `declare function x(a: number, b: string)`
     pub fn signature(&self) -> &DeclaredFunctionSignature {
         &self.signature
     }
@@ -1039,23 +1031,19 @@ impl DeclaredGlobalFunction {
         }
     }
 
-    /// Returns a new DeclaredGlobalFunction with the given name
-    pub fn with_name(self, name: TokenReference) -> Self {
-        Self { name, ..self }
-    }
-
     /// Returns a new DeclaredGlobalFunction with the given function signature
     pub fn with_signature(self, signature: DeclaredFunctionSignature) -> Self {
         Self { signature, ..self }
     }
 }
 
-/// Equivalent to a typed [FunctionBody] without a block, everything except `function x` in `function x(a: number, b: string)`
+/// A declared function signature, everything except `function` in `function x(a: number, b: string)`
 /// Used for declare statements.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    "{}{}{}{}{}",
+    "{}{}{}{}{}{}",
+    name,
     display_option(generics),
     parameters_parentheses.tokens().0,
     parameters,
@@ -1063,6 +1051,7 @@ impl DeclaredGlobalFunction {
     display_option(return_type))
 ]
 pub struct DeclaredFunctionSignature {
+    pub(crate) name: TokenReference,
     pub(crate) generics: Option<GenericDeclaration>,
 
     #[visit(contains = "parameters")]
@@ -1075,8 +1064,9 @@ pub struct DeclaredFunctionSignature {
 
 impl DeclaredFunctionSignature {
     /// Returns a new empty FunctionSignature
-    pub fn new() -> Self {
+    pub fn new(name: TokenReference) -> Self {
         Self {
+            name,
             generics: None,
             parameters_parentheses: ContainedSpan::new(
                 TokenReference::basic_symbol("("),
@@ -1085,6 +1075,11 @@ impl DeclaredFunctionSignature {
             parameters: Punctuated::new(),
             return_type: None,
         }
+    }
+
+    /// The name of the function, `x` in `function x()`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
     }
 
     /// The parentheses of the parameters
@@ -1106,6 +1101,11 @@ impl DeclaredFunctionSignature {
     /// The return type of the function, if one exists.
     pub fn return_type(&self) -> Option<&TypeSpecifier> {
         self.return_type.as_ref()
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
     }
 
     /// Returns a new FunctionBody with the given parentheses for the parameters
@@ -1138,16 +1138,16 @@ impl DeclaredFunctionSignature {
     }
 }
 
-impl Default for DeclaredFunctionSignature {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// A parameter specified in a [DeclaredFunctionSignature], the `count: number` in `declare function foo(count: number)`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum DeclaredFunctionSignatureParameter {
+    /// The self parameter, such as `function x(self, a: number)`
+    /// Only shows up as the first parameter in [DeclaredExternTypeMethod]
+    SelfParam {
+        /// The `self` token
+        self_token: TokenReference,
+    },
     /// A name parameter, such as `a: number` in `function x(a: number, b: string)`
     #[display("{}{}", name, type_specifier)]
     Name {
@@ -1164,6 +1164,555 @@ pub enum DeclaredFunctionSignatureParameter {
         /// The type specifier of the parameter, `: number` in `...: number`
         type_specifier: TypeSpecifier,
     },
+}
+
+/// A declared extern type, such as
+/// ```luau
+/// declare extern type Foo extends Bar with
+///     prop: string
+///     [string]: any
+///     function baz(self, a: string)
+/// end
+/// ```
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}{}{}",
+    declare_token,
+    extern_token,
+    type_token,
+    name,
+    with_token,
+    join_vec(members),
+    end_token
+)]
+pub struct DeclaredExternType {
+    pub(crate) declare_token: TokenReference,
+    pub(crate) extern_token: TokenReference,
+    pub(crate) type_token: TokenReference,
+    pub(crate) name: DeclaredExternTypeName,
+    pub(crate) with_token: TokenReference,
+    pub(crate) members: Vec<DeclaredExternTypeMember>,
+    pub(crate) end_token: TokenReference,
+}
+
+impl DeclaredExternType {
+    /// Creates a new DeclaredExternType from the given name.
+    pub fn new(name: DeclaredExternTypeName) -> Self {
+        Self {
+            declare_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "declare".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            extern_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "extern".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            type_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "type".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            name,
+            with_token: TokenReference::new(
+                vec![Token::new(TokenType::spaces(1))],
+                Token::new(TokenType::Identifier {
+                    identifier: "with".into(),
+                }),
+                Vec::new(),
+            ),
+            members: Vec::new(),
+            end_token: TokenReference::basic_symbol("\nend"),
+        }
+    }
+
+    /// The token `declare`
+    pub fn declare_token(&self) -> &TokenReference {
+        &self.declare_token
+    }
+
+    /// The token `extern`
+    pub fn extern_token(&self) -> &TokenReference {
+        &self.extern_token
+    }
+
+    /// The token `type`
+    pub fn type_token(&self) -> &TokenReference {
+        &self.type_token
+    }
+
+    /// The extern type name, `Foo` in `declare extern type Foo with end`
+    pub fn name(&self) -> &DeclaredExternTypeName {
+        &self.name
+    }
+
+    /// The token `with`
+    pub fn with_token(&self) -> &TokenReference {
+        &self.with_token
+    }
+
+    /// An iterator over the members in the extern type, such as `prop: string`
+    /// in `declare extern type Foo with prop: string end`
+    pub fn members(&self) -> impl Iterator<Item = &DeclaredExternTypeMember> {
+        self.members.iter()
+    }
+
+    /// The token `end`
+    pub fn end_token(&self) -> &TokenReference {
+        &self.end_token
+    }
+
+    /// Returns a new DeclaredExternType with the given `declare` token
+    pub fn with_declare_token(self, declare_token: TokenReference) -> Self {
+        Self {
+            declare_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredExternType with the given `extern` token
+    pub fn with_extern_token(self, extern_token: TokenReference) -> Self {
+        Self {
+            extern_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredExternType with the given `type` token
+    pub fn with_type_token(self, type_token: TokenReference) -> Self {
+        Self { type_token, ..self }
+    }
+
+    /// Returns a new DeclaredExternType with the given name
+    pub fn with_name(self, name: DeclaredExternTypeName) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new DeclaredExternType with the given `with` token
+    pub fn with_with_token(self, with_token: TokenReference) -> Self {
+        Self { with_token, ..self }
+    }
+
+    /// Returns a new DeclaredExternType with the given members
+    pub fn with_members(self, members: Vec<DeclaredExternTypeMember>) -> Self {
+        Self { members, ..self }
+    }
+
+    /// Returns a new DeclaredExternType with the given `end` token
+    pub fn with_end_token(self, end_token: TokenReference) -> Self {
+        Self { end_token, ..self }
+    }
+}
+
+/// A declared class, such as
+/// ```luau
+/// declare class Foo extends Bar
+///     prop: string
+///     [string]: any
+///     function baz(self, a: string)
+/// end
+/// ```
+///
+/// Completely equivalent and superseded by [DeclaredExternType] but still used in some declaration
+/// files.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}",
+    declare_token,
+    class_token,
+    name,
+    join_vec(members),
+    end_token
+)]
+pub struct DeclaredClass {
+    pub(crate) declare_token: TokenReference,
+    pub(crate) class_token: TokenReference,
+    pub(crate) name: DeclaredExternTypeName,
+    pub(crate) members: Vec<DeclaredExternTypeMember>,
+    pub(crate) end_token: TokenReference,
+}
+
+impl DeclaredClass {
+    /// Creates a new DeclaredClass from the given name.
+    pub fn new(name: DeclaredExternTypeName) -> Self {
+        Self {
+            declare_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "declare".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            class_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "class".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            name,
+            members: Vec::new(),
+            end_token: TokenReference::basic_symbol("\nend"),
+        }
+    }
+
+    /// The token `declare`
+    pub fn declare_token(&self) -> &TokenReference {
+        &self.declare_token
+    }
+
+    /// The token `class`
+    pub fn class_token(&self) -> &TokenReference {
+        &self.class_token
+    }
+
+    /// The class name, `Foo` in `declare class Foo end`
+    pub fn name(&self) -> &DeclaredExternTypeName {
+        &self.name
+    }
+
+    /// An iterator over the members in the class, such as `prop: string`
+    /// in `declare class Foo prop: string end`
+    pub fn members(&self) -> impl Iterator<Item = &DeclaredExternTypeMember> {
+        self.members.iter()
+    }
+
+    /// The token `end`
+    pub fn end_token(&self) -> &TokenReference {
+        &self.end_token
+    }
+
+    /// Returns a new DeclaredClass with the given `declare` token
+    pub fn with_declare_token(self, declare_token: TokenReference) -> Self {
+        Self {
+            declare_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredClass with the given `class` token
+    pub fn with_class_token(self, class_token: TokenReference) -> Self {
+        Self {
+            class_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredClass with the given name
+    pub fn with_name(self, name: DeclaredExternTypeName) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new DeclaredClass with the given members
+    pub fn with_members(self, members: Vec<DeclaredExternTypeMember>) -> Self {
+        Self { members, ..self }
+    }
+
+    /// Returns a new DeclaredClass with the given `end` token
+    pub fn with_end_token(self, end_token: TokenReference) -> Self {
+        Self { end_token, ..self }
+    }
+}
+
+/// The name part of an extern type declaration.
+/// `Foo extends Bar` in `declare extern type Foo extends Bar with ... end`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}",
+    name,
+    display_option(self.supertype_extends_token()),
+    display_option(self.supertype_name())
+)]
+pub struct DeclaredExternTypeName {
+    pub(crate) name: TokenReference,
+    pub(crate) extends: Option<(TokenReference, TokenReference)>,
+}
+
+impl DeclaredExternTypeName {
+    /// Creates a new ExternTypeName from the given name
+    pub fn new(name: TokenReference) -> Self {
+        Self {
+            name,
+            extends: None,
+        }
+    }
+
+    /// The `name` of the extern type.
+    /// This is the `Game` part of `declare extern type Game extends DataModel with end`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The `extends` token between the name and the supertype.
+    /// This is the `extends` part of `declare extern type Game extends DataModel with end`
+    pub fn supertype_extends_token(&self) -> Option<&TokenReference> {
+        Some(&self.extends.as_ref()?.0)
+    }
+
+    /// The name of the supertype, if one exists.
+    /// This is the `DataModel` part of `declare extern type Game extends DataModel with end`
+    pub fn supertype_name(&self) -> Option<&TokenReference> {
+        Some(&self.extends.as_ref()?.1)
+    }
+
+    /// Returns a new ExternTypeName with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new ExternTypeName with the given extends
+    /// The first token is the `extend` token, and the second is the name of the supertype
+    pub fn with_extends(self, extends: Option<(TokenReference, TokenReference)>) -> Self {
+        Self { extends, ..self }
+    }
+}
+
+/// A member of a declared extern type (or class).
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum DeclaredExternTypeMember {
+    /// A property, such as `prop: string`
+    Property(DeclaredExternTypeProperty),
+    /// An indexer, such as `[number]: string`
+    IndexSignature(DeclaredExternTypeIndexSignature),
+    /// A method, such as `function foo(self)`
+    Method(DeclaredExternTypeMethod),
+}
+
+/// A property of a declared extern type (or class).
+/// `prop: string` in `declare extern type Foo with prop: string end`
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}",
+    display_option(brackets.as_ref().map(|b| b.tokens().0)),
+    name,
+    display_option(brackets.as_ref().map(|b| b.tokens().1)),
+    colon_token,
+    type_info,
+)]
+pub struct DeclaredExternTypeProperty {
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub(crate) brackets: Option<ContainedSpan>,
+    pub(crate) name: TokenReference,
+    pub(crate) colon_token: TokenReference,
+    pub(crate) type_info: TypeInfo,
+}
+
+impl DeclaredExternTypeProperty {
+    /// Creates a new DeclaredExternTypeProperty with the given name and type info.
+    pub fn new(name: TokenReference, type_info: TypeInfo) -> Self {
+        Self {
+            brackets: if name.token_kind() == crate::tokenizer::TokenKind::StringLiteral {
+                Some(ContainedSpan::new(
+                    TokenReference::basic_symbol("["),
+                    TokenReference::basic_symbol("]"),
+                ))
+            } else {
+                None
+            },
+            name,
+            colon_token: TokenReference::symbol(": ").unwrap(),
+            type_info,
+        }
+    }
+
+    /// The name, `prop` in `prop: string`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The colon in between the name and the type.
+    pub fn colon_token(&self) -> &TokenReference {
+        &self.colon_token
+    }
+
+    /// The type of the property, `string` in `prop: string`
+    pub fn type_info(&self) -> &TypeInfo {
+        &self.type_info
+    }
+
+    /// The brackets surrounding the name, `[]` in `["count"]: number`
+    pub fn brackets(&self) -> Option<&ContainedSpan> {
+        self.brackets.as_ref()
+    }
+
+    /// Returns a new DeclaredExternTypeProperty with the given name.
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new DeclaredExternTypeProperty with the `:` token.
+    pub fn with_colon_token(self, colon_token: TokenReference) -> Self {
+        Self {
+            colon_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredExternTypeProperty with the given type.
+    pub fn with_type_info(self, type_info: TypeInfo) -> Self {
+        Self { type_info, ..self }
+    }
+
+    /// Returns a new DeclaredExternTypeProperty with the surrounding brackets.
+    pub fn with_brackets(self, brackets: Option<ContainedSpan>) -> Self {
+        Self { brackets, ..self }
+    }
+}
+
+/// An index signature of a declared extern type (or class).
+/// `[number]: any` in `declare extern type Foo with [number]: any end`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}",
+    brackets.tokens().0,
+    index,
+    brackets.tokens().1,
+    colon_token,
+    returns
+)]
+pub struct DeclaredExternTypeIndexSignature {
+    #[visit(contains = "index")]
+    pub(crate) brackets: ContainedSpan,
+    pub(crate) index: TypeInfo,
+    pub(crate) colon_token: TokenReference,
+    pub(crate) returns: TypeInfo,
+}
+
+impl DeclaredExternTypeIndexSignature {
+    /// Creates a new DeclaredExternTypeIndexSignature with the given index and return types.
+    pub fn new(index: TypeInfo, returns: TypeInfo) -> Self {
+        Self {
+            brackets: ContainedSpan::new(
+                TokenReference::basic_symbol("["),
+                TokenReference::basic_symbol("]"),
+            ),
+            index,
+            colon_token: TokenReference::symbol(": ").unwrap(),
+            returns,
+        }
+    }
+
+    /// The brackets (`[]`) used to contain the type.
+    pub fn brackets(&self) -> &ContainedSpan {
+        &self.brackets
+    }
+
+    /// The type for the index signature, `number` in `[number]: string`
+    pub fn index(&self) -> &TypeInfo {
+        &self.index
+    }
+
+    /// The `:` token in between `[number]: string`.
+    pub fn colon_token(&self) -> &TokenReference {
+        &self.colon_token
+    }
+
+    /// The type for the return value, `string` in `[number]: string`
+    pub fn returns(&self) -> &TypeInfo {
+        &self.returns
+    }
+
+    /// Returns a new DeclaredExternTypeIndexSignature with the given square brackets.
+    pub fn with_brackets(self, brackets: ContainedSpan) -> Self {
+        Self { brackets, ..self }
+    }
+
+    /// Returns a new DeclaredExternTypeIndexSignature with the given index type.
+    pub fn with_index(self, index: TypeInfo) -> Self {
+        Self { index, ..self }
+    }
+
+    /// Returns a new DeclaredExternTypeIndexSignature with the `:` token.
+    pub fn with_colon_token(self, colon_token: TokenReference) -> Self {
+        Self {
+            colon_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredExternTypeIndexSignature with the given return type.
+    pub fn with_returns(self, returns: TypeInfo) -> Self {
+        Self { returns, ..self }
+    }
+}
+
+/// A method of a declared extern type (or class).
+/// `function bar(self, a: string)` in `declare extern type Foo with function bar(self, a: string) end`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{}{}{}", join_vec(attributes), function_token, signature)]
+pub struct DeclaredExternTypeMethod {
+    pub(crate) attributes: Vec<LuauAttribute>,
+    pub(crate) function_token: TokenReference,
+    pub(crate) signature: DeclaredFunctionSignature,
+}
+
+impl DeclaredExternTypeMethod {
+    /// Returns a new DeclaredExternTypeMethod from the given name.
+    /// The `self` parameter will be present in the function signature.
+    pub fn new(name: TokenReference) -> Self {
+        let mut parameters = Punctuated::new();
+        parameters.push(Pair::End(DeclaredFunctionSignatureParameter::SelfParam {
+            self_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "self".into(),
+                }),
+                Vec::new(),
+            ),
+        }));
+        Self {
+            attributes: Vec::new(),
+            function_token: TokenReference::basic_symbol("function "),
+            signature: DeclaredFunctionSignature::new(name).with_parameters(parameters),
+        }
+    }
+
+    /// The attributes in the function, e.g. `@deprecated`
+    pub fn attributes(&self) -> impl Iterator<Item = &LuauAttribute> {
+        self.attributes.iter()
+    }
+
+    /// The token `function`
+    pub fn function_token(&self) -> &TokenReference {
+        &self.function_token
+    }
+
+    /// The function signature, everything except `declare function` in `declare function x(self, a: number, b: string)`
+    pub fn signature(&self) -> &DeclaredFunctionSignature {
+        &self.signature
+    }
+
+    /// Returns a new DeclaredExternTypeMethod with the given attributes (e.g. `@deprecated`)
+    pub fn with_attributes(self, attributes: Vec<LuauAttribute>) -> Self {
+        Self { attributes, ..self }
+    }
+
+    /// Returns a new DeclaredExternTypeMethod with the given `function` token
+    pub fn with_function_token(self, function_token: TokenReference) -> Self {
+        Self {
+            function_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredExternTypeMethod with the given function signature
+    pub fn with_signature(self, signature: DeclaredFunctionSignature) -> Self {
+        Self { signature, ..self }
+    }
 }
 
 /// A compound assignment operator, such as `+=`, `-=`, etc.

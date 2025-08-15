@@ -503,6 +503,12 @@ pub enum Stmt {
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
     DeclaredGlobalFunction(DeclaredGlobalFunction),
+    /// A declared extern type, such as `declare extern type Foo with end`
+    /// Only available when the "luau" feature flag is enabled.
+    DeclaredExternType(DeclaredExternType),
+    /// A declared class, such as `declare class Foo end`
+    /// Only available when the "luau" feature flag is enabled.
+    DeclaredClass(DeclaredClass),
 
     /// A goto statement, such as `goto label`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.

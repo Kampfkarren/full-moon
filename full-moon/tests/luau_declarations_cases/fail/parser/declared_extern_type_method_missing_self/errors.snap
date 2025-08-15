@@ -1,0 +1,26 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_extern_type_method_missing_self
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 42
+        line: 2
+        character: 14
+      end_position:
+        bytes: 45
+        line: 2
+        character: 17
+      token_type:
+        type: Identifier
+        identifier: foo
+    additional: "'self' must be present as the unannotated first parameter"
+    range:
+      - bytes: 42
+        line: 2
+        character: 14
+      - bytes: 55
+        line: 2
+        character: 27

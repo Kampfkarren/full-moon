@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_extern_type_multiple_indexers
+---
+error[ast]: cannot have more than one indexer on an extern type
+  ┌─ source.lua:3:5
+  │
+3 │     [number]: string
+  │     ^^^^^^^^^^^^^^^^

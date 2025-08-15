@@ -58,22 +58,22 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        name:
-          leading_trivia: []
-          token:
-            start_position:
-              bytes: 17
-              line: 1
-              character: 18
-            end_position:
-              bytes: 20
-              line: 1
-              character: 21
-            token_type:
-              type: Identifier
-              identifier: foo
-          trailing_trivia: []
         signature:
+          name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 17
+                line: 1
+                character: 18
+              end_position:
+                bytes: 20
+                line: 1
+                character: 21
+              token_type:
+                type: Identifier
+                identifier: foo
+            trailing_trivia: []
           generics: ~
           parameters_parentheses:
             tokens:
@@ -498,22 +498,22 @@ stmts:
               token_type:
                 type: Whitespace
                 characters: " "
-        name:
-          leading_trivia: []
-          token:
-            start_position:
-              bytes: 95
-              line: 4
-              character: 18
-            end_position:
-              bytes: 98
-              line: 4
-              character: 21
-            token_type:
-              type: Identifier
-              identifier: bar
-          trailing_trivia: []
         signature:
+          name:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 95
+                line: 4
+                character: 18
+              end_position:
+                bytes: 98
+                line: 4
+                character: 21
+              token_type:
+                type: Identifier
+                identifier: bar
+            trailing_trivia: []
           generics: ~
           parameters_parentheses:
             tokens:

@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_extern_type_multiple_indexers
+---
+"declare extern type Foo with\n    [string]: string\n    [number]: string\nend"

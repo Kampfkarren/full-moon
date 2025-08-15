@@ -1,0 +1,26 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_extern_type_multiple_indexers
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 54
+        line: 3
+        character: 5
+      end_position:
+        bytes: 55
+        line: 3
+        character: 6
+      token_type:
+        type: Symbol
+        symbol: "["
+    additional: cannot have more than one indexer on an extern type
+    range:
+      - bytes: 54
+        line: 3
+        character: 5
+      - bytes: 70
+        line: 3
+        character: 21

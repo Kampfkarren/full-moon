@@ -404,3 +404,47 @@ impl VisitMut for TypeFieldKey {
         self
     }
 }
+
+impl Visit for DeclaredExternTypeProperty {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_declared_extern_type_property(self);
+
+        if let Some(brackets) = self.brackets.as_ref() {
+            brackets.tokens.0.visit(visitor);
+            self.name.visit(visitor);
+            brackets.tokens.1.visit(visitor);
+        } else {
+            self.name.visit(visitor);
+        }
+
+        self.colon_token.visit(visitor);
+        self.type_info.visit(visitor);
+
+        visitor.visit_declared_extern_type_property_end(self);
+    }
+}
+
+impl VisitMut for DeclaredExternTypeProperty {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_declared_extern_type_property(self);
+
+        self.brackets = match self.brackets {
+            Some(mut brackets) => {
+                brackets.tokens.0 = brackets.tokens.0.visit_mut(visitor);
+                self.name = self.name.visit_mut(visitor);
+                brackets.tokens.1 = brackets.tokens.1.visit_mut(visitor);
+                Some(brackets)
+            }
+            None => {
+                self.name = self.name.visit_mut(visitor);
+                None
+            }
+        };
+
+        self.colon_token = self.colon_token.visit_mut(visitor);
+        self.type_info = self.type_info.visit_mut(visitor);
+
+        self = visitor.visit_declared_extern_type_property_end(self);
+        self
+    }
+}

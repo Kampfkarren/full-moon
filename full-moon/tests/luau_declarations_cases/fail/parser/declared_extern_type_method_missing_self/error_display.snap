@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_extern_type_method_missing_self
+---
+error[ast]: 'self' must be present as the unannotated first parameter
+  ┌─ source.lua:2:14
+  │
+2 │     function foo(a: number)
+  │              ^^^^^^^^^^^^^
