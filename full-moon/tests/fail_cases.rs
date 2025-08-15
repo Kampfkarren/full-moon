@@ -116,6 +116,16 @@ fn test_roblox_tokenizer_fail_cases() {
 }
 
 #[test]
+#[cfg(feature = "luau")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_luau_declarations_parser_fail_cases() {
+    run_parser_fail_cases(
+        "./tests/luau_declarations_cases/fail/parser",
+        LuaVersion::luau_with_declarations(),
+    );
+}
+
+#[test]
 #[cfg(feature = "lua52")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_lua52_parser_fail_cases() {

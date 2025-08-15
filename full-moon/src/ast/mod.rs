@@ -499,6 +499,10 @@ pub enum Stmt {
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
     DeclaredGlobal(DeclaredGlobal),
+    /// A declared global function, such as `declare function foo(a: number)`
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    DeclaredGlobalFunction(DeclaredGlobalFunction),
 
     /// A goto statement, such as `goto label`
     /// Only available when the "lua52" or "luajit" feature flag is enabled.

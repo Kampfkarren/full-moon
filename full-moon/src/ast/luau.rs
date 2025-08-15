@@ -956,6 +956,216 @@ impl DeclaredGlobal {
     }
 }
 
+/// A declared global function, such as `declare function foo(a: string): number`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}",
+    join_vec(attributes),
+    declare_token,
+    function_token,
+    name,
+    signature
+)]
+pub struct DeclaredGlobalFunction {
+    pub(crate) attributes: Vec<LuauAttribute>,
+    pub(crate) declare_token: TokenReference,
+    pub(crate) function_token: TokenReference,
+    pub(crate) name: TokenReference,
+    pub(crate) signature: DeclaredFunctionSignature,
+}
+
+impl DeclaredGlobalFunction {
+    /// Returns a new DeclaredGlobalFunction from the given name
+    pub fn new(name: TokenReference) -> Self {
+        DeclaredGlobalFunction {
+            attributes: Vec::new(),
+            declare_token: TokenReference::new(
+                Vec::new(),
+                Token::new(TokenType::Identifier {
+                    identifier: "declare".into(),
+                }),
+                vec![Token::new(TokenType::spaces(1))],
+            ),
+            function_token: TokenReference::basic_symbol("function "),
+            name,
+            signature: DeclaredFunctionSignature::new(),
+        }
+    }
+
+    /// The attributes in the function, e.g. `@deprecated`
+    pub fn attributes(&self) -> impl Iterator<Item = &LuauAttribute> {
+        self.attributes.iter()
+    }
+
+    /// The token `declare`
+    pub fn declare_token(&self) -> &TokenReference {
+        &self.declare_token
+    }
+
+    /// The token `function`
+    pub fn function_token(&self) -> &TokenReference {
+        &self.function_token
+    }
+
+    /// The name of the function, `x` in `declare function x()`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The function signature, everything except `declare function x` in `declare function x(a: number, b: string)`
+    pub fn signature(&self) -> &DeclaredFunctionSignature {
+        &self.signature
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given attributes (e.g. `@deprecated`)
+    pub fn with_attributes(self, attributes: Vec<LuauAttribute>) -> Self {
+        Self { attributes, ..self }
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given `declare` token
+    pub fn with_declare_token(self, declare_token: TokenReference) -> Self {
+        Self {
+            declare_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given `function` token
+    pub fn with_function_token(self, function_token: TokenReference) -> Self {
+        Self {
+            function_token,
+            ..self
+        }
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new DeclaredGlobalFunction with the given function signature
+    pub fn with_signature(self, signature: DeclaredFunctionSignature) -> Self {
+        Self { signature, ..self }
+    }
+}
+
+/// Equivalent to a typed [FunctionBody] without a block, everything except `function x` in `function x(a: number, b: string)`
+/// Used for declare statements.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}{}",
+    display_option(generics),
+    parameters_parentheses.tokens().0,
+    parameters,
+    parameters_parentheses.tokens().1,
+    display_option(return_type))
+]
+pub struct DeclaredFunctionSignature {
+    pub(crate) generics: Option<GenericDeclaration>,
+
+    #[visit(contains = "parameters")]
+    pub(crate) parameters_parentheses: ContainedSpan,
+    pub(crate) parameters: Punctuated<DeclaredFunctionSignatureParameter>,
+
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub(crate) return_type: Option<TypeSpecifier>,
+}
+
+impl DeclaredFunctionSignature {
+    /// Returns a new empty FunctionSignature
+    pub fn new() -> Self {
+        Self {
+            generics: None,
+            parameters_parentheses: ContainedSpan::new(
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
+            ),
+            parameters: Punctuated::new(),
+            return_type: None,
+        }
+    }
+
+    /// The parentheses of the parameters
+    pub fn parameters_parentheses(&self) -> &ContainedSpan {
+        &self.parameters_parentheses
+    }
+
+    /// Returns the [`Punctuated`] sequence of the parameters for the function declaration
+    pub fn parameters(&self) -> &Punctuated<DeclaredFunctionSignatureParameter> {
+        &self.parameters
+    }
+
+    /// The generics declared for the function body.
+    /// The `<T, U>` part of `function x<T, U>()`
+    pub fn generics(&self) -> Option<&GenericDeclaration> {
+        self.generics.as_ref()
+    }
+
+    /// The return type of the function, if one exists.
+    pub fn return_type(&self) -> Option<&TypeSpecifier> {
+        self.return_type.as_ref()
+    }
+
+    /// Returns a new FunctionBody with the given parentheses for the parameters
+    pub fn with_parameters_parentheses(self, parameters_parentheses: ContainedSpan) -> Self {
+        Self {
+            parameters_parentheses,
+            ..self
+        }
+    }
+
+    /// Returns a new FunctionBody with the given parameters
+    pub fn with_parameters(
+        self,
+        parameters: Punctuated<DeclaredFunctionSignatureParameter>,
+    ) -> Self {
+        Self { parameters, ..self }
+    }
+
+    /// Returns a new FunctionBody with the given generics declaration
+    pub fn with_generics(self, generics: Option<GenericDeclaration>) -> Self {
+        Self { generics, ..self }
+    }
+
+    /// Returns a new FunctionBody with the given return type
+    pub fn with_return_type(self, return_type: Option<TypeSpecifier>) -> Self {
+        Self {
+            return_type,
+            ..self
+        }
+    }
+}
+
+impl Default for DeclaredFunctionSignature {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// A parameter specified in a [DeclaredFunctionSignature], the `count: number` in `declare function foo(count: number)`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum DeclaredFunctionSignatureParameter {
+    /// A name parameter, such as `a: number` in `function x(a: number, b: string)`
+    #[display("{}{}", name, type_specifier)]
+    Name {
+        /// The name of the parameter, `a` in `a: number`
+        name: TokenReference,
+        /// The type specifier of the parameter, `: number` in `a: number`
+        type_specifier: TypeSpecifier,
+    },
+    /// The `...` vararg syntax, such as `function x(...: number)`
+    #[display("{}{}", ellipsis, type_specifier)]
+    Ellipsis {
+        /// The ellipsis token
+        ellipsis: TokenReference,
+        /// The type specifier of the parameter, `: number` in `...: number`
+        type_specifier: TypeSpecifier,
+    },
+}
+
 /// A compound assignment operator, such as `+=`, `-=`, etc.
 /// This has been moved to `compound.rs` since CfxLua makes use of it as well.
 #[cfg(not(feature = "luau"))]

@@ -432,6 +432,24 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                 {
                                     let declare_token = token;
 
+                                    if let Some(function_token) = state.consume_if(Symbol::Function)
+                                    {
+                                        return ParserResult::Value(StmtVariant::Stmt(
+                                            ast::Stmt::DeclaredGlobalFunction(
+                                                match expect_declared_global_function(
+                                                    state,
+                                                    declare_token,
+                                                    function_token,
+                                                ) {
+                                                    Ok(declared_global_function) => {
+                                                        declared_global_function
+                                                    }
+                                                    Err(()) => return ParserResult::LexerMoved,
+                                                },
+                                            ),
+                                        ));
+                                    }
+
                                     return ParserResult::Value(StmtVariant::Stmt(
                                         ast::Stmt::DeclaredGlobal(
                                             match expect_declared_global(state, declare_token) {
@@ -660,10 +678,46 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                         Err(()) => ParserResult::LexerMoved,
                     }
                 }
+                Ok(token) if matches!(token.token_type(), TokenType::Identifier { identifier } if identifier.as_str() == "declare") =>
+                {
+                    let declare_token = state.consume().unwrap();
+                    match state.current() {
+                        Ok(token) if token.is_symbol(Symbol::Function) => {
+                            let function_token = state.consume().unwrap();
+
+                            let declared_global_function = match expect_declared_global_function(
+                                state,
+                                declare_token,
+                                function_token,
+                            ) {
+                                Ok(declared_global_function) => declared_global_function,
+                                Err(()) => return ParserResult::LexerMoved,
+                            };
+
+                            ParserResult::Value(StmtVariant::Stmt(
+                                ast::Stmt::DeclaredGlobalFunction(
+                                    declared_global_function.with_attributes(attributes),
+                                ),
+                            ))
+                        }
+                        Ok(token) => {
+                            state.token_error(
+                                token.clone(),
+                                "expected `declare function` after attribute",
+                            );
+                            ParserResult::LexerMoved
+                        }
+                        Err(()) => ParserResult::LexerMoved,
+                    }
+                }
                 Ok(token) => {
                     state.token_error(
                         token.clone(),
-                        "expected `function` or `local function` after attribute",
+                        if state.lua_version().has_luau_with_declarations() {
+                            "expected `function`, `local function` or `declare function` after attribute"
+                        } else {
+                            "expected `function` or `local function` after attribute"
+                        },
                     );
                     ParserResult::LexerMoved
                 }
@@ -1579,6 +1633,250 @@ fn expect_declared_global(
         declare_token,
         name,
         type_specifier,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn expect_declared_global_function(
+    state: &mut ParserState,
+    declare_token: TokenReference,
+    function_token: TokenReference,
+) -> Result<ast::DeclaredGlobalFunction, ()> {
+    let name = match state.current() {
+        Ok(token) if token.token_kind() == TokenKind::Identifier => state.consume().unwrap(),
+
+        Ok(token) => {
+            state.token_error(token.clone(), "expected a function name");
+            return Err(());
+        }
+
+        Err(()) => return Err(()),
+    };
+
+    let function_signature = match parse_declared_function_signature(state) {
+        ParserResult::Value(function_signature) => function_signature,
+        ParserResult::NotFound => {
+            state.token_error(function_token, "expected a function signature");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    Ok(ast::DeclaredGlobalFunction {
+        attributes: Vec::new(),
+        declare_token,
+        function_token,
+        name,
+        signature: function_signature,
+    })
+}
+
+#[cfg(feature = "luau")]
+fn parse_declared_function_signature(
+    state: &mut ParserState,
+) -> ParserResult<ast::DeclaredFunctionSignature> {
+    let generics = match parse_generic_type_list(state, TypeListStyle::Plain) {
+        ParserResult::Value(generic_declaration) => Some(generic_declaration),
+        ParserResult::NotFound => None,
+        ParserResult::LexerMoved => return ParserResult::LexerMoved,
+    };
+
+    let Some(left_parenthesis) = state.consume_if(Symbol::LeftParen) else {
+        return ParserResult::NotFound;
+    };
+
+    let mut parameters = Punctuated::new();
+    let right_parenthesis;
+
+    let unfinished_function_signature =
+        |generics: Option<ast::GenericDeclaration>,
+         left_parenthesis: TokenReference,
+         mut parameters: Punctuated<ast::DeclaredFunctionSignatureParameter>| {
+            if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+                let last_parameter = parameters.pop().unwrap();
+                parameters.push(Pair::End(last_parameter.into_value()));
+            }
+
+            ParserResult::Value(ast::DeclaredFunctionSignature {
+                generics,
+                parameters_parentheses: ContainedSpan::new(
+                    left_parenthesis,
+                    TokenReference::basic_symbol(")"),
+                ),
+                parameters,
+                return_type: None,
+            })
+        };
+
+    loop {
+        match state.current() {
+            Ok(token) if token.is_symbol(Symbol::RightParen) => {
+                right_parenthesis = state.consume().unwrap();
+                break;
+            }
+
+            Ok(token) if token.is_symbol(Symbol::Ellipsis) => {
+                let ellipsis = state.consume().unwrap();
+
+                let Some(colon) = state.require(Symbol::Colon, "expected `:` after parameter name")
+                else {
+                    return unfinished_function_signature(generics, left_parenthesis, parameters);
+                };
+                // varargs can also be annotated using generic packs: T...
+                let type_info = if matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
+                    && matches!(state.peek(), Ok(token) if token.is_symbol(Symbol::Ellipsis))
+                {
+                    let name = match parse_name(state) {
+                        ParserResult::Value(name) => name.name,
+                        _ => unreachable!(),
+                    };
+
+                    let Some(ellipsis) =
+                        state.require(Symbol::Ellipsis, "expected `...` after type name")
+                    else {
+                        unreachable!()
+                    };
+
+                    ast::TypeInfo::GenericPack { name, ellipsis }
+                } else {
+                    match parse_type(state) {
+                        ParserResult::Value(type_info) => type_info,
+                        _ => {
+                            return unfinished_function_signature(
+                                generics,
+                                left_parenthesis,
+                                parameters,
+                            )
+                        }
+                    }
+                };
+                parameters.push(Pair::End(
+                    ast::DeclaredFunctionSignatureParameter::Ellipsis {
+                        ellipsis,
+                        type_specifier: ast::TypeSpecifier {
+                            punctuation: colon,
+                            type_info,
+                        },
+                    },
+                ));
+
+                right_parenthesis = match state.require(Symbol::RightParen, "expected a `)`") {
+                    Some(right_parenthesis) => right_parenthesis,
+                    None => {
+                        return unfinished_function_signature(
+                            generics,
+                            left_parenthesis,
+                            parameters,
+                        )
+                    }
+                };
+
+                break;
+            }
+
+            Ok(TokenReference {
+                token:
+                    Token {
+                        token_type: TokenType::Identifier { .. },
+                        ..
+                    },
+                ..
+            }) => {
+                let name_parameter = match parse_name_with_type_specifiers(state) {
+                    ParserResult::Value(name) => {
+                        let Some(type_specifier) = name.type_specifier else {
+                            state.token_error(
+                                name.name.clone(),
+                                "expected `:` after parameter name",
+                            );
+                            return unfinished_function_signature(
+                                generics,
+                                left_parenthesis,
+                                parameters,
+                            );
+                        };
+                        ast::DeclaredFunctionSignatureParameter::Name {
+                            name: name.name,
+                            type_specifier,
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+
+                let Some(comma) = state.consume_if(Symbol::Comma) else {
+                    parameters.push(Pair::End(name_parameter));
+
+                    match state.require(Symbol::RightParen, "expected a `)`") {
+                        Some(new_right_parenthesis) => {
+                            right_parenthesis = new_right_parenthesis;
+                            break;
+                        }
+
+                        None => {
+                            return unfinished_function_signature(
+                                generics,
+                                left_parenthesis,
+                                parameters,
+                            )
+                        }
+                    };
+                };
+
+                parameters.push(Pair::Punctuated(name_parameter, comma));
+            }
+
+            Ok(token) => {
+                state.token_error(token.clone(), "expected a parameter name or `)`");
+
+                return unfinished_function_signature(generics, left_parenthesis, parameters);
+            }
+
+            Err(()) => {
+                return unfinished_function_signature(generics, left_parenthesis, parameters);
+            }
+        }
+    }
+
+    if matches!(parameters.last(), Some(Pair::Punctuated(..))) {
+        let last_parameter = parameters.pop().unwrap();
+
+        state.token_error(
+            last_parameter.punctuation().unwrap().clone(),
+            "trailing commas in arguments are not allowed",
+        );
+
+        parameters.push(Pair::End(last_parameter.into_value()));
+    }
+
+    let return_type = if let Some(punctuation) = state.consume_if(Symbol::Colon) {
+        match parse_return_type(state) {
+            ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                punctuation,
+                type_info,
+            }),
+            _ => return ParserResult::LexerMoved,
+        }
+    } else if let Some(punctuation) = state.consume_if(Symbol::ThinArrow) {
+        state.token_error(
+            punctuation.clone(),
+            "function return type annotations should use `:` instead of `->`",
+        );
+        match parse_return_type(state) {
+            ParserResult::Value(type_info) => Some(ast::TypeSpecifier {
+                punctuation,
+                type_info,
+            }),
+            _ => return ParserResult::LexerMoved,
+        }
+    } else {
+        None
+    };
+
+    ParserResult::Value(ast::DeclaredFunctionSignature {
+        generics,
+        parameters_parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+        parameters,
+        return_type,
     })
 }
 

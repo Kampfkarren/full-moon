@@ -1,0 +1,67 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/declared_functions
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 8
+        line: 1
+        character: 9
+      end_position:
+        bytes: 16
+        line: 1
+        character: 17
+      token_type:
+        type: Symbol
+        symbol: function
+    additional: unexpected expression when looking for a statement
+- AstError:
+    token:
+      start_position:
+        bytes: 53
+        line: 4
+        character: 1
+      end_position:
+        bytes: 60
+        line: 4
+        character: 8
+      token_type:
+        type: Identifier
+        identifier: declare
+    additional: "expected `function` or `local function` after attribute"
+- AstError:
+    token:
+      start_position:
+        bytes: 61
+        line: 4
+        character: 9
+      end_position:
+        bytes: 69
+        line: 4
+        character: 17
+      token_type:
+        type: Symbol
+        symbol: function
+    additional: unexpected expression when looking for a statement
+- AstError:
+    token:
+      start_position:
+        bytes: 84
+        line: 4
+        character: 32
+      end_position:
+        bytes: 84
+        line: 4
+        character: 32
+      token_type:
+        type: Eof
+    additional: "expected `end` to close function body block"
+    range:
+      - bytes: 83
+        line: 4
+        character: 31
+      - bytes: 84
+        line: 4
+        character: 32
