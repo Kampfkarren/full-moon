@@ -1666,19 +1666,23 @@ fn expect_declared_global(
         Err(()) => return Err(()),
     };
 
-    let Some(colon) = state.require(
+    let Some(colon_token) = state.require(
         Symbol::Colon,
         "expected `:` after declared global variable name",
     ) else {
         return Err(());
     };
 
-    let type_specifier = expect_type_specifier(state, colon)?;
+    let ParserResult::Value(type_info) = parse_type(state) else {
+        state.token_error(colon_token, "expected type info after `:`");
+        return Err(());
+    };
 
     Ok(ast::DeclaredGlobal {
         declare_token,
         name,
-        type_specifier,
+        colon_token,
+        type_info,
     })
 }
 

@@ -46,47 +46,46 @@ stmts:
               type: Identifier
               identifier: foo
           trailing_trivia: []
-        type_specifier:
-          punctuation:
-            leading_trivia: []
-            token:
-              start_position:
-                bytes: 11
-                line: 1
-                character: 12
-              end_position:
+        colon_token:
+          leading_trivia: []
+          token:
+            start_position:
+              bytes: 11
+              line: 1
+              character: 12
+            end_position:
+              bytes: 12
+              line: 1
+              character: 13
+            token_type:
+              type: Symbol
+              symbol: ":"
+          trailing_trivia:
+            - start_position:
                 bytes: 12
                 line: 1
                 character: 13
+              end_position:
+                bytes: 13
+                line: 1
+                character: 14
               token_type:
-                type: Symbol
-                symbol: ":"
-            trailing_trivia:
-              - start_position:
-                  bytes: 12
-                  line: 1
-                  character: 13
-                end_position:
-                  bytes: 13
-                  line: 1
-                  character: 14
-                token_type:
-                  type: Whitespace
-                  characters: " "
-          type_info:
-            Basic:
-              leading_trivia: []
-              token:
-                start_position:
-                  bytes: 13
-                  line: 1
-                  character: 14
-                end_position:
-                  bytes: 16
-                  line: 1
-                  character: 17
-                token_type:
-                  type: Identifier
-                  identifier: Bar
-              trailing_trivia: []
+                type: Whitespace
+                characters: " "
+        type_info:
+          Basic:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 13
+                line: 1
+                character: 14
+              end_position:
+                bytes: 16
+                line: 1
+                character: 17
+              token_type:
+                type: Identifier
+                identifier: Bar
+            trailing_trivia: []
     - ~

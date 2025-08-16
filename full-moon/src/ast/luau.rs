@@ -893,19 +893,20 @@ impl ExportedTypeFunction {
     }
 }
 
-/// A declared global, such as `declare game: DataModel`
+/// A declared global, such as `declare foo: number`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{declare_token}{name}{type_specifier}")]
+#[display("{declare_token}{name}{colon_token}{type_info}")]
 pub struct DeclaredGlobal {
     pub(crate) declare_token: TokenReference,
     pub(crate) name: TokenReference,
-    pub(crate) type_specifier: TypeSpecifier,
+    pub(crate) colon_token: TokenReference,
+    pub(crate) type_info: TypeInfo,
 }
 
 impl DeclaredGlobal {
-    /// Creates a new DeclaredGlobal with the given name and type specifier
-    pub fn new(name: TokenReference, type_specifier: TypeSpecifier) -> Self {
+    /// Creates a new DeclaredGlobal with the given name and type info
+    pub fn new(name: TokenReference, type_info: TypeInfo) -> Self {
         Self {
             declare_token: TokenReference::new(
                 vec![],
@@ -915,7 +916,8 @@ impl DeclaredGlobal {
                 vec![Token::new(TokenType::spaces(1))],
             ),
             name,
-            type_specifier,
+            colon_token: TokenReference::symbol(": ").unwrap(),
+            type_info,
         }
     }
 
@@ -924,14 +926,19 @@ impl DeclaredGlobal {
         &self.declare_token
     }
 
-    /// The name of the global, `game` in `declare game: DataModule`
+    /// The name of the global, `foo` in `declare foo: number`
     pub fn name(&self) -> &TokenReference {
         &self.name
     }
 
-    /// The type specifier, `: DataModule` in `declare game: DataModule`
-    pub fn type_specifier(&self) -> &TypeSpecifier {
-        &self.type_specifier
+    /// The colon between the name and the type info
+    pub fn colon_token(&self) -> &TokenReference {
+        &self.colon_token
+    }
+
+    /// The type specifier, `number` in `declare foo: number`
+    pub fn type_info(&self) -> &TypeInfo {
+        &self.type_info
     }
 
     /// Returns a new DeclaredGlobal with the `declare` token
@@ -947,12 +954,17 @@ impl DeclaredGlobal {
         Self { name, ..self }
     }
 
-    /// Returns a new DeclaredGlobal with the given type specifier
-    pub fn with_type_specifier(self, type_specifier: TypeSpecifier) -> Self {
+    /// Returns a new DeclaredGlobal with the given colon token
+    pub fn with_colon_token(self, colon_token: TokenReference) -> Self {
         Self {
-            type_specifier,
+            colon_token,
             ..self
         }
+    }
+
+    /// Returns a new DeclaredGlobal with the given type info
+    pub fn with_type_specifier(self, type_info: TypeInfo) -> Self {
+        Self { type_info, ..self }
     }
 }
 
