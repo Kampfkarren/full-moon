@@ -100,7 +100,7 @@ fn expect_block_with_end(
 
     let Some(end_token) = state.require_with_reference_range(
         Symbol::End,
-        || format!("expected `end` to close {} block", name),
+        || format!("expected `end` to close {name} block"),
         start,
         end,
     ) else {
@@ -2096,7 +2096,7 @@ fn expect_declared_extern_type_members(
 
     let Some(end_token) = state.require_with_reference_range(
         Symbol::End,
-        || format!("expected `end` to close declare {} block", name),
+        || format!("expected `end` to close declare {name} block"),
         start,
         end,
     ) else {
