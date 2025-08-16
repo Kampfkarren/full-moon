@@ -1,0 +1,46 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_function_no_arg_types
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 21
+        line: 1
+        character: 22
+      end_position:
+        bytes: 22
+        line: 1
+        character: 23
+      token_type:
+        type: Identifier
+        identifier: a
+    additional: "expected `:` after parameter name"
+- AstError:
+    token:
+      start_position:
+        bytes: 22
+        line: 1
+        character: 23
+      end_position:
+        bytes: 23
+        line: 1
+        character: 24
+      token_type:
+        type: Symbol
+        symbol: )
+    additional: "unexpected token, this needs to be a statement"
+- AstError:
+    token:
+      start_position:
+        bytes: 31
+        line: 1
+        character: 32
+      end_position:
+        bytes: 31
+        line: 1
+        character: 32
+      token_type:
+        type: Eof
+    additional: unexpected expression when looking for a statement

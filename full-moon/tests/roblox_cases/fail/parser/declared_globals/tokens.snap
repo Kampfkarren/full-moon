@@ -1,0 +1,81 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/roblox_cases/fail/parser/declared_globals
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: declare
+- start_position:
+    bytes: 7
+    line: 1
+    character: 8
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Identifier
+    identifier: foo
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: ":"
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 13
+    line: 1
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 13
+    line: 1
+    character: 14
+  end_position:
+    bytes: 16
+    line: 1
+    character: 17
+  token_type:
+    type: Identifier
+    identifier: Bar
+- start_position:
+    bytes: 16
+    line: 1
+    character: 17
+  end_position:
+    bytes: 16
+    line: 1
+    character: 17
+  token_type:
+    type: Eof

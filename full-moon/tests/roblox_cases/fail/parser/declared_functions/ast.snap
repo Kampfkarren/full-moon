@@ -1,0 +1,290 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/roblox_cases/fail/parser/declared_functions
+---
+nodes:
+  stmts:
+    - - FunctionDeclaration:
+          attributes: []
+          function_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 8
+                line: 1
+                character: 9
+              end_position:
+                bytes: 16
+                line: 1
+                character: 17
+              token_type:
+                type: Symbol
+                symbol: function
+            trailing_trivia:
+              - start_position:
+                  bytes: 16
+                  line: 1
+                  character: 17
+                end_position:
+                  bytes: 17
+                  line: 1
+                  character: 18
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name:
+            names:
+              pairs:
+                - End:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 17
+                        line: 1
+                        character: 18
+                      end_position:
+                        bytes: 20
+                        line: 1
+                        character: 21
+                      token_type:
+                        type: Identifier
+                        identifier: foo
+                    trailing_trivia: []
+            colon_name: ~
+          body:
+            generics: ~
+            parameters_parentheses:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 0
+                      line: 1
+                      character: 1
+                    end_position:
+                      bytes: 1
+                      line: 1
+                      character: 2
+                    token_type:
+                      type: Symbol
+                      symbol: (
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 0
+                      line: 1
+                      character: 1
+                    end_position:
+                      bytes: 1
+                      line: 1
+                      character: 2
+                    token_type:
+                      type: Symbol
+                      symbol: )
+                  trailing_trivia: []
+            parameters:
+              pairs: []
+            type_specifiers: []
+            block:
+              stmts: []
+            end_token:
+              leading_trivia:
+                - start_position:
+                    bytes: 0
+                    line: 1
+                    character: 1
+                  end_position:
+                    bytes: 1
+                    line: 1
+                    character: 1
+                  token_type:
+                    type: Whitespace
+                    characters: "\n"
+              token:
+                start_position:
+                  bytes: 1
+                  line: 2
+                  character: 1
+                end_position:
+                  bytes: 4
+                  line: 2
+                  character: 4
+                token_type:
+                  type: Symbol
+                  symbol: end
+              trailing_trivia: []
+      - ~
+    - - FunctionDeclaration:
+          attributes: []
+          function_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 61
+                line: 4
+                character: 9
+              end_position:
+                bytes: 69
+                line: 4
+                character: 17
+              token_type:
+                type: Symbol
+                symbol: function
+            trailing_trivia:
+              - start_position:
+                  bytes: 69
+                  line: 4
+                  character: 17
+                end_position:
+                  bytes: 70
+                  line: 4
+                  character: 18
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name:
+            names:
+              pairs:
+                - End:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 70
+                        line: 4
+                        character: 18
+                      end_position:
+                        bytes: 73
+                        line: 4
+                        character: 21
+                      token_type:
+                        type: Identifier
+                        identifier: bar
+                    trailing_trivia: []
+            colon_name: ~
+          body:
+            generics: ~
+            parameters_parentheses:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 73
+                      line: 4
+                      character: 21
+                    end_position:
+                      bytes: 74
+                      line: 4
+                      character: 22
+                    token_type:
+                      type: Symbol
+                      symbol: (
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 83
+                      line: 4
+                      character: 31
+                    end_position:
+                      bytes: 84
+                      line: 4
+                      character: 32
+                    token_type:
+                      type: Symbol
+                      symbol: )
+                  trailing_trivia: []
+            parameters:
+              pairs:
+                - End:
+                    Name:
+                      leading_trivia: []
+                      token:
+                        start_position:
+                          bytes: 74
+                          line: 4
+                          character: 22
+                        end_position:
+                          bytes: 75
+                          line: 4
+                          character: 23
+                        token_type:
+                          type: Identifier
+                          identifier: b
+                      trailing_trivia: []
+            type_specifiers:
+              - punctuation:
+                  leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 75
+                      line: 4
+                      character: 23
+                    end_position:
+                      bytes: 76
+                      line: 4
+                      character: 24
+                    token_type:
+                      type: Symbol
+                      symbol: ":"
+                  trailing_trivia:
+                    - start_position:
+                        bytes: 76
+                        line: 4
+                        character: 24
+                      end_position:
+                        bytes: 77
+                        line: 4
+                        character: 25
+                      token_type:
+                        type: Whitespace
+                        characters: " "
+                type_info:
+                  Basic:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 77
+                        line: 4
+                        character: 25
+                      end_position:
+                        bytes: 83
+                        line: 4
+                        character: 31
+                      token_type:
+                        type: Identifier
+                        identifier: number
+                    trailing_trivia: []
+            block:
+              stmts: []
+            end_token:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 3
+                  line: 1
+                  character: 4
+                token_type:
+                  type: Symbol
+                  symbol: end
+              trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 84
+      line: 4
+      character: 32
+    end_position:
+      bytes: 84
+      line: 4
+      character: 32
+    token_type:
+      type: Eof
+  trailing_trivia: []

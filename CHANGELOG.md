@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Luau: support parsing definition files
+    - Used by luau-analyze and luau-lsp
+    - Allows declaring global variables, functions and types for type-checking
+    - Global variables: `declare variable: Type`
+    - Global functions: `declare function globalFunction(a: number)`
+    - Global types:
+        ```luau
+        declare class Foo
+            member: string
+            [number]: string
+        end
+        
+        declare extern type Bar extends Foo with
+            function method(self, baz: string)
+        end
+        ```
+    - Gated by `LuaVersion::luau_with_declarations()`
+
 ## [2.0.0] - 2025-04-21
 
 ### Added

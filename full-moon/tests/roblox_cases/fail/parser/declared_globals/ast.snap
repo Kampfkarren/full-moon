@@ -1,0 +1,117 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/roblox_cases/fail/parser/declared_globals
+---
+nodes:
+  stmts:
+    - - FunctionCall:
+          prefix:
+            Name:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 8
+                  line: 1
+                  character: 9
+                end_position:
+                  bytes: 11
+                  line: 1
+                  character: 12
+                token_type:
+                  type: Identifier
+                  identifier: foo
+              trailing_trivia: []
+          suffixes:
+            - Call:
+                MethodCall:
+                  colon_token:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 11
+                        line: 1
+                        character: 12
+                      end_position:
+                        bytes: 12
+                        line: 1
+                        character: 13
+                      token_type:
+                        type: Symbol
+                        symbol: ":"
+                    trailing_trivia:
+                      - start_position:
+                          bytes: 12
+                          line: 1
+                          character: 13
+                        end_position:
+                          bytes: 13
+                          line: 1
+                          character: 14
+                        token_type:
+                          type: Whitespace
+                          characters: " "
+                  name:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 13
+                        line: 1
+                        character: 14
+                      end_position:
+                        bytes: 16
+                        line: 1
+                        character: 17
+                      token_type:
+                        type: Identifier
+                        identifier: Bar
+                    trailing_trivia: []
+                  args:
+                    Parentheses:
+                      parentheses:
+                        tokens:
+                          - leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 0
+                                line: 1
+                                character: 1
+                              end_position:
+                                bytes: 1
+                                line: 1
+                                character: 2
+                              token_type:
+                                type: Symbol
+                                symbol: (
+                            trailing_trivia: []
+                          - leading_trivia: []
+                            token:
+                              start_position:
+                                bytes: 0
+                                line: 1
+                                character: 1
+                              end_position:
+                                bytes: 1
+                                line: 1
+                                character: 2
+                              token_type:
+                                type: Symbol
+                                symbol: )
+                            trailing_trivia: []
+                      arguments:
+                        pairs: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 16
+      line: 1
+      character: 17
+    end_position:
+      bytes: 16
+      line: 1
+      character: 17
+    token_type:
+      type: Eof
+  trailing_trivia: []

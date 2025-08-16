@@ -1,0 +1,136 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/luau_declarations_cases/fail/parser/declared_function_no_arg_types
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 7
+    line: 1
+    character: 8
+  token_type:
+    type: Identifier
+    identifier: declare
+- start_position:
+    bytes: 7
+    line: 1
+    character: 8
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 16
+    line: 1
+    character: 17
+  token_type:
+    type: Symbol
+    symbol: function
+- start_position:
+    bytes: 16
+    line: 1
+    character: 17
+  end_position:
+    bytes: 17
+    line: 1
+    character: 18
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 17
+    line: 1
+    character: 18
+  end_position:
+    bytes: 20
+    line: 1
+    character: 21
+  token_type:
+    type: Identifier
+    identifier: foo
+- start_position:
+    bytes: 20
+    line: 1
+    character: 21
+  end_position:
+    bytes: 21
+    line: 1
+    character: 22
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 21
+    line: 1
+    character: 22
+  end_position:
+    bytes: 22
+    line: 1
+    character: 23
+  token_type:
+    type: Identifier
+    identifier: a
+- start_position:
+    bytes: 22
+    line: 1
+    character: 23
+  end_position:
+    bytes: 23
+    line: 1
+    character: 24
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 23
+    line: 1
+    character: 24
+  end_position:
+    bytes: 24
+    line: 1
+    character: 25
+  token_type:
+    type: Symbol
+    symbol: ":"
+- start_position:
+    bytes: 24
+    line: 1
+    character: 25
+  end_position:
+    bytes: 25
+    line: 1
+    character: 26
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 25
+    line: 1
+    character: 26
+  end_position:
+    bytes: 31
+    line: 1
+    character: 32
+  token_type:
+    type: Identifier
+    identifier: number
+- start_position:
+    bytes: 31
+    line: 1
+    character: 32
+  end_position:
+    bytes: 31
+    line: 1
+    character: 32
+  token_type:
+    type: Eof

@@ -6,6 +6,7 @@ const VERSION_LUA53: u8 = 1 << 2;
 const VERSION_LUA54: u8 = 1 << 3;
 const VERSION_LUAJIT: u8 = 1 << 4;
 const VERSION_CFXLUA: u8 = 1 << 5;
+const VERSION_LUAU_WITH_DECLARATIONS: u8 = 1 << 6;
 
 /// Represents the Lua version(s) to parse as.
 /// Lua 5.1 is always included.
@@ -140,6 +141,29 @@ impl LuaVersion {
     /// Returns true if CFX Lua is enabled.
     pub fn has_cfxlua(self) -> bool {
         cfg!(feature = "cfxlua") && (self.bitfield & VERSION_CFXLUA != 0)
+    }
+
+    /// Creates a new LuaVersion with only Luau with declarations enabled.
+    #[cfg(feature = "luau")]
+    pub fn luau_with_declarations() -> Self {
+        Self {
+            bitfield: VERSION_LUAU | VERSION_LUAU_WITH_DECLARATIONS,
+        }
+    }
+
+    /// Adds Luau with declarations enabled as a version to parse for.
+    #[cfg(feature = "luau")]
+    pub fn with_luau_and_declarations(self) -> Self {
+        Self {
+            bitfield: self.bitfield | VERSION_LUAU | VERSION_LUAU_WITH_DECLARATIONS,
+        }
+    }
+
+    /// Returns true if Luau with declarations is enabled.
+    pub fn has_luau_with_declarations(self) -> bool {
+        cfg!(feature = "luau")
+            && (self.bitfield & VERSION_LUAU != 0)
+            && (self.bitfield & VERSION_LUAU_WITH_DECLARATIONS != 0)
     }
 }
 
