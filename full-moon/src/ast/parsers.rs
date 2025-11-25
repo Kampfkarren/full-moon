@@ -2,7 +2,7 @@
 // and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
 // maybe keep parsing until there's an `end`???? but then global blocks...aaa
 
-use super::{luau, parser_structs::{ParserResult, ParserState}, punctuated::{Pair, Punctuated}, span::ContainedSpan, Expression, FunctionBody, Parameter};
+use super::{parser_structs::{ParserResult, ParserState}, punctuated::{Pair, Punctuated}, span::ContainedSpan, Expression, FunctionBody, Parameter};
 
 #[cfg(any(feature = "cfxlua", feature = "luau"))]
 use ast::Var;
@@ -3665,7 +3665,7 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
 }
 
 #[cfg(feature = "luau")]
-fn expect_type_instantiation(state: &mut ParserState, outer_0: TokenReference) -> Result<luau::TypeInstantiation, ()> {
+fn expect_type_instantiation(state: &mut ParserState, outer_0: TokenReference) -> Result<super::luau::TypeInstantiation, ()> {
     let Some(inner_0) = state.require(Symbol::LessThan, "expected second `<` in type instantiation") else {
         return Err(());
     };
@@ -3676,7 +3676,7 @@ fn expect_type_instantiation(state: &mut ParserState, outer_0: TokenReference) -
         return Err(());
     };
 
-    Ok(luau::TypeInstantiation {
+    Ok(super::luau::TypeInstantiation {
         outer_arrows: ContainedSpan::new(outer_0, outer_1),
         inner_arrows: types.arrows,
         types: types.generics,
