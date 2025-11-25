@@ -1309,17 +1309,17 @@ impl Repeat {
 }
 
 /// A method call, such as `x:y()`
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{colon_token}{name}{args}")]
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
-    args: FunctionArgs,
 
     #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     type_instantiation: Option<TypeInstantiation>,
+
+    args: FunctionArgs,
 }
 
 impl MethodCall {
@@ -1382,6 +1382,21 @@ impl MethodCall {
             type_instantiation,
             ..self
         }
+    }
+}
+
+impl fmt::Display for MethodCall {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}{}", self.colon_token, self.name)?;
+
+        #[cfg(feature = "luau")]
+        if let Some(type_instantiation) = self.type_instantiation.as_ref() {
+            write!(formatter, "{type_instantiation}")?;
+        }
+
+        write!(formatter, "{}", self.args)?;
+
+        Ok(())
     }
 }
 

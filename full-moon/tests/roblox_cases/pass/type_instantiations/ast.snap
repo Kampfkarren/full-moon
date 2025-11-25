@@ -4490,109 +4490,6 @@ stmts:
                                 type: Identifier
                                 identifier: methodTypePacks
                             trailing_trivia: []
-                          args:
-                            Parentheses:
-                              parentheses:
-                                tokens:
-                                  - leading_trivia: []
-                                    token:
-                                      start_position:
-                                        bytes: 1984
-                                        line: 64
-                                        character: 51
-                                      end_position:
-                                        bytes: 1985
-                                        line: 64
-                                        character: 52
-                                      token_type:
-                                        type: Symbol
-                                        symbol: (
-                                    trailing_trivia: []
-                                  - leading_trivia: []
-                                    token:
-                                      start_position:
-                                        bytes: 1991
-                                        line: 64
-                                        character: 58
-                                      end_position:
-                                        bytes: 1992
-                                        line: 64
-                                        character: 59
-                                      token_type:
-                                        type: Symbol
-                                        symbol: )
-                                    trailing_trivia:
-                                      - start_position:
-                                          bytes: 1992
-                                          line: 64
-                                          character: 59
-                                        end_position:
-                                          bytes: 1993
-                                          line: 64
-                                          character: 59
-                                        token_type:
-                                          type: Whitespace
-                                          characters: "\n"
-                              arguments:
-                                pairs:
-                                  - Punctuated:
-                                      - Number:
-                                          leading_trivia: []
-                                          token:
-                                            start_position:
-                                              bytes: 1985
-                                              line: 64
-                                              character: 52
-                                            end_position:
-                                              bytes: 1986
-                                              line: 64
-                                              character: 53
-                                            token_type:
-                                              type: Number
-                                              text: "1"
-                                          trailing_trivia: []
-                                      - leading_trivia: []
-                                        token:
-                                          start_position:
-                                            bytes: 1986
-                                            line: 64
-                                            character: 53
-                                          end_position:
-                                            bytes: 1987
-                                            line: 64
-                                            character: 54
-                                          token_type:
-                                            type: Symbol
-                                            symbol: ","
-                                        trailing_trivia:
-                                          - start_position:
-                                              bytes: 1987
-                                              line: 64
-                                              character: 54
-                                            end_position:
-                                              bytes: 1988
-                                              line: 64
-                                              character: 55
-                                            token_type:
-                                              type: Whitespace
-                                              characters: " "
-                                  - End:
-                                      String:
-                                        leading_trivia: []
-                                        token:
-                                          start_position:
-                                            bytes: 1988
-                                            line: 64
-                                            character: 55
-                                          end_position:
-                                            bytes: 1991
-                                            line: 64
-                                            character: 58
-                                          token_type:
-                                            type: StringLiteral
-                                            literal: a
-                                            quote_type: Double
-                                        trailing_trivia: []
                           type_instantiation:
                             outer_arrows:
                               tokens:
@@ -4747,6 +4644,109 @@ stmts:
                                                     type: Identifier
                                                     identifier: number
                                                 trailing_trivia: []
+                          args:
+                            Parentheses:
+                              parentheses:
+                                tokens:
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 1984
+                                        line: 64
+                                        character: 51
+                                      end_position:
+                                        bytes: 1985
+                                        line: 64
+                                        character: 52
+                                      token_type:
+                                        type: Symbol
+                                        symbol: (
+                                    trailing_trivia: []
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 1991
+                                        line: 64
+                                        character: 58
+                                      end_position:
+                                        bytes: 1992
+                                        line: 64
+                                        character: 59
+                                      token_type:
+                                        type: Symbol
+                                        symbol: )
+                                    trailing_trivia:
+                                      - start_position:
+                                          bytes: 1992
+                                          line: 64
+                                          character: 59
+                                        end_position:
+                                          bytes: 1993
+                                          line: 64
+                                          character: 59
+                                        token_type:
+                                          type: Whitespace
+                                          characters: "\n"
+                              arguments:
+                                pairs:
+                                  - Punctuated:
+                                      - Number:
+                                          leading_trivia: []
+                                          token:
+                                            start_position:
+                                              bytes: 1985
+                                              line: 64
+                                              character: 52
+                                            end_position:
+                                              bytes: 1986
+                                              line: 64
+                                              character: 53
+                                            token_type:
+                                              type: Number
+                                              text: "1"
+                                          trailing_trivia: []
+                                      - leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 1986
+                                            line: 64
+                                            character: 53
+                                          end_position:
+                                            bytes: 1987
+                                            line: 64
+                                            character: 54
+                                          token_type:
+                                            type: Symbol
+                                            symbol: ","
+                                        trailing_trivia:
+                                          - start_position:
+                                              bytes: 1987
+                                              line: 64
+                                              character: 54
+                                            end_position:
+                                              bytes: 1988
+                                              line: 64
+                                              character: 55
+                                            token_type:
+                                              type: Whitespace
+                                              characters: " "
+                                  - End:
+                                      String:
+                                        leading_trivia: []
+                                        token:
+                                          start_position:
+                                            bytes: 1988
+                                            line: 64
+                                            character: 55
+                                          end_position:
+                                            bytes: 1991
+                                            line: 64
+                                            character: 58
+                                          token_type:
+                                            type: StringLiteral
+                                            literal: a
+                                            quote_type: Double
+                                        trailing_trivia: []
     - ~
   - - FunctionCall:
         prefix:
@@ -5493,51 +5493,6 @@ stmts:
                                 type: Identifier
                                 identifier: method
                             trailing_trivia: []
-                          args:
-                            Parentheses:
-                              parentheses:
-                                tokens:
-                                  - leading_trivia: []
-                                    token:
-                                      start_position:
-                                        bytes: 2128
-                                        line: 69
-                                        character: 46
-                                      end_position:
-                                        bytes: 2129
-                                        line: 69
-                                        character: 47
-                                      token_type:
-                                        type: Symbol
-                                        symbol: (
-                                    trailing_trivia: []
-                                  - leading_trivia: []
-                                    token:
-                                      start_position:
-                                        bytes: 2129
-                                        line: 69
-                                        character: 47
-                                      end_position:
-                                        bytes: 2130
-                                        line: 69
-                                        character: 48
-                                      token_type:
-                                        type: Symbol
-                                        symbol: )
-                                    trailing_trivia:
-                                      - start_position:
-                                          bytes: 2130
-                                          line: 69
-                                          character: 48
-                                        end_position:
-                                          bytes: 2131
-                                          line: 69
-                                          character: 48
-                                        token_type:
-                                          type: Whitespace
-                                          characters: "\n"
-                              arguments:
-                                pairs: []
                           type_instantiation:
                             outer_arrows:
                               tokens:
@@ -5715,6 +5670,51 @@ stmts:
                                                               type: Identifier
                                                               identifier: C
                                                           trailing_trivia: []
+                          args:
+                            Parentheses:
+                              parentheses:
+                                tokens:
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 2128
+                                        line: 69
+                                        character: 46
+                                      end_position:
+                                        bytes: 2129
+                                        line: 69
+                                        character: 47
+                                      token_type:
+                                        type: Symbol
+                                        symbol: (
+                                    trailing_trivia: []
+                                  - leading_trivia: []
+                                    token:
+                                      start_position:
+                                        bytes: 2129
+                                        line: 69
+                                        character: 47
+                                      end_position:
+                                        bytes: 2130
+                                        line: 69
+                                        character: 48
+                                      token_type:
+                                        type: Symbol
+                                        symbol: )
+                                    trailing_trivia:
+                                      - start_position:
+                                          bytes: 2130
+                                          line: 69
+                                          character: 48
+                                        end_position:
+                                          bytes: 2131
+                                          line: 69
+                                          character: 48
+                                        token_type:
+                                          type: Whitespace
+                                          characters: "\n"
+                              arguments:
+                                pairs: []
     - ~
 last_stmt:
   - Return:
