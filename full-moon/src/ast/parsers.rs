@@ -2,7 +2,12 @@
 // and then read another block and merge them or something? wow that sounds awful because it won't work inside if's. good luck
 // maybe keep parsing until there's an `end`???? but then global blocks...aaa
 
-use super::{parser_structs::{ParserResult, ParserState}, punctuated::{Pair, Punctuated}, span::ContainedSpan, Expression, FunctionBody, Parameter};
+use super::{
+    parser_structs::{ParserResult, ParserState},
+    punctuated::{Pair, Punctuated},
+    span::ContainedSpan,
+    Expression, FunctionBody, Parameter,
+};
 
 #[cfg(any(feature = "cfxlua", feature = "luau"))]
 use ast::Var;
@@ -1734,10 +1739,15 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
 
         #[cfg(feature = "luau")]
         TokenType::Symbol {
-            symbol: Symbol::LessThan
-        } if state.lua_version().has_luau() && matches!(state.peek().map(|peek| peek.token_type()), Ok(TokenType::Symbol {
-            symbol: Symbol::LessThan
-        })) => {
+            symbol: Symbol::LessThan,
+        } if state.lua_version().has_luau()
+            && matches!(
+                state.peek().map(|peek| peek.token_type()),
+                Ok(TokenType::Symbol {
+                    symbol: Symbol::LessThan
+                })
+            ) =>
+        {
             let outer_0 = state.consume().unwrap();
             match expect_type_instantiation(state, outer_0) {
                 Ok(type_instantiation) => {
@@ -1746,7 +1756,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
 
                 Err(_) => ParserResult::LexerMoved,
             }
-        },
+        }
 
         TokenType::Symbol {
             symbol: Symbol::Colon,
@@ -1769,8 +1779,12 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             #[cfg(feature = "luau")]
             let type_instantiation = if state.lua_version().has_luau() {
                 if let Ok(token) = state.current() {
-                    if matches!(token.token_type(), TokenType::Symbol { symbol: Symbol::LessThan })
-                    {
+                    if matches!(
+                        token.token_type(),
+                        TokenType::Symbol {
+                            symbol: Symbol::LessThan
+                        }
+                    ) {
                         let outer_0 = state.consume().unwrap();
                         match expect_type_instantiation(state, outer_0) {
                             Ok(instantiation) => Some(instantiation),
@@ -3665,14 +3679,23 @@ fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> 
 }
 
 #[cfg(feature = "luau")]
-fn expect_type_instantiation(state: &mut ParserState, outer_0: TokenReference) -> Result<super::luau::TypeInstantiation, ()> {
-    let Some(inner_0) = state.require(Symbol::LessThan, "expected second `<` in type instantiation") else {
+fn expect_type_instantiation(
+    state: &mut ParserState,
+    outer_0: TokenReference,
+) -> Result<super::luau::TypeInstantiation, ()> {
+    let Some(inner_0) = state.require(
+        Symbol::LessThan,
+        "expected second `<` in type instantiation",
+    ) else {
         return Err(());
     };
 
     let types = expect_generic_type_params(state, inner_0)?;
 
-    let Some(outer_1) = state.require(Symbol::GreaterThan, "expected second `>` in type instantiation") else {
+    let Some(outer_1) = state.require(
+        Symbol::GreaterThan,
+        "expected second `>` in type instantiation",
+    ) else {
         return Err(());
     };
 

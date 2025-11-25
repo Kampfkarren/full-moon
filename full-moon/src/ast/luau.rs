@@ -1320,9 +1320,6 @@ impl TypeInstantiation {
 
     /// Returns a new TypeInstantiation with the types replaced
     pub fn with_types(self, types: Punctuated<TypeInfo>) -> Self {
-        Self {
-            types,
-            ..self
-        }
+        Self { types, ..self }
     }
 }
