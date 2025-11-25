@@ -522,7 +522,7 @@ stmts:
                                     trailing_trivia: []
                                 suffixes:
                                   - TypeInstantiation:
-                                      outer_brackets:
+                                      outer_arrows:
                                         tokens:
                                           - leading_trivia: []
                                             token:
@@ -552,7 +552,7 @@ stmts:
                                                 type: Symbol
                                                 symbol: ">"
                                             trailing_trivia: []
-                                      inner_brackets:
+                                      inner_arrows:
                                         tokens:
                                           - leading_trivia: []
                                             token:
@@ -1353,7 +1353,7 @@ stmts:
                       trailing_trivia: []
                   suffixes:
                     - TypeInstantiation:
-                        outer_brackets:
+                        outer_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -1383,7 +1383,7 @@ stmts:
                                   type: Symbol
                                   symbol: ">"
                               trailing_trivia: []
-                        inner_brackets:
+                        inner_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -2322,7 +2322,7 @@ stmts:
                       trailing_trivia: []
                   suffixes:
                     - TypeInstantiation:
-                        outer_brackets:
+                        outer_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -2352,7 +2352,7 @@ stmts:
                                   type: Symbol
                                   symbol: ">"
                               trailing_trivia: []
-                        inner_brackets:
+                        inner_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -4594,7 +4594,7 @@ stmts:
                                             quote_type: Double
                                         trailing_trivia: []
                           type_instantiation:
-                            outer_brackets:
+                            outer_arrows:
                               tokens:
                                 - leading_trivia: []
                                   token:
@@ -4624,7 +4624,7 @@ stmts:
                                       type: Symbol
                                       symbol: ">"
                                   trailing_trivia: []
-                            inner_brackets:
+                            inner_arrows:
                               tokens:
                                 - leading_trivia: []
                                   token:
@@ -5136,7 +5136,7 @@ stmts:
                       trailing_trivia: []
                   suffixes:
                     - TypeInstantiation:
-                        outer_brackets:
+                        outer_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -5166,7 +5166,7 @@ stmts:
                                   type: Symbol
                                   symbol: ">"
                               trailing_trivia: []
-                        inner_brackets:
+                        inner_arrows:
                           tokens:
                             - leading_trivia: []
                               token:
@@ -5539,7 +5539,7 @@ stmts:
                               arguments:
                                 pairs: []
                           type_instantiation:
-                            outer_brackets:
+                            outer_arrows:
                               tokens:
                                 - leading_trivia: []
                                   token:
@@ -5569,7 +5569,7 @@ stmts:
                                       type: Symbol
                                       symbol: ">"
                                   trailing_trivia: []
-                            inner_brackets:
+                            inner_arrows:
                               tokens:
                                 - leading_trivia: []
                                   token:
