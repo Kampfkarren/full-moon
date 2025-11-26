@@ -1309,12 +1309,16 @@ impl Repeat {
 }
 
 /// A method call, such as `x:y()`
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{colon_token}{name}{args}")]
 pub struct MethodCall {
     colon_token: TokenReference,
     name: TokenReference,
+
+    #[cfg(feature = "luau")]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    type_instantiation: Option<TypeInstantiation>,
+
     args: FunctionArgs,
 }
 
@@ -1325,6 +1329,8 @@ impl MethodCall {
             colon_token: TokenReference::basic_symbol(":"),
             name,
             args,
+            #[cfg(feature = "luau")]
+            type_instantiation: None,
         }
     }
 
@@ -1343,6 +1349,14 @@ impl MethodCall {
         &self.name
     }
 
+    /// The type instantiation on the method, if one is provided.
+    /// The `<<T>>` in `f:<<T>>()`.
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    pub fn type_instantiation(&self) -> Option<&TypeInstantiation> {
+        self.type_instantiation.as_ref()
+    }
+
     /// Returns a new MethodCall with the given `:` token
     pub fn with_colon_token(self, colon_token: TokenReference) -> Self {
         Self {
@@ -1359,6 +1373,30 @@ impl MethodCall {
     /// Returns a new MethodCall with the given args
     pub fn with_args(self, args: FunctionArgs) -> Self {
         Self { args, ..self }
+    }
+
+    /// Returns a new MethodCall with the given type instantiation.
+    #[cfg(feature = "luau")]
+    pub fn with_type_instanation(self, type_instantiation: Option<TypeInstantiation>) -> Self {
+        Self {
+            type_instantiation,
+            ..self
+        }
+    }
+}
+
+impl fmt::Display for MethodCall {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}{}", self.colon_token, self.name)?;
+
+        #[cfg(feature = "luau")]
+        if let Some(type_instantiation) = self.type_instantiation.as_ref() {
+            write!(formatter, "{type_instantiation}")?;
+        }
+
+        write!(formatter, "{}", self.args)?;
+
+        Ok(())
     }
 }
 
@@ -1568,9 +1606,15 @@ pub enum Suffix {
     #[display("{_0}")]
     /// A call, including method calls and direct calls
     Call(Call),
+
     #[display("{_0}")]
     /// An index, such as `x.y`
     Index(Index),
+
+    #[display("{_0}")]
+    #[cfg(feature = "luau")]
+    /// A type instantiation, such as `a<<T>>`
+    TypeInstantiation(TypeInstantiation),
 }
 
 /// A complex expression used by [`Var`], consisting of both a prefix and suffixes

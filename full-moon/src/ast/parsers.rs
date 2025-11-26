@@ -280,6 +280,11 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                     ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
                 }
 
+                #[cfg(feature = "luau")]
+                Some(ast::Suffix::TypeInstantiation(_)) => {
+                    ast::Var::Expression(Box::new(ast::VarExpression { prefix, suffixes }))
+                }
+
                 None => match prefix {
                     ast::Prefix::Name(name) => ast::Var::Name(name),
 
@@ -475,6 +480,17 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                     }
 
                     Some(ast::Suffix::Index(_)) => {
+                        var_list.push_punctuated(
+                            ast::Var::Expression(Box::new(ast::VarExpression {
+                                prefix: next_prefix,
+                                suffixes: next_suffixes,
+                            })),
+                            next_comma,
+                        );
+                    }
+
+                    #[cfg(feature = "luau")]
+                    Some(ast::Suffix::TypeInstantiation(_)) => {
                         var_list.push_punctuated(
                             ast::Var::Expression(Box::new(ast::VarExpression {
                                 prefix: next_prefix,
@@ -1721,6 +1737,27 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             ParserResult::Value(ast::Suffix::Call(ast::Call::AnonymousCall(arguments)))
         }
 
+        #[cfg(feature = "luau")]
+        TokenType::Symbol {
+            symbol: Symbol::LessThan,
+        } if state.lua_version().has_luau()
+            && matches!(
+                state.peek().map(|peek| peek.token_type()),
+                Ok(TokenType::Symbol {
+                    symbol: Symbol::LessThan
+                })
+            ) =>
+        {
+            let outer_0 = state.consume().unwrap();
+            match expect_type_instantiation(state, outer_0) {
+                Ok(type_instantiation) => {
+                    ParserResult::Value(ast::Suffix::TypeInstantiation(type_instantiation))
+                }
+
+                Err(_) => ParserResult::LexerMoved,
+            }
+        }
+
         TokenType::Symbol {
             symbol: Symbol::Colon,
         } => {
@@ -1739,6 +1776,30 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
+            #[cfg(feature = "luau")]
+            let type_instantiation = if state.lua_version().has_luau() {
+                if let Ok(token) = state.current() {
+                    if matches!(
+                        token.token_type(),
+                        TokenType::Symbol {
+                            symbol: Symbol::LessThan
+                        }
+                    ) {
+                        let outer_0 = state.consume().unwrap();
+                        match expect_type_instantiation(state, outer_0) {
+                            Ok(instantiation) => Some(instantiation),
+                            Err(()) => return ParserResult::LexerMoved,
+                        }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             let args = match parse_arguments(state) {
                 ParserResult::Value(args) => args,
                 ParserResult::LexerMoved => ast::FunctionArgs::empty(),
@@ -1752,6 +1813,9 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 colon_token,
                 name,
                 args,
+
+                #[cfg(feature = "luau")]
+                type_instantiation,
             })))
         }
 
@@ -3612,6 +3676,34 @@ fn force_name_with_type_specifiers(state: &mut ParserState, name: TokenReference
 #[cfg(not(feature = "lua54"))]
 fn force_name_with_attributes(state: &mut ParserState, name: TokenReference) -> Name {
     force_name_with_type_specifiers(state, name)
+}
+
+#[cfg(feature = "luau")]
+fn expect_type_instantiation(
+    state: &mut ParserState,
+    outer_0: TokenReference,
+) -> Result<super::luau::TypeInstantiation, ()> {
+    let Some(inner_0) = state.require(
+        Symbol::LessThan,
+        "expected second `<` in type instantiation",
+    ) else {
+        return Err(());
+    };
+
+    let types = expect_generic_type_params(state, inner_0)?;
+
+    let Some(outer_1) = state.require(
+        Symbol::GreaterThan,
+        "expected second `>` in type instantiation",
+    ) else {
+        return Err(());
+    };
+
+    Ok(super::luau::TypeInstantiation {
+        outer_arrows: ContainedSpan::new(outer_0, outer_1),
+        inner_arrows: types.arrows,
+        types: types.generics,
+    })
 }
 
 fn one_or_more<T, F: Fn(&mut ParserState) -> ParserResult<T>>(

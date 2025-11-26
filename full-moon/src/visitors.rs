@@ -296,6 +296,7 @@ create_visitor!(ast: {
         visit_type_field_key => TypeFieldKey,
         visit_type_function => TypeFunction,
         visit_type_info => TypeInfo,
+        visit_type_instantiation => TypeInstantiation,
         visit_type_intersection => TypeIntersection,
         visit_type_specifier => TypeSpecifier,
         visit_type_union => TypeUnion,

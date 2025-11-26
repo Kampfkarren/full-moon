@@ -1244,3 +1244,84 @@ impl LuauAttribute {
         Self { name, ..self }
     }
 }
+
+/// The `<<T>>` in both `f<<T>>`, in which case it is a [`Suffix`](crate::ast::Suffix),
+/// or in `f::<<T>>()`, where it is a member of [`MethodCall`](crate::ast::MethodCall).
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+        "{}{}{}{}{}",
+        outer_arrows.tokens().0,
+        inner_arrows.tokens().0,
+        types,
+        inner_arrows.tokens().1,
+        outer_arrows.tokens().1
+)]
+pub struct TypeInstantiation {
+    /// The initial `<` and `>`
+    #[node(full_range)]
+    // #[visit(contains = "inner_arrows")]
+    pub(crate) outer_arrows: ContainedSpan,
+
+    /// The inner `<` and `>`
+    // #[visit(contains = "types")]
+    pub(crate) inner_arrows: ContainedSpan,
+
+    /// The list of types
+    pub(crate) types: Punctuated<TypeInfo>,
+}
+
+impl TypeInstantiation {
+    /// Creates an empty TypeInstantiation
+    pub fn new() -> Self {
+        Self {
+            outer_arrows: ContainedSpan::new(
+                TokenReference::symbol("<").unwrap(),
+                TokenReference::symbol(">").unwrap(),
+            ),
+
+            inner_arrows: ContainedSpan::new(
+                TokenReference::symbol("<").unwrap(),
+                TokenReference::symbol(">").unwrap(),
+            ),
+
+            types: Punctuated::new(),
+        }
+    }
+
+    /// The first pair of arrows of a type instantiation.
+    pub fn outer_arrows(&self) -> &ContainedSpan {
+        &self.outer_arrows
+    }
+
+    /// The second pair of arrows of a type instantiation.
+    pub fn inner_arrows(&self) -> &ContainedSpan {
+        &self.inner_arrows
+    }
+
+    /// The types as part of the instantiation
+    pub fn types(&self) -> &Punctuated<TypeInfo> {
+        &self.types
+    }
+
+    /// Returns a new TypeInstantiation with the outer arrows replaced
+    pub fn with_outer_arrows(self, outer_arrows: ContainedSpan) -> Self {
+        Self {
+            outer_arrows,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeInstantiation with the inner arrows replaced
+    pub fn with_inner_arrows(self, inner_arrows: ContainedSpan) -> Self {
+        Self {
+            inner_arrows,
+            ..self
+        }
+    }
+
+    /// Returns a new TypeInstantiation with the types replaced
+    pub fn with_types(self, types: Punctuated<TypeInfo>) -> Self {
+        Self { types, ..self }
+    }
+}
