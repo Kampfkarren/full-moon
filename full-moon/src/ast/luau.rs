@@ -1247,7 +1247,7 @@ impl LuauAttribute {
 
 /// The `<<T>>` in both `f<<T>>`, in which case it is a [`Suffix`](crate::ast::Suffix),
 /// or in `f::<<T>>()`, where it is a member of [`MethodCall`](crate::ast::MethodCall).
-#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[derive(Clone, Debug, Display, PartialEq, Node)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
         "{}{}{}{}{}",
@@ -1260,9 +1260,11 @@ impl LuauAttribute {
 pub struct TypeInstantiation {
     /// The initial `<` and `>`
     #[node(full_range)]
+    // #[visit(contains = "inner_arrows")]
     pub(crate) outer_arrows: ContainedSpan,
 
     /// The inner `<` and `>`
+    // #[visit(contains = "types")]
     pub(crate) inner_arrows: ContainedSpan,
 
     /// The list of types

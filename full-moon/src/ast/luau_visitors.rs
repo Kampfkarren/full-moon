@@ -404,3 +404,29 @@ impl VisitMut for TypeFieldKey {
         self
     }
 }
+
+// The two arrows seem to be tripping up Visit derive
+impl Visit for TypeInstantiation {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_type_instantiation(self);
+        self.outer_arrows.tokens().0.visit(visitor);
+        self.inner_arrows.tokens().0.visit(visitor);
+        self.types.visit(visitor);
+        self.inner_arrows.tokens().0.visit(visitor);
+        self.outer_arrows.tokens().1.visit(visitor);
+        visitor.visit_type_instantiation_end(self);
+    }
+}
+
+impl VisitMut for TypeInstantiation {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_type_instantiation(self);
+        self.outer_arrows.tokens.0 = self.outer_arrows.tokens.0.visit_mut(visitor);
+        self.inner_arrows.tokens.0 = self.inner_arrows.tokens.0.visit_mut(visitor);
+        self.types = self.types.visit_mut(visitor);
+        self.inner_arrows.tokens.1 = self.inner_arrows.tokens.1.visit_mut(visitor);
+        self.outer_arrows.tokens.1 = self.outer_arrows.tokens.1.visit_mut(visitor);
+        self = visitor.visit_type_instantiation_end(self);
+        self
+    }
+}
