@@ -3702,22 +3702,170 @@ fn parse_attributes(state: &mut ParserState) -> ParserResult<Vec<ast::LuauAttrib
     let mut attributes = Vec::new();
 
     while let Some(at_sign) = state.consume_if(Symbol::AtSign) {
-        let name = match parse_name(state) {
-            ParserResult::Value(name) => name.name,
-            ParserResult::NotFound => {
-                state.token_error(
-                    state.current().unwrap().clone(),
-                    "expected identifier after `@`",
-                );
-                return ParserResult::LexerMoved;
+        let kind = if let Some(left_bracket) = state.consume_if(Symbol::LeftBracket) {
+            let mut items = Punctuated::new();
+
+            loop {
+                let name = match parse_name(state) {
+                    ParserResult::Value(name) => name.name,
+                    ParserResult::NotFound => {
+                        state.token_error(
+                            state.current().unwrap().clone(),
+                            "expected identifier when parsing attribute name",
+                        );
+                        return ParserResult::LexerMoved;
+                    }
+                    ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                };
+
+                let params = match parse_attribute_params(state) {
+                    Ok(params) => params,
+                    Err(()) => return ParserResult::LexerMoved,
+                };
+
+                let item = ast::LuauAttributeItem { name, params };
+
+                match state.consume_if(Symbol::Comma) {
+                    Some(comma) => items.push(Pair::Punctuated(item, comma)),
+                    None => {
+                        items.push(Pair::End(item));
+                        break;
+                    }
+                }
             }
-            ParserResult::LexerMoved => return ParserResult::LexerMoved,
+
+            let Some(right_bracket) = state.require(
+                Symbol::RightBracket,
+                "expected `]` to close attribute list",
+            ) else {
+                return ParserResult::LexerMoved;
+            };
+
+            ast::LuauAttributeKind::Bracketed {
+                brackets: ContainedSpan::new(left_bracket, right_bracket),
+                attributes: items,
+            }
+        } else {
+            let name = match parse_name(state) {
+                ParserResult::Value(name) => name.name,
+                ParserResult::NotFound => {
+                    state.token_error(
+                        state.current().unwrap().clone(),
+                        "expected identifier after `@`",
+                    );
+                    return ParserResult::LexerMoved;
+                }
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+            };
+
+            ast::LuauAttributeKind::Name(name)
         };
 
-        attributes.push(ast::LuauAttribute { at_sign, name });
+        attributes.push(ast::LuauAttribute { at_sign, kind });
     }
 
     ParserResult::Value(attributes)
+}
+
+// Parses the optional params following an attribute name inside a bracketed
+// attribute list, e.g. the `("reason")` in `@[deprecated("reason")]`, or the bare
+// `"reason"` in `@[deprecated "reason"]`. Per the Luau RFC, only literals
+// (nil/booleans/numbers/strings/table constructors) are valid here.
+#[cfg(feature = "luau")]
+fn parse_attribute_params(
+    state: &mut ParserState,
+) -> Result<Option<ast::LuauAttributeParams>, ()> {
+    if let Some(left_paren) = state.consume_if(Symbol::LeftParen) {
+        let mut arguments = Punctuated::new();
+
+        if !matches!(state.current(), Ok(token) if token.is_symbol(Symbol::RightParen)) {
+            loop {
+                let argument = parse_attribute_argument(state)?;
+
+                match state.consume_if(Symbol::Comma) {
+                    Some(comma) => arguments.push(Pair::Punctuated(argument, comma)),
+                    None => {
+                        arguments.push(Pair::End(argument));
+                        break;
+                    }
+                }
+            }
+        }
+
+        let Some(right_paren) = state.require(
+            Symbol::RightParen,
+            "expected `)` to close attribute arguments",
+        ) else {
+            return Err(());
+        };
+
+        Ok(Some(ast::LuauAttributeParams::Parens {
+            parens: ContainedSpan::new(left_paren, right_paren),
+            arguments,
+        }))
+    } else if is_attribute_argument_start(state) {
+        Ok(Some(ast::LuauAttributeParams::Literal(
+            parse_attribute_argument(state)?,
+        )))
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(feature = "luau")]
+fn is_attribute_argument_start(state: &mut ParserState) -> bool {
+    matches!(
+        state.current(),
+        Ok(token) if matches!(
+            token.token_type(),
+            TokenType::Symbol {
+                symbol: Symbol::Nil | Symbol::True | Symbol::False | Symbol::LeftBrace
+            } | TokenType::Number { .. }
+                | TokenType::StringLiteral { .. }
+        )
+    )
+}
+
+#[cfg(feature = "luau")]
+fn parse_attribute_argument(state: &mut ParserState) -> Result<ast::LuauAttributeArgument, ()> {
+    let Ok(current_token) = state.current() else {
+        return Err(());
+    };
+
+    match current_token.token_type() {
+        TokenType::Symbol { symbol: Symbol::Nil } => {
+            Ok(ast::LuauAttributeArgument::Nil(state.consume().unwrap()))
+        }
+        TokenType::Symbol {
+            symbol: Symbol::True,
+        } => Ok(ast::LuauAttributeArgument::True(state.consume().unwrap())),
+        TokenType::Symbol {
+            symbol: Symbol::False,
+        } => Ok(ast::LuauAttributeArgument::False(
+            state.consume().unwrap(),
+        )),
+        TokenType::Number { .. } => Ok(ast::LuauAttributeArgument::Number(
+            state.consume().unwrap(),
+        )),
+        TokenType::StringLiteral { .. } => {
+            Ok(ast::LuauAttributeArgument::Str(state.consume().unwrap()))
+        }
+        TokenType::Symbol {
+            symbol: Symbol::LeftBrace,
+        } => {
+            let left_brace = state.consume().unwrap();
+            Ok(ast::LuauAttributeArgument::Table(force_table_constructor(
+                state, left_brace,
+            )))
+        }
+        _ => {
+            state.token_error(
+                current_token.clone(),
+                "expected a literal (nil, boolean, number, string, or table) as an attribute argument",
+            );
+            Err(())
+        }
+    }
 }
 
 #[derive(Clone)]

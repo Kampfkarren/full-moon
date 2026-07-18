@@ -280,6 +280,10 @@ create_visitor!(ast: {
     // Types
     #[cfg(feature = "luau")] {
         visit_luau_attribute => LuauAttribute,
+        visit_luau_attribute_kind => LuauAttributeKind,
+        visit_luau_attribute_item => LuauAttributeItem,
+        visit_luau_attribute_params => LuauAttributeParams,
+        visit_luau_attribute_argument => LuauAttributeArgument,
         visit_const_assignment => ConstAssignment,
         visit_const_function => ConstFunction,
         visit_else_if_expression => ElseIfExpression,
