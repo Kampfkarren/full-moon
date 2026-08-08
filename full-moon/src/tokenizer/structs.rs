@@ -280,7 +280,7 @@ pub enum TokenType {
     StringLiteral {
         /// The literal itself, ignoring quotation marks
         literal: ShortString,
-        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_usize_zero"))]
+        #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_usize_zero", default))]
         /// Number of equals signs used for a multi line string, if it is one
         /// For example, `[=[string]=]` would have a `multi_line_depth` value of 1
         /// `[[string]]` would have a `multi_line_depth` value of 0
