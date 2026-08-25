@@ -3,11 +3,12 @@
 //! It will be renamed to "luau" in the future.
 use super::{punctuated::Punctuated, span::ContainedSpan, *};
 use crate::{
-    util::display_option,
+    util::{display_option, empty_optional_vector, join_vec},
     visitors::{Visit, VisitMut},
     ShortString,
 };
 use derive_more::Display;
+use std::fmt;
 
 /// Any type, such as `string`, `boolean?`, `number | boolean`, etc.
 #[derive(Clone, Debug, Display, PartialEq, Node)]
@@ -1437,21 +1438,21 @@ impl<'a> Iterator for ExpressionsIterator<'a> {
     }
 }
 
-/// An attribute, such as `@native`
+/// An attribute, such as `@native`, `@[native]`, or `@[deprecated("use bar instead")]`
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{at_sign}{name}")]
+#[display("{at_sign}{kind}")]
 pub struct LuauAttribute {
     pub(crate) at_sign: TokenReference,
-    pub(crate) name: TokenReference,
+    pub(crate) kind: LuauAttributeKind,
 }
 
 impl LuauAttribute {
-    /// Creates a new ElseIf from the given condition
+    /// Creates a new LuauAttribute with the given name in bare (unbracketed) form
     pub fn new(name: TokenReference) -> Self {
         Self {
             at_sign: TokenReference::symbol("@").unwrap(),
-            name,
+            kind: LuauAttributeKind::Name(name),
         }
     }
 
@@ -1460,9 +1461,25 @@ impl LuauAttribute {
         &self.at_sign
     }
 
-    /// The name of the attribute, `native` in `@native`
-    pub fn name(&self) -> &TokenReference {
-        &self.name
+    /// The name of the attribute, `native` in `@native`. `None` for a bracketed
+    /// list with more than one attribute in it -- use [`LuauAttribute::kind`] for that.
+    pub fn name(&self) -> Option<&TokenReference> {
+        match &self.kind {
+            LuauAttributeKind::Name(name) => Some(name),
+            LuauAttributeKind::Bracketed { attributes, .. } => {
+                if attributes.len() == 1 {
+                    attributes.iter().next().map(|item| item.name())
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
+    /// The contents of the attribute after the `@`: either a bare name, or a
+    /// bracketed (`@[...]`) list of one or more named attributes with optional params.
+    pub fn kind(&self) -> &LuauAttributeKind {
+        &self.kind
     }
 
     /// Returns a new Attribute with the given `@` token
@@ -1470,10 +1487,118 @@ impl LuauAttribute {
         Self { at_sign, ..self }
     }
 
-    /// Returns a new Attribute with the given name
+    /// Returns a new Attribute with the given kind
+    pub fn with_kind(self, kind: LuauAttributeKind) -> Self {
+        Self { kind, ..self }
+    }
+}
+
+/// The contents of a [`LuauAttribute`] after the `@` sign.
+// NOTE: Visit/VisitMut are implemented manually in `luau_visitors.rs`, since the derive
+// macro doesn't support `#[visit(contains = "...")]` on enum variants (it would otherwise
+// visit the closing `]` before the attributes it contains).
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum LuauAttributeKind {
+    /// A bare attribute name with no brackets, such as `native` in `@native`
+    #[display("{_0}")]
+    Name(TokenReference),
+
+    /// A bracketed list of one or more attributes, such as `[native]` in `@[native]`,
+    /// or `[native, deprecated("reason")]` in `@[native, deprecated("reason")]`
+    #[display("{}{}{}", brackets.tokens().0, attributes, brackets.tokens().1)]
+    Bracketed {
+        /// The `[` and `]` surrounding the attribute list
+        #[node(full_range)]
+        brackets: ContainedSpan,
+        /// The comma separated attributes within the brackets
+        attributes: Punctuated<LuauAttributeItem>,
+    },
+}
+
+/// A single named attribute with optional params, as used within a bracketed
+/// attribute list: the `deprecated("reason")` in `@[deprecated("reason")]`
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{name}{}", display_option(params))]
+pub struct LuauAttributeItem {
+    pub(crate) name: TokenReference,
+    pub(crate) params: Option<LuauAttributeParams>,
+}
+
+impl LuauAttributeItem {
+    /// Creates a new LuauAttributeItem with the given name and no params
+    pub fn new(name: TokenReference) -> Self {
+        Self { name, params: None }
+    }
+
+    /// The name of the attribute, e.g. `deprecated` in `deprecated("reason")`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The params passed to the attribute, if any
+    pub fn params(&self) -> Option<&LuauAttributeParams> {
+        self.params.as_ref()
+    }
+
+    /// Returns a new LuauAttributeItem with the given name
     pub fn with_name(self, name: TokenReference) -> Self {
         Self { name, ..self }
     }
+
+    /// Returns a new LuauAttributeItem with the given params
+    pub fn with_params(self, params: Option<LuauAttributeParams>) -> Self {
+        Self { params, ..self }
+    }
+}
+
+/// The params passed to a single attribute within a bracketed attribute list.
+// NOTE: Visit/VisitMut are implemented manually in `luau_visitors.rs`, for the same
+// reason as `LuauAttributeKind` above.
+#[derive(Clone, Debug, Display, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum LuauAttributeParams {
+    /// Parenthesized, comma separated literal arguments, such as `("a", "b")` in
+    /// `@[deprecated("a", "b")]`
+    #[display("{}{}{}", parens.tokens().0, arguments, parens.tokens().1)]
+    Parens {
+        /// The `(` and `)` surrounding the arguments
+        #[node(full_range)]
+        parens: ContainedSpan,
+        /// The literal arguments passed to the attribute
+        arguments: Punctuated<LuauAttributeArgument>,
+    },
+
+    /// A single literal argument with no surrounding parens, such as `"reason"` in
+    /// `@[deprecated "reason"]`
+    #[display("{_0}")]
+    Literal(LuauAttributeArgument),
+}
+
+/// A literal value passed as a parameter to a [`LuauAttribute`] -- the RFC only
+/// allows literals here (nil/bool/number/string/table), not arbitrary expressions.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub enum LuauAttributeArgument {
+    /// The `nil` literal
+    #[display("{_0}")]
+    Nil(TokenReference),
+    /// The `true` literal
+    #[display("{_0}")]
+    True(TokenReference),
+    /// The `false` literal
+    #[display("{_0}")]
+    False(TokenReference),
+    /// A number literal, such as `1` or `3.5`
+    #[display("{_0}")]
+    Number(TokenReference),
+    /// A string literal, such as `"foo"`
+    #[display("{_0}")]
+    Str(TokenReference),
+    /// A table constructor literal, such as `{ foo = "bar" }`
+    #[display("{_0}")]
+    Table(TableConstructor),
 }
 
 /// The `<<T>>` in both `f<<T>>`, in which case it is a [`Suffix`](crate::ast::Suffix),

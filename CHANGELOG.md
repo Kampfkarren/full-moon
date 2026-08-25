@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Luau: support parsing attributes with bracketed parameters (`@[name]`, `@[name(args...)]`, `@[name literal]`, and comma-grouped `@[a, b(x), c]`), per the [Function Attribute Parameters RFC](https://rfcs.luau.org/syntax-attributes-functions-parameters.html). Previously `parse_attributes` only accepted bare `@name` and errored on `@[`.
 
 ## [3.0.0] - YYYY-MM-DD
 ### Changed
