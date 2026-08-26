@@ -48,6 +48,8 @@ mod versions;
 pub mod lua52;
 #[cfg(feature = "lua54")]
 pub mod lua54;
+#[cfg(feature = "lua55")]
+pub mod lua55;
 /// A block of statements, such as in if/do/etc block
 #[derive(Clone, Debug, Default, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
@@ -517,6 +519,12 @@ pub enum Stmt {
     /// Only available when the "lua52" or "luajit" feature flag is enabled.
     #[cfg(any(feature = "lua52", feature = "luajit"))]
     Label(Label),
+
+    /// A global statement, such as `global x = 1` or `global *`.
+    /// Only available when the "lua55" feature flag is enabled.
+    #[cfg(feature = "lua55")]
+    #[display("{_0}")]
+    Global(Box<lua55::Global>),
 }
 
 /// A node used before another in cases such as function calling
@@ -658,7 +666,6 @@ impl NumericFor {
         &self.start
     }
 
-
     /// The comma in between the starting point and end point
     /// for _ = 1, 10 do
     ///          ^
@@ -670,7 +677,6 @@ impl NumericFor {
     pub fn end(&self) -> &Expression {
         &self.end
     }
-
 
     /// The comma in between the ending point and limit, if one exists
     /// for _ = 0, 10, 2 do
@@ -1871,6 +1877,9 @@ impl LocalFunction {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct LocalAssignment {
     local_token: TokenReference,
+    #[cfg(feature = "lua55")]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    prefix_attribute: Option<Box<Attribute>>,
     #[cfg(feature = "luau")]
     #[cfg_attr(
         feature = "serde",
@@ -1893,6 +1902,8 @@ impl LocalAssignment {
     pub fn new(name_list: Punctuated<TokenReference>) -> Self {
         Self {
             local_token: TokenReference::basic_symbol("local "),
+            #[cfg(feature = "lua55")]
+            prefix_attribute: None,
             #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
             name_list,
@@ -1966,6 +1977,23 @@ impl LocalAssignment {
         Self { attributes, ..self }
     }
 
+    /// The prefix attribute of the local assignment, the `<const>` part of
+    /// `local <const> x, y = 1, 2`. A prefix attribute applies to every name
+    /// in the list. Only available when the "lua55" feature flag is enabled.
+    #[cfg(feature = "lua55")]
+    pub fn prefix_attribute(&self) -> Option<&Attribute> {
+        self.prefix_attribute.as_deref()
+    }
+
+    /// Returns a new LocalAssignment with the given prefix attribute
+    #[cfg(feature = "lua55")]
+    pub fn with_prefix_attribute(self, prefix_attribute: Option<Attribute>) -> Self {
+        Self {
+            prefix_attribute: prefix_attribute.map(Box::new),
+            ..self
+        }
+    }
+
     /// Returns a new LocalAssignment with the given name list
     pub fn with_names(self, name_list: Punctuated<TokenReference>) -> Self {
         Self { name_list, ..self }
@@ -1996,10 +2024,16 @@ impl fmt::Display for LocalAssignment {
         #[cfg(not(feature = "luau"))]
         let type_specifiers = std::iter::repeat_with(|| None::<TokenReference>);
 
+        #[cfg(feature = "lua55")]
+        let prefix_attribute = display_option(&self.prefix_attribute);
+        #[cfg(not(feature = "lua55"))]
+        let prefix_attribute = "";
+
         write!(
             formatter,
-            "{}{}{}{}",
+            "{}{}{}{}{}",
             self.local_token,
+            prefix_attribute,
             join_iterators(&self.name_list, attributes, type_specifiers),
             display_option(&self.equal_token),
             self.expr_list

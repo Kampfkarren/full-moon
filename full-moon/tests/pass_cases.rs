@@ -102,6 +102,24 @@ fn test_lua54_pass_cases() {
 }
 
 #[test]
+#[cfg(feature = "lua55")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua55_pass_cases() {
+    run_test_folder("./tests/lua55_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua55())
+    });
+}
+
+#[test]
+#[cfg(all(feature = "lua55", feature = "luau"))]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua55_luau_pass_cases() {
+    run_test_folder("./tests/lua55_luau_cases/pass", |path| {
+        test_pass_case(path, LuaVersion::lua55().with_luau())
+    });
+}
+
+#[test]
 #[cfg(feature = "luajit")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_luajit_pass_cases() {

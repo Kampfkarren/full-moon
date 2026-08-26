@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added support for [Lua 5.5](https://www.lua.org/manual/5.5/), behind the `lua55` feature flag (which implies `lua54`).
+  - New `global` reserved word and statement, parsed under `LuaVersion::lua55()`. Both forms from the Lua 5.5 grammar are supported:
+    - `global attnamelist [= explist]` (e.g. `global x, y = 1, 2`, `global x <const>, y`)
+    - `global [attrib] *` (e.g. `global *`, `global <const> *`)
+  - The 5.5 `attnamelist` rule also extends `local`, allowing a prefix attribute that applies to every name in the list (e.g. `local <const> x, y = 1, 2`). `LocalAssignment` gains an optional `prefix_attribute` field gated on `lua55`.
+  - New `lua55::Global` enum (with `GlobalAssignment` / `GlobalWildcard` arms), new `Stmt::Global` variant, and visitor methods `visit_global`, `visit_global_assignment`, `visit_global_wildcard`.
+  - Under default `LuaVersion`s that don't include `lua55`, `global` continues to lex as an identifier, preserving backward compatibility for existing 5.1–5.4 code.
+  - When both `lua55` and `luau` features are active, Luau-style type specifiers may be applied to named globals (e.g. `global x: number = 1`), mirroring how `LocalAssignment` already permits Luau type specifiers alongside Lua 5.4 attributes.
 
 ## [3.0.0] - YYYY-MM-DD
 ### Changed

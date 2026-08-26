@@ -127,13 +127,13 @@ fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<
         return ParserResult::LexerMoved;
     };
 
-    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
-        Box::new(ast::CompoundAssignment {
+    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(Box::new(
+        ast::CompoundAssignment {
             lhs: var,
             compound_operator: ast::CompoundOp::from_token(compound_operator),
             rhs: expr,
-        }),
-    )))
+        },
+    ))))
 }
 
 fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
@@ -150,6 +150,28 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 Ok(token) => token,
                 Err(()) => return ParserResult::LexerMoved,
             };
+
+            // Under Lua 5.5, `local` may be followed by a prefix attribute,
+            // e.g. `local <const> x = 1`.
+            #[cfg(feature = "lua55")]
+            let next_is_prefix_attr = state.lua_version().has_lua55()
+                && matches!(
+                    next_token.token_type(),
+                    TokenType::Symbol {
+                        symbol: Symbol::LessThan
+                    }
+                );
+            #[cfg(not(feature = "lua55"))]
+            let next_is_prefix_attr = false;
+
+            if next_is_prefix_attr {
+                return ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalAssignment(
+                    match expect_local_assignment(state, local_token) {
+                        Ok(local_assignment) => local_assignment,
+                        Err(()) => return ParserResult::LexerMoved,
+                    },
+                )));
+            }
 
             match next_token.token_type() {
                 TokenType::Identifier { .. } => ParserResult::Value(StmtVariant::Stmt(
@@ -171,9 +193,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             Err(()) => return ParserResult::LexerMoved,
                         };
 
-                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
-                        Box::new(local_function),
-                    )))
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(Box::new(
+                        local_function,
+                    ))))
                 }
 
                 _ => {
@@ -196,6 +218,19 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 Ok(for_stmt) => for_stmt,
                 Err(()) => return ParserResult::LexerMoved,
             }))
+        }
+
+        #[cfg(feature = "lua55")]
+        TokenType::Symbol {
+            symbol: Symbol::Global,
+        } => {
+            let global_token = state.consume().unwrap();
+            match expect_global(state, global_token) {
+                Ok(global) => {
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::Global(Box::new(global))))
+                }
+                Err(()) => ParserResult::LexerMoved,
+            }
         }
 
         TokenType::Symbol { symbol: Symbol::Do } => {
@@ -233,9 +268,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
-                Box::new(function_declaration),
-            )))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(Box::new(
+                function_declaration,
+            ))))
         }
 
         TokenType::Symbol {
@@ -472,9 +507,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                                     Err(()) => return ParserResult::LexerMoved,
                                                 };
                                             return ParserResult::Value(StmtVariant::Stmt(
-                                                ast::Stmt::ConstFunction(Box::new(
-                                                    const_function,
-                                                )),
+                                                ast::Stmt::ConstFunction(Box::new(const_function)),
                                             ));
                                         }
 
@@ -1202,10 +1235,135 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
     })
 }
 
+/// Parses an optional `<Name>` prefix attribute (e.g. the `<const>` in
+/// `local <const> x, y = 1, 2`). Only meaningful when Lua 5.5 is active.
+///
+/// Returns `None` if the next token is not `<`. If `<` is consumed and the
+/// inner identifier or closing `>` are missing, errors are reported on `state`
+/// and a synthesized attribute is returned (or `None` if no name was seen),
+/// matching the recovery behaviour of the per-name attribute parser.
+#[cfg(feature = "lua55")]
+fn parse_optional_prefix_attribute(state: &mut ParserState) -> Option<super::lua54::Attribute> {
+    let left_angle_bracket = state.consume_if(Symbol::LessThan)?;
+    const ERROR_INVALID_ATTRIBUTE: &str = "expected identifier after `<` for attribute";
+
+    let attribute_name = match state.current() {
+        Ok(token) if matches!(token.token_type(), TokenType::Identifier { .. }) => {
+            state.consume().unwrap()
+        }
+        Ok(token) => {
+            state.token_error_ranged(
+                token.clone(),
+                ERROR_INVALID_ATTRIBUTE,
+                &left_angle_bracket,
+                &token.clone(),
+            );
+            return None;
+        }
+        Err(()) => {
+            state.token_error(left_angle_bracket, ERROR_INVALID_ATTRIBUTE);
+            return None;
+        }
+    };
+
+    let right_angle_bracket = state
+        .require(Symbol::GreaterThan, "expected `>` to close attribute")
+        .unwrap_or_else(|| TokenReference::basic_symbol(">"));
+
+    Some(super::lua54::Attribute {
+        brackets: ContainedSpan::new(left_angle_bracket, right_angle_bracket),
+        name: attribute_name,
+    })
+}
+
+#[cfg(feature = "lua55")]
+fn expect_global(
+    state: &mut ParserState,
+    global_token: TokenReference,
+) -> Result<ast::lua55::Global, ()> {
+    let prefix_attribute = parse_optional_prefix_attribute(state);
+
+    // Wildcard form: `global [attrib] *`
+    if let Some(star_token) = state.consume_if(Symbol::Star) {
+        return Ok(ast::lua55::Global::Wildcard(ast::lua55::GlobalWildcard {
+            global_token,
+            prefix_attribute,
+            star_token,
+        }));
+    }
+
+    // Named form: `global [attrib] Name [attrib] {, Name [attrib]} [= explist]`
+    let names = match one_or_more(state, parse_name_with_attributes, Symbol::Comma) {
+        ParserResult::Value(names) => names,
+        ParserResult::NotFound => {
+            state.token_error(
+                global_token.clone(),
+                "expected `*` or a variable name after `global`",
+            );
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let mut name_list = Punctuated::new();
+    #[cfg(feature = "luau")]
+    let mut type_specifiers = Vec::new();
+    let mut attributes = Vec::new();
+
+    for name in names.into_pairs() {
+        let (name, punctuation) = name.into_tuple();
+        attributes.push(name.attribute);
+
+        #[cfg(feature = "luau")]
+        type_specifiers.push(name.type_specifier);
+
+        name_list.push(match punctuation {
+            Some(punctuation) => Pair::Punctuated(name.name, punctuation),
+            None => Pair::End(name.name),
+        });
+    }
+
+    let mut global_assignment = ast::lua55::GlobalAssignment {
+        global_token,
+        prefix_attribute,
+        #[cfg(feature = "luau")]
+        type_specifiers,
+        name_list,
+        attributes,
+        equal_token: None,
+        expr_list: Punctuated::new(),
+    };
+
+    global_assignment.equal_token = match state.consume_if(Symbol::Equal) {
+        Some(equal_token) => Some(equal_token),
+        None => return Ok(ast::lua55::Global::Assignment(global_assignment)),
+    };
+
+    match parse_expression_list(state) {
+        ParserResult::Value(expr_list) => global_assignment.expr_list = expr_list,
+        ParserResult::NotFound => {
+            state.token_error(
+                global_assignment.equal_token.clone().unwrap(),
+                "expected an expression",
+            );
+        }
+        ParserResult::LexerMoved => {}
+    };
+
+    Ok(ast::lua55::Global::Assignment(global_assignment))
+}
+
 fn expect_local_assignment(
     state: &mut ParserState,
     local_token: TokenReference,
 ) -> Result<ast::LocalAssignment, ()> {
+    #[cfg(feature = "lua55")]
+    let prefix_attribute = if state.lua_version().has_lua55() {
+        parse_optional_prefix_attribute(state)
+    } else {
+        None
+    };
+
     let names = match one_or_more(state, parse_name_with_attributes, Symbol::Comma) {
         ParserResult::Value(names) => names,
         ParserResult::NotFound => {
@@ -1238,6 +1396,8 @@ fn expect_local_assignment(
 
     let mut local_assignment = ast::LocalAssignment {
         local_token,
+        #[cfg(feature = "lua55")]
+        prefix_attribute: prefix_attribute.map(Box::new),
         name_list,
         #[cfg(feature = "luau")]
         type_specifiers,
@@ -1967,11 +2127,9 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
         {
             let outer_0 = state.consume().unwrap();
             match expect_type_instantiation(state, outer_0) {
-                Ok(type_instantiation) => {
-                    ParserResult::Value(ast::Suffix::TypeInstantiation(Box::new(
-                        type_instantiation,
-                    )))
-                }
+                Ok(type_instantiation) => ParserResult::Value(ast::Suffix::TypeInstantiation(
+                    Box::new(type_instantiation),
+                )),
 
                 Err(_) => ParserResult::LexerMoved,
             }
