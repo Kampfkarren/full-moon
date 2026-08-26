@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- When a runtime `LuaVersion` has both Luau and Lua 5.3+ enabled, the lexer no longer combines `<<` and `>>` into single tokens. This lets blended-dialect callers parse Luau's explicit type-instantiation syntax (`f<<T>>(x)`) and nested generic types (`Map<K, Vec<V>>`) correctly. Bitwise shifts and compound shift-assigns (`<<=`, `>>=`) become unavailable under that exact feature combination as a trade-off; pure Lua 5.3/5.4 and pure Luau parsing are unaffected.
 
 ## [3.0.0] - YYYY-MM-DD
 ### Changed

@@ -658,7 +658,6 @@ impl NumericFor {
         &self.start
     }
 
-
     /// The comma in between the starting point and end point
     /// for _ = 1, 10 do
     ///          ^
@@ -670,7 +669,6 @@ impl NumericFor {
     pub fn end(&self) -> &Expression {
         &self.end
     }
-
 
     /// The comma in between the ending point and limit, if one exists
     /// for _ = 0, 10, 2 do

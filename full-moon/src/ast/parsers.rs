@@ -127,13 +127,13 @@ fn parse_compound_assignment(state: &mut ParserState, var: Var) -> ParserResult<
         return ParserResult::LexerMoved;
     };
 
-    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(
-        Box::new(ast::CompoundAssignment {
+    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::CompoundAssignment(Box::new(
+        ast::CompoundAssignment {
             lhs: var,
             compound_operator: ast::CompoundOp::from_token(compound_operator),
             rhs: expr,
-        }),
-    )))
+        },
+    ))))
 }
 
 fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
@@ -171,9 +171,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                             Err(()) => return ParserResult::LexerMoved,
                         };
 
-                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(
-                        Box::new(local_function),
-                    )))
+                    ParserResult::Value(StmtVariant::Stmt(ast::Stmt::LocalFunction(Box::new(
+                        local_function,
+                    ))))
                 }
 
                 _ => {
@@ -233,9 +233,9 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                 Err(()) => return ParserResult::LexerMoved,
             };
 
-            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(
-                Box::new(function_declaration),
-            )))
+            ParserResult::Value(StmtVariant::Stmt(ast::Stmt::FunctionDeclaration(Box::new(
+                function_declaration,
+            ))))
         }
 
         TokenType::Symbol {
@@ -472,9 +472,7 @@ fn parse_stmt(state: &mut ParserState) -> ParserResult<StmtVariant> {
                                                     Err(()) => return ParserResult::LexerMoved,
                                                 };
                                             return ParserResult::Value(StmtVariant::Stmt(
-                                                ast::Stmt::ConstFunction(Box::new(
-                                                    const_function,
-                                                )),
+                                                ast::Stmt::ConstFunction(Box::new(const_function)),
                                             ));
                                         }
 
@@ -1967,11 +1965,9 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
         {
             let outer_0 = state.consume().unwrap();
             match expect_type_instantiation(state, outer_0) {
-                Ok(type_instantiation) => {
-                    ParserResult::Value(ast::Suffix::TypeInstantiation(Box::new(
-                        type_instantiation,
-                    )))
-                }
+                Ok(type_instantiation) => ParserResult::Value(ast::Suffix::TypeInstantiation(
+                    Box::new(type_instantiation),
+                )),
 
                 Err(_) => ParserResult::LexerMoved,
             }
