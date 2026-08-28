@@ -1824,6 +1824,28 @@ fn parse_arguments(state: &mut ParserState) -> ParserResult<ast::FunctionArgs> {
     };
 
     match current.token_type() {
+        #[cfg(feature = "cfxlua")]
+        TokenType::Symbol {
+            symbol: Symbol::QuestionMarkLeftParen,
+        } => {
+            let left_parenthesis = state.consume().unwrap();
+            let arguments = try_parser!(parse_expression_list(state)).unwrap_or_default();
+            let right_parenthesis = match state.require_with_reference_token(
+                Symbol::RightParen,
+                "expected `)` to close function call",
+                &left_parenthesis,
+            ) {
+                Some(token) => token,
+
+                None => TokenReference::basic_symbol(")"),
+            };
+
+            ParserResult::Value(ast::FunctionArgs::Parentheses {
+                parentheses: ContainedSpan::new(left_parenthesis, right_parenthesis),
+                arguments,
+            })
+        }
+
         TokenType::Symbol {
             symbol: Symbol::LeftParen,
         } => {
@@ -1913,6 +1935,38 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
             ParserResult::Value(ast::Suffix::Index(ast::Index::Dot { dot, name }))
         }
 
+        #[cfg(feature = "cfxlua")]
+        TokenType::Symbol {
+            symbol: Symbol::QuestionMarkLeftBracket,
+        } => {
+            let left_bracket = state.consume().unwrap();
+
+            let expression = match parse_expression(state) {
+                ParserResult::Value(expression) => expression,
+                ParserResult::LexerMoved => return ParserResult::LexerMoved,
+                ParserResult::NotFound => {
+                    state.token_error(left_bracket, "expected expression after `?[`");
+                    return ParserResult::LexerMoved;
+                }
+            };
+
+            let right_bracket = match state.require_with_reference_range(
+                Symbol::RightBracket,
+                "expected `]` to close index expression",
+                &left_bracket,
+                expression.tokens().next_back().unwrap(),
+            ) {
+                Some(right_bracket) => right_bracket,
+
+                None => TokenReference::basic_symbol("]"),
+            };
+
+            ParserResult::Value(ast::Suffix::Index(ast::Index::Brackets {
+                brackets: ContainedSpan::new(left_bracket, right_bracket),
+                expression,
+            }))
+        }
+
         TokenType::Symbol {
             symbol: Symbol::LeftBracket,
         } => {
@@ -1942,6 +1996,14 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 brackets: ContainedSpan::new(left_bracket, right_bracket),
                 expression: Box::new(expression),
             }))
+        }
+
+        #[cfg(feature = "cfxlua")]
+        TokenType::Symbol {
+            symbol: Symbol::QuestionMarkLeftParen,
+        } => {
+            let arguments = try_parser!(parse_arguments(state)).unwrap();
+            ParserResult::Value(ast::Suffix::Call(ast::Call::AnonymousCall(arguments)))
         }
 
         TokenType::Symbol {
@@ -1976,6 +2038,7 @@ fn parse_suffix(state: &mut ParserState) -> ParserResult<ast::Suffix> {
                 Err(_) => ParserResult::LexerMoved,
             }
         }
+
 
         TokenType::Symbol {
             symbol: Symbol::Colon,
