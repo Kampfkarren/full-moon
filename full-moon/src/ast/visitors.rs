@@ -49,6 +49,9 @@ impl Visit for Field {
 
 impl VisitMut for Field {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_field(&self) {
+            return replacement;
+        }
         self = visitor.visit_field(self);
         self = match self {
             Field::ExpressionKey {
@@ -160,6 +163,9 @@ impl Visit for Expression {
 
 impl VisitMut for Expression {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_expression(&self) {
+            return replacement;
+        }
         self = visitor.visit_expression(self);
         self = match self {
             Expression::BinaryOperator { lhs, binop, rhs } => Expression::BinaryOperator {
@@ -254,6 +260,9 @@ impl Visit for Index {
 
 impl VisitMut for Index {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_index(&self) {
+            return replacement;
+        }
         self = visitor.visit_index(self);
         self = match self {
             Index::Brackets {
@@ -307,6 +316,9 @@ impl Visit for FunctionArgs {
 
 impl VisitMut for FunctionArgs {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_function_args(&self) {
+            return replacement;
+        }
         self = visitor.visit_function_args(self);
         self = match self {
             FunctionArgs::Parentheses {
@@ -373,6 +385,9 @@ impl Visit for FunctionBody {
 
 impl VisitMut for FunctionBody {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_function_body(&self) {
+            return replacement;
+        }
         self = visitor.visit_function_body(self);
 
         #[cfg(feature = "luau")]
@@ -479,6 +494,9 @@ impl Visit for LocalAssignment {
 
 impl VisitMut for LocalAssignment {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_local_assignment(&self) {
+            return replacement;
+        }
         self = visitor.visit_local_assignment(self);
         self.local_token = self.local_token.visit_mut(visitor);
 
@@ -583,6 +601,9 @@ impl Visit for GenericFor {
 
 impl VisitMut for GenericFor {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_generic_for(&self) {
+            return replacement;
+        }
         self = visitor.visit_generic_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
 
@@ -658,6 +679,9 @@ impl Visit for NumericFor {
 
 impl VisitMut for NumericFor {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        if let Some(replacement) = visitor.replace_numeric_for(&self) {
+            return replacement;
+        }
         self = visitor.visit_numeric_for(self);
         self.for_token = self.for_token.visit_mut(visitor);
         self.index_variable = self.index_variable.visit_mut(visitor);
