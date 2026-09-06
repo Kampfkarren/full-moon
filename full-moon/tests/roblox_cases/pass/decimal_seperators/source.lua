@@ -4,3 +4,6 @@ local num3 = 0b_0101_0101
 local num4 = 1_523_423.132_452_312
 local num5 = 1e512_412
 local num6 = 1e-512_412
+local num7 = 0_xFF_FF_FF_FF
+local num8 = 0_b_1010_1010_1010_1010
+local num9 = 1e+_2
