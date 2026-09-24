@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/if_local_no_value
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 11
+        line: 1
+        character: 12
+      end_position:
+        bytes: 15
+        line: 1
+        character: 16
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: "expected `=` after `if` binding name"
+- AstError:
+    token:
+      start_position:
+        bytes: 11
+        line: 1
+        character: 12
+      end_position:
+        bytes: 15
+        line: 1
+        character: 16
+      token_type:
+        type: Symbol
+        symbol: then
+    additional: "unexpected token, this needs to be a statement"

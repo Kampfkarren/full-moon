@@ -1,0 +1,235 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: tokens
+input_file: full-moon/tests/roblox_cases/fail/parser/if_local_multi_return
+---
+- start_position:
+    bytes: 0
+    line: 1
+    character: 1
+  end_position:
+    bytes: 2
+    line: 1
+    character: 3
+  token_type:
+    type: Symbol
+    symbol: if
+- start_position:
+    bytes: 2
+    line: 1
+    character: 3
+  end_position:
+    bytes: 3
+    line: 1
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 3
+    line: 1
+    character: 4
+  end_position:
+    bytes: 8
+    line: 1
+    character: 9
+  token_type:
+    type: Symbol
+    symbol: local
+- start_position:
+    bytes: 8
+    line: 1
+    character: 9
+  end_position:
+    bytes: 9
+    line: 1
+    character: 10
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 9
+    line: 1
+    character: 10
+  end_position:
+    bytes: 11
+    line: 1
+    character: 12
+  token_type:
+    type: Identifier
+    identifier: ok
+- start_position:
+    bytes: 11
+    line: 1
+    character: 12
+  end_position:
+    bytes: 12
+    line: 1
+    character: 13
+  token_type:
+    type: Symbol
+    symbol: ","
+- start_position:
+    bytes: 12
+    line: 1
+    character: 13
+  end_position:
+    bytes: 13
+    line: 1
+    character: 14
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 13
+    line: 1
+    character: 14
+  end_position:
+    bytes: 19
+    line: 1
+    character: 20
+  token_type:
+    type: Identifier
+    identifier: result
+- start_position:
+    bytes: 19
+    line: 1
+    character: 20
+  end_position:
+    bytes: 20
+    line: 1
+    character: 21
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 20
+    line: 1
+    character: 21
+  end_position:
+    bytes: 21
+    line: 1
+    character: 22
+  token_type:
+    type: Symbol
+    symbol: "="
+- start_position:
+    bytes: 21
+    line: 1
+    character: 22
+  end_position:
+    bytes: 22
+    line: 1
+    character: 23
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 22
+    line: 1
+    character: 23
+  end_position:
+    bytes: 27
+    line: 1
+    character: 28
+  token_type:
+    type: Identifier
+    identifier: pcall
+- start_position:
+    bytes: 27
+    line: 1
+    character: 28
+  end_position:
+    bytes: 28
+    line: 1
+    character: 29
+  token_type:
+    type: Symbol
+    symbol: (
+- start_position:
+    bytes: 28
+    line: 1
+    character: 29
+  end_position:
+    bytes: 41
+    line: 1
+    character: 42
+  token_type:
+    type: Identifier
+    identifier: riskyFunction
+- start_position:
+    bytes: 41
+    line: 1
+    character: 42
+  end_position:
+    bytes: 42
+    line: 1
+    character: 43
+  token_type:
+    type: Symbol
+    symbol: )
+- start_position:
+    bytes: 42
+    line: 1
+    character: 43
+  end_position:
+    bytes: 43
+    line: 1
+    character: 44
+  token_type:
+    type: Whitespace
+    characters: " "
+- start_position:
+    bytes: 43
+    line: 1
+    character: 44
+  end_position:
+    bytes: 47
+    line: 1
+    character: 48
+  token_type:
+    type: Symbol
+    symbol: then
+- start_position:
+    bytes: 47
+    line: 1
+    character: 48
+  end_position:
+    bytes: 48
+    line: 1
+    character: 48
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 48
+    line: 2
+    character: 1
+  end_position:
+    bytes: 51
+    line: 2
+    character: 4
+  token_type:
+    type: Symbol
+    symbol: end
+- start_position:
+    bytes: 51
+    line: 2
+    character: 4
+  end_position:
+    bytes: 52
+    line: 2
+    character: 4
+  token_type:
+    type: Whitespace
+    characters: "\n"
+- start_position:
+    bytes: 52
+    line: 3
+    character: 1
+  end_position:
+    bytes: 52
+    line: 3
+    character: 1
+  token_type:
+    type: Eof

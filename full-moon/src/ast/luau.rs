@@ -1134,12 +1134,96 @@ pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
 #[deprecated(note = "CompoundOp has been moved to full_moon::ast::compound::CompoundOp")]
 pub type CompoundOp = crate::ast::compound::CompoundOp;
 
+/// A `local` or `const` binding declared in the condition of an `if`/`elseif` statement or
+/// expression, such as `local player =` in `if local player = getPlayer() then`.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display(
+    "{}{}{}{}",
+    local_token,
+    name,
+    display_option(type_specifier),
+    equal_token
+)]
+pub struct IfConditionBinding {
+    pub(crate) local_token: TokenReference,
+    pub(crate) name: TokenReference,
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub(crate) type_specifier: Option<TypeSpecifier>,
+    pub(crate) equal_token: TokenReference,
+}
+
+impl IfConditionBinding {
+    /// Creates a new IfConditionBinding from the given name
+    pub fn new(name: TokenReference) -> Self {
+        Self {
+            local_token: TokenReference::basic_symbol("local "),
+            name,
+            type_specifier: None,
+            equal_token: TokenReference::symbol(" = ").unwrap(),
+        }
+    }
+
+    /// The `local` or `const` token introducing the binding
+    pub fn local_token(&self) -> &TokenReference {
+        &self.local_token
+    }
+
+    /// The name being bound, `player` in `if local player = getPlayer() then`
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+
+    /// The type specifier of the binding, `: Player` in `if local player: Player = getPlayer() then`
+    pub fn type_specifier(&self) -> Option<&TypeSpecifier> {
+        self.type_specifier.as_ref()
+    }
+
+    /// The `=` token in between the name and the initializer
+    pub fn equal_token(&self) -> &TokenReference {
+        &self.equal_token
+    }
+
+    /// Returns a new IfConditionBinding with the given `local` (or `const`) token
+    pub fn with_local_token(self, local_token: TokenReference) -> Self {
+        Self {
+            local_token,
+            ..self
+        }
+    }
+
+    /// Returns a new IfConditionBinding with the given name
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+
+    /// Returns a new IfConditionBinding with the given type specifier
+    pub fn with_type_specifier(self, type_specifier: Option<TypeSpecifier>) -> Self {
+        Self {
+            type_specifier,
+            ..self
+        }
+    }
+
+    /// Returns a new IfConditionBinding with the given `=` token
+    pub fn with_equal_token(self, equal_token: TokenReference) -> Self {
+        Self {
+            equal_token,
+            ..self
+        }
+    }
+}
+
 /// An if statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
-    "{}{}{}{}{}{}{}",
+    "{}{}{}{}{}{}{}{}",
     if_token,
+    display_option(binding),
     condition,
     then_token,
     if_expression,
@@ -1149,6 +1233,11 @@ pub type CompoundOp = crate::ast::compound::CompoundOp;
 )]
 pub struct IfExpression {
     pub(crate) if_token: TokenReference,
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub(crate) binding: Option<IfConditionBinding>,
     pub(crate) condition: Box<Expression>,
     pub(crate) then_token: TokenReference,
     pub(crate) if_expression: Box<Expression>,
@@ -1166,6 +1255,7 @@ impl IfExpression {
     ) -> Self {
         Self {
             if_token: TokenReference::symbol("if ").unwrap(),
+            binding: None,
             condition: Box::new(condition),
             then_token: TokenReference::symbol(" then").unwrap(),
             if_expression: Box::new(if_expression),
@@ -1178,6 +1268,11 @@ impl IfExpression {
     /// The `if` token
     pub fn if_token(&self) -> &TokenReference {
         &self.if_token
+    }
+
+    /// The binding of the if expression, `local player =` in `if local player = getPlayer() then`
+    pub fn binding(&self) -> Option<&IfConditionBinding> {
+        self.binding.as_ref()
     }
 
     /// The condition of the if expression, `condition` in `if condition then`
@@ -1214,6 +1309,11 @@ impl IfExpression {
     /// Returns a new IfExpression with the given `if` token
     pub fn with_if_token(self, if_token: TokenReference) -> Self {
         Self { if_token, ..self }
+    }
+
+    /// Returns a new IfExpression with the given binding
+    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+        Self { binding, ..self }
     }
 
     /// Returns a new IfExpression with the given condition
@@ -1262,9 +1362,21 @@ impl IfExpression {
 /// An elseif expression in a bigger [`IfExpression`] expression
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{else_if_token}{condition}{then_token}{expression}")]
+#[display(
+    "{}{}{}{}{}",
+    else_if_token,
+    display_option(binding),
+    condition,
+    then_token,
+    expression
+)]
 pub struct ElseIfExpression {
     pub(crate) else_if_token: TokenReference,
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub(crate) binding: Option<IfConditionBinding>,
     pub(crate) condition: Box<Expression>,
     pub(crate) then_token: TokenReference,
     pub(crate) expression: Box<Expression>,
@@ -1275,6 +1387,7 @@ impl ElseIfExpression {
     pub fn new(condition: Expression, expression: Expression) -> Self {
         Self {
             else_if_token: TokenReference::symbol(" elseif ").unwrap(),
+            binding: None,
             condition: Box::new(condition),
             then_token: TokenReference::symbol(" then ").unwrap(),
             expression: Box::new(expression),
@@ -1284,6 +1397,11 @@ impl ElseIfExpression {
     /// The `elseif` token
     pub fn else_if_token(&self) -> &TokenReference {
         &self.else_if_token
+    }
+
+    /// The binding of the `elseif`, `local guest =` in `elseif local guest = getGuest() then`
+    pub fn binding(&self) -> Option<&IfConditionBinding> {
+        self.binding.as_ref()
     }
 
     /// The condition of the `elseif`, `condition` in `elseif condition then`
@@ -1307,6 +1425,11 @@ impl ElseIfExpression {
             else_if_token,
             ..self
         }
+    }
+
+    /// Returns a new ElseIfExpression with the given binding
+    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+        Self { binding, ..self }
     }
 
     /// Returns a new ElseIfExpression with the given condition
