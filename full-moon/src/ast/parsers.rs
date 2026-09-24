@@ -1081,7 +1081,58 @@ fn expect_numeric_for_stmt(
     })
 }
 
+#[cfg(feature = "luau")]
+fn parse_if_condition_binding(
+    state: &mut ParserState,
+) -> Result<Option<ast::IfConditionBinding>, ()> {
+    let is_binding = match state.current() {
+        Ok(token) if token.is_symbol(Symbol::Local) => true,
+        Ok(token)
+            if matches!(
+                token.token_type(),
+                TokenType::Identifier { identifier } if identifier.as_str() == "const"
+            ) =>
+        {
+            matches!(
+                state.peek(),
+                Ok(next) if matches!(next.token_type(), TokenType::Identifier { .. })
+            )
+        }
+        _ => return Ok(None),
+    };
+
+    if !is_binding {
+        return Ok(None);
+    }
+
+    let local_token = state.consume().unwrap();
+
+    let name = match parse_name_with_type_specifiers(state) {
+        ParserResult::Value(name) => name,
+        ParserResult::NotFound => {
+            state.token_error(local_token, "expected a variable name after `if` binding");
+            return Err(());
+        }
+        ParserResult::LexerMoved => return Err(()),
+    };
+
+    let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after `if` binding name")
+    else {
+        return Err(());
+    };
+
+    Ok(Some(ast::IfConditionBinding {
+        local_token,
+        name: name.name,
+        type_specifier: name.type_specifier,
+        equal_token,
+    }))
+}
+
 fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
+    #[cfg(feature = "luau")]
+    let binding = parse_if_condition_binding(state)?;
+
     let condition = match parse_expression(state) {
         ParserResult::Value(condition) => condition,
         ParserResult::NotFound => {
@@ -1132,7 +1183,13 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             }
         };
 
-        let condition = match parse_expression(state) {
+        #[cfg(feature = "luau")]
+        let else_if_binding = match parse_if_condition_binding(state) {
+            Ok(binding) => binding,
+            Err(()) => return unfinished_if(condition, else_if),
+        };
+
+        let else_if_condition = match parse_expression(state) {
             ParserResult::Value(condition) => condition,
             ParserResult::NotFound => {
                 state.token_error(else_if_token, "expected condition after `elseif`");
@@ -1161,7 +1218,9 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
 
         else_if.push(ast::ElseIf {
             else_if_token,
-            condition,
+            #[cfg(feature = "luau")]
+            binding: else_if_binding,
+            condition: else_if_condition,
             then_token,
             block: then_block,
         });
@@ -1192,6 +1251,8 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
 
     Ok(ast::If {
         if_token,
+        #[cfg(feature = "luau")]
+        binding,
         condition: Box::new(condition),
         then_token,
         block: then_block,
@@ -2616,6 +2677,8 @@ fn expect_if_else_expression(
     state: &mut ParserState,
     if_token: TokenReference,
 ) -> Result<ast::IfExpression, ()> {
+    let binding = parse_if_condition_binding(state)?;
+
     let ParserResult::Value(condition) = parse_expression(state) else {
         return Err(());
     };
@@ -2630,6 +2693,8 @@ fn expect_if_else_expression(
 
     let mut else_if_expressions = Vec::new();
     while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
+        let else_if_binding = parse_if_condition_binding(state)?;
+
         let ParserResult::Value(condition) = parse_expression(state) else {
             return Err(());
         };
@@ -2643,6 +2708,7 @@ fn expect_if_else_expression(
         };
         else_if_expressions.push(ast::ElseIfExpression {
             else_if_token,
+            binding: else_if_binding,
             condition: Box::new(condition),
             then_token,
             expression: Box::new(expression),
@@ -2662,6 +2728,7 @@ fn expect_if_else_expression(
 
     Ok(ast::IfExpression {
         if_token,
+        binding,
         condition: Box::new(condition),
         then_token,
         if_expression: Box::new(if_expression),

@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/if_local_compound
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 18
+        line: 1
+        character: 19
+      end_position:
+        bytes: 19
+        line: 1
+        character: 20
+      token_type:
+        type: Symbol
+        symbol: ;
+    additional: "expected `then` after condition"
+- AstError:
+    token:
+      start_position:
+        bytes: 18
+        line: 1
+        character: 19
+      end_position:
+        bytes: 19
+        line: 1
+        character: 20
+      token_type:
+        type: Symbol
+        symbol: ;
+    additional: "unexpected token, this needs to be a statement"

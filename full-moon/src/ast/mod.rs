@@ -998,19 +998,43 @@ impl fmt::Display for GenericFor {
 /// An if statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display(
-    "{}{}{}{}{}{}{}{}",
-    if_token,
-    condition,
-    then_token,
-    block,
-    display_option(else_if.as_ref().map(join_vec)),
-    display_option(else_token),
-    display_option(r#else),
-    end_token
+#[cfg_attr(
+    not(feature = "luau"),
+    display(
+        "{}{}{}{}{}{}{}{}",
+        if_token,
+        condition,
+        then_token,
+        block,
+        display_option(else_if.as_ref().map(join_vec)),
+        display_option(else_token),
+        display_option(r#else),
+        end_token
+    )
+)]
+#[cfg_attr(
+    feature = "luau",
+    display(
+        "{}{}{}{}{}{}{}{}{}",
+        if_token,
+        display_option(binding),
+        condition,
+        then_token,
+        block,
+        display_option(else_if.as_ref().map(join_vec)),
+        display_option(else_token),
+        display_option(r#else),
+        end_token
+    )
 )]
 pub struct If {
     if_token: TokenReference,
+    #[cfg(feature = "luau")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    binding: Option<IfConditionBinding>,
     condition: Box<Expression>,
     then_token: TokenReference,
     block: Block,
@@ -1026,6 +1050,8 @@ impl If {
     pub fn new(condition: Expression) -> Self {
         Self {
             if_token: TokenReference::basic_symbol("if "),
+            #[cfg(feature = "luau")]
+            binding: None,
             condition: Box::new(condition),
             then_token: TokenReference::basic_symbol(" then"),
             block: Block::new(),
@@ -1039,6 +1065,13 @@ impl If {
     /// The `if` token
     pub fn if_token(&self) -> &TokenReference {
         &self.if_token
+    }
+
+    /// The binding of the if statement, `local player =` in `if local player = getPlayer() then`.
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    pub fn binding(&self) -> Option<&IfConditionBinding> {
+        self.binding.as_ref()
     }
 
     /// The condition of the if statement, `condition` in `if condition then`
@@ -1083,6 +1116,13 @@ impl If {
         Self { if_token, ..self }
     }
 
+    /// Returns a new If with the given binding.
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+        Self { binding, ..self }
+    }
+
     /// Returns a new If with the given condition
     pub fn with_condition(self, condition: Expression) -> Self {
         Self {
@@ -1125,9 +1165,29 @@ impl If {
 /// An elseif block in a bigger [`If`] statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[display("{else_if_token}{condition}{then_token}{block}")]
+#[cfg_attr(
+    not(feature = "luau"),
+    display("{else_if_token}{condition}{then_token}{block}")
+)]
+#[cfg_attr(
+    feature = "luau",
+    display(
+        "{}{}{}{}{}",
+        else_if_token,
+        display_option(binding),
+        condition,
+        then_token,
+        block
+    )
+)]
 pub struct ElseIf {
     else_if_token: TokenReference,
+    #[cfg(feature = "luau")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    binding: Option<IfConditionBinding>,
     condition: Expression,
     then_token: TokenReference,
     block: Block,
@@ -1138,6 +1198,8 @@ impl ElseIf {
     pub fn new(condition: Expression) -> Self {
         Self {
             else_if_token: TokenReference::basic_symbol("elseif "),
+            #[cfg(feature = "luau")]
+            binding: None,
             condition,
             then_token: TokenReference::basic_symbol(" then\n"),
             block: Block::new(),
@@ -1147,6 +1209,13 @@ impl ElseIf {
     /// The `elseif` token
     pub fn else_if_token(&self) -> &TokenReference {
         &self.else_if_token
+    }
+
+    /// The binding of the `elseif`, `local guest =` in `elseif local guest = getGuest() then`.
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    pub fn binding(&self) -> Option<&IfConditionBinding> {
+        self.binding.as_ref()
     }
 
     /// The condition of the `elseif`, `condition` in `elseif condition then`
@@ -1170,6 +1239,13 @@ impl ElseIf {
             else_if_token,
             ..self
         }
+    }
+
+    /// Returns a new ElseIf with the given binding.
+    /// Only available when the "luau" feature flag is enabled.
+    #[cfg(feature = "luau")]
+    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+        Self { binding, ..self }
     }
 
     /// Returns a new ElseIf with the given condition

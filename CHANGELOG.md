@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Added support for Luau `if local` and `if const` bindings in `if`/`elseif` statements and `if` expressions, e.g. `if local player = getPlayer() then ... end` ([if local RFC](https://github.com/luau-lang/rfcs/pull/238)). Exposed as a new `IfConditionBinding` node and an optional `binding` on `If`, `ElseIf`, `IfExpression`, and `ElseIfExpression`.
 
 ## [3.0.0] - YYYY-MM-DD
 ### Changed
