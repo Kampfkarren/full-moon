@@ -5,10 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [3.0.0] - 2026-10-01
+
 ### Added
 - Added support for Luau `if local` and `if const` bindings in `if`/`elseif` statements and `if` expressions, e.g. `if local player = getPlayer() then ... end` ([if local RFC](https://github.com/luau-lang/rfcs/pull/238)).
 
-## [3.0.0] - YYYY-MM-DD
 ### Changed
 - **[BREAKING CHANGE]**: shrunk `Stmt`, `Expression`, and other AST nodes by boxing heavy enum variants and struct fields, fixing recursive-parse stack overflows on small-stack threads (#346). `Stmt` is now ~14x smaller (4784 → 352 bytes); `Expression` is ~3x smaller (880 → 280 bytes). The `#346` repro now parses comfortably in a 96 KiB release-mode stack (was ~384 KiB).
   - Code that destructures variants by value will need `Box::new(...)` at construction sites and `*`/auto-deref at binding sites. Code that uses accessor methods or matches by reference is unaffected, since `Box<T>: Deref<Target = T>`.
