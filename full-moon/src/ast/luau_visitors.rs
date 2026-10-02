@@ -479,3 +479,89 @@ impl VisitMut for TypeInstantiation {
         self
     }
 }
+
+// Same story as TypeInfo/IndexedTypeInfo/TypeFieldKey above: the `Bracketed` variant
+// holds a `ContainedSpan`, and the derive macro can't interleave `contains` on enums.
+impl Visit for LuauAttributeKind {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_luau_attribute_kind(self);
+        match self {
+            LuauAttributeKind::Name(name) => {
+                name.visit(visitor);
+            }
+            LuauAttributeKind::Bracketed {
+                brackets,
+                attributes,
+            } => {
+                brackets.tokens.0.visit(visitor);
+                attributes.visit(visitor);
+                brackets.tokens.1.visit(visitor);
+            }
+        };
+        visitor.visit_luau_attribute_kind_end(self);
+    }
+}
+
+impl VisitMut for LuauAttributeKind {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_luau_attribute_kind(self);
+        self = match self {
+            LuauAttributeKind::Name(name) => LuauAttributeKind::Name(name.visit_mut(visitor)),
+            LuauAttributeKind::Bracketed {
+                mut brackets,
+                mut attributes,
+            } => {
+                brackets.tokens.0 = brackets.tokens.0.visit_mut(visitor);
+                attributes = attributes.visit_mut(visitor);
+                brackets.tokens.1 = brackets.tokens.1.visit_mut(visitor);
+
+                LuauAttributeKind::Bracketed {
+                    brackets,
+                    attributes,
+                }
+            }
+        };
+        self = visitor.visit_luau_attribute_kind_end(self);
+        self
+    }
+}
+
+impl Visit for LuauAttributeParams {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_luau_attribute_params(self);
+        match self {
+            LuauAttributeParams::Parens { parens, arguments } => {
+                parens.tokens.0.visit(visitor);
+                arguments.visit(visitor);
+                parens.tokens.1.visit(visitor);
+            }
+            LuauAttributeParams::Literal(argument) => {
+                argument.visit(visitor);
+            }
+        };
+        visitor.visit_luau_attribute_params_end(self);
+    }
+}
+
+impl VisitMut for LuauAttributeParams {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_luau_attribute_params(self);
+        self = match self {
+            LuauAttributeParams::Parens {
+                mut parens,
+                mut arguments,
+            } => {
+                parens.tokens.0 = parens.tokens.0.visit_mut(visitor);
+                arguments = arguments.visit_mut(visitor);
+                parens.tokens.1 = parens.tokens.1.visit_mut(visitor);
+
+                LuauAttributeParams::Parens { parens, arguments }
+            }
+            LuauAttributeParams::Literal(argument) => {
+                LuauAttributeParams::Literal(argument.visit_mut(visitor))
+            }
+        };
+        self = visitor.visit_luau_attribute_params_end(self);
+        self
+    }
+}
