@@ -2,6 +2,7 @@ use crate::ast::{Expression, Var};
 use crate::tokenizer::{Symbol, TokenReference};
 use derive_more::Display;
 use full_moon_derive::{Node, Visit};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
