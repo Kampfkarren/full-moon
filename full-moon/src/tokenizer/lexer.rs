@@ -686,31 +686,40 @@ impl Lexer {
             ),
 
             '<' => {
-                version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
-                        if self.source.consume('<') {
-                            version_switch!(self.lua_version, {
-                                cfxlua => {
-                                    if self.source.consume('=') {
-                                        return self.create(
-                                            start_position,
-                                            TokenType::Symbol {
-                                                symbol: Symbol::DoubleLessThanEqual,
-                                            },
-                                        );
-                                    }
-                                }
-                            });
+                // Luau's explicit-type-instantiation syntax `f<<T>>(x)` and
+                // its nested-generic types `Map<K, Vec<V>>` both produce two
+                // adjacent `<` (or `>`) tokens that the parser expects to see
+                // separately. When Luau is active in the current LuaVersion,
+                // suppress the `<<` and `>>` combining that lua53/cfxlua
+                // would otherwise do, so those constructs parse correctly.
+                // Bitwise shifts and compound shift-assigns become unavailable
+                // under that combination, which is the right trade-off for
+                // any blended dialect users would actually write.
+                #[cfg(any(feature = "lua53", feature = "cfxlua"))]
+                {
+                    let combine_shift = (self.lua_version.has_lua53()
+                        || self.lua_version.has_cfxlua())
+                        && !self.lua_version.has_luau();
 
+                    if combine_shift && self.source.consume('<') {
+                        #[cfg(feature = "cfxlua")]
+                        if self.lua_version.has_cfxlua() && self.source.consume('=') {
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
-                                    symbol: Symbol::DoubleLessThan,
+                                    symbol: Symbol::DoubleLessThanEqual,
                                 },
                             );
                         }
+
+                        return self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleLessThan,
+                            },
+                        );
                     }
-                });
+                }
 
                 if self.source.consume('=') {
                     self.create(
@@ -730,31 +739,33 @@ impl Lexer {
             }
 
             '>' => {
-                version_switch!(self.lua_version, {
-                    lua53 | cfxlua => {
-                        if self.source.consume('>') {
-                            version_switch!(self.lua_version, {
-                                cfxlua => {
-                                    if self.source.consume('=') {
-                                        return self.create(
-                                            start_position,
-                                            TokenType::Symbol {
-                                                symbol: Symbol::DoubleGreaterThanEqual,
-                                            },
-                                        );
-                                    }
-                                }
-                            });
+                // See the matching comment under `'<'` above; Luau's
+                // generic-close `>>` is a pair of single tokens.
+                #[cfg(any(feature = "lua53", feature = "cfxlua"))]
+                {
+                    let combine_shift = (self.lua_version.has_lua53()
+                        || self.lua_version.has_cfxlua())
+                        && !self.lua_version.has_luau();
 
+                    if combine_shift && self.source.consume('>') {
+                        #[cfg(feature = "cfxlua")]
+                        if self.lua_version.has_cfxlua() && self.source.consume('=') {
                             return self.create(
                                 start_position,
                                 TokenType::Symbol {
-                                    symbol: Symbol::DoubleGreaterThan,
+                                    symbol: Symbol::DoubleGreaterThanEqual,
                                 },
                             );
                         }
+
+                        return self.create(
+                            start_position,
+                            TokenType::Symbol {
+                                symbol: Symbol::DoubleGreaterThan,
+                            },
+                        );
                     }
-                });
+                }
 
                 if self.source.consume('=') {
                     self.create(
