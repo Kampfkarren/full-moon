@@ -77,6 +77,90 @@ fn test_visitor_mut() {
 }
 
 #[test]
+fn test_visitor_mut_replace() {
+    use full_moon::ast::punctuated::Pair;
+
+    #[derive(Default)]
+    struct Replacer {
+        replace_calls: usize,
+        visit_calls: usize,
+        visit_end_calls: usize,
+        numbers_seen: Vec<String>,
+    }
+
+    impl VisitorMut for Replacer {
+        // Swaps the value of `local x = ...` for `999`, leaving other
+        // local assignments untouched.
+        fn replace_local_assignment(
+            &mut self,
+            assignment: &ast::LocalAssignment,
+        ) -> Option<ast::LocalAssignment> {
+            self.replace_calls += 1;
+
+            let is_x = assignment
+                .names()
+                .iter()
+                .next()
+                .is_some_and(|name| name.token().to_string() == "x");
+
+            if !is_x {
+                return None;
+            }
+
+            let original_token = match assignment.expressions().iter().next() {
+                Some(ast::Expression::Number(token)) => token,
+                _ => unreachable!(),
+            };
+
+            let replacement_token = original_token
+                .to_owned()
+                .with_token(Token::new(TokenType::Number { text: "999".into() }));
+
+            Some(assignment.to_owned().with_expressions(
+                std::iter::once(Pair::End(ast::Expression::Number(replacement_token))).collect(),
+            ))
+        }
+
+        fn visit_local_assignment(
+            &mut self,
+            assignment: ast::LocalAssignment,
+        ) -> ast::LocalAssignment {
+            self.visit_calls += 1;
+            assignment
+        }
+
+        fn visit_local_assignment_end(
+            &mut self,
+            assignment: ast::LocalAssignment,
+        ) -> ast::LocalAssignment {
+            self.visit_end_calls += 1;
+            assignment
+        }
+
+        fn visit_number(&mut self, token: Token) -> Token {
+            self.numbers_seen.push(token.to_string());
+            token
+        }
+    }
+
+    let code = parse("local x = 1\nlocal y = 2").unwrap();
+    let mut replacer = Replacer::default();
+    let code = replacer.visit_ast(code);
+
+    assert_eq!(code.to_string(), "local x = 999\nlocal y = 2");
+
+    // `replace_local_assignment` is consulted for every local assignment...
+    assert_eq!(replacer.replace_calls, 2);
+    // ...but `visit_local_assignment`/`_end` only fire for the one that
+    // wasn't replaced - a replaced node bypasses its own visit hooks.
+    assert_eq!(replacer.visit_calls, 1);
+    assert_eq!(replacer.visit_end_calls, 1);
+    // The replacement's own subtree (`999`) is never descended into -
+    // only the untouched assignment's `2` is seen.
+    assert_eq!(replacer.numbers_seen, vec!["2"]);
+}
+
+#[test]
 fn test_visit_token() {
     #[derive(Default)]
     struct CommentVisitor {

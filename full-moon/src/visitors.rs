@@ -93,6 +93,44 @@ macro_rules! create_visitor {
 
         /// A trait that implements functions to listen for specific nodes/tokens.
         /// Unlike [`Visitor`], nodes/tokens passed are mutable.
+        ///
+        /// Every node type also has a `replace_X` method, called before `visit_X`. Returning
+        /// `Some(replacement)` substitutes the node with `replacement` and skips it entirely:
+        /// `visit_X`, `visit_X_end`, and recursion into both the original node and the
+        /// replacement's own children are all skipped. Returning `None` (the default) falls
+        /// through to the normal `visit_X` / recurse / `visit_X_end` flow. This is useful for
+        /// swapping in a node without paying for a traversal you know is unnecessary, or for
+        /// inserting a pre-built subtree that shouldn't be visited (and potentially replaced
+        /// again) by the same visitor.
+        ///
+        /// ```rust
+        /// # use full_moon::ast;
+        /// # use full_moon::tokenizer::{Token, TokenType};
+        /// # use full_moon::visitors::*;
+        /// # fn main() -> Result<(), Vec<full_moon::Error>> {
+        /// // A visitor that replaces every numeric literal with `0`, without ever
+        /// // running `visit_expression` on the literal it replaces.
+        /// struct ZeroNumbers;
+        ///
+        /// impl VisitorMut for ZeroNumbers {
+        ///     fn replace_expression(&mut self, node: &ast::Expression) -> Option<ast::Expression> {
+        ///         match node {
+        ///             ast::Expression::Number(token) => Some(ast::Expression::Number(
+        ///                 token.to_owned().with_token(Token::new(TokenType::Number {
+        ///                     text: "0".into(),
+        ///                 })),
+        ///             )),
+        ///             _ => None,
+        ///         }
+        ///     }
+        /// }
+        ///
+        /// let ast = full_moon::parse("local x = 1 + 2")?;
+        /// let ast = ZeroNumbers.visit_ast(ast);
+        /// assert_eq!(ast.to_string(), "local x = 0 + 0");
+        /// # Ok(())
+        /// # }
+        /// ```
         pub trait VisitorMut {
             /// Visit the nodes of an [`Ast`](crate::ast::Ast)
             fn visit_ast(&mut self, ast: Ast) -> Ast where Self: Sized {
@@ -106,6 +144,165 @@ macro_rules! create_visitor {
                     eof: self.visit_eof(eof),
                 }
             }
+
+            /// Replace a node without recursing into the replacement.
+            /// Return `Some(replacement)` to substitute the node and skip its subtree entirely,
+            /// or `None` to fall through to the normal `visit_X` / recurse / `visit_X_end` flow.
+            fn replace_anonymous_function(&mut self, _node: &AnonymousFunction) -> Option<AnonymousFunction> { None }
+            #[allow(missing_docs)]
+            fn replace_assignment(&mut self, _node: &Assignment) -> Option<Assignment> { None }
+            #[allow(missing_docs)]
+            fn replace_block(&mut self, _node: &Block) -> Option<Block> { None }
+            #[allow(missing_docs)]
+            fn replace_call(&mut self, _node: &Call) -> Option<Call> { None }
+            #[allow(missing_docs)]
+            fn replace_contained_span(&mut self, _node: &ContainedSpan) -> Option<ContainedSpan> { None }
+            #[allow(missing_docs)]
+            fn replace_do(&mut self, _node: &Do) -> Option<Do> { None }
+            #[allow(missing_docs)]
+            fn replace_else_if(&mut self, _node: &ElseIf) -> Option<ElseIf> { None }
+            #[allow(missing_docs)]
+            fn replace_expression(&mut self, _node: &Expression) -> Option<Expression> { None }
+            #[allow(missing_docs)]
+            fn replace_field(&mut self, _node: &Field) -> Option<Field> { None }
+            #[allow(missing_docs)]
+            fn replace_function_args(&mut self, _node: &FunctionArgs) -> Option<FunctionArgs> { None }
+            #[allow(missing_docs)]
+            fn replace_function_body(&mut self, _node: &FunctionBody) -> Option<FunctionBody> { None }
+            #[allow(missing_docs)]
+            fn replace_function_call(&mut self, _node: &FunctionCall) -> Option<FunctionCall> { None }
+            #[allow(missing_docs)]
+            fn replace_function_declaration(&mut self, _node: &FunctionDeclaration) -> Option<FunctionDeclaration> { None }
+            #[allow(missing_docs)]
+            fn replace_function_name(&mut self, _node: &FunctionName) -> Option<FunctionName> { None }
+            #[allow(missing_docs)]
+            fn replace_generic_for(&mut self, _node: &GenericFor) -> Option<GenericFor> { None }
+            #[allow(missing_docs)]
+            fn replace_if(&mut self, _node: &If) -> Option<If> { None }
+            #[allow(missing_docs)]
+            fn replace_index(&mut self, _node: &Index) -> Option<Index> { None }
+            #[allow(missing_docs)]
+            fn replace_last_stmt(&mut self, _node: &LastStmt) -> Option<LastStmt> { None }
+            #[allow(missing_docs)]
+            fn replace_local_assignment(&mut self, _node: &LocalAssignment) -> Option<LocalAssignment> { None }
+            #[allow(missing_docs)]
+            fn replace_local_function(&mut self, _node: &LocalFunction) -> Option<LocalFunction> { None }
+            #[allow(missing_docs)]
+            fn replace_method_call(&mut self, _node: &MethodCall) -> Option<MethodCall> { None }
+            #[allow(missing_docs)]
+            fn replace_numeric_for(&mut self, _node: &NumericFor) -> Option<NumericFor> { None }
+            #[allow(missing_docs)]
+            fn replace_parameter(&mut self, _node: &Parameter) -> Option<Parameter> { None }
+            #[allow(missing_docs)]
+            fn replace_prefix(&mut self, _node: &Prefix) -> Option<Prefix> { None }
+            #[allow(missing_docs)]
+            fn replace_repeat(&mut self, _node: &Repeat) -> Option<Repeat> { None }
+            #[allow(missing_docs)]
+            fn replace_return(&mut self, _node: &Return) -> Option<Return> { None }
+            #[allow(missing_docs)]
+            fn replace_stmt(&mut self, _node: &Stmt) -> Option<Stmt> { None }
+            #[allow(missing_docs)]
+            fn replace_suffix(&mut self, _node: &Suffix) -> Option<Suffix> { None }
+            #[allow(missing_docs)]
+            fn replace_table_constructor(&mut self, _node: &TableConstructor) -> Option<TableConstructor> { None }
+            #[allow(missing_docs)]
+            fn replace_token_reference(&mut self, _node: &TokenReference) -> Option<TokenReference> { None }
+            #[allow(missing_docs)]
+            fn replace_un_op(&mut self, _node: &UnOp) -> Option<UnOp> { None }
+            #[allow(missing_docs)]
+            fn replace_var(&mut self, _node: &Var) -> Option<Var> { None }
+            #[allow(missing_docs)]
+            fn replace_var_expression(&mut self, _node: &VarExpression) -> Option<VarExpression> { None }
+            #[allow(missing_docs)]
+            fn replace_while(&mut self, _node: &While) -> Option<While> { None }
+
+            #[cfg(any(feature = "lua52", feature = "luajit"))]
+            #[allow(missing_docs)]
+            fn replace_goto(&mut self, _node: &crate::ast::lua52::Goto) -> Option<crate::ast::lua52::Goto> { None }
+            #[cfg(any(feature = "lua52", feature = "luajit"))]
+            #[allow(missing_docs)]
+            fn replace_label(&mut self, _node: &crate::ast::lua52::Label) -> Option<crate::ast::lua52::Label> { None }
+
+            #[cfg(feature = "lua54")]
+            #[allow(missing_docs)]
+            fn replace_attribute(&mut self, _node: &crate::ast::lua54::Attribute) -> Option<crate::ast::lua54::Attribute> { None }
+
+            #[cfg(any(feature = "cfxlua", feature = "luau"))]
+            #[allow(missing_docs)]
+            fn replace_compound_assignment(&mut self, _node: &crate::ast::CompoundAssignment) -> Option<crate::ast::CompoundAssignment> { None }
+            #[cfg(any(feature = "cfxlua", feature = "luau"))]
+            #[allow(missing_docs)]
+            fn replace_compound_op(&mut self, _node: &crate::ast::CompoundOp) -> Option<crate::ast::CompoundOp> { None }
+
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_const_assignment(&mut self, _node: &crate::ast::luau::ConstAssignment) -> Option<crate::ast::luau::ConstAssignment> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_const_function(&mut self, _node: &crate::ast::luau::ConstFunction) -> Option<crate::ast::luau::ConstFunction> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_else_if_expression(&mut self, _node: &crate::ast::luau::ElseIfExpression) -> Option<crate::ast::luau::ElseIfExpression> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_exported_type_declaration(&mut self, _node: &crate::ast::luau::ExportedTypeDeclaration) -> Option<crate::ast::luau::ExportedTypeDeclaration> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_exported_type_function(&mut self, _node: &crate::ast::luau::ExportedTypeFunction) -> Option<crate::ast::luau::ExportedTypeFunction> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_generic_declaration(&mut self, _node: &crate::ast::luau::GenericDeclaration) -> Option<crate::ast::luau::GenericDeclaration> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_generic_declaration_parameter(&mut self, _node: &crate::ast::luau::GenericDeclarationParameter) -> Option<crate::ast::luau::GenericDeclarationParameter> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_generic_parameter_info(&mut self, _node: &crate::ast::luau::GenericParameterInfo) -> Option<crate::ast::luau::GenericParameterInfo> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_if_expression(&mut self, _node: &crate::ast::luau::IfExpression) -> Option<crate::ast::luau::IfExpression> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_indexed_type_info(&mut self, _node: &crate::ast::luau::IndexedTypeInfo) -> Option<crate::ast::luau::IndexedTypeInfo> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_interpolated_string(&mut self, _node: &crate::ast::luau::InterpolatedString) -> Option<crate::ast::luau::InterpolatedString> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_luau_attribute(&mut self, _node: &crate::ast::luau::LuauAttribute) -> Option<crate::ast::luau::LuauAttribute> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_argument(&mut self, _node: &crate::ast::luau::TypeArgument) -> Option<crate::ast::luau::TypeArgument> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_assertion(&mut self, _node: &crate::ast::luau::TypeAssertion) -> Option<crate::ast::luau::TypeAssertion> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_declaration(&mut self, _node: &crate::ast::luau::TypeDeclaration) -> Option<crate::ast::luau::TypeDeclaration> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_field(&mut self, _node: &crate::ast::luau::TypeField) -> Option<crate::ast::luau::TypeField> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_field_key(&mut self, _node: &crate::ast::luau::TypeFieldKey) -> Option<crate::ast::luau::TypeFieldKey> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_function(&mut self, _node: &crate::ast::luau::TypeFunction) -> Option<crate::ast::luau::TypeFunction> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_info(&mut self, _node: &crate::ast::luau::TypeInfo) -> Option<crate::ast::luau::TypeInfo> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_instantiation(&mut self, _node: &crate::ast::luau::TypeInstantiation) -> Option<crate::ast::luau::TypeInstantiation> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_intersection(&mut self, _node: &crate::ast::luau::TypeIntersection) -> Option<crate::ast::luau::TypeIntersection> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_specifier(&mut self, _node: &crate::ast::luau::TypeSpecifier) -> Option<crate::ast::luau::TypeSpecifier> { None }
+            #[cfg(feature = "luau")]
+            #[allow(missing_docs)]
+            fn replace_type_union(&mut self, _node: &crate::ast::luau::TypeUnion) -> Option<crate::ast::luau::TypeUnion> { None }
 
             paste::item! {
                 $(
