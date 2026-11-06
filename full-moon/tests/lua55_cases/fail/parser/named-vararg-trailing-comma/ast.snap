@@ -1,0 +1,153 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/lua55_cases/fail/parser/named-vararg-trailing-comma
+---
+nodes:
+  stmts:
+    - - FunctionDeclaration:
+          attributes: []
+          function_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 0
+                line: 1
+                character: 1
+              end_position:
+                bytes: 8
+                line: 1
+                character: 9
+              token_type:
+                type: Symbol
+                symbol: function
+            trailing_trivia:
+              - start_position:
+                  bytes: 8
+                  line: 1
+                  character: 9
+                end_position:
+                  bytes: 9
+                  line: 1
+                  character: 10
+                token_type:
+                  type: Whitespace
+                  characters: " "
+          name:
+            names:
+              pairs:
+                - End:
+                    leading_trivia: []
+                    token:
+                      start_position:
+                        bytes: 9
+                        line: 1
+                        character: 10
+                      end_position:
+                        bytes: 10
+                        line: 1
+                        character: 11
+                      token_type:
+                        type: Identifier
+                        identifier: f
+                    trailing_trivia: []
+            colon_name: ~
+          body:
+            generics: ~
+            parameters_parentheses:
+              tokens:
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 10
+                      line: 1
+                      character: 11
+                    end_position:
+                      bytes: 11
+                      line: 1
+                      character: 12
+                    token_type:
+                      type: Symbol
+                      symbol: (
+                  trailing_trivia: []
+                - leading_trivia: []
+                  token:
+                    start_position:
+                      bytes: 0
+                      line: 1
+                      character: 1
+                    end_position:
+                      bytes: 1
+                      line: 1
+                      character: 2
+                    token_type:
+                      type: Symbol
+                      symbol: )
+                  trailing_trivia: []
+            parameters:
+              pairs:
+                - End:
+                    NamedVararg:
+                      ellipsis:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 11
+                            line: 1
+                            character: 12
+                          end_position:
+                            bytes: 14
+                            line: 1
+                            character: 15
+                          token_type:
+                            type: Symbol
+                            symbol: "..."
+                        trailing_trivia: []
+                      name:
+                        leading_trivia: []
+                        token:
+                          start_position:
+                            bytes: 14
+                            line: 1
+                            character: 15
+                          end_position:
+                            bytes: 18
+                            line: 1
+                            character: 19
+                          token_type:
+                            type: Identifier
+                            identifier: args
+                        trailing_trivia: []
+            type_specifiers: []
+            block:
+              stmts: []
+            end_token:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 0
+                  line: 1
+                  character: 1
+                end_position:
+                  bytes: 3
+                  line: 1
+                  character: 4
+                token_type:
+                  type: Symbol
+                  symbol: end
+              trailing_trivia: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 25
+      line: 2
+      character: 1
+    end_position:
+      bytes: 25
+      line: 2
+      character: 1
+    token_type:
+      type: Eof
+  trailing_trivia: []

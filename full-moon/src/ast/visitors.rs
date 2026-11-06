@@ -440,6 +440,9 @@ impl Visit for LocalAssignment {
         visitor.visit_local_assignment(self);
         self.local_token.visit(visitor);
 
+        #[cfg(feature = "lua55")]
+        self.prefix_attribute.visit(visitor);
+
         let mut attributes;
         let mut type_specifiers;
 
@@ -481,6 +484,11 @@ impl VisitMut for LocalAssignment {
     fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
         self = visitor.visit_local_assignment(self);
         self.local_token = self.local_token.visit_mut(visitor);
+
+        #[cfg(feature = "lua55")]
+        {
+            self.prefix_attribute = self.prefix_attribute.visit_mut(visitor);
+        }
 
         let mut attributes;
         let mut type_specifiers;
@@ -544,6 +552,88 @@ impl VisitMut for LocalAssignment {
         self.equal_token = self.equal_token.visit_mut(visitor);
         self.expr_list = self.expr_list.visit_mut(visitor);
         self = visitor.visit_local_assignment_end(self);
+        self
+    }
+}
+
+#[cfg(feature = "lua55")]
+impl Visit for crate::ast::lua55::GlobalAssignment {
+    fn visit<V: Visitor>(&self, visitor: &mut V) {
+        visitor.visit_global_assignment(self);
+        self.global_token.visit(visitor);
+        self.prefix_attribute.visit(visitor);
+
+        let mut attributes = self.attributes();
+
+        #[cfg(feature = "luau")]
+        let mut type_specifiers = self.type_specifiers();
+        #[cfg(not(feature = "luau"))]
+        let mut type_specifiers = std::iter::repeat::<Option<Self>>(None);
+
+        for name in &self.name_list {
+            name.visit(visitor);
+            attributes.next().visit(visitor);
+            type_specifiers.next().visit(visitor);
+        }
+
+        self.equal_token.visit(visitor);
+        self.expr_list.visit(visitor);
+        visitor.visit_global_assignment_end(self);
+    }
+}
+
+#[cfg(feature = "lua55")]
+impl VisitMut for crate::ast::lua55::GlobalAssignment {
+    fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+        self = visitor.visit_global_assignment(self);
+        self.global_token = self.global_token.visit_mut(visitor);
+        self.prefix_attribute = self.prefix_attribute.visit_mut(visitor);
+
+        let mut attributes = self.attributes.into_iter();
+
+        #[cfg(feature = "luau")]
+        let mut type_specifiers = self.type_specifiers.into_iter();
+        #[cfg(not(feature = "luau"))]
+        let mut type_specifiers = std::iter::repeat::<Option<Self>>(None);
+
+        let mut new_attributes = Vec::new();
+        #[cfg(feature = "luau")]
+        let mut new_type_specifiers = Vec::new();
+        let mut new_names = Punctuated::new();
+
+        for parameter_pair in self.name_list.into_pairs() {
+            let parameter_tuple = parameter_pair.into_tuple();
+            let parameter = parameter_tuple.0.visit_mut(visitor);
+            let attribute = attributes
+                .next()
+                .flatten()
+                .map(|attribute| attribute.visit_mut(visitor));
+            #[cfg(feature = "luau")]
+            let type_specifier = type_specifiers
+                .next()
+                .flatten()
+                .map(|type_specifier| type_specifier.visit_mut(visitor));
+            #[cfg(not(feature = "luau"))]
+            let _ = type_specifiers.next();
+
+            let punctuation = parameter_tuple.1.visit_mut(visitor);
+            new_attributes.push(attribute);
+            #[cfg(feature = "luau")]
+            new_type_specifiers.push(type_specifier);
+            new_names.push(Pair::new(parameter, punctuation));
+        }
+
+        self.name_list = new_names;
+        self.attributes = new_attributes;
+
+        #[cfg(feature = "luau")]
+        {
+            self.type_specifiers = new_type_specifiers;
+        }
+
+        self.equal_token = self.equal_token.visit_mut(visitor);
+        self.expr_list = self.expr_list.visit_mut(visitor);
+        self = visitor.visit_global_assignment_end(self);
         self
     }
 }

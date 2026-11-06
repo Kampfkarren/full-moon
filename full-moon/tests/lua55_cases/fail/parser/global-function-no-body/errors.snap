@@ -1,0 +1,19 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/lua55_cases/fail/parser/global-function-no-body
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 7
+        line: 1
+        character: 8
+      end_position:
+        bytes: 15
+        line: 1
+        character: 16
+      token_type:
+        type: Symbol
+        symbol: function
+    additional: expected a function body

@@ -122,6 +122,8 @@ symbol! {
 
         [lua52 | luajit] Goto => "goto",
 
+        [lua55] Global => "global",
+
         [luau | cfxlua] PlusEqual => "+=",
         [luau | cfxlua] MinusEqual => "-=",
         [luau | cfxlua] StarEqual => "*=",

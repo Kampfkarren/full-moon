@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/lua55_cases/fail/parser/named-vararg-no-close
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 19
+        line: 1
+        character: 20
+      end_position:
+        bytes: 22
+        line: 1
+        character: 23
+      token_type:
+        type: Symbol
+        symbol: end
+    additional: "expected a `)`"
+- AstError:
+    token:
+      start_position:
+        bytes: 19
+        line: 1
+        character: 20
+      end_position:
+        bytes: 22
+        line: 1
+        character: 23
+      token_type:
+        type: Symbol
+        symbol: end
+    additional: "unexpected token, this needs to be a statement"
