@@ -37,7 +37,9 @@ jobs:
           cd full-moon
           cargo test --features lua55
       - name: Test (Lua 5.5 without serde)
-        run: cargo test --no-default-features --features lua55
+        run: |
+          cargo check --no-default-features --features lua55
+          cargo test --no-default-features --features lua55 --test lua55
       - name: Test (LuaJIT feature)
         run: |
           cd full-moon
