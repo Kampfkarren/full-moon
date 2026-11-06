@@ -1,0 +1,28 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/lua55_cases/fail/parser/local-prefix-malformed
+---
+error[ast]: expected identifier after `<` for attribute
+  ┌─ source.lua:1:7
+  │
+1 │ local <> x
+  │       ^^
+
+error[ast]: expected a variable name after `local` or its attribute
+  ┌─ source.lua:1:1
+  │
+1 │ local <> x
+  │ ^^^^^
+
+error[ast]: unexpected token, this needs to be a statement
+  ┌─ source.lua:1:8
+  │
+1 │ local <> x
+  │        ^
+
+error[ast]: unexpected expression when looking for a statement
+  ┌─ source.lua:2:1
+  │
+2 │ 
+  │ ^

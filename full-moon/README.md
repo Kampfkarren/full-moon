@@ -5,7 +5,7 @@
 	</h1>
 </div>
 
-A lossless Lua 5.1 / 5.2 / 5.3 / 5.4 / [Luau](https://luau-lang.org/) parser written in Rust.
+A lossless Lua 5.1 / 5.2 / 5.3 / 5.4 / 5.5 / [Luau](https://luau-lang.org/) parser written in Rust.
 
 
 ## Lossless?
@@ -27,3 +27,25 @@ Full Moon is usable in projects such as:
 ## Inspiration
 
 Full Moon is heavily inspired by [LPGhatguy's mab](https://github.com/LPGhatguy/mab/) and by the possibilities brought on by [benjamn's recast](https://github.com/benjamn/recast).
+
+## Lua 5.5
+
+Enable the `lua55` Cargo feature (which includes `lua54`) and select Lua 5.5 explicitly:
+
+```rust
+let ast = full_moon::parse_fallible(
+    "global function collect(...args) return args.n end",
+    full_moon::LuaVersion::lua55(),
+).into_result()?;
+```
+
+Lua 5.5 syntax includes global declarations (`global x`, `global *`,
+`global function f() end`), prefix attributes (`local <const> x, y = 1, 2`),
+and named vararg tables (`function f(...args) end`). The new AST nodes support
+lossless printing, token traversal, visitors, and optional serde serialization.
+`parse()` enables all compiled default dialects, including Lua 5.5 when its
+feature is enabled; select an older `LuaVersion` explicitly when `global`
+should remain an identifier.
+
+Full Moon parses syntax; it does not enforce scope-dependent rules such as
+read-only loop variables or declared-global visibility.

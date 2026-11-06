@@ -2,7 +2,7 @@
 //! Only usable when the "lua55" feature flag is enabled.
 
 use crate::{
-    ast::{lua54::Attribute, punctuated::Punctuated, Expression},
+    ast::{lua54::Attribute, punctuated::Punctuated, Expression, FunctionBody},
     tokenizer::TokenReference,
     util::{display_option, empty_optional_vector, join_iterators},
 };
@@ -16,8 +16,7 @@ use crate::ast::luau::TypeSpecifier;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// A `global` statement, in either the named-list form (`global x, y = 1, 2`)
-/// or the wildcard form (`global *`).
+/// A named, wildcard, or function `global` declaration.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
@@ -28,6 +27,9 @@ pub enum Global {
     /// A collective wildcard declaration, such as `global *` or `global <const> *`
     #[display("{_0}")]
     Wildcard(GlobalWildcard),
+    /// A global function declaration, such as `global function f() end`.
+    #[display("{_0}")]
+    Function(GlobalFunction),
 }
 
 /// A named global declaration, such as `global x = 1`.
@@ -64,7 +66,11 @@ impl GlobalAssignment {
     /// Returns a new GlobalAssignment from the given name list
     pub fn new(name_list: Punctuated<TokenReference>) -> Self {
         Self {
-            global_token: TokenReference::basic_symbol("global "),
+            global_token: TokenReference::symbol_specific_lua_version(
+                "global ",
+                crate::LuaVersion::lua55(),
+            )
+            .unwrap(),
             prefix_attribute: None,
             #[cfg(feature = "luau")]
             type_specifiers: Vec::new(),
@@ -202,7 +208,11 @@ impl GlobalWildcard {
     /// Creates a new GlobalWildcard with the given `*` token and no prefix attribute
     pub fn new(star_token: TokenReference) -> Self {
         Self {
-            global_token: TokenReference::basic_symbol("global "),
+            global_token: TokenReference::symbol_specific_lua_version(
+                "global ",
+                crate::LuaVersion::lua55(),
+            )
+            .unwrap(),
             prefix_attribute: None,
             star_token,
         }
@@ -242,5 +252,108 @@ impl GlobalWildcard {
     /// Returns a new GlobalWildcard with the given `*` token
     pub fn with_star_token(self, star_token: TokenReference) -> Self {
         Self { star_token, ..self }
+    }
+}
+
+/// A global function declaration, such as `global function f() end`.
+#[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{global_token}{function_token}{name}{body}")]
+pub struct GlobalFunction {
+    pub(crate) global_token: TokenReference,
+    pub(crate) function_token: TokenReference,
+    pub(crate) name: TokenReference,
+    pub(crate) body: Box<FunctionBody>,
+}
+
+impl GlobalFunction {
+    /// Creates a new GlobalFunction.
+    pub fn new(name: TokenReference) -> Self {
+        Self {
+            global_token: TokenReference::symbol_specific_lua_version(
+                "global ",
+                crate::LuaVersion::lua55(),
+            )
+            .unwrap(),
+            function_token: TokenReference::basic_symbol("function "),
+            name,
+            body: Box::new(FunctionBody::new()),
+        }
+    }
+    /// The `global` token.
+    pub fn global_token(&self) -> &TokenReference {
+        &self.global_token
+    }
+    /// Returns a new node with the given global token.
+    pub fn with_global_token(self, global_token: TokenReference) -> Self {
+        Self {
+            global_token,
+            ..self
+        }
+    }
+    /// The `function` token.
+    pub fn function_token(&self) -> &TokenReference {
+        &self.function_token
+    }
+    /// Returns a new node with the given function token.
+    pub fn with_function_token(self, function_token: TokenReference) -> Self {
+        Self {
+            function_token,
+            ..self
+        }
+    }
+    /// The function name.
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+    /// Returns a new node with the given name.
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
+    }
+    /// The function body.
+    pub fn body(&self) -> &FunctionBody {
+        &self.body
+    }
+    /// Returns a new node with the given body.
+    pub fn with_body(self, body: FunctionBody) -> Self {
+        Self {
+            body: Box::new(body),
+            ..self
+        }
+    }
+}
+
+/// A named vararg parameter, such as `...args`.
+#[derive(Clone, Debug, Display, PartialEq, Eq, Node, Visit)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[display("{ellipsis}{name}")]
+pub struct NamedVararg {
+    pub(crate) ellipsis: TokenReference,
+    pub(crate) name: TokenReference,
+}
+
+impl NamedVararg {
+    /// Creates a new NamedVararg.
+    pub fn new(name: TokenReference) -> Self {
+        Self {
+            ellipsis: TokenReference::basic_symbol("..."),
+            name,
+        }
+    }
+    /// The `...` token.
+    pub fn ellipsis(&self) -> &TokenReference {
+        &self.ellipsis
+    }
+    /// Returns a new node with the given ellipsis.
+    pub fn with_ellipsis(self, ellipsis: TokenReference) -> Self {
+        Self { ellipsis, ..self }
+    }
+    /// The vararg table name.
+    pub fn name(&self) -> &TokenReference {
+        &self.name
+    }
+    /// Returns a new node with the given name.
+    pub fn with_name(self, name: TokenReference) -> Self {
+        Self { name, ..self }
     }
 }

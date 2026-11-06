@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Complete Lua 5.5 syntax support with `global function` declarations and named vararg tables (`...args`), including AST nodes and visitors.
+- Report malformed local prefix declarations as parse errors instead of panicking, and fix global AST constructors panicking on the `global` keyword.
 - Added support for [Lua 5.5](https://www.lua.org/manual/5.5/), behind the `lua55` feature flag (which implies `lua54`).
   - New `global` reserved word and statement, parsed under `LuaVersion::lua55()`. Both forms from the Lua 5.5 grammar are supported:
     - `global attnamelist [= explist]` (e.g. `global x, y = 1, 2`, `global x <const>, y`)

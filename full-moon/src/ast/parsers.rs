@@ -1281,6 +1281,16 @@ fn expect_global(
     state: &mut ParserState,
     global_token: TokenReference,
 ) -> Result<ast::lua55::Global, ()> {
+    if let Some(function_token) = state.consume_if(Symbol::Function) {
+        let function =
+            expect_local_function_declaration(state, global_token.clone(), function_token)?;
+        return Ok(ast::lua55::Global::Function(ast::lua55::GlobalFunction {
+            global_token,
+            function_token: function.function_token,
+            name: function.name,
+            body: function.body,
+        }));
+    }
     let prefix_attribute = parse_optional_prefix_attribute(state);
 
     // Wildcard form: `global [attrib] *`
@@ -1367,7 +1377,11 @@ fn expect_local_assignment(
     let names = match one_or_more(state, parse_name_with_attributes, Symbol::Comma) {
         ParserResult::Value(names) => names,
         ParserResult::NotFound => {
-            unreachable!("expect_local_assignment called without upcoming identifier");
+            state.token_error(
+                local_token,
+                "expected a variable name after `local` or its attribute",
+            );
+            return Err(());
         }
         ParserResult::LexerMoved => return Err(()),
     };
@@ -2619,7 +2633,20 @@ fn parse_function_body(state: &mut ParserState) -> ParserResult<FunctionBody> {
 
             Ok(token) if token.is_symbol(Symbol::Ellipsis) => {
                 let ellipsis = state.consume().unwrap();
-                parameters.push(Pair::End(ast::Parameter::Ellipsis(ellipsis)));
+                #[cfg(feature = "lua55")]
+                let parameter = if state.lua_version().has_lua55()
+                    && matches!(state.current(), Ok(token) if token.token_kind() == TokenKind::Identifier)
+                {
+                    ast::Parameter::NamedVararg(ast::lua55::NamedVararg {
+                        ellipsis,
+                        name: state.consume().unwrap(),
+                    })
+                } else {
+                    ast::Parameter::Ellipsis(ellipsis)
+                };
+                #[cfg(not(feature = "lua55"))]
+                let parameter = ast::Parameter::Ellipsis(ellipsis);
+                parameters.push(Pair::End(parameter));
 
                 #[cfg(feature = "luau")]
                 if state.lua_version().has_luau() {

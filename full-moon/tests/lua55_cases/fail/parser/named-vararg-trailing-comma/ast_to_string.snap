@@ -1,0 +1,6 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: ast.to_string()
+input_file: full-moon/tests/lua55_cases/fail/parser/named-vararg-trailing-comma
+---
+function f(...args)end

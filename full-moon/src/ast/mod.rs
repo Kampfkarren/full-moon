@@ -1638,6 +1638,10 @@ impl fmt::Display for FunctionBody {
 pub enum Parameter {
     /// The `...` vararg syntax, such as `function x(...)`
     Ellipsis(TokenReference),
+    /// A Lua 5.5 named vararg table, such as `function f(...args)`.
+    #[cfg(feature = "lua55")]
+    #[display("{_0}")]
+    NamedVararg(lua55::NamedVararg),
     /// A name parameter, such as `function x(a, b, c)`
     Name(TokenReference),
 }

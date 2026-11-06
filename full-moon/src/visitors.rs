@@ -320,6 +320,8 @@ create_visitor!(ast: {
         visit_global => Global,
         visit_global_assignment => GlobalAssignment,
         visit_global_wildcard => GlobalWildcard,
+        visit_global_function => GlobalFunction,
+        visit_named_vararg => NamedVararg,
     }
 
     #[cfg(any(feature = "cfxlua", feature = "luau"))] {
