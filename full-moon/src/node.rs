@@ -1,7 +1,7 @@
 use crate::{
     ast::{span::ContainedSpan, Ast},
     private,
-    tokenizer::{Position, Token, TokenReference},
+    tokenizer::{Position, Token, TokenReference, TokenType},
 };
 use std::fmt;
 
@@ -23,7 +23,7 @@ pub trait Node: private::Sealed {
     /// The token references that comprise a node, in source order.
     ///
     /// A node's tokens reproduce its [`Display`](fmt::Display) output, so joining them
-    /// gives back the source.
+    /// gives back the source. [`Ast`] ends with the EOF token, holding the file's tail.
     fn tokens(&self) -> Tokens<'_>;
 
     /// The full range of a node, if it has both start and end positions
@@ -36,16 +36,33 @@ pub trait Node: private::Sealed {
     /// Returns a tuple of the leading and trailing trivia.
     fn surrounding_trivia(&self) -> (Vec<&Token>, Vec<&Token>) {
         let mut tokens = self.tokens();
-        let leading = tokens.next();
-        let trailing = tokens.next_back();
+        let first = tokens.next();
+
+        // `Ast::tokens()` ends with the EOF token, which has no trailing trivia: whatever
+        // follows the last statement is its leading trivia.
+        let mut tail = Vec::new();
+        let mut last = None;
+
+        while let Some(token) = tokens.next_back() {
+            if token.token_type() == &TokenType::Eof {
+                tail.extend(token.leading_trivia());
+            } else {
+                last = Some(token);
+                break;
+            }
+        }
 
         (
-            match leading {
+            match first {
                 Some(token) => token.leading_trivia().collect(),
                 None => Vec::new(),
             },
-            match trailing {
-                Some(token) => token.trailing_trivia().collect(),
+            match last {
+                Some(token) => {
+                    let mut trailing: Vec<&Token> = token.trailing_trivia().collect();
+                    trailing.extend(tail);
+                    trailing
+                }
                 None => Vec::new(),
             },
         )
@@ -137,7 +154,8 @@ impl Node for Ast {
     }
 
     fn tokens(&self) -> Tokens<'_> {
-        self.nodes().tokens()
+        // The EOF token carries the file's tail as leading trivia, which `Display` writes.
+        self.nodes().tokens().with_token(&self.eof)
     }
 }
 

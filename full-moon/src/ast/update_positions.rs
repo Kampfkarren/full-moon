@@ -66,6 +66,12 @@ impl VisitorMut for UpdatePositionsRewriter {
                 .collect(),
         )
     }
+
+    /// `Ast::tokens()` ends with the EOF token, so it needs a position like any other.
+    /// Left alone, it keeps the stale one it was parsed at.
+    fn visit_eof(&mut self, eof: TokenReference) -> TokenReference {
+        self.visit_token_reference(eof)
+    }
 }
 
 impl Ast {
@@ -88,8 +94,34 @@ impl Ast {
 
 #[cfg(test)]
 mod tests {
-    use crate::{node::Node, parse};
+    use crate::{
+        node::Node,
+        parse,
+        tokenizer::{Token, TokenReference, TokenType},
+        visitors::VisitorMut,
+    };
     use pretty_assertions::assert_eq;
+
+    /// Lengthens every identifier, so positions from the parsed text no longer describe it.
+    struct Lengthen;
+
+    impl VisitorMut for Lengthen {
+        fn visit_token_reference(&mut self, token: TokenReference) -> TokenReference {
+            if token.token_kind() != crate::tokenizer::TokenKind::Identifier {
+                return token;
+            }
+
+            let longer = format!("{}_longer", token.token());
+
+            TokenReference::new(
+                token.leading_trivia().cloned().collect(),
+                Token::new(TokenType::Identifier {
+                    identifier: longer.as_str().into(),
+                }),
+                token.trailing_trivia().cloned().collect(),
+            )
+        }
+    }
 
     #[test]
     fn test_update_positions_validity() {
@@ -104,6 +136,27 @@ mod tests {
             ast.tokens()
                 .map(|token| (token.start_position(), token.end_position()))
                 .collect::<Vec<_>>(),
+        );
+    }
+
+    /// The EOF position is rebuilt too: left as parsed it pointed into the old text.
+    #[test]
+    fn test_update_positions_moves_eof() {
+        let ast = Lengthen.visit_ast(parse("local x = 1 -- trailing\n").unwrap());
+        let text = ast.to_string();
+        let ast = ast.update_positions();
+
+        let eof = ast
+            .eof()
+            .start_position()
+            .expect("eof has a position")
+            .bytes();
+        assert_eq!(eof, text.len());
+
+        let last = ast.tokens().next_back().expect("tokens() is never empty");
+        assert_eq!(
+            last.start_position().expect("token has a position").bytes(),
+            text.len()
         );
     }
 }
