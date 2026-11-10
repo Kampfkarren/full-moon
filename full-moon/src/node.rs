@@ -3,7 +3,7 @@ use crate::{
     private,
     tokenizer::{Position, Token, TokenReference, TokenType},
 };
-use std::fmt;
+use std::{collections::VecDeque, fmt};
 
 /// Used to represent nodes such as tokens or function definitions
 ///
@@ -89,13 +89,14 @@ impl fmt::Debug for TokenItem<'_> {
 /// Returned by [`Node::tokens`]
 #[derive(Default)]
 pub struct Tokens<'a> {
-    pub(crate) items: Vec<TokenItem<'a>>,
+    // `VecDeque`, not `Vec`: taking from either end is O(1), which keeps iteration linear.
+    pub(crate) items: VecDeque<TokenItem<'a>>,
 }
 
 impl<'a> Tokens<'a> {
     /// This iterator with `token` appended after everything queued.
     pub(crate) fn with_token(mut self, token: &'a TokenReference) -> Self {
-        self.items.push(TokenItem::TokenReference(token));
+        self.items.push_back(TokenItem::TokenReference(token));
 
         self
     }
@@ -106,16 +107,13 @@ impl<'a> Iterator for Tokens<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if self.items.is_empty() {
-                return None;
-            }
-
-            match self.items.remove(0) {
+            match self.items.pop_front()? {
                 TokenItem::TokenReference(reference) => return Some(reference),
+                // In reverse, because `push_front` would otherwise reverse them.
                 TokenItem::MoreTokens(node) => {
-                    let mut tokens = node.tokens();
-                    tokens.items.append(&mut self.items);
-                    self.items = tokens.items;
+                    for item in node.tokens().items.into_iter().rev() {
+                        self.items.push_front(item);
+                    }
                 }
             }
         }
@@ -125,15 +123,10 @@ impl<'a> Iterator for Tokens<'a> {
 impl DoubleEndedIterator for Tokens<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         loop {
-            if self.items.is_empty() {
-                return None;
-            }
-
-            match self.items.pop()? {
+            match self.items.pop_back()? {
                 TokenItem::TokenReference(reference) => return Some(reference),
                 TokenItem::MoreTokens(node) => {
-                    let mut tokens = node.tokens();
-                    self.items.append(&mut tokens.items);
+                    self.items.extend(node.tokens().items);
                 }
             }
         }
@@ -228,7 +221,7 @@ impl Node for TokenReference {
 
     fn tokens(&self) -> Tokens<'_> {
         Tokens {
-            items: vec![TokenItem::TokenReference(self)],
+            items: VecDeque::from([TokenItem::TokenReference(self)]),
         }
     }
 }
@@ -317,7 +310,7 @@ impl<A: Node, B: Node> Node for (A, B) {
 /// It lives here, not in the derive, which would repeat it once per node.
 #[derive(Default)]
 pub(crate) struct TokenBuilder<'a> {
-    items: Vec<TokenItem<'a>>,
+    items: VecDeque<TokenItem<'a>>,
     /// Closes still owed, LIFO so spans close inside-out. Leftovers go out at the end.
     pending_closes: Vec<&'a TokenReference>,
 }
@@ -325,11 +318,11 @@ pub(crate) struct TokenBuilder<'a> {
 impl<'a> TokenBuilder<'a> {
     /// Emits `node` whole, leaving it to yield its own tokens.
     pub(crate) fn push(&mut self, node: &'a dyn Node) {
-        self.items.push(TokenItem::MoreTokens(node));
+        self.items.push_back(TokenItem::MoreTokens(node));
     }
 
     pub(crate) fn push_token(&mut self, token: &'a TokenReference) {
-        self.items.push(TokenItem::TokenReference(token));
+        self.items.push_back(TokenItem::TokenReference(token));
     }
 
     /// Emits the opening delimiter of `span`, queueing the closing one for the end.
@@ -493,5 +486,58 @@ mod tests {
 
         let tokens: String = node.tokens().map(|token| token.to_string()).collect();
         assert_eq!(tokens, "aT");
+    }
+    /// Guards against `Tokens` regressing to quadratic iteration. It used to call
+    /// `Vec::remove(0)` per token, which shifts the whole remaining queue and so allocates
+    /// nothing, and an allocation-based test would miss that.
+    ///
+    /// An absolute time bound would either pass the regression or flake on a slow machine,
+    /// so this compares the per-token cost at two input sizes eight times apart. The ratio
+    /// is a property of the algorithm, not the machine, so the limit can stay loose.
+    #[test]
+    fn token_iteration_is_linear() {
+        fn nanoseconds_per_token(lines: usize) -> f64 {
+            let source: String = (0..lines)
+                .map(|index| format!("local x{index} = f({{ a = {index}, b = \"s\" }})\n"))
+                .collect();
+
+            let ast = crate::parse(&source).unwrap();
+            let tokens = ast.tokens().count();
+
+            // Walk once outside the timing: the first large walk pays for page faults and
+            // allocator growth, which would otherwise be charged to whichever size runs first.
+            std::hint::black_box(ast.tokens().count());
+
+            let elapsed = best_of_five(|| {
+                for token in ast.tokens() {
+                    std::hint::black_box(token);
+                }
+            });
+
+            elapsed.as_nanos() as f64 / tokens as f64
+        }
+
+        let small = nanoseconds_per_token(2000);
+        let large = nanoseconds_per_token(16000);
+
+        // Linear iteration keeps this flat; quadratic grows with the input.
+        let growth = large / small.max(f64::EPSILON);
+        assert!(
+            growth < 3.0,
+            "per-token cost grew {growth:.2}x with 8x the input \
+             ({small:.0} -> {large:.0} ns/token); Tokens iteration is likely quadratic",
+        );
+    }
+
+    /// Best-of-N timing, so scheduler noise does not dominate the ratio above.
+    fn best_of_five(f: impl Fn()) -> std::time::Duration {
+        (0..5)
+            .map(|_| {
+                let start = std::time::Instant::now();
+                f();
+                start.elapsed()
+            })
+            .min()
+            .unwrap()
     }
 }
