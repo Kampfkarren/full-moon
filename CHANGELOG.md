@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- `Node::tokens()` now yields a node's tokens in source order, matching `Display`, for every node and every syntax variant (#161, #307). Nodes holding a `ContainedSpan` used to emit both delimiters before their content, so `call(a, b)` produced `call()` followed by `a, b`.
+- `Node::surrounding_trivia()` no longer drops what follows a node. It takes the first and last token of `tokens()`, so it was wrong whenever those tokens were, and a comment at the end of a file was reported as no trailing trivia at all.
+- `Ast::tokens()` now includes the EOF token, so the file's trailing trivia is no longer dropped. An empty file therefore yields one token instead of none. Code that walks `ast.tokens()` and stops at the last real token now needs to account for the EOF the same way `Ast::surrounding_trivia()` does.
+
+### Changed
+- Walking a node's tokens is now linear in the number of tokens. It was quadratic, because `Tokens` removed from the front of a `Vec` for every token, shifting the whole remaining queue each time.
+
 ## [3.0.0] - 2026-10-01
 
 ### Added

@@ -15,6 +15,9 @@ old_full_moon = { package = "full_moon", version = "0.18.1", features = [
 
 [dependencies.full_moon]
 path = ".."
+# `LuaVersion::new()` reads its bitfield from `cfg!(feature = ...)`, so without these the
+# fuzzer parses Lua 5.1 only and never reaches the version-specific syntax.
+features = ["luau", "lua52", "lua53", "lua54", "luajit", "cfxlua"]
 
 # Prevent this from interfering with workspaces
 [workspace]
