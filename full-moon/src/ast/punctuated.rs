@@ -15,7 +15,7 @@
 //! # }
 //! ```
 use crate::{
-    node::{Node, TokenItem, Tokens},
+    node::{Node, Tokens},
     private::Sealed,
     tokenizer::{Position, TokenReference},
     util,
@@ -459,12 +459,7 @@ impl<T: Node> Node for Pair<T> {
 
     fn tokens(&self) -> Tokens<'_> {
         match self {
-            Pair::Punctuated(node, separator) => {
-                let mut items = node.tokens().items;
-                items.push(TokenItem::TokenReference(separator));
-
-                Tokens { items }
-            }
+            Pair::Punctuated(node, separator) => node.tokens().with_token(separator),
 
             Pair::End(node) => node.tokens(),
         }

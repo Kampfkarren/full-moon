@@ -195,6 +195,8 @@ pub enum Field {
         /// The `[...]` part of `[expression] = value`
         brackets: ContainedSpan,
         /// The `expression` part of `[expression] = value`
+        // `Display` closes the bracket after the key, before `equal`.
+        #[node(close)]
         key: Box<Expression>,
         /// The `=` part of `[expression] = value`
         equal: TokenReference,
@@ -613,8 +615,10 @@ pub struct NumericFor {
     do_token: TokenReference,
     block: Block,
     end_token: TokenReference,
+    // `Display` puts this before the `=`, but it is declared last to keep it clear.
     #[cfg(feature = "luau")]
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[node(after = "index_variable")]
     type_specifier: Option<Box<TypeSpecifier>>,
 }
 
@@ -839,6 +843,8 @@ impl fmt::Display for NumericFor {
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct GenericFor {
     for_token: TokenReference,
+    // `Display` writes each specifier after its name, but the list is declared last.
+    #[node(interleave = "type_specifiers")]
     names: Punctuated<TokenReference>,
     in_token: TokenReference,
     expr_list: Punctuated<Expression>,
@@ -1531,6 +1537,9 @@ pub struct FunctionBody {
     generics: Option<Box<GenericDeclaration>>,
 
     parameters_parentheses: ContainedSpan,
+    // `Display` writes each specifier inside the parentheses, so `close` comes after the
+    // interleaved list.
+    #[node(close, interleave = "type_specifiers")]
     parameters: Punctuated<Parameter>,
 
     #[cfg(feature = "luau")]
@@ -1951,6 +1960,9 @@ pub struct LocalAssignment {
         serde(skip_serializing_if = "empty_optional_vector")
     )]
     type_specifiers: Vec<Option<TypeSpecifier>>,
+    // `Display` writes each name's attribute (Lua 5.4) or specifier (Luau) right after it,
+    // never as separate lists: they are two syntaxes for one position.
+    #[node(interleave = "attributes, type_specifiers")]
     name_list: Punctuated<TokenReference>,
     #[cfg(feature = "lua54")]
     #[cfg_attr(
