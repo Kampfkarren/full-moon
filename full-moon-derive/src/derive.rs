@@ -100,48 +100,33 @@ where
 }
 
 pub fn search_hint<T: Hint>(name: &str, attrs: &[syn::Attribute]) -> Option<T> {
-    macro_rules! path_ident {
-        ($path:expr) => {
-            match $path.get_ident() {
-                Some(ident) => ident,
-                None => continue,
-            }
-        };
-    }
+    search_hints(name, attrs).next()
+}
 
-    for attr in attrs {
-        let meta = match attr.parse_meta() {
-            Ok(meta) => meta,
-            Err(_) => continue,
-        };
+/// Every hint in `#[name(...)]`, in written order, since one field can carry several.
+pub fn search_hints<'a, T: Hint + 'a>(
+    name: &'a str,
+    attrs: &'a [syn::Attribute],
+) -> impl Iterator<Item = T> + 'a {
+    attrs
+        .iter()
+        .filter(move |attr| attr.path.is_ident(name))
+        .flat_map(|attr| match attr.parse_meta() {
+            Ok(syn::Meta::List(list)) => list.nested,
+            _ => syn::punctuated::Punctuated::new(),
+        })
+        .filter_map(|nested| match nested {
+            syn::NestedMeta::Meta(syn::Meta::Path(path)) => T::unit(path.get_ident()?.to_string()),
 
-        if path_ident!(meta.path()) != name {
-            continue;
-        };
+            syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => T::key_value(
+                name_value.path.get_ident()?.to_string(),
+                match name_value.lit {
+                    syn::Lit::Str(lit_str) => lit_str.value(),
 
-        if let syn::Meta::List(list) = meta {
-            for nested in list.nested {
-                match nested {
-                    syn::NestedMeta::Meta(syn::Meta::Path(path)) => {
-                        return T::unit(path_ident!(path).to_string());
-                    }
+                    other => unimplemented!("nested meta value: {:#?}", other),
+                },
+            ),
 
-                    syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
-                        return T::key_value(
-                            path_ident!(name_value.path).to_string(),
-                            match name_value.lit {
-                                syn::Lit::Str(lit_str) => lit_str.value(),
-
-                                other => unimplemented!("nested meta value: {:#?}", other),
-                            },
-                        );
-                    }
-
-                    other => unimplemented!("unknown attribute: {:#?}", other),
-                }
-            }
-        }
-    }
-
-    None
+            other => unimplemented!("unknown attribute: {:#?}", other),
+        })
 }
