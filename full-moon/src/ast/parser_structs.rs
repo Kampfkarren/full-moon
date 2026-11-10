@@ -5,9 +5,12 @@ use crate::tokenizer::{Lexer, LexerResult, Symbol, Token, TokenKind, TokenRefere
 
 use super::{parsers::parse_block, Ast, Block, LuaVersion};
 
+const MAX_RECURSION_DEPTH: usize = 64;
+
 pub struct ParserState {
     errors: Vec<crate::Error>,
     lexer: Lexer,
+    recursion_depth: usize,
     // Unused with no features enabled
     #[allow(unused)]
     lua_version: LuaVersion,
@@ -17,6 +20,7 @@ impl ParserState {
     pub fn new(lexer: Lexer) -> Self {
         Self {
             errors: Vec::new(),
+            recursion_depth: 0,
             lua_version: lexer.lua_version,
             lexer,
         }
@@ -179,6 +183,30 @@ impl ParserState {
             }
 
             Err(()) => None,
+        }
+    }
+
+    // Always inlined with a cold error path, otherwise the wrapped parsers use more stack
+    #[inline(always)]
+    pub fn recurse<T>(
+        &mut self,
+        parser: impl FnOnce(&mut Self) -> ParserResult<T>,
+    ) -> ParserResult<T> {
+        if self.recursion_depth >= MAX_RECURSION_DEPTH {
+            self.recursion_depth_error();
+            return ParserResult::LexerMoved;
+        }
+
+        self.recursion_depth += 1;
+        let result = parser(self);
+        self.recursion_depth -= 1;
+        result
+    }
+
+    #[cold]
+    fn recursion_depth_error(&mut self) {
+        if let Ok(token) = self.current() {
+            self.token_error(token.clone(), "exceeded allowed recursion depth");
         }
     }
 
