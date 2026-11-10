@@ -60,6 +60,8 @@ pub enum TypeInfo {
         /// The parentheses for the arguments.
         parentheses: ContainedSpan,
         /// The argument types: `(string, number)`.
+        // `Display` closes the parentheses before `arrow`.
+        #[node(close)]
         arguments: Punctuated<TypeArgument>,
         /// The "thin arrow" (`->`) in between the arguments and the return type.
         arrow: TokenReference,
@@ -921,6 +923,8 @@ pub struct ConstAssignment {
         serde(skip_serializing_if = "empty_optional_vector")
     )]
     pub(crate) type_specifiers: Vec<Option<TypeSpecifier>>,
+    // `Display` writes each specifier after its name, but the list is declared first.
+    #[node(interleave = "type_specifiers")]
     pub(crate) name_list: Punctuated<TokenReference>,
     pub(crate) equal_token: Option<TokenReference>,
     pub(crate) expr_list: Punctuated<Expression>,

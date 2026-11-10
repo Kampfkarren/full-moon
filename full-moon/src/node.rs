@@ -1,5 +1,5 @@
 use crate::{
-    ast::Ast,
+    ast::{span::ContainedSpan, Ast},
     private,
     tokenizer::{Position, Token, TokenReference},
 };
@@ -20,7 +20,10 @@ pub trait Node: private::Sealed {
     where
         Self: Sized;
 
-    /// The token references that comprise a node
+    /// The token references that comprise a node, in source order.
+    ///
+    /// A node's tokens reproduce its [`Display`](fmt::Display) output, so joining them
+    /// gives back the source.
     fn tokens(&self) -> Tokens<'_>;
 
     /// The full range of a node, if it has both start and end positions
@@ -72,21 +75,31 @@ pub struct Tokens<'a> {
     pub(crate) items: Vec<TokenItem<'a>>,
 }
 
+impl<'a> Tokens<'a> {
+    /// This iterator with `token` appended after everything queued.
+    pub(crate) fn with_token(mut self, token: &'a TokenReference) -> Self {
+        self.items.push(TokenItem::TokenReference(token));
+
+        self
+    }
+}
+
 impl<'a> Iterator for Tokens<'a> {
     type Item = &'a TokenReference;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.items.is_empty() {
-            return None;
-        }
+        loop {
+            if self.items.is_empty() {
+                return None;
+            }
 
-        match self.items.remove(0) {
-            TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(node) => {
-                let mut tokens = node.tokens();
-                tokens.items.append(&mut self.items);
-                self.items = tokens.items;
-                self.next()
+            match self.items.remove(0) {
+                TokenItem::TokenReference(reference) => return Some(reference),
+                TokenItem::MoreTokens(node) => {
+                    let mut tokens = node.tokens();
+                    tokens.items.append(&mut self.items);
+                    self.items = tokens.items;
+                }
             }
         }
     }
@@ -94,16 +107,17 @@ impl<'a> Iterator for Tokens<'a> {
 
 impl DoubleEndedIterator for Tokens<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.items.is_empty() {
-            return None;
-        }
+        loop {
+            if self.items.is_empty() {
+                return None;
+            }
 
-        match self.items.pop()? {
-            TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(node) => {
-                let mut tokens = node.tokens();
-                self.items.append(&mut tokens.items);
-                self.next_back()
+            match self.items.pop()? {
+                TokenItem::TokenReference(reference) => return Some(reference),
+                TokenItem::MoreTokens(node) => {
+                    let mut tokens = node.tokens();
+                    self.items.append(&mut tokens.items);
+                }
             }
         }
     }
@@ -278,5 +292,188 @@ impl<A: Node, B: Node> Node for (A, B) {
         items.append(&mut self.1.tokens().items);
 
         Tokens { items }
+    }
+}
+
+/// Builds the [`TokenItem`] list for a derived `Node::tokens`.
+/// It lives here, not in the derive, which would repeat it once per node.
+#[derive(Default)]
+pub(crate) struct TokenBuilder<'a> {
+    items: Vec<TokenItem<'a>>,
+    /// Closes still owed, LIFO so spans close inside-out. Leftovers go out at the end.
+    pending_closes: Vec<&'a TokenReference>,
+}
+
+impl<'a> TokenBuilder<'a> {
+    /// Emits `node` whole, leaving it to yield its own tokens.
+    pub(crate) fn push(&mut self, node: &'a dyn Node) {
+        self.items.push(TokenItem::MoreTokens(node));
+    }
+
+    pub(crate) fn push_token(&mut self, token: &'a TokenReference) {
+        self.items.push(TokenItem::TokenReference(token));
+    }
+
+    /// Emits the opening delimiter of `span`, queueing the closing one for the end.
+    pub(crate) fn push_open(&mut self, span: &'a ContainedSpan) {
+        let (open, close) = span.tokens();
+
+        self.push_token(open);
+        self.pending_closes.push(close);
+    }
+
+    /// Emits the closing delimiter of the most recently opened span, if one is open.
+    ///
+    /// The derive rejects a `#[node(close)]` with no span before it,
+    /// so this never runs empty from one. Doing nothing beats panicking in a user's binary.
+    pub(crate) fn close(&mut self) {
+        if let Some(close) = self.pending_closes.pop() {
+            self.push_token(close);
+        }
+    }
+
+    /// Emits each `extras` element after its value and before its comma,
+    /// as in `local a: string, b, c: number`.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    pub(crate) fn push_punctuated_with<T: Node, U: Node>(
+        &mut self,
+        punctuated: &'a crate::ast::punctuated::Punctuated<T>,
+        extras: &'a [Option<U>],
+    ) {
+        self.push_punctuated_with_two::<T, U, U>(punctuated, extras, &[]);
+    }
+
+    /// The same with two parallel `Vec`s, as `local a <const>, b: string` needs.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    pub(crate) fn push_punctuated_with_two<T: Node, U: Node, V: Node>(
+        &mut self,
+        punctuated: &'a crate::ast::punctuated::Punctuated<T>,
+        first: &'a [Option<U>],
+        second: &'a [Option<V>],
+    ) {
+        for (index, pair) in punctuated.pairs().enumerate() {
+            self.push(pair.value());
+
+            if let Some(extra) = first.get(index) {
+                self.push(extra);
+            }
+
+            if let Some(extra) = second.get(index) {
+                self.push(extra);
+            }
+
+            if let Some(punctuation) = pair.punctuation() {
+                self.push_token(punctuation);
+            }
+        }
+    }
+
+    pub(crate) fn build(mut self) -> Tokens<'a> {
+        while let Some(close) = self.pending_closes.pop() {
+            self.push_token(close);
+        }
+
+        Tokens { items: self.items }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Node;
+    use crate::{
+        ast::span::ContainedSpan,
+        tokenizer::{Token, TokenReference, TokenType},
+    };
+    use full_moon_derive::Node;
+
+    fn identifier(name: &str) -> TokenReference {
+        TokenReference::new(
+            vec![],
+            Token::new(TokenType::Identifier {
+                identifier: name.into(),
+            }),
+            vec![],
+        )
+    }
+
+    /// `middle` carries `after`, yet owns `close` and a follower.
+    /// Declared in the order `brackets, middle, tail, deep`, it still emits `(TM)D`.
+    #[derive(Node)]
+    struct Skipped {
+        #[allow(dead_code)]
+        brackets: ContainedSpan,
+        #[allow(dead_code)]
+        #[node(close, after = "tail")]
+        middle: TokenReference,
+        #[allow(dead_code)]
+        tail: TokenReference,
+        #[allow(dead_code)]
+        #[node(after = "middle")]
+        deep: TokenReference,
+    }
+
+    /// Used to lose the close, and never emit the follower at all.
+    #[test]
+    fn close_and_followers_survive_a_skipped_field() {
+        let node = Skipped {
+            brackets: ContainedSpan::new(
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
+            ),
+            middle: identifier("M"),
+            tail: identifier("T"),
+            deep: identifier("D"),
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "(TM)D");
+    }
+
+    /// A named variant's fields become locals, so `builder` would shadow the builder.
+    #[derive(Node)]
+    enum Shadowed {
+        Named {
+            #[allow(dead_code)]
+            builder: TokenReference,
+            #[allow(dead_code)]
+            tail: TokenReference,
+        },
+    }
+
+    #[test]
+    fn a_field_named_builder_does_not_shadow_the_builder() {
+        let node = Shadowed::Named {
+            builder: identifier("A"),
+            tail: identifier("B"),
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "AB");
+    }
+
+    /// A repeated name is one field; counting it twice reports a false cycle.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    #[derive(Node)]
+    struct Repeated {
+        #[allow(dead_code)]
+        #[node(interleave = "specs, specs")]
+        names: crate::ast::punctuated::Punctuated<TokenReference>,
+        #[allow(dead_code)]
+        specs: Vec<Option<TokenReference>>,
+    }
+
+    #[test]
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    fn a_repeated_interleave_name_is_not_a_cycle() {
+        let mut names = crate::ast::punctuated::Punctuated::new();
+        names.push(crate::ast::punctuated::Pair::End(identifier("a")));
+
+        let node = Repeated {
+            names,
+            specs: vec![Some(identifier("T"))],
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "aT");
     }
 }
