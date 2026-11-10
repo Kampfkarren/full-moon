@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- Fixed stack overflows when parsing deeply nested code, e.g. thousands of `(`. Nesting deeper than 64 levels now produces an "exceeded allowed recursion depth" error (#322)
+
 ## [3.0.0] - 2026-10-01
 
 ### Added
