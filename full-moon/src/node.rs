@@ -1,9 +1,9 @@
 use crate::{
-    ast::Ast,
+    ast::{span::ContainedSpan, Ast},
     private,
-    tokenizer::{Position, Token, TokenReference},
+    tokenizer::{Position, Token, TokenReference, TokenType},
 };
-use std::fmt;
+use std::{collections::VecDeque, fmt};
 
 /// Used to represent nodes such as tokens or function definitions
 ///
@@ -20,7 +20,10 @@ pub trait Node: private::Sealed {
     where
         Self: Sized;
 
-    /// The token references that comprise a node
+    /// The token references that comprise a node, in source order.
+    ///
+    /// A node's tokens reproduce its [`Display`](fmt::Display) output, so joining them
+    /// gives back the source. [`Ast`] ends with the EOF token, holding the file's tail.
     fn tokens(&self) -> Tokens<'_>;
 
     /// The full range of a node, if it has both start and end positions
@@ -33,16 +36,33 @@ pub trait Node: private::Sealed {
     /// Returns a tuple of the leading and trailing trivia.
     fn surrounding_trivia(&self) -> (Vec<&Token>, Vec<&Token>) {
         let mut tokens = self.tokens();
-        let leading = tokens.next();
-        let trailing = tokens.next_back();
+        let first = tokens.next();
+
+        // `Ast::tokens()` ends with the EOF token, which has no trailing trivia: whatever
+        // follows the last statement is its leading trivia.
+        let mut tail = Vec::new();
+        let mut last = None;
+
+        while let Some(token) = tokens.next_back() {
+            if token.token_type() == &TokenType::Eof {
+                tail.extend(token.leading_trivia());
+            } else {
+                last = Some(token);
+                break;
+            }
+        }
 
         (
-            match leading {
+            match first {
                 Some(token) => token.leading_trivia().collect(),
                 None => Vec::new(),
             },
-            match trailing {
-                Some(token) => token.trailing_trivia().collect(),
+            match last {
+                Some(token) => {
+                    let mut trailing: Vec<&Token> = token.trailing_trivia().collect();
+                    trailing.extend(tail);
+                    trailing
+                }
                 None => Vec::new(),
             },
         )
@@ -69,24 +89,32 @@ impl fmt::Debug for TokenItem<'_> {
 /// Returned by [`Node::tokens`]
 #[derive(Default)]
 pub struct Tokens<'a> {
-    pub(crate) items: Vec<TokenItem<'a>>,
+    // `VecDeque`, not `Vec`: taking from either end is O(1), which keeps iteration linear.
+    pub(crate) items: VecDeque<TokenItem<'a>>,
+}
+
+impl<'a> Tokens<'a> {
+    /// This iterator with `token` appended after everything queued.
+    pub(crate) fn with_token(mut self, token: &'a TokenReference) -> Self {
+        self.items.push_back(TokenItem::TokenReference(token));
+
+        self
+    }
 }
 
 impl<'a> Iterator for Tokens<'a> {
     type Item = &'a TokenReference;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.items.is_empty() {
-            return None;
-        }
-
-        match self.items.remove(0) {
-            TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(node) => {
-                let mut tokens = node.tokens();
-                tokens.items.append(&mut self.items);
-                self.items = tokens.items;
-                self.next()
+        loop {
+            match self.items.pop_front()? {
+                TokenItem::TokenReference(reference) => return Some(reference),
+                // In reverse, because `push_front` would otherwise reverse them.
+                TokenItem::MoreTokens(node) => {
+                    for item in node.tokens().items.into_iter().rev() {
+                        self.items.push_front(item);
+                    }
+                }
             }
         }
     }
@@ -94,16 +122,12 @@ impl<'a> Iterator for Tokens<'a> {
 
 impl DoubleEndedIterator for Tokens<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.items.is_empty() {
-            return None;
-        }
-
-        match self.items.pop()? {
-            TokenItem::TokenReference(reference) => Some(reference),
-            TokenItem::MoreTokens(node) => {
-                let mut tokens = node.tokens();
-                self.items.append(&mut tokens.items);
-                self.next_back()
+        loop {
+            match self.items.pop_back()? {
+                TokenItem::TokenReference(reference) => return Some(reference),
+                TokenItem::MoreTokens(node) => {
+                    self.items.extend(node.tokens().items);
+                }
             }
         }
     }
@@ -123,7 +147,8 @@ impl Node for Ast {
     }
 
     fn tokens(&self) -> Tokens<'_> {
-        self.nodes().tokens()
+        // The EOF token carries the file's tail as leading trivia, which `Display` writes.
+        self.nodes().tokens().with_token(&self.eof)
     }
 }
 
@@ -196,7 +221,7 @@ impl Node for TokenReference {
 
     fn tokens(&self) -> Tokens<'_> {
         Tokens {
-            items: vec![TokenItem::TokenReference(self)],
+            items: VecDeque::from([TokenItem::TokenReference(self)]),
         }
     }
 }
@@ -278,5 +303,241 @@ impl<A: Node, B: Node> Node for (A, B) {
         items.append(&mut self.1.tokens().items);
 
         Tokens { items }
+    }
+}
+
+/// Builds the [`TokenItem`] list for a derived `Node::tokens`.
+/// It lives here, not in the derive, which would repeat it once per node.
+#[derive(Default)]
+pub(crate) struct TokenBuilder<'a> {
+    items: VecDeque<TokenItem<'a>>,
+    /// Closes still owed, LIFO so spans close inside-out. Leftovers go out at the end.
+    pending_closes: Vec<&'a TokenReference>,
+}
+
+impl<'a> TokenBuilder<'a> {
+    /// Emits `node` whole, leaving it to yield its own tokens.
+    pub(crate) fn push(&mut self, node: &'a dyn Node) {
+        self.items.push_back(TokenItem::MoreTokens(node));
+    }
+
+    pub(crate) fn push_token(&mut self, token: &'a TokenReference) {
+        self.items.push_back(TokenItem::TokenReference(token));
+    }
+
+    /// Emits the opening delimiter of `span`, queueing the closing one for the end.
+    pub(crate) fn push_open(&mut self, span: &'a ContainedSpan) {
+        let (open, close) = span.tokens();
+
+        self.push_token(open);
+        self.pending_closes.push(close);
+    }
+
+    /// Emits the closing delimiter of the most recently opened span, if one is open.
+    ///
+    /// The derive rejects a `#[node(close)]` with no span before it,
+    /// so this never runs empty from one. Doing nothing beats panicking in a user's binary.
+    pub(crate) fn close(&mut self) {
+        if let Some(close) = self.pending_closes.pop() {
+            self.push_token(close);
+        }
+    }
+
+    /// Emits each `extras` element after its value and before its comma,
+    /// as in `local a: string, b, c: number`.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    pub(crate) fn push_punctuated_with<T: Node, U: Node>(
+        &mut self,
+        punctuated: &'a crate::ast::punctuated::Punctuated<T>,
+        extras: &'a [Option<U>],
+    ) {
+        self.push_punctuated_with_two::<T, U, U>(punctuated, extras, &[]);
+    }
+
+    /// The same with two parallel `Vec`s, as `local a <const>, b: string` needs.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    pub(crate) fn push_punctuated_with_two<T: Node, U: Node, V: Node>(
+        &mut self,
+        punctuated: &'a crate::ast::punctuated::Punctuated<T>,
+        first: &'a [Option<U>],
+        second: &'a [Option<V>],
+    ) {
+        for (index, pair) in punctuated.pairs().enumerate() {
+            self.push(pair.value());
+
+            if let Some(extra) = first.get(index) {
+                self.push(extra);
+            }
+
+            if let Some(extra) = second.get(index) {
+                self.push(extra);
+            }
+
+            if let Some(punctuation) = pair.punctuation() {
+                self.push_token(punctuation);
+            }
+        }
+    }
+
+    pub(crate) fn build(mut self) -> Tokens<'a> {
+        while let Some(close) = self.pending_closes.pop() {
+            self.push_token(close);
+        }
+
+        Tokens { items: self.items }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Node;
+    use crate::{
+        ast::span::ContainedSpan,
+        tokenizer::{Token, TokenReference, TokenType},
+    };
+    use full_moon_derive::Node;
+
+    fn identifier(name: &str) -> TokenReference {
+        TokenReference::new(
+            vec![],
+            Token::new(TokenType::Identifier {
+                identifier: name.into(),
+            }),
+            vec![],
+        )
+    }
+
+    /// `middle` carries `after`, yet owns `close` and a follower.
+    /// Declared in the order `brackets, middle, tail, deep`, it still emits `(TM)D`.
+    #[derive(Node)]
+    struct Skipped {
+        #[allow(dead_code)]
+        brackets: ContainedSpan,
+        #[allow(dead_code)]
+        #[node(close, after = "tail")]
+        middle: TokenReference,
+        #[allow(dead_code)]
+        tail: TokenReference,
+        #[allow(dead_code)]
+        #[node(after = "middle")]
+        deep: TokenReference,
+    }
+
+    /// Used to lose the close, and never emit the follower at all.
+    #[test]
+    fn close_and_followers_survive_a_skipped_field() {
+        let node = Skipped {
+            brackets: ContainedSpan::new(
+                TokenReference::basic_symbol("("),
+                TokenReference::basic_symbol(")"),
+            ),
+            middle: identifier("M"),
+            tail: identifier("T"),
+            deep: identifier("D"),
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "(TM)D");
+    }
+
+    /// A named variant's fields become locals, so `builder` would shadow the builder.
+    #[derive(Node)]
+    enum Shadowed {
+        Named {
+            #[allow(dead_code)]
+            builder: TokenReference,
+            #[allow(dead_code)]
+            tail: TokenReference,
+        },
+    }
+
+    #[test]
+    fn a_field_named_builder_does_not_shadow_the_builder() {
+        let node = Shadowed::Named {
+            builder: identifier("A"),
+            tail: identifier("B"),
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "AB");
+    }
+
+    /// A repeated name is one field; counting it twice reports a false cycle.
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    #[derive(Node)]
+    struct Repeated {
+        #[allow(dead_code)]
+        #[node(interleave = "specs, specs")]
+        names: crate::ast::punctuated::Punctuated<TokenReference>,
+        #[allow(dead_code)]
+        specs: Vec<Option<TokenReference>>,
+    }
+
+    #[test]
+    #[cfg(any(feature = "luau", feature = "lua54"))]
+    fn a_repeated_interleave_name_is_not_a_cycle() {
+        let mut names = crate::ast::punctuated::Punctuated::new();
+        names.push(crate::ast::punctuated::Pair::End(identifier("a")));
+
+        let node = Repeated {
+            names,
+            specs: vec![Some(identifier("T"))],
+        };
+
+        let tokens: String = node.tokens().map(|token| token.to_string()).collect();
+        assert_eq!(tokens, "aT");
+    }
+    /// Guards against `Tokens` regressing to quadratic iteration. It used to call
+    /// `Vec::remove(0)` per token, which shifts the whole remaining queue and so allocates
+    /// nothing, and an allocation-based test would miss that.
+    ///
+    /// An absolute time bound would either pass the regression or flake on a slow machine,
+    /// so this compares the per-token cost at two input sizes eight times apart. The ratio
+    /// is a property of the algorithm, not the machine, so the limit can stay loose.
+    #[test]
+    fn token_iteration_is_linear() {
+        fn nanoseconds_per_token(lines: usize) -> f64 {
+            let source: String = (0..lines)
+                .map(|index| format!("local x{index} = f({{ a = {index}, b = \"s\" }})\n"))
+                .collect();
+
+            let ast = crate::parse(&source).unwrap();
+            let tokens = ast.tokens().count();
+
+            // Walk once outside the timing: the first large walk pays for page faults and
+            // allocator growth, which would otherwise be charged to whichever size runs first.
+            std::hint::black_box(ast.tokens().count());
+
+            let elapsed = best_of_five(|| {
+                for token in ast.tokens() {
+                    std::hint::black_box(token);
+                }
+            });
+
+            elapsed.as_nanos() as f64 / tokens as f64
+        }
+
+        let small = nanoseconds_per_token(2000);
+        let large = nanoseconds_per_token(16000);
+
+        // Linear iteration keeps this flat; quadratic grows with the input.
+        let growth = large / small.max(f64::EPSILON);
+        assert!(
+            growth < 3.0,
+            "per-token cost grew {growth:.2}x with 8x the input \
+             ({small:.0} -> {large:.0} ns/token); Tokens iteration is likely quadratic",
+        );
+    }
+
+    /// Best-of-N timing, so scheduler noise does not dominate the ratio above.
+    fn best_of_five(f: impl Fn()) -> std::time::Duration {
+        (0..5)
+            .map(|_| {
+                let start = std::time::Instant::now();
+                f();
+                start.elapsed()
+            })
+            .min()
+            .unwrap()
     }
 }
