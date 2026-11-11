@@ -3227,6 +3227,18 @@ fn expect_type_table(
         {
             let left_brace = state.consume().unwrap();
             let property = state.consume().unwrap();
+
+            // The string usually names a property, as in `["key"]: T`, but it can
+            // also start a longer key type, as in `["a" | "b"]: T`.
+            let key = if state.current()?.is_symbol(Symbol::RightBracket) {
+                ast::TypeInfo::String(property)
+            } else {
+                match parse_type_suffix(state, Some(ast::TypeInfo::String(property))) {
+                    ParserResult::Value(key) => key,
+                    ParserResult::LexerMoved | ParserResult::NotFound => return Err(()),
+                }
+            };
+
             let Some(right_brace) = state.require(
                 Symbol::RightBracket,
                 "expected `]` to close `[` for type table field",
@@ -3253,7 +3265,7 @@ fn expect_type_table(
                 access,
                 key: ast::TypeFieldKey::IndexSignature {
                     brackets: ContainedSpan::new(left_brace, right_brace),
-                    inner: Box::new(ast::TypeInfo::String(property)),
+                    inner: Box::new(key),
                 },
                 colon,
                 value: Box::new(value),
