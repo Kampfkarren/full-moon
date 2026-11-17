@@ -196,3 +196,65 @@ fn test_condition_binding_visitor() {
 
     assert_eq!(visitor.names, vec!["a", "b", "c", "d"]);
 }
+
+#[test]
+#[cfg(feature = "luau")]
+#[allow(deprecated)]
+fn test_deprecated_if_condition_binding_visitor() {
+    struct BindingVisitor {
+        names: Vec<String>,
+        ended: usize,
+    }
+
+    impl Visitor for BindingVisitor {
+        fn visit_if_condition_binding(&mut self, binding: &ast::luau::IfConditionBinding) {
+            self.names.push(binding.name().token().to_string());
+        }
+
+        fn visit_if_condition_binding_end(&mut self, _binding: &ast::luau::IfConditionBinding) {
+            self.ended += 1;
+        }
+    }
+
+    let code = parse(
+        "if local a = f() then elseif const b = g() then end
+        while local c = h() do end",
+    )
+    .unwrap();
+    let mut visitor = BindingVisitor {
+        names: Vec::new(),
+        ended: 0,
+    };
+
+    visitor.visit_ast(&code);
+
+    assert_eq!(visitor.names, vec!["a", "b", "c"]);
+    assert_eq!(visitor.ended, 3);
+}
+
+#[test]
+#[cfg(feature = "luau")]
+#[allow(deprecated)]
+fn test_deprecated_if_condition_binding_visitor_mut() {
+    struct BindingRenamer;
+
+    impl VisitorMut for BindingRenamer {
+        fn visit_if_condition_binding(
+            &mut self,
+            binding: ast::luau::IfConditionBinding,
+        ) -> ast::luau::IfConditionBinding {
+            let name = binding.name().to_owned();
+            let name = name.with_token(Token::new(TokenType::Identifier {
+                identifier: format!("{}_renamed", name.token()).into(),
+            }));
+            binding.with_name(name)
+        }
+    }
+
+    let code = parse("if local a = f() then end while const b = g() do end").unwrap();
+    let code = BindingRenamer.visit_ast(code);
+    assert_eq!(
+        code.to_string(),
+        "if local a_renamed = f() then end while const b_renamed = g() do end"
+    );
+}
