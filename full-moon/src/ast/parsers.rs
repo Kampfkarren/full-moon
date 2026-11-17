@@ -1082,8 +1082,8 @@ fn expect_numeric_for_stmt(
 #[cfg(feature = "luau")]
 fn parse_condition_binding(
     state: &mut ParserState,
-    keyword: &'static str,
-) -> Result<Option<ast::IfConditionBinding>, ()> {
+    keyword: &str,
+) -> Result<Option<ast::ConditionBinding>, ()> {
     let is_binding = match state.current() {
         Ok(token) if token.is_symbol(Symbol::Local) => true,
         Ok(token)
@@ -1104,34 +1104,28 @@ fn parse_condition_binding(
         return Ok(None);
     }
 
-    let (name_error, equal_error) = match keyword {
-        "while" => (
-            "expected a variable name after `while` binding",
-            "expected `=` after `while` binding name",
-        ),
-        "if" => (
-            "expected a variable name after `if` binding",
-            "expected `=` after `if` binding name",
-        ),
-        _ => unreachable!("unexpected condition binding keyword `{keyword}`"),
-    };
-
     let local_token = state.consume().unwrap();
 
     let name = match parse_name_with_type_specifiers(state) {
         ParserResult::Value(name) => name,
         ParserResult::NotFound => {
-            state.token_error(local_token, name_error);
+            state.token_error(
+                local_token,
+                format!("expected a variable name after `{keyword}` binding"),
+            );
             return Err(());
         }
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(equal_token) = state.require(Symbol::Equal, equal_error) else {
+    let Some(equal_token) = state.require(
+        Symbol::Equal,
+        format!("expected `=` after `{keyword}` binding name"),
+    ) else {
         return Err(());
     };
 
-    Ok(Some(ast::IfConditionBinding {
+    Ok(Some(ast::ConditionBinding {
         local_token,
         name: name.name,
         type_specifier: name.type_specifier,

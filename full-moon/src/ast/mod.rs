@@ -1032,7 +1032,7 @@ pub struct If {
         feature = "serde",
         serde(default, skip_serializing_if = "Option::is_none")
     )]
-    binding: Option<IfConditionBinding>,
+    binding: Option<ConditionBinding>,
     condition: Box<Expression>,
     then_token: TokenReference,
     block: Block,
@@ -1068,7 +1068,7 @@ impl If {
     /// The binding of the if statement, `local player =` in `if local player = getPlayer() then`.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn binding(&self) -> Option<&IfConditionBinding> {
+    pub fn binding(&self) -> Option<&ConditionBinding> {
         self.binding.as_ref()
     }
 
@@ -1117,7 +1117,7 @@ impl If {
     /// Returns a new If with the given binding.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+    pub fn with_binding(self, binding: Option<ConditionBinding>) -> Self {
         Self { binding, ..self }
     }
 
@@ -1185,7 +1185,7 @@ pub struct ElseIf {
         feature = "serde",
         serde(default, skip_serializing_if = "Option::is_none")
     )]
-    binding: Option<IfConditionBinding>,
+    binding: Option<ConditionBinding>,
     condition: Expression,
     then_token: TokenReference,
     block: Block,
@@ -1212,7 +1212,7 @@ impl ElseIf {
     /// The binding of the `elseif`, `local guest =` in `elseif local guest = getGuest() then`.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn binding(&self) -> Option<&IfConditionBinding> {
+    pub fn binding(&self) -> Option<&ConditionBinding> {
         self.binding.as_ref()
     }
 
@@ -1242,7 +1242,7 @@ impl ElseIf {
     /// Returns a new ElseIf with the given binding.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+    pub fn with_binding(self, binding: Option<ConditionBinding>) -> Self {
         Self { binding, ..self }
     }
 
@@ -1288,7 +1288,7 @@ pub struct While {
         feature = "serde",
         serde(default, skip_serializing_if = "Option::is_none")
     )]
-    binding: Option<IfConditionBinding>,
+    binding: Option<ConditionBinding>,
     condition: Box<Expression>,
     do_token: TokenReference,
     block: Block,
@@ -1317,7 +1317,7 @@ impl While {
     /// The binding of the while loop, `local line =` in `while local line = reader:nextLine() do`.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn binding(&self) -> Option<&IfConditionBinding> {
+    pub fn binding(&self) -> Option<&ConditionBinding> {
         self.binding.as_ref()
     }
 
@@ -1352,7 +1352,7 @@ impl While {
     /// Returns a new While with the given binding.
     /// Only available when the "luau" feature flag is enabled.
     #[cfg(feature = "luau")]
-    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+    pub fn with_binding(self, binding: Option<ConditionBinding>) -> Self {
         Self { binding, ..self }
     }
 

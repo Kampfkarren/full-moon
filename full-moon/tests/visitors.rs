@@ -170,3 +170,29 @@ fn test_unary_visitor_regression() {
     visitor.visit_ast(&parse("local x = #{}").unwrap());
     assert!(visitor.0, "Unary operation was not visited");
 }
+
+#[test]
+#[cfg(feature = "luau")]
+fn test_condition_binding_visitor() {
+    struct BindingVisitor {
+        names: Vec<String>,
+    }
+
+    impl Visitor for BindingVisitor {
+        fn visit_condition_binding(&mut self, binding: &ast::luau::ConditionBinding) {
+            self.names.push(binding.name().token().to_string());
+        }
+    }
+
+    let code = parse(
+        "if local a = f() then elseif const b = g() then end
+        while local c = h() do end
+        local x = if local d = i() then d else nil",
+    )
+    .unwrap();
+    let mut visitor = BindingVisitor { names: Vec::new() };
+
+    visitor.visit_ast(&code);
+
+    assert_eq!(visitor.names, vec!["a", "b", "c", "d"]);
+}

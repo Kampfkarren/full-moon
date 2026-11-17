@@ -280,6 +280,7 @@ create_visitor!(ast: {
     // Types
     #[cfg(feature = "luau")] {
         visit_luau_attribute => LuauAttribute,
+        visit_condition_binding => ConditionBinding,
         visit_const_assignment => ConstAssignment,
         visit_const_function => ConstFunction,
         visit_else_if_expression => ElseIfExpression,
@@ -288,7 +289,6 @@ create_visitor!(ast: {
         visit_generic_declaration => GenericDeclaration,
         visit_generic_declaration_parameter => GenericDeclarationParameter,
         visit_generic_parameter_info => GenericParameterInfo,
-        visit_if_condition_binding => IfConditionBinding,
         visit_if_expression => IfExpression,
         visit_indexed_type_info => IndexedTypeInfo,
         visit_interpolated_string => InterpolatedString,

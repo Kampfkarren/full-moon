@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for Luau `while local` and `while const` bindings in `while` loops, e.g. `while local line = reader:nextLine() do ... end` ([Conditional Binding RFC](https://github.com/luau-lang/rfcs/pull/238)).
 
+### Changed
+- **[BREAKING CHANGE]**: Renamed `IfConditionBinding` to `ConditionBinding`, since it is now also used by `while` loops. `IfConditionBinding` is now a deprecated alias, and the visitor methods have been renamed from `visit_if_condition_binding` / `visit_if_condition_binding_end` to `visit_condition_binding` / `visit_condition_binding_end`.
+
 ## [3.0.0] - 2026-10-01
 
 ### Added

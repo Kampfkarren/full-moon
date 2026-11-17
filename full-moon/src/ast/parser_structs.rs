@@ -98,7 +98,11 @@ impl ParserState {
         }
     }
 
-    pub fn require(&mut self, symbol: Symbol, error: &'static str) -> Option<TokenReference> {
+    pub fn require(
+        &mut self,
+        symbol: Symbol,
+        error: impl Into<Cow<'static, str>>,
+    ) -> Option<TokenReference> {
         match self.current() {
             Ok(token) => {
                 if token.is_symbol(symbol) {
