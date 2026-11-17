@@ -1,0 +1,33 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.errors()
+input_file: full-moon/tests/roblox_cases/fail/parser/while_local_no_name
+---
+- AstError:
+    token:
+      start_position:
+        bytes: 6
+        line: 1
+        character: 7
+      end_position:
+        bytes: 11
+        line: 1
+        character: 12
+      token_type:
+        type: Symbol
+        symbol: local
+    additional: "expected a variable name after `while` binding"
+- AstError:
+    token:
+      start_position:
+        bytes: 12
+        line: 1
+        character: 13
+      end_position:
+        bytes: 13
+        line: 1
+        character: 14
+      token_type:
+        type: Symbol
+        symbol: "="
+    additional: "unexpected token, this needs to be a statement"

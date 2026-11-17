@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/roblox_cases/fail/parser/while_local_no_value
+---
+error[ast]: expected `=` after `while` binding name
+  ┌─ source.lua:1:15
+  │
+1 │ while local x do
+  │               ^^

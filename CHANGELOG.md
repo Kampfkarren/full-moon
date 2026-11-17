@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Added support for Luau `while local` and `while const` bindings in `while` loops, e.g. `while local line = reader:nextLine() do ... end` ([Conditional Binding RFC](https://github.com/luau-lang/rfcs/pull/238)).
+
 ## [3.0.0] - 2026-10-01
 
 ### Added

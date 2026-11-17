@@ -1135,7 +1135,8 @@ pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
 pub type CompoundOp = crate::ast::compound::CompoundOp;
 
 /// A `local` or `const` binding declared in the condition of an `if`/`elseif` statement or
-/// expression, such as `local player =` in `if local player = getPlayer() then`.
+/// expression, or of a `while` loop, such as `local player =` in
+/// `if local player = getPlayer() then`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(

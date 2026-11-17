@@ -1,0 +1,77 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/roblox_cases/fail/parser/while_const_no_value
+---
+nodes:
+  stmts:
+    - - Do:
+          do_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 14
+                line: 1
+                character: 15
+              end_position:
+                bytes: 16
+                line: 1
+                character: 17
+              token_type:
+                type: Symbol
+                symbol: do
+            trailing_trivia:
+              - start_position:
+                  bytes: 16
+                  line: 1
+                  character: 17
+                end_position:
+                  bytes: 17
+                  line: 1
+                  character: 17
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+          block:
+            stmts: []
+          end_token:
+            leading_trivia: []
+            token:
+              start_position:
+                bytes: 17
+                line: 2
+                character: 1
+              end_position:
+                bytes: 20
+                line: 2
+                character: 4
+              token_type:
+                type: Symbol
+                symbol: end
+            trailing_trivia:
+              - start_position:
+                  bytes: 20
+                  line: 2
+                  character: 4
+                end_position:
+                  bytes: 21
+                  line: 2
+                  character: 4
+                token_type:
+                  type: Whitespace
+                  characters: "\n"
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 21
+      line: 3
+      character: 1
+    end_position:
+      bytes: 21
+      line: 3
+      character: 1
+    token_type:
+      type: Eof
+  trailing_trivia: []
