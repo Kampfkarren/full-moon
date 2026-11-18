@@ -13,10 +13,10 @@ use crate::ast::luau::*;
 
 macro_rules! create_visitor {
     (ast: {
-        $($visit_name:ident => $ast_type:ident $((deprecated $deprecated_name:ident, $deprecated_note:literal, $deprecated_end_note:literal))?,)+
+        $($visit_name:ident => $ast_type:ident $((deprecated $deprecated_name:ident))?,)+
 
         $(#[$meta:meta] {
-            $($meta_visit_name:ident => $meta_ast_type:ident $((deprecated $meta_deprecated_name:ident, $meta_deprecated_note:literal, $meta_deprecated_end_note:literal))?,)+
+            $($meta_visit_name:ident => $meta_ast_type:ident $((deprecated $meta_deprecated_name:ident))?,)+
         })+
     }, token: {
         $($visit_token:ident,)+
@@ -69,10 +69,10 @@ macro_rules! create_visitor {
                     }
                     $(
                         #[allow(missing_docs)]
-                        #[deprecated(note = $deprecated_note)]
+                        #[deprecated = concat!("renamed to `", stringify!($visit_name), "`")]
                         fn $deprecated_name(&mut self, _node: &$ast_type) { }
                         #[allow(missing_docs)]
-                        #[deprecated(note = $deprecated_end_note)]
+                        #[deprecated = concat!("renamed to `", stringify!([<$visit_name _end>]), "`")]
                         fn [<$deprecated_name _end>](&mut self, _node: &$ast_type) { }
                     )?
                 )+
@@ -92,11 +92,11 @@ macro_rules! create_visitor {
                         $(
                             #[$meta]
                             #[allow(missing_docs)]
-                            #[deprecated(note = $meta_deprecated_note)]
+                            #[deprecated = concat!("renamed to `", stringify!($meta_visit_name), "`")]
                             fn $meta_deprecated_name(&mut self, _node: &$meta_ast_type) { }
                             #[$meta]
                             #[allow(missing_docs)]
-                            #[deprecated(note = $meta_deprecated_end_note)]
+                            #[deprecated = concat!("renamed to `", stringify!([<$meta_visit_name _end>]), "`")]
                             fn [<$meta_deprecated_name _end>](&mut self, _node: &$meta_ast_type) { }
                         )?
                     )+
@@ -148,13 +148,13 @@ macro_rules! create_visitor {
                     }
                     $(
                         #[allow(missing_docs)]
-                        #[deprecated(note = $deprecated_note)]
+                        #[deprecated = concat!("renamed to `", stringify!($visit_name), "`")]
                         fn $deprecated_name(&mut self, node: $ast_type) -> $ast_type {
                             node
                         }
 
                         #[allow(missing_docs)]
-                        #[deprecated(note = $deprecated_end_note)]
+                        #[deprecated = concat!("renamed to `", stringify!([<$visit_name _end>]), "`")]
                         fn [<$deprecated_name _end>](&mut self, node: $ast_type) -> $ast_type {
                             node
                         }
@@ -180,14 +180,14 @@ macro_rules! create_visitor {
                         $(
                             #[$meta]
                             #[allow(missing_docs)]
-                            #[deprecated(note = $meta_deprecated_note)]
+                            #[deprecated = concat!("renamed to `", stringify!($meta_visit_name), "`")]
                             fn $meta_deprecated_name(&mut self, node: $meta_ast_type) -> $meta_ast_type {
                                 node
                             }
 
                             #[$meta]
                             #[allow(missing_docs)]
-                            #[deprecated(note = $meta_deprecated_end_note)]
+                            #[deprecated = concat!("renamed to `", stringify!([<$meta_visit_name _end>]), "`")]
                             fn [<$meta_deprecated_name _end>](&mut self, node: $meta_ast_type) -> $meta_ast_type {
                                 node
                             }
@@ -338,7 +338,7 @@ create_visitor!(ast: {
     // Types
     #[cfg(feature = "luau")] {
         visit_luau_attribute => LuauAttribute,
-        visit_condition_binding => ConditionBinding (deprecated visit_if_condition_binding, "visit_if_condition_binding has been renamed to visit_condition_binding", "visit_if_condition_binding_end has been renamed to visit_condition_binding_end"),
+        visit_condition_binding => ConditionBinding (deprecated visit_if_condition_binding),
         visit_const_assignment => ConstAssignment,
         visit_const_function => ConstFunction,
         visit_else_if_expression => ElseIfExpression,
