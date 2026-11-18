@@ -78,7 +78,7 @@ fn expect_block_with_end(
     name: &str,
     start_for_errors: &TokenReference,
 ) -> Result<(ast::Block, TokenReference), ()> {
-    let block = match parse_block(state) {
+    let block = match state.recurse(parse_block) {
         ParserResult::Value(block) => block,
         ParserResult::NotFound => unreachable!("parse_block should always return a value"),
         ParserResult::LexerMoved => return Err(()),
@@ -1144,7 +1144,7 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         return Err(());
     };
 
-    let then_block = match parse_block(state) {
+    let then_block = match state.recurse(parse_block) {
         ParserResult::Value(block) => block,
         ParserResult::NotFound => {
             state.token_error(then_token, "expected block after `then`");
@@ -1203,7 +1203,7 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
             return unfinished_if(condition, else_if);
         };
 
-        let then_block = match parse_block(state) {
+        let then_block = match state.recurse(parse_block) {
             ParserResult::Value(block) => block,
             ParserResult::NotFound => {
                 state.token_error(then_token, "expected block after `then`");
@@ -1225,7 +1225,7 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
     }
 
     let (else_block, else_token) = match state.consume_if(Symbol::Else) {
-        Some(else_token) => match parse_block(state) {
+        Some(else_token) => match state.recurse(parse_block) {
             ParserResult::Value(block) => (Some(block), Some(else_token)),
             ParserResult::NotFound => {
                 state.token_error(else_token.clone(), "expected block after `else`");
@@ -1676,7 +1676,7 @@ fn expect_repeat_stmt(
     state: &mut ParserState,
     repeat_token: TokenReference,
 ) -> Result<ast::Stmt, ()> {
-    let block = match parse_block(state) {
+    let block = match state.recurse(parse_block) {
         ParserResult::Value(block) => block,
 
         ParserResult::NotFound => {
@@ -2132,7 +2132,7 @@ fn parse_prefix_and_suffixes(
 }
 
 fn parse_expression(state: &mut ParserState) -> ParserResult<Expression> {
-    let primary_expression = match parse_primary_expression(state) {
+    let primary_expression = match state.recurse(parse_primary_expression) {
         ParserResult::Value(expression) => expression,
         ParserResult::NotFound => return ParserResult::NotFound,
         ParserResult::LexerMoved => return ParserResult::LexerMoved,
@@ -2354,7 +2354,7 @@ fn parse_expression_with_precedence(
 
         let bin_op = ast::BinOp::consume(state).unwrap();
 
-        let mut rhs = match parse_primary_expression(state) {
+        let mut rhs = match state.recurse(parse_primary_expression) {
             ParserResult::Value(expression) => expression,
             ParserResult::NotFound => {
                 state.token_error(
@@ -2384,7 +2384,9 @@ fn parse_expression_with_precedence(
                 break;
             }
 
-            rhs = match parse_expression_with_precedence(state, rhs, precedence_to_search) {
+            rhs = match state
+                .recurse(|state| parse_expression_with_precedence(state, rhs, precedence_to_search))
+            {
                 ParserResult::Value(expression) => expression,
                 ParserResult::NotFound => {
                     state.token_error(
@@ -2424,7 +2426,7 @@ fn parse_unary_expression(
         _ => unreachable!(),
     };
 
-    let primary_expression = match parse_primary_expression(state) {
+    let primary_expression = match state.recurse(parse_primary_expression) {
         ParserResult::Value(expression) => expression,
         ParserResult::NotFound => {
             state.token_error(
@@ -2847,7 +2849,8 @@ fn parse_type(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
     {
         parse_type_suffix(state, None)
     } else {
-        let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::Default)
+        let ParserResult::Value(simple_type) =
+            state.recurse(|state| parse_simple_type(state, SimpleTypeStyle::Default))
         else {
             return ParserResult::LexerMoved;
         };
@@ -2868,7 +2871,8 @@ fn parse_type_or_pack(state: &mut ParserState) -> ParserResult<ast::TypeInfo> {
         return parse_type_suffix(state, None);
     }
 
-    let ParserResult::Value(simple_type) = parse_simple_type(state, SimpleTypeStyle::AllowPack)
+    let ParserResult::Value(simple_type) =
+        state.recurse(|state| parse_simple_type(state, SimpleTypeStyle::AllowPack))
     else {
         return ParserResult::LexerMoved;
     };
@@ -3105,7 +3109,8 @@ fn parse_type_suffix(
         let type_info = if current_type.is_some() {
             current_type.take().unwrap()
         } else {
-            let ParserResult::Value(type_info) = parse_simple_type(state, SimpleTypeStyle::Default)
+            let ParserResult::Value(type_info) =
+                state.recurse(|state| parse_simple_type(state, SimpleTypeStyle::Default))
             else {
                 return ParserResult::LexerMoved;
             };
