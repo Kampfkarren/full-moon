@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- Luau: fixed table type indexers whose key type starts with a string literal not parsing, e.g. `{ ["Started" | "Ended"]: () -> () }`
+
 ## [3.0.0] - 2026-10-01
 
 ### Added
