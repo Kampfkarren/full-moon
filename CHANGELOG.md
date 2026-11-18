@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed stack overflows when parsing deeply nested code, e.g. thousands of `(`. Nesting deeper than 64 levels now produces an "exceeded allowed recursion depth" error (#322)
+- Luau: fixed table type indexers whose key type starts with a string literal not parsing, e.g. `{ ["Started" | "Ended"]: () -> () }`
 
 ## [3.0.0] - 2026-10-01
 
