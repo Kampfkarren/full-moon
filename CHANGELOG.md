@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed `IfConditionBinding` to `ConditionBinding`, since it is now also used by `while` loops. `IfConditionBinding` is now a deprecated alias, and the visitor methods have been renamed from `visit_if_condition_binding` / `visit_if_condition_binding_end` to `visit_condition_binding` / `visit_condition_binding_end`. Overriding the old visitor methods still works, but they are deprecated.
 
+### Fixed
+- Fixed stack overflows when parsing deeply nested code, e.g. thousands of `(`. Nesting deeper than 64 levels now produces an "exceeded allowed recursion depth" error (#322)
+- Luau: fixed table type indexers whose key type starts with a string literal not parsing, e.g. `{ ["Started" | "Ended"]: () -> () }`
+
 ## [3.0.0] - 2026-10-01
 
 ### Added
