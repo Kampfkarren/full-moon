@@ -1080,9 +1080,10 @@ fn expect_numeric_for_stmt(
 }
 
 #[cfg(feature = "luau")]
-fn parse_if_condition_binding(
+fn parse_condition_binding(
     state: &mut ParserState,
-) -> Result<Option<ast::IfConditionBinding>, ()> {
+    keyword: &str,
+) -> Result<Option<ast::ConditionBinding>, ()> {
     let is_binding = match state.current() {
         Ok(token) if token.is_symbol(Symbol::Local) => true,
         Ok(token)
@@ -1108,18 +1109,23 @@ fn parse_if_condition_binding(
     let name = match parse_name_with_type_specifiers(state) {
         ParserResult::Value(name) => name,
         ParserResult::NotFound => {
-            state.token_error(local_token, "expected a variable name after `if` binding");
+            state.token_error(
+                local_token,
+                format!("expected a variable name after `{keyword}` binding"),
+            );
             return Err(());
         }
         ParserResult::LexerMoved => return Err(()),
     };
 
-    let Some(equal_token) = state.require(Symbol::Equal, "expected `=` after `if` binding name")
-    else {
+    let Some(equal_token) = state.require(
+        Symbol::Equal,
+        format!("expected `=` after `{keyword}` binding name"),
+    ) else {
         return Err(());
     };
 
-    Ok(Some(ast::IfConditionBinding {
+    Ok(Some(ast::ConditionBinding {
         local_token,
         name: name.name,
         type_specifier: name.type_specifier,
@@ -1129,7 +1135,7 @@ fn parse_if_condition_binding(
 
 fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<ast::If, ()> {
     #[cfg(feature = "luau")]
-    let binding = parse_if_condition_binding(state)?;
+    let binding = parse_condition_binding(state, "if")?;
 
     let condition = match parse_expression(state) {
         ParserResult::Value(condition) => condition,
@@ -1182,7 +1188,7 @@ fn expect_if_stmt(state: &mut ParserState, if_token: TokenReference) -> Result<a
         };
 
         #[cfg(feature = "luau")]
-        let else_if_binding = match parse_if_condition_binding(state) {
+        let else_if_binding = match parse_condition_binding(state, "if") {
             Ok(binding) => binding,
             Err(()) => return unfinished_if(condition, else_if),
         };
@@ -1719,6 +1725,9 @@ fn expect_while_stmt(
     state: &mut ParserState,
     while_token: TokenReference,
 ) -> Result<ast::While, ()> {
+    #[cfg(feature = "luau")]
+    let binding = parse_condition_binding(state, "while")?;
+
     let condition = match parse_expression(state) {
         ParserResult::Value(expression) => expression,
 
@@ -1747,6 +1756,8 @@ fn expect_while_stmt(
 
     Ok(ast::While {
         while_token,
+        #[cfg(feature = "luau")]
+        binding,
         condition: Box::new(condition),
         do_token,
         block,
@@ -2675,7 +2686,7 @@ fn expect_if_else_expression(
     state: &mut ParserState,
     if_token: TokenReference,
 ) -> Result<ast::IfExpression, ()> {
-    let binding = parse_if_condition_binding(state)?;
+    let binding = parse_condition_binding(state, "if")?;
 
     let ParserResult::Value(condition) = parse_expression(state) else {
         return Err(());
@@ -2691,7 +2702,7 @@ fn expect_if_else_expression(
 
     let mut else_if_expressions = Vec::new();
     while let Some(else_if_token) = state.consume_if(Symbol::ElseIf) {
-        let else_if_binding = parse_if_condition_binding(state)?;
+        let else_if_binding = parse_condition_binding(state, "if")?;
 
         let ParserResult::Value(condition) = parse_expression(state) else {
             return Err(());
