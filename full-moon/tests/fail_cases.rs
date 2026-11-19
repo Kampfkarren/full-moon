@@ -137,6 +137,13 @@ fn test_lua54_parser_fail_cases() {
 }
 
 #[test]
+#[cfg(feature = "lua55")]
+#[cfg_attr(feature = "no-source-tests", ignore)]
+fn test_lua55_parser_fail_cases() {
+    run_parser_fail_cases("./tests/lua55_cases/fail/parser", LuaVersion::lua55());
+}
+
+#[test]
 #[cfg(feature = "cfxlua")]
 #[cfg_attr(feature = "no-source-tests", ignore)]
 fn test_cfxlua_parser_fail_cases() {
