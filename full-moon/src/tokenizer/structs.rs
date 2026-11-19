@@ -142,6 +142,8 @@ symbol! {
         [cfxlua] AmpersandEqual => "&=",
         [cfxlua] PipeEqual => "|=",
         [cfxlua] QuestionMarkDot => "?.",
+        [cfxlua] QuestionMarkLeftBracket => "?[",
+        [cfxlua] QuestionMarkLeftParen => "?(",
 
         Caret => "^",
         Colon => ":",
