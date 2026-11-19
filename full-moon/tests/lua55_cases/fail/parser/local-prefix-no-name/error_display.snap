@@ -1,0 +1,10 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: "String::from_utf8(output.into_inner()).unwrap()"
+input_file: full-moon/tests/lua55_cases/fail/parser/local-prefix-no-name
+---
+error[ast]: expected a variable name after `local` or its attribute
+  ┌─ source.lua:1:1
+  │
+1 │ local <const>
+  │ ^^^^^

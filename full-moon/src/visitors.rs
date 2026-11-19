@@ -8,6 +8,8 @@ use crate::{
 use crate::ast::lua52::*;
 #[cfg(feature = "lua54")]
 use crate::ast::lua54::*;
+#[cfg(feature = "lua55")]
+use crate::ast::lua55::*;
 #[cfg(feature = "luau")]
 use crate::ast::luau::*;
 
@@ -313,6 +315,14 @@ create_visitor!(ast: {
 
     #[cfg(feature = "lua54")] {
         visit_attribute => Attribute,
+    }
+
+    #[cfg(feature = "lua55")] {
+        visit_global => Global,
+        visit_global_assignment => GlobalAssignment,
+        visit_global_wildcard => GlobalWildcard,
+        visit_global_function => GlobalFunction,
+        visit_named_vararg => NamedVararg,
     }
 
     #[cfg(any(feature = "cfxlua", feature = "luau"))] {
