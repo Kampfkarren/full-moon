@@ -95,11 +95,13 @@ impl DeriveGenerator for VisitGenerator {
         let input_ident = &input.ident;
         let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-        let (visit_self, visit_self_end) = match search_hint("visit", &input.attrs) {
-            Some(VisitHint::SkipVisitSelf) => (quote! {}, quote! {}),
+        let (visit_self, visit_self_end, replace_check) = match search_hint("visit", &input.attrs) {
+            Some(VisitHint::SkipVisitSelf) => (quote! {}, quote! {}, quote! {}),
             Some(VisitHint::VisitAs(visit_as)) => {
                 let visit_as_end =
                     syn::Ident::new(&format!("visit_{visit_as}_end"), input_ident.span());
+                let replace_name =
+                    syn::Ident::new(&format!("replace_{visit_as}"), input_ident.span());
                 let visit_as = syn::Ident::new(&format!("visit_{visit_as}"), input_ident.span());
 
                 (
@@ -108,6 +110,11 @@ impl DeriveGenerator for VisitGenerator {
                     },
                     quote! {
                         visit_self!(#visit_as_end);
+                    },
+                    quote! {
+                        if let Some(__replace_result) = visitor.#replace_name(&self) {
+                            return __replace_result;
+                        }
                     },
                 )
             }
@@ -123,12 +130,22 @@ impl DeriveGenerator for VisitGenerator {
                     input_ident.span(),
                 );
 
+                let replace_name = syn::Ident::new(
+                    &format!("replace_{}", snake_case(&input_ident.to_string())),
+                    input_ident.span(),
+                );
+
                 (
                     quote! {
                         visit_self!(#ssself);
                     },
                     quote! {
                         visit_self!(#ssself_end);
+                    },
+                    quote! {
+                        if let Some(__replace_result) = visitor.#replace_name(&self) {
+                            return __replace_result;
+                        }
                     },
                 )
             }
@@ -197,6 +214,7 @@ impl DeriveGenerator for VisitGenerator {
                         }
                     }
 
+                    #replace_check
                     #visit_self
                     #tokens
                     #visit_self_end
