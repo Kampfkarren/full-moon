@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, DeriveInput};
+use syn::punctuated::Punctuated;
+use syn::{parse_macro_input, DeriveInput, Meta, Token};
 
 pub trait DeriveGenerator: EnumGenerator + StructGenerator {
     fn complete(input: &syn::DeriveInput, tokens: TokenStream) -> TokenStream;
@@ -110,27 +111,25 @@ pub fn search_hint<T: Hint>(name: &str, attrs: &[syn::Attribute]) -> Option<T> {
     }
 
     for attr in attrs {
-        let meta = match attr.parse_meta() {
-            Ok(meta) => meta,
-            Err(_) => continue,
-        };
-
-        if path_ident!(meta.path()) != name {
+        if !attr.path().is_ident(name) {
             continue;
-        };
+        }
 
-        if let syn::Meta::List(list) = meta {
-            for nested in list.nested {
-                match nested {
-                    syn::NestedMeta::Meta(syn::Meta::Path(path)) => {
+        if let Ok(nested) = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated) {
+            for nested_meta in nested {
+                match nested_meta {
+                    Meta::Path(path) => {
                         return T::unit(path_ident!(path).to_string());
                     }
 
-                    syn::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
+                    Meta::NameValue(name_value) => {
                         return T::key_value(
                             path_ident!(name_value.path).to_string(),
-                            match name_value.lit {
-                                syn::Lit::Str(lit_str) => lit_str.value(),
+                            match name_value.value {
+                                syn::Expr::Lit(syn::ExprLit {
+                                    lit: syn::Lit::Str(lit_str),
+                                    ..
+                                }) => lit_str.value(),
 
                                 other => unimplemented!("nested meta value: {:#?}", other),
                             },
