@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed stack overflows when parsing deeply nested code, e.g. thousands of `(`. Nesting deeper than 64 levels now produces an "exceeded allowed recursion depth" error (#322)
 - Luau: fixed table type indexers whose key type starts with a string literal not parsing, e.g. `{ ["Started" | "Ended"]: () -> () }`
+- `Node::tokens()` now yields a node's tokens in source order, matching `Display` (#161, #307). Nodes holding a `ContainedSpan` used to emit both delimiters back to back, so `call(a, b)` produced `call()` followed by `a, b`. `Node::surrounding_trivia()` read the first and last of those tokens, so it inherited the same misordering.
 
 ## [3.0.0] - 2026-10-01
 
