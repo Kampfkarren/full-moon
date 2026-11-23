@@ -1135,7 +1135,8 @@ pub type CompoundAssignment = crate::ast::compound::CompoundAssignment;
 pub type CompoundOp = crate::ast::compound::CompoundOp;
 
 /// A `local` or `const` binding declared in the condition of an `if`/`elseif` statement or
-/// expression, such as `local player =` in `if local player = getPlayer() then`.
+/// expression, or of a `while` loop, such as `local player =` in
+/// `if local player = getPlayer() then`.
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[display(
@@ -1145,7 +1146,7 @@ pub type CompoundOp = crate::ast::compound::CompoundOp;
     display_option(type_specifier),
     equal_token
 )]
-pub struct IfConditionBinding {
+pub struct ConditionBinding {
     pub(crate) local_token: TokenReference,
     pub(crate) name: TokenReference,
     #[cfg_attr(
@@ -1156,8 +1157,8 @@ pub struct IfConditionBinding {
     pub(crate) equal_token: TokenReference,
 }
 
-impl IfConditionBinding {
-    /// Creates a new IfConditionBinding from the given name
+impl ConditionBinding {
+    /// Creates a new ConditionBinding from the given name
     pub fn new(name: TokenReference) -> Self {
         Self {
             local_token: TokenReference::basic_symbol("local "),
@@ -1187,7 +1188,7 @@ impl IfConditionBinding {
         &self.equal_token
     }
 
-    /// Returns a new IfConditionBinding with the given `local` (or `const`) token
+    /// Returns a new ConditionBinding with the given `local` (or `const`) token
     pub fn with_local_token(self, local_token: TokenReference) -> Self {
         Self {
             local_token,
@@ -1195,12 +1196,12 @@ impl IfConditionBinding {
         }
     }
 
-    /// Returns a new IfConditionBinding with the given name
+    /// Returns a new ConditionBinding with the given name
     pub fn with_name(self, name: TokenReference) -> Self {
         Self { name, ..self }
     }
 
-    /// Returns a new IfConditionBinding with the given type specifier
+    /// Returns a new ConditionBinding with the given type specifier
     pub fn with_type_specifier(self, type_specifier: Option<TypeSpecifier>) -> Self {
         Self {
             type_specifier,
@@ -1208,7 +1209,7 @@ impl IfConditionBinding {
         }
     }
 
-    /// Returns a new IfConditionBinding with the given `=` token
+    /// Returns a new ConditionBinding with the given `=` token
     pub fn with_equal_token(self, equal_token: TokenReference) -> Self {
         Self {
             equal_token,
@@ -1216,6 +1217,11 @@ impl IfConditionBinding {
         }
     }
 }
+
+/// A `local` or `const` binding in the condition of an `if`/`elseif` statement or expression.
+/// This has been renamed to [`ConditionBinding`] since `while` loops make use of it as well.
+#[deprecated(note = "IfConditionBinding has been renamed to ConditionBinding")]
+pub type IfConditionBinding = ConditionBinding;
 
 /// An if statement
 #[derive(Clone, Debug, Display, PartialEq, Node, Visit)]
@@ -1237,7 +1243,7 @@ pub struct IfExpression {
         feature = "serde",
         serde(default, skip_serializing_if = "Option::is_none")
     )]
-    pub(crate) binding: Option<IfConditionBinding>,
+    pub(crate) binding: Option<ConditionBinding>,
     pub(crate) condition: Box<Expression>,
     pub(crate) then_token: TokenReference,
     pub(crate) if_expression: Box<Expression>,
@@ -1271,7 +1277,7 @@ impl IfExpression {
     }
 
     /// The binding of the if expression, `local player =` in `if local player = getPlayer() then`
-    pub fn binding(&self) -> Option<&IfConditionBinding> {
+    pub fn binding(&self) -> Option<&ConditionBinding> {
         self.binding.as_ref()
     }
 
@@ -1312,7 +1318,7 @@ impl IfExpression {
     }
 
     /// Returns a new IfExpression with the given binding
-    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+    pub fn with_binding(self, binding: Option<ConditionBinding>) -> Self {
         Self { binding, ..self }
     }
 
@@ -1376,7 +1382,7 @@ pub struct ElseIfExpression {
         feature = "serde",
         serde(default, skip_serializing_if = "Option::is_none")
     )]
-    pub(crate) binding: Option<IfConditionBinding>,
+    pub(crate) binding: Option<ConditionBinding>,
     pub(crate) condition: Box<Expression>,
     pub(crate) then_token: TokenReference,
     pub(crate) expression: Box<Expression>,
@@ -1400,7 +1406,7 @@ impl ElseIfExpression {
     }
 
     /// The binding of the `elseif`, `local guest =` in `elseif local guest = getGuest() then`
-    pub fn binding(&self) -> Option<&IfConditionBinding> {
+    pub fn binding(&self) -> Option<&ConditionBinding> {
         self.binding.as_ref()
     }
 
@@ -1428,7 +1434,7 @@ impl ElseIfExpression {
     }
 
     /// Returns a new ElseIfExpression with the given binding
-    pub fn with_binding(self, binding: Option<IfConditionBinding>) -> Self {
+    pub fn with_binding(self, binding: Option<ConditionBinding>) -> Self {
         Self { binding, ..self }
     }
 
