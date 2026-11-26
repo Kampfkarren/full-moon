@@ -1,0 +1,86 @@
+---
+source: full-moon/tests/fail_cases.rs
+expression: result.ast()
+input_file: full-moon/tests/lua55_cases/fail/parser/global-function-method
+---
+nodes:
+  stmts:
+    - - FunctionCall:
+          prefix:
+            Name:
+              leading_trivia: []
+              token:
+                start_position:
+                  bytes: 18
+                  line: 1
+                  character: 19
+                end_position:
+                  bytes: 19
+                  line: 1
+                  character: 20
+                token_type:
+                  type: Identifier
+                  identifier: f
+              trailing_trivia: []
+          suffixes:
+            - Call:
+                AnonymousCall:
+                  Parentheses:
+                    parentheses:
+                      tokens:
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 19
+                              line: 1
+                              character: 20
+                            end_position:
+                              bytes: 20
+                              line: 1
+                              character: 21
+                            token_type:
+                              type: Symbol
+                              symbol: (
+                          trailing_trivia: []
+                        - leading_trivia: []
+                          token:
+                            start_position:
+                              bytes: 20
+                              line: 1
+                              character: 21
+                            end_position:
+                              bytes: 21
+                              line: 1
+                              character: 22
+                            token_type:
+                              type: Symbol
+                              symbol: )
+                          trailing_trivia:
+                            - start_position:
+                                bytes: 21
+                                line: 1
+                                character: 22
+                              end_position:
+                                bytes: 22
+                                line: 1
+                                character: 23
+                              token_type:
+                                type: Whitespace
+                                characters: " "
+                    arguments:
+                      pairs: []
+      - ~
+eof:
+  leading_trivia: []
+  token:
+    start_position:
+      bytes: 26
+      line: 2
+      character: 1
+    end_position:
+      bytes: 26
+      line: 2
+      character: 1
+    token_type:
+      type: Eof
+  trailing_trivia: []
