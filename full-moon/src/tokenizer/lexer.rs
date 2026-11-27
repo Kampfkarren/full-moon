@@ -936,6 +936,22 @@ impl Lexer {
                 },
             ),
 
+            #[cfg(feature = "cfxlua")]
+            '?' if self.lua_version.has_cfxlua() && self.source.consume('[') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::QuestionMarkLeftBracket,
+                },
+            ),
+
+            #[cfg(feature = "cfxlua")]
+            '?' if self.lua_version.has_cfxlua() && self.source.consume('(') => self.create(
+                start_position,
+                TokenType::Symbol {
+                    symbol: Symbol::QuestionMarkLeftParen,
+                },
+            ),
+
             // Now fall back to the plain operators
             #[cfg(any(feature = "lua53", feature = "luau"))]
             '&' if self.lua_version.has_lua53() || self.lua_version.has_luau() => self.create(
